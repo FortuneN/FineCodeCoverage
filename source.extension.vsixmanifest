@@ -17,7 +17,7 @@
         <License>LICENSE</License>
         <Icon>Resources/logo-90-90.png</Icon>
         <PreviewImage>Resources/preview-subject.png</PreviewImage>
-        <Tags>visual studio, code coverage, c#, vb, .net, coverlet</Tags>
+        <Tags>visual studio, code coverage, c#, vb, .net, coverlet, unit test</Tags>
     </Metadata>
     <Installation>
         <InstallationTarget Version="[15.0,17.0]" Id="Microsoft.VisualStudio.Pro" />

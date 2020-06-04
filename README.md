@@ -8,13 +8,7 @@ or get the [CI build](http://vsixgallery.com/extension/fcc-339fe606-9d51-4fca-89
 
 ---------------------------------------
 
-Highlight code coverage
-
 See the [change log](CHANGELOG.md) for changes and road map.
-
-## Features
-
-- Highlight code coverage in the margin on a source file
 
 ### Highlight code coverage
 Run a/some unit test(s)
