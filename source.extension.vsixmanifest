@@ -10,29 +10,29 @@
 //
 //***************************************************************************-->
 <PackageManifest Version="2.0.0" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011">
-  <Metadata>
-    <Identity Id="339fe606-9d51-4fca-895c-d50375137b62" Version="1.0.0" Language="en-US" Publisher="Fortune Ngwenya" />
-    <DisplayName>Fine Code Coverage</DisplayName>
-    <Description xml:space="preserve">Highlight code coverage</Description>
-    <License>LICENSE</License>
-    <Icon>logo-90-90.png</Icon>
-    <PreviewImage>preview-subject.png</PreviewImage>
-    <Tags>visual studio, code coverage, c#, vb, .net, coverlet</Tags>
-  </Metadata>
-  <Installation>
-    <InstallationTarget Version="[15.0,17.0]" Id="Microsoft.VisualStudio.Pro" />
-    <InstallationTarget Version="[15.0,17.0]" Id="Microsoft.VisualStudio.Community" />
-    <InstallationTarget Version="[15.0,17.0]" Id="Microsoft.VisualStudio.Enterprise" />
-  </Installation>
-  <Dependencies>
-    <Dependency Id="Microsoft.Framework.NDP" DisplayName="Microsoft .NET Framework" d:Source="Manual" Version="4.5" />
-  </Dependencies>
-  <Assets>
-    <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="%CurrentProject%" Path="|%CurrentProject%|" />
-    <Asset Type="Microsoft.VisualStudio.ItemTemplate" d:Source="File" Path="ItemTemplates" d:TargetPath="ItemTemplates\coverlet.console.zip" />
-    <Asset Type="Microsoft.VisualStudio.ItemTemplate" d:Source="File" Path="ItemTemplates" d:TargetPath="ItemTemplates\synctool.zip" />
-  </Assets>
-  <Prerequisites>
-    <Prerequisite Id="Microsoft.VisualStudio.Component.CoreEditor" Version="[15.0, 17.0]" DisplayName="Visual Studio core editor" />
-  </Prerequisites>
+    <Metadata>
+        <Identity Id="fcc-f339fe606-9d51-4fca-895c-d50375137b62" Version="1.0.0" Language="en-US" Publisher="Fortune Ngwenya" />
+        <DisplayName>Fine Code Coverage</DisplayName>
+        <Description xml:space="preserve">Highlight code coverage</Description>
+        <License>LICENSE</License>
+        <Icon>logo-90-90.png</Icon>
+        <PreviewImage>preview-subject.png</PreviewImage>
+        <Tags>visual studio, code coverage, c#, vb, .net, coverlet</Tags>
+    </Metadata>
+    <Installation>
+        <InstallationTarget Version="[15.0,17.0]" Id="Microsoft.VisualStudio.Pro" />
+        <InstallationTarget Version="[15.0,17.0]" Id="Microsoft.VisualStudio.Community" />
+        <InstallationTarget Version="[15.0,17.0]" Id="Microsoft.VisualStudio.Enterprise" />
+    </Installation>
+    <Dependencies>
+        <Dependency Id="Microsoft.Framework.NDP" DisplayName="Microsoft .NET Framework" d:Source="Manual" Version="4.5" />
+    </Dependencies>
+    <Assets>
+        <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="%CurrentProject%" Path="|%CurrentProject%|" />
+        <Asset Type="Microsoft.VisualStudio.ItemTemplate" d:Source="File" Path="ItemTemplates" d:TargetPath="ItemTemplates\coverlet.console.zip" />
+        <Asset Type="Microsoft.VisualStudio.ItemTemplate" d:Source="File" Path="ItemTemplates" d:TargetPath="ItemTemplates\synctool.zip" />
+    </Assets>
+    <Prerequisites>
+        <Prerequisite Id="Microsoft.VisualStudio.Component.CoreEditor" Version="[15.0, 17.0]" DisplayName="Visual Studio core editor" />
+    </Prerequisites>
 </PackageManifest>
