@@ -142,6 +142,7 @@ namespace FineCodeCoverage.Impl
 						FileName = "dotnet",
 						CreateNoWindow = true,
 						UseShellExecute = false,
+						RedirectStandardError = true,
 						RedirectStandardOutput = true,
 						WindowStyle = ProcessWindowStyle.Hidden,
 						Arguments = $"\"{SyncDllPath}\" sync \"{buildFolder}\" \"{coverageFolder}\" --silent",
@@ -151,7 +152,9 @@ namespace FineCodeCoverage.Impl
 
 					if (syncProcess.ExitCode != 0)
 					{
-						throw new Exception(syncProcess.StandardOutput.ReadToEnd());
+						var output = syncProcess.StandardOutput.ReadToEnd();
+						if (string.IsNullOrWhiteSpace(output)) output = syncProcess.StandardError.ReadToEnd();
+						throw new Exception(output);
 					}
 
 					// coverage process
@@ -161,8 +164,8 @@ namespace FineCodeCoverage.Impl
 						FileName = "dotnet",
 						CreateNoWindow = true,
 						UseShellExecute = false,
+						RedirectStandardError = true,
 						RedirectStandardOutput = true,
-						WorkingDirectory = coverageFolder,
 						WindowStyle = ProcessWindowStyle.Hidden,
 						Arguments = $"\"{CoverletDllPath}\" \"{testDllFileInCoverageFolder}\" --include-test-assembly --format json --target dotnet --output \"{coverageFile}\" --targetargs \"test \"\"{testDllFileInCoverageFolder}\"\" --no-build\"",
 					});
@@ -171,7 +174,9 @@ namespace FineCodeCoverage.Impl
 
 					if (coverageProcess.ExitCode != 0)
 					{
-						throw new Exception(coverageProcess.StandardOutput.ReadToEnd());
+						var output = coverageProcess.StandardOutput.ReadToEnd();
+						if (string.IsNullOrWhiteSpace(output)) output = coverageProcess.StandardError.ReadToEnd();
+						throw new Exception(output);
 					}
 
 					// reload
