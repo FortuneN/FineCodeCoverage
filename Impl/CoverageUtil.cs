@@ -36,7 +36,7 @@ namespace FineCodeCoverage.Impl
 			SyncDllPath = Path.Combine(itemTemplatesFolder, "synctool", "synctool.dll");
 			CoverletDllPath = Path.Combine(itemTemplatesFolder, "coverlet.console", "coverlet.console.dll");
 			
-			TempFolder = Path.Combine(Path.GetTempPath(), Assembly.GetExecutingAssembly().GetName().Name);
+			TempFolder = Path.Combine(Path.GetTempPath(), ProjectMetaData.Id);
 			Directory.CreateDirectory(TempFolder);
 		}
 
@@ -162,6 +162,7 @@ namespace FineCodeCoverage.Impl
 						CreateNoWindow = true,
 						UseShellExecute = false,
 						RedirectStandardOutput = true,
+						WorkingDirectory = coverageFolder,
 						WindowStyle = ProcessWindowStyle.Hidden,
 						Arguments = $"\"{CoverletDllPath}\" \"{testDllFileInCoverageFolder}\" --include-test-assembly --format json --target dotnet --output \"{coverageFile}\" --targetargs \"test \"\"{testDllFileInCoverageFolder}\"\" --no-build\"",
 					});

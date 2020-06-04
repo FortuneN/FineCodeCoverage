@@ -32,8 +32,11 @@ namespace FineCodeCoverage.Impl
 		)
 		{
 			TestContainersUpdated?.ToString();
-			Logger.Initialize(serviceProvider, ProjectMetaData.Name);
 			operationState.StateChanged += OperationState_StateChanged;
+			
+			Logger.Clear();
+			Logger.Initialize(serviceProvider, ProjectMetaData.Name);
+			Logger.Log("Initialized!");
 		}
 
 		private void OperationState_StateChanged(object sender, OperationStateChangedEventArgs e)
@@ -42,6 +45,9 @@ namespace FineCodeCoverage.Impl
 			{
 				if (e.State == TestOperationStates.TestExecutionFinished)
 				{
+					Logger.Clear();
+					Logger.Log("Updating coverage ...");
+
 					var operationType = e.Operation.GetType();
 					var testConfiguration = (operationType.GetProperty("Configuration") ?? operationType.GetProperty("Configuration", BindingFlags.Instance | BindingFlags.NonPublic)).GetValue(e.Operation);
 					var testConfigurationSources = (IEnumerable<string>)testConfiguration.GetType().GetProperty("TestSources").GetValue(testConfiguration);
@@ -57,6 +63,7 @@ namespace FineCodeCoverage.Impl
 							}
 
 							TaggerProvider.ReloadTags();
+							Logger.Log("Coverage updated!");
 						});
 					}
 				}
