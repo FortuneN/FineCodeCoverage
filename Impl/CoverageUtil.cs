@@ -152,9 +152,9 @@ namespace FineCodeCoverage.Impl
 
 					if (syncProcess.ExitCode != 0)
 					{
-						var output = syncProcess.StandardOutput.ReadToEnd();
-						if (string.IsNullOrWhiteSpace(output)) output = syncProcess.StandardError.ReadToEnd();
-						throw new Exception(output);
+						var syncProcessOutput = syncProcess.StandardOutput.ReadToEnd();
+						if (string.IsNullOrWhiteSpace(syncProcessOutput)) syncProcessOutput = syncProcess.StandardError.ReadToEnd();
+						throw new Exception(syncProcessOutput);
 					}
 
 					// coverage process
@@ -174,9 +174,9 @@ namespace FineCodeCoverage.Impl
 
 					if (coverageProcess.ExitCode != 0)
 					{
-						var output = coverageProcess.StandardOutput.ReadToEnd();
-						if (string.IsNullOrWhiteSpace(output)) output = coverageProcess.StandardError.ReadToEnd();
-						throw new Exception(output);
+						var coverageProcessOutput = coverageProcess.StandardOutput.ReadToEnd();
+						if (string.IsNullOrWhiteSpace(coverageProcessOutput)) coverageProcessOutput = coverageProcess.StandardError.ReadToEnd();
+						throw new Exception(coverageProcessOutput);
 					}
 
 					// reload
