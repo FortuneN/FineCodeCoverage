@@ -15,8 +15,8 @@
         <DisplayName>Fine Code Coverage</DisplayName>
         <Description xml:space="preserve">Highlight code coverage</Description>
         <License>LICENSE</License>
-        <Icon>logo-90-90.png</Icon>
-        <PreviewImage>preview-subject.png</PreviewImage>
+        <Icon>Resources/logo-90-90.png</Icon>
+        <PreviewImage>Resources/preview-subject.png</PreviewImage>
         <Tags>visual studio, code coverage, c#, vb, .net, coverlet</Tags>
     </Metadata>
     <Installation>
