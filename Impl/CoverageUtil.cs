@@ -86,9 +86,9 @@ namespace FineCodeCoverage.Impl
                 FileName = "dotnet",
                 CreateNoWindow = true,
                 UseShellExecute = false,
+                Arguments = "tool list -g",
                 RedirectStandardError = true,
                 RedirectStandardOutput = true,
-                Arguments = "tool list -g",
                 WindowStyle = ProcessWindowStyle.Hidden,
             });
 
