@@ -12,11 +12,9 @@ namespace FineCodeCoverage.Impl
 {
     internal static class CoverageUtil
 	{
+		private static readonly string Coverlet;
+
 		private static readonly string TempFolder;
-
-		private static readonly string SyncDllPath;
-
-		private static readonly string CoverletDllPath;
 
 		private static readonly string[] ProjectExtensions = new string[] { ".csproj", ".vbproj" };
 
@@ -33,8 +31,7 @@ namespace FineCodeCoverage.Impl
 			var codeBaseFolderPath = Path.GetDirectoryName(codeBasePath);
 			var itemTemplatesFolder = Path.Combine(codeBaseFolderPath, "ItemTemplates");
 
-			SyncDllPath = Path.Combine(itemTemplatesFolder, "synctool", "synctool.dll");
-			CoverletDllPath = Path.Combine(itemTemplatesFolder, "coverlet.console", "coverlet.console.dll");
+			Coverlet = Path.Combine(itemTemplatesFolder, "coverlet.exe");
 			
 			TempFolder = Path.Combine(Path.GetTempPath(), ProjectMetaData.Id);
 			Directory.CreateDirectory(TempFolder);
@@ -130,44 +127,24 @@ namespace FineCodeCoverage.Impl
 						File.Delete(coverageFile);
 					}
 
-					// other
+					// sync built files to coverage folder
 
 					var buildFolder = Path.GetDirectoryName(testDllFile);
-					var testDllFileInCoverageFolder = Path.Combine(coverageFolder, Path.GetFileName(testDllFile));
-
-					// sync process
-
-					var syncProcess = Process.Start(new ProcessStartInfo
-					{
-						FileName = "dotnet",
-						CreateNoWindow = true,
-						UseShellExecute = false,
-						RedirectStandardError = true,
-						RedirectStandardOutput = true,
-						WindowStyle = ProcessWindowStyle.Hidden,
-						Arguments = $"\"{SyncDllPath}\" sync \"{buildFolder}\" \"{coverageFolder}\" --silent",
-					});
-
-					syncProcess.WaitForExit();
-
-					if (syncProcess.ExitCode != 0)
-					{
-						var syncProcessOutput = syncProcess.StandardOutput.ReadToEnd();
-						if (string.IsNullOrWhiteSpace(syncProcessOutput)) syncProcessOutput = syncProcess.StandardError.ReadToEnd();
-						throw new Exception(syncProcessOutput);
-					}
+					FileSynchronizationUtil.Synchronize(buildFolder, coverageFolder);
 
 					// coverage process
 
+					var testDllFileInCoverageFolder = Path.Combine(coverageFolder, Path.GetFileName(testDllFile));
+
 					var coverageProcess = Process.Start(new ProcessStartInfo
 					{
-						FileName = "dotnet",
+						FileName = Coverlet,
 						CreateNoWindow = true,
 						UseShellExecute = false,
 						RedirectStandardError = true,
 						RedirectStandardOutput = true,
 						WindowStyle = ProcessWindowStyle.Hidden,
-						Arguments = $"\"{CoverletDllPath}\" \"{testDllFileInCoverageFolder}\" --include-test-assembly --format json --target dotnet --output \"{coverageFile}\" --targetargs \"test \"\"{testDllFileInCoverageFolder}\"\" --no-build\"",
+						Arguments = $"\"{testDllFileInCoverageFolder}\" --include-test-assembly --format json --target dotnet --output \"{coverageFile}\" --targetargs \"test \"\"{testDllFileInCoverageFolder}\"\" --no-build\"",
 					});
 
 					coverageProcess.WaitForExit();

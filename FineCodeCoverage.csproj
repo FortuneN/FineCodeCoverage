@@ -176,6 +176,7 @@
     <Compile Include="Impl\CoverageUtil.cs" />
     <Compile Include="Impl\ProjectMetaData.cs" />
     <Compile Include="Impl\Logger.cs" />
+    <Compile Include="Impl\FileSynchronizationUtil.cs" />
     <Compile Include="Impl\TestContainerDiscoverer.cs" />
     <Compile Include="Impl\GlyphFactory.cs" />
     <Compile Include="Impl\Tagger.cs" />
@@ -188,19 +189,15 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
+    <Content Include="ItemTemplates\coverlet.exe">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
     <Content Include="Resources\preview-subject.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="Resources\preview-test.png" />
-    <Content Include="ItemTemplates\coverlet.console.zip">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      <IncludeInVSIX>true</IncludeInVSIX>
-    </Content>
-    <Content Include="ItemTemplates\synctool.zip">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      <IncludeInVSIX>true</IncludeInVSIX>
-    </Content>
     <Content Include="LICENSE">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
