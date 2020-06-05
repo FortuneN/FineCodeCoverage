@@ -13,7 +13,7 @@ namespace FineCodeCoverage.Impl
 	{
 		private static readonly string TempFolder;
 
-        private static readonly string DashLine = "---------------------------------------------";
+        private static readonly string DashLine = "--------------------------------------------";
 
 		private static readonly string[] ProjectExtensions = new string[] { ".csproj", ".vbproj" };
 
