@@ -13,7 +13,7 @@ namespace FineCodeCoverage.Impl
 	{
 		private static readonly string TempFolder;
 
-        private static readonly string DashLine = "--------------------------------------------";
+        private static readonly string DashLine = "----------------------------------------------------------------------------------------";
 
 		private static readonly string[] ProjectExtensions = new string[] { ".csproj", ".vbproj" };
 
@@ -140,7 +140,7 @@ namespace FineCodeCoverage.Impl
 
             var output = string.IsNullOrWhiteSpace(standardOutput) ? standardError : standardOutput;
 
-            throw new Exception($"FAILED WHILE INSTALLING COVERLET{Environment.NewLine}{DashLine}{Environment.NewLine}{output}");
+            throw new Exception($"{DashLine}{Environment.NewLine}FAILED WHILE INSTALLING COVERLET{Environment.NewLine}{DashLine}{Environment.NewLine}{output}");
         }
 
         private static void RunCoverlet(string testDllFile, string coverageFolder, string coverageFile)
@@ -174,7 +174,7 @@ namespace FineCodeCoverage.Impl
                 output = process.StandardError.ReadToEnd();
             }
 
-            throw new Exception($"FAILED WHILE RUNNING COVERLET{Environment.NewLine}{DashLine}{Environment.NewLine}{output}");
+            throw new Exception($"{DashLine}{Environment.NewLine}FAILED WHILE RUNNING COVERLET{Environment.NewLine}{DashLine}{Environment.NewLine}{output}");
         }
 
         public static void LoadCoverageFromTestDllFile(string testDllFile, Action<Exception> callback = null)
@@ -199,7 +199,7 @@ namespace FineCodeCoverage.Impl
 
                     // coverage folder
 
-                    var coverageFolder = Path.Combine(TempFolder, testProjectFolder.Replace('-', '_').Replace('.', '_').Replace(':', '_').Replace('\\', '_').Replace('/', '_'));
+                    var coverageFolder = Path.Combine(TempFolder, testProjectFolder.Replace(' ', '_').Replace('-', '_').Replace('.', '_').Replace(':', '_').Replace('\\', '_').Replace('/', '_'));
 
                     if (!Directory.Exists(coverageFolder))
                     {
