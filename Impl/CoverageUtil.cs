@@ -177,6 +177,18 @@ namespace FineCodeCoverage.Impl
             throw new Exception($"{DashLine}{Environment.NewLine}FAILED WHILE RUNNING COVERLET{Environment.NewLine}{DashLine}{Environment.NewLine}{output}");
         }
 
+        private static string PathToName(string path)
+        {
+            path = path.Replace(' ', '_').Replace('-', '_').Replace('.', '_').Replace(':', '_').Replace('\\', '_').Replace('/', '_');
+
+            foreach (var character in Path.GetInvalidPathChars())
+            {
+                path = path.Replace(character, '_');
+            }
+
+            return path;
+        }
+
         public static void LoadCoverageFromTestDllFile(string testDllFile, Action<Exception> callback = null)
 		{
 			if (string.IsNullOrWhiteSpace(testDllFile) || !File.Exists(testDllFile))
@@ -199,7 +211,7 @@ namespace FineCodeCoverage.Impl
 
                     // coverage folder
 
-                    var coverageFolder = Path.Combine(TempFolder, testProjectFolder.Replace(' ', '_').Replace('-', '_').Replace('.', '_').Replace(':', '_').Replace('\\', '_').Replace('/', '_'));
+                    var coverageFolder = Path.Combine(TempFolder, PathToName(testProjectFolder));
 
                     if (!Directory.Exists(coverageFolder))
                     {
