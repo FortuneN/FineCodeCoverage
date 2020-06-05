@@ -208,7 +208,7 @@
     </Page>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Resources\logo-90-90.png">
+    <Content Include="Resources\logo.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
