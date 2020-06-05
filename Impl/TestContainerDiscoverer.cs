@@ -58,7 +58,7 @@ namespace FineCodeCoverage.Impl
 						{
 							if (exception != null)
 							{
-								Logger.Log(exception);
+								Logger.Log(exception.Message);
 								return;
 							}
 
@@ -70,7 +70,7 @@ namespace FineCodeCoverage.Impl
 			}
 			catch (Exception exception)
 			{
-				Logger.Log(exception);
+				Logger.Log(exception.Message);
 			}
 		}
 	}
