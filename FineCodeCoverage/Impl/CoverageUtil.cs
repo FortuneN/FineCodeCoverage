@@ -83,12 +83,12 @@ namespace FineCodeCoverage.Impl
         {
             var process = Process.Start(new ProcessStartInfo
             {
-                FileName = "dotnet",
+                FileName = "cmd",
                 CreateNoWindow = true,
                 UseShellExecute = false,
-                Arguments = "tool list -g",
                 RedirectStandardError = true,
                 RedirectStandardOutput = true,
+                Arguments = "/c dotnet tool list -g",
                 WindowStyle = ProcessWindowStyle.Hidden,
             });
 
@@ -103,13 +103,13 @@ namespace FineCodeCoverage.Impl
         {
             var process = Process.Start(new ProcessStartInfo
             {
-                FileName = "dotnet",
+                FileName = "cmd",
                 CreateNoWindow = true,
                 UseShellExecute = false,
                 RedirectStandardError = true,
                 RedirectStandardOutput = true,
                 WindowStyle = ProcessWindowStyle.Hidden,
-                Arguments = "tool install --global coverlet.console",
+                Arguments = "/c dotnet tool install --global coverlet.console",
             });
 
             process.WaitForExit();
@@ -151,13 +151,13 @@ namespace FineCodeCoverage.Impl
 
             var process = Process.Start(new ProcessStartInfo
             {
-                FileName = "coverlet",
+                FileName = "cmd",
                 CreateNoWindow = true,
                 UseShellExecute = false,
                 RedirectStandardError = true,
                 RedirectStandardOutput = true,
                 WindowStyle = ProcessWindowStyle.Hidden,
-                Arguments = $"\"{testDllFileInCoverageFolder}\" --include-test-assembly --format json --target dotnet --output \"{coverageFile}\" --targetargs \"test \"\"{testDllFileInCoverageFolder}\"\" --no-build\"",
+                Arguments = $"/c coverlet \"{testDllFileInCoverageFolder}\" --include-test-assembly --format json --target dotnet --output \"{coverageFile}\" --targetargs \"test \"\"{testDllFileInCoverageFolder}\"\" --no-build\"",
             });
 
             process.WaitForExit();
