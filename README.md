@@ -13,10 +13,10 @@ See the [change log](CHANGELOG.md) for changes and road map.
 Run a(some) unit test(s) and ...
 
 #### Get highlights on the code being tested
-![Code Being Tested](Resources/preview-subject.png)
+![Code Being Tested](Art/preview-subject.png)
 
 #### Get highlights on the code doing the testing
-![Code Doing The Testing](Resources/preview-test.png)
+![Code Doing The Testing](Art/preview-test.png)
 
 ## Contribute
 Check out the [contribution guidelines](CONTRIBUTING.md)
