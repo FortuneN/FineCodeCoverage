@@ -12,12 +12,12 @@ namespace FineCodeCoverage.Impl
 {
     [Export(typeof(TestContainerDiscoverer))]
 	[Export(typeof(ITestContainerDiscoverer))]
-	[Name(ProjectMetaData.TestContainerDiscovererName)]
+	[Name(Vsix.TestContainerDiscovererName)]
 	internal class TestContainerDiscoverer : ITestContainerDiscoverer
 	{
 		public event EventHandler TestContainersUpdated;
 
-		public Uri ExecutorUri => new Uri($"executor://{ProjectMetaData.Id}.Executor/v1");
+		public Uri ExecutorUri => new Uri($"executor://{Vsix.Code}.Executor/v1");
 
 		public IEnumerable<ITestContainer> TestContainers => Enumerable.Empty<ITestContainer>();
 
@@ -35,7 +35,7 @@ namespace FineCodeCoverage.Impl
 			operationState.StateChanged += OperationState_StateChanged;
 			
 			Logger.Clear();
-			Logger.Initialize(serviceProvider, ProjectMetaData.Name);
+			Logger.Initialize(serviceProvider, Vsix.Name);
 			Logger.Log("Initialized!");
 		}
 

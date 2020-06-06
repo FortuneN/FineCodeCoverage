@@ -23,7 +23,7 @@ namespace FineCodeCoverage.Impl
 
 		static CoverageUtil()
 		{
-			TempFolder = Path.Combine(Path.GetTempPath(), ProjectMetaData.Id);
+			TempFolder = Path.Combine(Path.GetTempPath(), Vsix.Code);
 			Directory.CreateDirectory(TempFolder);
 		}
 
@@ -177,7 +177,7 @@ namespace FineCodeCoverage.Impl
             throw new Exception($"{DashLine}{Environment.NewLine}FAILED WHILE RUNNING COVERLET{Environment.NewLine}{DashLine}{Environment.NewLine}{output}");
         }
 
-        private static string PathToName(string path)
+        private static string ConvertPathToName(string path)
         {
             path = path.Replace(' ', '_').Replace('-', '_').Replace('.', '_').Replace(':', '_').Replace('\\', '_').Replace('/', '_');
 
@@ -211,7 +211,7 @@ namespace FineCodeCoverage.Impl
 
                     // coverage folder
 
-                    var coverageFolder = Path.Combine(TempFolder, PathToName(testProjectFolder));
+                    var coverageFolder = Path.Combine(TempFolder, ConvertPathToName(testProjectFolder));
 
                     if (!Directory.Exists(coverageFolder))
                     {

@@ -1,16 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.28307.1145
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30114.105
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FineCodeCoverage", "FineCodeCoverage.csproj", "{3DF45DDD-0A6C-4E92-B232-C4FC2350BF9E}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{490FBB9E-C98D-40EB-A5E3-3A3DC650EDFC}"
-	ProjectSection(SolutionItems) = preProject
-		appveyor.yml = appveyor.yml
-		CHANGELOG.md = CHANGELOG.md
-		README.md = README.md
-	EndProjectSection
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FineCodeCoverage", "FineCodeCoverage\FineCodeCoverage.csproj", "{31C104BB-D294-4942-B206-896AA7A5FCB9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -18,15 +11,15 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{3DF45DDD-0A6C-4E92-B232-C4FC2350BF9E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{3DF45DDD-0A6C-4E92-B232-C4FC2350BF9E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{3DF45DDD-0A6C-4E92-B232-C4FC2350BF9E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{3DF45DDD-0A6C-4E92-B232-C4FC2350BF9E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{31C104BB-D294-4942-B206-896AA7A5FCB9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{31C104BB-D294-4942-B206-896AA7A5FCB9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{31C104BB-D294-4942-B206-896AA7A5FCB9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{31C104BB-D294-4942-B206-896AA7A5FCB9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {234239A5-E643-4782-8223-8A1A9B884F0E}
+		SolutionGuid = {EE8856CF-D8F1-4ECF-A722-F677A6F107A3}
 	EndGlobalSection
 EndGlobal

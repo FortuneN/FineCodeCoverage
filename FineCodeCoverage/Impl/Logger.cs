@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using Microsoft.VisualStudio.Shell.Interop;
 
 /// <summary>
@@ -10,7 +11,7 @@ public static class Logger
     private static IServiceProvider _provider;
     private static Guid _guid;
     private static string _name;
-    private static object _syncRoot = new object();
+    private static readonly object _syncRoot = new object();
 
     /// <summary>
     /// Initializes the logger.
@@ -42,19 +43,21 @@ public static class Logger
     /// <param name="message">The message to output.</param>
     public static void Log(string message)
     {
-        if (string.IsNullOrEmpty(message))
+        if (string.IsNullOrWhiteSpace(message))
+        {
             return;
+        }
 
         try
         {
             if (EnsurePane())
             {
-                pane.OutputStringThreadSafe(DateTime.Now + ": " + message + Environment.NewLine);
+                pane?.OutputStringThreadSafe(DateTime.Now + ": " + message + Environment.NewLine);
             }
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.Write(ex);
+            Debug.Write(ex);
         }
     }
 
@@ -80,7 +83,7 @@ public static class Logger
     {
         if (pane != null)
         {
-            pane.Clear();
+            pane?.Clear();
         }
     }
 
@@ -93,13 +96,13 @@ public static class Logger
         {
             try
             {
-                IVsOutputWindow output = (IVsOutputWindow)_provider.GetService(typeof(SVsOutputWindow));
-                output.DeletePane(ref _guid);
+                var output = (IVsOutputWindow)_provider.GetService(typeof(SVsOutputWindow));
+                output?.DeletePane(ref _guid);
                 pane = null;
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.Write(ex);
+                Debug.Write(ex);
             }
         }
     }
@@ -113,9 +116,9 @@ public static class Logger
                 if (pane == null)
                 {
                     _guid = Guid.NewGuid();
-                    IVsOutputWindow output = (IVsOutputWindow)_provider.GetService(typeof(SVsOutputWindow));
-                    output.CreatePane(ref _guid, _name, 1, 1);
-                    output.GetPane(ref _guid, out pane);
+                    var output = (IVsOutputWindow)_provider.GetService(typeof(SVsOutputWindow));
+                    output?.CreatePane(ref _guid, _name, 1, 1);
+                    output?.GetPane(ref _guid, out pane);
                 }
             }
         }

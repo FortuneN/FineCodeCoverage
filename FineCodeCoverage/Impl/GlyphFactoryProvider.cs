@@ -1,4 +1,6 @@
 ﻿using System.Windows;
+using System.Windows.Media;
+using System.Windows.Shapes;
 using Microsoft.VisualStudio.Utilities;
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Text.Editor;
@@ -11,7 +13,7 @@ namespace FineCodeCoverage.Impl
 	[TagType(typeof(GlyphTag))]
 	[Order(Before = "VsTextMarker")]
 	[Export(typeof(IGlyphFactoryProvider))]
-	[Name(ProjectMetaData.GlyphFactoryProviderName)]
+	[Name(Vsix.GlyphFactoryProviderName)]
 	internal class GlyphFactoryProvider: IGlyphFactoryProvider
 	{
 		public IGlyphFactory GetGlyphFactory(IWpfTextView textView, IWpfTextViewMargin textViewMargin)
@@ -19,9 +21,16 @@ namespace FineCodeCoverage.Impl
 			return new GlyphFactory(textView, textViewMargin, GetGlyph);
 		}
 
-		private UIElement GetGlyph(IWpfTextView textView, IWpfTextViewMargin textViewMargin, IWpfTextViewLine _textViewLine, IGlyphTag glyphTag)
+		private UIElement GetGlyph(IWpfTextView textView, IWpfTextViewMargin textViewMargin, IWpfTextViewLine textViewLine, IGlyphTag glyphTag)
 		{
-			return (UIElement)glyphTag;
+			var tag = (GlyphTag)glyphTag;
+
+            return new Rectangle
+			{
+				Width = 2,
+				Height = 16,
+				Fill = tag.IsCovered ? Brushes.Green : Brushes.Red
+			};
 		}
 	}
 }

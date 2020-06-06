@@ -1,6 +1,4 @@
-﻿using System.Windows.Media;
-using System.Collections.Generic;
-using Microsoft.CodeAnalysis.Text;
+﻿using System.Collections.Generic;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Utilities;
 using System.ComponentModel.Composition;
@@ -11,7 +9,7 @@ namespace FineCodeCoverage.Impl
     [ContentType("code")]
 	[TagType(typeof(GlyphTag))]
 	[Export(typeof(ITaggerProvider))]
-	[Name(ProjectMetaData.TaggerProviderName)]
+	[Name(Vsix.TaggerProviderName)]
 	internal class TaggerProvider : ITaggerProvider
 	{
 		private static readonly List<Tagger<GlyphTag>> CachedTaggers = new List<Tagger<GlyphTag>>();
@@ -38,32 +36,24 @@ namespace FineCodeCoverage.Impl
 
 		private IEnumerable<ITagSpan<GlyphTag>> GetTags(ITextBuffer textBuffer, NormalizedSnapshotSpanCollection spans)
 		{
-			foreach (var span in spans)
-			{
-				var document = span.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
+            var document = (ITextDocument)textBuffer.Properties.GetProperty(typeof(ITextDocument));
 
-				if (document == null)
-				{
-					continue;
-				}
+            if (document != null)
+            {
+                foreach (var span in spans)
+                {
+                    var lineNumber = span.Start.GetContainingLine().LineNumber + 1;
 
-				var lineNumber = span.Start.GetContainingLine().LineNumber + 1;
+                    var coverageLine = CoverageUtil.GetCoverageLine(document.FilePath, lineNumber);
 
-				var coverageLine = CoverageUtil.GetCoverageLine(document.FilePath, lineNumber);
+                    if (coverageLine == null)
+                    {
+                        continue;
+                    }
 
-				if (coverageLine == null)
-				{
-					continue;
-				}
-
-				var lineGlyphTag = new GlyphTag();
-				lineGlyphTag.Rectangle1.Width = 2;
-				lineGlyphTag.Rectangle1.Height = 16;
-				lineGlyphTag.Rectangle1.Fill = coverageLine.HitCount > 0 ? Brushes.Green : Brushes.Red;
-                //ToolTipService.SetToolTip(lineGlyphTag, new ToolTip { Content = $"{coverageLine.HitCount} Hits" });
-
-				yield return new TagSpan<GlyphTag>(span, lineGlyphTag);
-			}
+                    yield return new TagSpan<GlyphTag>(span, new GlyphTag(coverageLine.HitCount > 0));
+                }
+            }
 		}
 	}
 }
