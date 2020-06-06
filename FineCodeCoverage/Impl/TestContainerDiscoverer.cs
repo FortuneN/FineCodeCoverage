@@ -36,7 +36,11 @@ namespace FineCodeCoverage.Impl
 			
 			Logger.Clear();
 			Logger.Initialize(serviceProvider, Vsix.Name);
-			Logger.Log("Initialized!");
+			
+			if (CoverageUtil.InstallOrUpdateCoverlet(false))
+			{
+				Logger.Log("Initialized!");
+			}
 		}
 
 		private void OperationState_StateChanged(object sender, OperationStateChangedEventArgs e)

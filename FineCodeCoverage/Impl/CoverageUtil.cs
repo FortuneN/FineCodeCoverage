@@ -99,7 +99,7 @@ namespace FineCodeCoverage.Impl
             return output.ToLower().Contains("coverlet");
         }
 
-        private static void InstallOrUpdateCoverlet()
+        public static bool InstallOrUpdateCoverlet(bool throwException = true)
         {
             var process = Process.Start(new ProcessStartInfo
             {
@@ -116,31 +116,37 @@ namespace FineCodeCoverage.Impl
 
             if (process.ExitCode == 0)
             {
-                return;
+                Logger.Log("Coverlet has been installed, Please restart Visual Studio to get highlightings");
+                return true;
             }
 
             var standardOutput = process.StandardOutput.ReadToEnd();
                 
             if (standardOutput.ToLower().Contains("already installed"))
             {
-                return;
+                return true;
             }
 
             var standardError = process.StandardError.ReadToEnd();
-                
+            
             if (standardError.ToLower().Contains("already installed"))
             {
-                return;
+                return true;
             }
 
             if (CoverletIsInstalled())
             {
-                return;
+                return true;
             }
 
             var output = string.IsNullOrWhiteSpace(standardOutput) ? standardError : standardOutput;
 
-            throw new Exception($"{DashLine}{Environment.NewLine}FAILED WHILE INSTALLING COVERLET{Environment.NewLine}{DashLine}{Environment.NewLine}{output}");
+            if (throwException)
+            {
+                throw new Exception($"{DashLine}{Environment.NewLine}FAILED WHILE INSTALLING COVERLET{Environment.NewLine}{DashLine}{Environment.NewLine}{output}");
+            }
+
+            return false;
         }
 
         private static void RunCoverlet(string testDllFile, string coverageFolder, string coverageFile)
