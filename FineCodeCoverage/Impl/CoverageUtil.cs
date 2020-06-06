@@ -13,15 +13,19 @@ namespace FineCodeCoverage.Impl
 	{
 		private static readonly string TempFolder;
 
-        private static readonly string DashLine = "----------------------------------------------------------------------------------------";
+        public static bool CoverletWasInstalledInThisSession;
 
-		private static readonly string[] ProjectExtensions = new string[] { ".csproj", ".vbproj" };
+        private static readonly string[] ProjectExtensions = new string[] { ".csproj", ".vbproj" };
 
 		private static readonly List<CoverageProject> CoverageProjects = new List<CoverageProject>();
 
 		private static readonly ConcurrentDictionary<string, string> ProjectFoldersCache = new ConcurrentDictionary<string, string>();
 
-		static CoverageUtil()
+        private static readonly string DashLine = "----------------------------------------------------------------------------------------";
+
+        public static readonly string CoverletWasInstalledInThisSessionMessage = "Coverlet has been installed, Please restart Visual Studio to get highlightings";
+
+        static CoverageUtil()
 		{
 			TempFolder = Path.Combine(Path.GetTempPath(), Vsix.Code);
 			Directory.CreateDirectory(TempFolder);
@@ -116,7 +120,8 @@ namespace FineCodeCoverage.Impl
 
             if (process.ExitCode == 0)
             {
-                Logger.Log("Coverlet has been installed, Please restart Visual Studio to get highlightings");
+                CoverletWasInstalledInThisSession = true;
+                Logger.Log(CoverletWasInstalledInThisSessionMessage);
                 return true;
             }
 

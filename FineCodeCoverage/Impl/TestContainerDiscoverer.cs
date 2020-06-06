@@ -49,6 +49,12 @@ namespace FineCodeCoverage.Impl
 			{
 				if (e.State == TestOperationStates.TestExecutionFinished)
 				{
+					if (CoverageUtil.CoverletWasInstalledInThisSession)
+					{
+						Logger.Log(CoverageUtil.CoverletWasInstalledInThisSessionMessage);
+						return;
+					}
+
 					Logger.Clear();
 					Logger.Log("Updating coverage ...");
 
@@ -60,6 +66,12 @@ namespace FineCodeCoverage.Impl
 					{
 						CoverageUtil.LoadCoverageFromTestDllFile(testDllFile, exception =>
 						{
+							if (CoverageUtil.CoverletWasInstalledInThisSession)
+							{
+								Logger.Log(CoverageUtil.CoverletWasInstalledInThisSessionMessage);
+								return;
+							}
+
 							if (exception != null)
 							{
 								Logger.Log(exception);
