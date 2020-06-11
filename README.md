@@ -9,7 +9,7 @@ or get the [CI build](https://www.vsixgallery.com/extension/fcc-f339fe606-9d51-4
 
 See the [change log](CHANGELOG.md) for changes and road map.
 
-### Highlight code coverage
+### Highlight unit test code coverage
 Run a(some) unit test(s) and ...
 
 #### Get highlights on the code being tested
