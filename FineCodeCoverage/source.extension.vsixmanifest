@@ -3,7 +3,7 @@
     <Metadata>
         <Identity Id="fcc-f339fe606-9d51-4fca-895c-d50375137b62" Version="1.0.0" Language="en-US" Publisher="Fortune Ngwenya" />
         <DisplayName>Fine Code Coverage</DisplayName>
-        <Description xml:space="preserve">Highlight code coverage</Description>
+        <Description xml:space="preserve">Highlights unit test code coverage</Description>
         <MoreInfo>https://marketplace.visualstudio.com/items?itemName=FortuneNgwenya.FineCodeCoverage</MoreInfo>
         <License>Resources\LICENSE</License>
         <Icon>Resources\logo.png</Icon>
