@@ -8,7 +8,7 @@
         <License>Resources\LICENSE</License>
         <Icon>Resources\logo.png</Icon>
         <PreviewImage>Resources\preview-subject.png</PreviewImage>
-        <Tags>visual studio, code coverage, c#, vb, .net, coverlet, unit test</Tags>
+        <Tags>visual studio, code coverage, c#, vb, .net core, coverlet, unit test</Tags>
     </Metadata>
     <Installation>
         <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[16.0, 17.0)" />

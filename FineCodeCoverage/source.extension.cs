@@ -13,6 +13,6 @@ namespace FineCodeCoverage
         public const string Language = "en-US";
         public const string Version = "1.0.0";
         public const string Author = "Fortune Ngwenya";
-        public const string Tags = "visual studio, code coverage, c#, vb, .net, coverlet, unit test";
+        public const string Tags = "visual studio, code coverage, c#, vb, .net core, coverlet, unit test";
     }
 }
