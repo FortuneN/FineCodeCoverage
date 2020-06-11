@@ -32,15 +32,21 @@ namespace FineCodeCoverage.Impl
 		)
 		{
 			TestContainersUpdated?.ToString();
-			operationState.StateChanged += OperationState_StateChanged;
 			
 			Logger.Clear();
 			Logger.Initialize(serviceProvider, Vsix.Name);
-			
-			if (CoverageUtil.InstallOrUpdateCoverlet(false))
+
+			CoverageUtil.InstallOrUpdateCoverlet(exception =>
 			{
+				if (exception != null)
+				{
+					Logger.Log(exception);
+					return;
+				}
+
+				operationState.StateChanged += OperationState_StateChanged;
 				Logger.Log("Initialized!");
-			}
+			});
 		}
 
 		private void OperationState_StateChanged(object sender, OperationStateChangedEventArgs e)
@@ -49,12 +55,6 @@ namespace FineCodeCoverage.Impl
 			{
 				if (e.State == TestOperationStates.TestExecutionFinished)
 				{
-					if (CoverageUtil.CoverletWasInstalledInThisSession)
-					{
-						Logger.Log(CoverageUtil.CoverletWasInstalledInThisSessionMessage);
-						return;
-					}
-
 					Logger.Clear();
 					Logger.Log("Updating coverage ...");
 
@@ -66,12 +66,6 @@ namespace FineCodeCoverage.Impl
 					{
 						CoverageUtil.LoadCoverageFromTestDllFile(testDllFile, exception =>
 						{
-							if (CoverageUtil.CoverletWasInstalledInThisSession)
-							{
-								Logger.Log(CoverageUtil.CoverletWasInstalledInThisSessionMessage);
-								return;
-							}
-
 							if (exception != null)
 							{
 								Logger.Log(exception);

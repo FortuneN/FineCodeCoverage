@@ -11,9 +11,11 @@ namespace FineCodeCoverage.Impl
 {
     internal static class CoverageUtil
 	{
-		private static readonly string TempFolder;
+        private static string CoverletExePath;
 
-        public static bool CoverletWasInstalledInThisSession;
+        private static readonly string TempFolder;
+
+        private static readonly string CoverletInstallFolder;
 
         private static readonly string[] ProjectExtensions = new string[] { ".csproj", ".vbproj" };
 
@@ -23,13 +25,14 @@ namespace FineCodeCoverage.Impl
 
         private static readonly string DashLine = "----------------------------------------------------------------------------------------";
 
-        public static readonly string CoverletWasInstalledInThisSessionMessage = "Coverlet has been installed, Please restart Visual Studio to get highlightings";
-
         static CoverageUtil()
 		{
 			TempFolder = Path.Combine(Path.GetTempPath(), Vsix.Code);
-			Directory.CreateDirectory(TempFolder);
-		}
+            Directory.CreateDirectory(TempFolder);
+
+            CoverletInstallFolder = Path.Combine(TempFolder, "coverlet");
+            Directory.CreateDirectory(CoverletInstallFolder);
+        }
 
         private static string GetProjectFolderFromPath(string path)
 		{
@@ -83,92 +86,73 @@ namespace FineCodeCoverage.Impl
 			return coverageSourceFile.Lines.FirstOrDefault(l => l.LineNumber == lineNumber);
 		}
 
-        private static bool CoverletIsInstalled()
+        public static void InstallOrUpdateCoverlet(Action<Exception> callback = null)
         {
-            var process = Process.Start(new ProcessStartInfo
+            ThreadPool.QueueUserWorkItem(x =>
             {
-                FileName = "cmd",
-                CreateNoWindow = true,
-                UseShellExecute = false,
-                RedirectStandardError = true,
-                RedirectStandardOutput = true,
-                Arguments = "/c dotnet tool list -g",
-                WindowStyle = ProcessWindowStyle.Hidden,
+                try
+                {
+                    var process = Process.Start(new ProcessStartInfo
+                    {
+                        FileName = "dotnet",
+                        CreateNoWindow = true,
+                        UseShellExecute = false,
+                        RedirectStandardError = true,
+                        RedirectStandardOutput = true,
+                        WindowStyle = ProcessWindowStyle.Hidden,
+                        Arguments = $"tool install coverlet.console --tool-path \"{CoverletInstallFolder}\"",
+                    });
+
+                    process.WaitForExit();
+
+                    CoverletExePath = Directory.GetFiles(CoverletInstallFolder, "coverlet.exe", SearchOption.AllDirectories).FirstOrDefault()
+                                   ?? Directory.GetFiles(CoverletInstallFolder, "*coverlet*.exe", SearchOption.AllDirectories).FirstOrDefault();
+
+                    if (process.ExitCode == 0 || !string.IsNullOrWhiteSpace(CoverletExePath))
+                    {
+                        callback?.Invoke(null);
+                        return;
+                    }
+
+                    var standardOutput = process.StandardOutput.ReadToEnd();
+
+                    if (standardOutput.ToLower().Contains("already installed"))
+                    {
+                        callback?.Invoke(null);
+                        return;
+                    }
+
+                    var standardError = process.StandardError.ReadToEnd();
+
+                    if (standardError.ToLower().Contains("already installed"))
+                    {
+                        callback?.Invoke(null);
+                        return;
+                    }
+
+                    var output = string.IsNullOrWhiteSpace(standardOutput) ? standardError : standardOutput;
+                    throw new Exception($"{Environment.NewLine}{DashLine}{Environment.NewLine}FAILED WHILE INSTALLING COVERLET{Environment.NewLine}{DashLine}{Environment.NewLine}{output}");
+                }
+                catch (Exception exception)
+                {
+                    callback?.Invoke(exception);
+                }
             });
-
-            process.WaitForExit();
-
-            var output = process.StandardOutput.ReadToEnd() + '|' + process.StandardError.ReadToEnd();
-
-            return output.ToLower().Contains("coverlet");
-        }
-
-        public static bool InstallOrUpdateCoverlet(bool throwException = true)
-        {
-            var process = Process.Start(new ProcessStartInfo
-            {
-                FileName = "cmd",
-                CreateNoWindow = true,
-                UseShellExecute = false,
-                RedirectStandardError = true,
-                RedirectStandardOutput = true,
-                WindowStyle = ProcessWindowStyle.Hidden,
-                Arguments = "/c dotnet tool install --global coverlet.console",
-            });
-
-            process.WaitForExit();
-
-            if (process.ExitCode == 0)
-            {
-                CoverletWasInstalledInThisSession = true;
-                Logger.Log(CoverletWasInstalledInThisSessionMessage);
-                return true;
-            }
-
-            var standardOutput = process.StandardOutput.ReadToEnd();
-                
-            if (standardOutput.ToLower().Contains("already installed"))
-            {
-                return true;
-            }
-
-            var standardError = process.StandardError.ReadToEnd();
-            
-            if (standardError.ToLower().Contains("already installed"))
-            {
-                return true;
-            }
-
-            if (CoverletIsInstalled())
-            {
-                return true;
-            }
-
-            var output = string.IsNullOrWhiteSpace(standardOutput) ? standardError : standardOutput;
-
-            if (throwException)
-            {
-                throw new Exception($"{DashLine}{Environment.NewLine}FAILED WHILE INSTALLING COVERLET{Environment.NewLine}{DashLine}{Environment.NewLine}{output}");
-            }
-
-            return false;
         }
 
         private static void RunCoverlet(string testDllFile, string coverageFolder, string coverageFile)
         {
-            InstallOrUpdateCoverlet();
-
             var testDllFileInCoverageFolder = Path.Combine(coverageFolder, Path.GetFileName(testDllFile));
 
             var process = Process.Start(new ProcessStartInfo
             {
-                FileName = "cmd",
+                FileName = CoverletExePath,
                 CreateNoWindow = true,
                 UseShellExecute = false,
                 RedirectStandardError = true,
                 RedirectStandardOutput = true,
                 WindowStyle = ProcessWindowStyle.Hidden,
-                Arguments = $"/c coverlet \"{testDllFileInCoverageFolder}\" --include-test-assembly --format json --target dotnet --output \"{coverageFile}\" --targetargs \"test \"\"{testDllFileInCoverageFolder}\"\" --no-build\"",
+                Arguments = $"\"{testDllFileInCoverageFolder}\" --include-test-assembly --format json --target dotnet --output \"{coverageFile}\" --targetargs \"test \"\"{testDllFileInCoverageFolder}\"\" --no-build\"",
             });
 
             process.WaitForExit();
@@ -185,7 +169,7 @@ namespace FineCodeCoverage.Impl
                 output = process.StandardError.ReadToEnd();
             }
 
-            throw new Exception($"{DashLine}{Environment.NewLine}FAILED WHILE RUNNING COVERLET{Environment.NewLine}{DashLine}{Environment.NewLine}{output}");
+            throw new Exception($"{Environment.NewLine}{DashLine}{Environment.NewLine}FAILED WHILE RUNNING COVERLET{Environment.NewLine}{DashLine}{Environment.NewLine}{output}");
         }
 
         private static string ConvertPathToName(string path)
@@ -202,11 +186,6 @@ namespace FineCodeCoverage.Impl
 
         public static void LoadCoverageFromTestDllFile(string testDllFile, Action<Exception> callback = null)
 		{
-			if (string.IsNullOrWhiteSpace(testDllFile) || !File.Exists(testDllFile))
-			{
-				return;
-			}
-
             ThreadPool.QueueUserWorkItem(x =>
 			{
 				try
@@ -217,7 +196,7 @@ namespace FineCodeCoverage.Impl
 
                     if (string.IsNullOrWhiteSpace(testProjectFolder))
                     {
-                        return;
+                        throw new Exception("Could not establish project folder");
                     }
 
                     // coverage folder
