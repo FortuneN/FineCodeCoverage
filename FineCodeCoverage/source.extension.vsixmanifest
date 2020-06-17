@@ -22,6 +22,5 @@
     </Assets>
     <Prerequisites>
         <Prerequisite Id="Microsoft.VisualStudio.Component.CoreEditor" Version="[16.0,17.0)" DisplayName="Visual Studio core editor" />
-        <Prerequisite Id="Microsoft.NetCore.Component.Runtime.3.1" Version="[16.6.30107.105,17.0)" DisplayName=".NET Core 3.1 LTS Runtime" />
     </Prerequisites>
 </PackageManifest>
