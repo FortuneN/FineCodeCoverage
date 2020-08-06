@@ -9,32 +9,40 @@ using System.Collections.Concurrent;
 
 namespace FineCodeCoverage.Impl
 {
-    internal static class CoverageUtil
+	internal static class CoverageUtil
 	{
-        private static string CoverletExePath;
+		public const string CoverletName = "coverlet.console";
 
-        private static readonly string TempFolder;
+		public static string CoverletExePath { get; private set; }
 
-        private static readonly string CoverletInstallFolder;
+		public static string AppDataFolder { get; private set; }
 
-        private static readonly string[] ProjectExtensions = new string[] { ".csproj", ".vbproj" };
+		public static string AppDataCoverletFolder { get; private set; }
 
-		private static readonly List<CoverageProject> CoverageProjects = new List<CoverageProject>();
+		public static Version CurrentCoverletVersion { get; private set; }
 
-		private static readonly ConcurrentDictionary<string, string> ProjectFoldersCache = new ConcurrentDictionary<string, string>();
+		public static Version MimimumCoverletVersion { get; } = Version.Parse("1.7.0");
 
-        private static readonly string DashLine = "----------------------------------------------------------------------------------------";
+		public static string[] ProjectExtensions { get; } = new string[] { ".csproj", ".vbproj" };
 
-        static CoverageUtil()
+		public static List<CoverageProject> CoverageProjects { get; } = new List<CoverageProject>();
+
+		public static ConcurrentDictionary<string, string> ProjectFoldersCache { get; } = new ConcurrentDictionary<string, string>();
+
+		public static string DashLine { get; } = $"{Environment.NewLine}----------------------------------------------------------------------------------------{Environment.NewLine}";
+
+		static CoverageUtil()
 		{
-			TempFolder = Path.Combine(Path.GetTempPath(), Vsix.Code);
-            Directory.CreateDirectory(TempFolder);
+			AppDataFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), Vsix.Code);
+			Directory.CreateDirectory(AppDataFolder);
 
-            CoverletInstallFolder = Path.Combine(TempFolder, "coverlet");
-            Directory.CreateDirectory(CoverletInstallFolder);
-        }
+			AppDataCoverletFolder = Path.Combine(AppDataFolder, "coverlet");
+			Directory.CreateDirectory(AppDataCoverletFolder);
 
-        private static string GetProjectFolderFromPath(string path)
+			GetCoverletInfo();
+		}
+
+		private static string GetProjectFolderFromPath(string path)
 		{
 			if (ProjectFoldersCache.TryGetValue(path = path.ToLower(), out var result))
 			{
@@ -86,230 +94,261 @@ namespace FineCodeCoverage.Impl
 			return coverageSourceFile.Lines.FirstOrDefault(l => l.LineNumber == lineNumber);
 		}
 
-        public static void InstallOrUpdateCoverlet(Action<Exception> callback = null)
-        {
-            ThreadPool.QueueUserWorkItem(x =>
-            {
-                try
-                {
-                    var process = Process.Start(new ProcessStartInfo
-                    {
-                        FileName = "dotnet",
-                        CreateNoWindow = true,
-                        UseShellExecute = false,
-                        RedirectStandardError = true,
-                        RedirectStandardOutput = true,
-                        WindowStyle = ProcessWindowStyle.Hidden,
-                        Arguments = $"tool install coverlet.console --tool-path \"{CoverletInstallFolder}\"",
-                    });
-
-                    process.WaitForExit();
-
-                    CoverletExePath = Directory.GetFiles(CoverletInstallFolder, "coverlet.exe", SearchOption.AllDirectories).FirstOrDefault()
-                                   ?? Directory.GetFiles(CoverletInstallFolder, "*coverlet*.exe", SearchOption.AllDirectories).FirstOrDefault();
-
-                    if (process.ExitCode == 0 || !string.IsNullOrWhiteSpace(CoverletExePath))
-                    {
-                        callback?.Invoke(null);
-                        return;
-                    }
-
-                    var standardOutput = process.StandardOutput.ReadToEnd();
-
-                    if (standardOutput.ToLower().Contains("already installed"))
-                    {
-                        callback?.Invoke(null);
-                        return;
-                    }
-
-                    var standardError = process.StandardError.ReadToEnd();
-
-                    if (standardError.ToLower().Contains("already installed"))
-                    {
-                        callback?.Invoke(null);
-                        return;
-                    }
-
-                    var output = string.IsNullOrWhiteSpace(standardOutput) ? standardError : standardOutput;
-                    throw new Exception($"{Environment.NewLine}{DashLine}{Environment.NewLine}FAILED WHILE INSTALLING COVERLET{Environment.NewLine}{DashLine}{Environment.NewLine}{output}");
-                }
-                catch (Exception exception)
-                {
-                    callback?.Invoke(exception);
-                }
-            });
-        }
-
-        private static void RunCoverlet(string testDllFile, string coverageFolder, string coverageFile)
-        {
-            var testDllFileInCoverageFolder = Path.Combine(coverageFolder, Path.GetFileName(testDllFile));
-
-            var process = Process.Start(new ProcessStartInfo
-            {
-                FileName = CoverletExePath,
-                CreateNoWindow = true,
-                UseShellExecute = false,
-                RedirectStandardError = true,
-                RedirectStandardOutput = true,
-                WindowStyle = ProcessWindowStyle.Hidden,
-                Arguments = $"\"{testDllFileInCoverageFolder}\" --include-test-assembly --format json --target dotnet --output \"{coverageFile}\" --targetargs \"test \"\"{testDllFileInCoverageFolder}\"\" --no-build\"",
-            });
-
-            process.WaitForExit();
-
-            if (process.ExitCode == 0)
-            {
-                return;
-            }
-
-            var output = process.StandardOutput.ReadToEnd();
-            
-            if (string.IsNullOrWhiteSpace(output))
-            {
-                output = process.StandardError.ReadToEnd();
-            }
-
-            throw new Exception($"{Environment.NewLine}{DashLine}{Environment.NewLine}FAILED WHILE RUNNING COVERLET{Environment.NewLine}{DashLine}{Environment.NewLine}{output}");
-        }
-
-        private static string ConvertPathToName(string path)
-        {
-            path = path.Replace(' ', '_').Replace('-', '_').Replace('.', '_').Replace(':', '_').Replace('\\', '_').Replace('/', '_');
-
-            foreach (var character in Path.GetInvalidPathChars())
-            {
-                path = path.Replace(character, '_');
-            }
-
-            return path;
-        }
-
-        public static void LoadCoverageFromTestDllFile(string testDllFile, Action<Exception> callback = null)
+		private static void GetCoverletInfo()
 		{
-            ThreadPool.QueueUserWorkItem(x =>
+			var process = Process.Start(new ProcessStartInfo
+			{
+				FileName = "dotnet",
+				CreateNoWindow = true,
+				UseShellExecute = false,
+				RedirectStandardError = true,
+				RedirectStandardOutput = true,
+				WindowStyle = ProcessWindowStyle.Hidden,
+				WorkingDirectory = AppDataCoverletFolder,
+				Arguments = $"tool list --tool-path \"{AppDataCoverletFolder}\"",
+			});
+
+			process.WaitForExit();
+
+			if (process.ExitCode != 0)
+			{
+				ThrowException(process);
+			}
+
+			var outputLines = process.StandardOutput.ReadToEnd().Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+			var coverletLine = outputLines.FirstOrDefault(x => x.Trim().StartsWith(CoverletName, StringComparison.OrdinalIgnoreCase));
+
+			if (string.IsNullOrWhiteSpace(coverletLine))
+			{
+				// coverlet is not installed
+				CoverletExePath = null;
+				CurrentCoverletVersion = null;
+				return;
+			}
+
+			var coverletLineTokens = coverletLine.Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
+			var coverletVersion = coverletLineTokens[1].Trim();
+
+			CurrentCoverletVersion = Version.Parse(coverletVersion);
+
+			CoverletExePath = Directory.GetFiles(AppDataCoverletFolder, "coverlet.exe", SearchOption.AllDirectories).FirstOrDefault()
+						   ?? Directory.GetFiles(AppDataCoverletFolder, "*coverlet*.exe", SearchOption.AllDirectories).FirstOrDefault();
+		}
+
+		public static void UpdateCoverlet()
+		{
+			var process = Process.Start(new ProcessStartInfo
+			{
+				FileName = "dotnet",
+				CreateNoWindow = true,
+				UseShellExecute = false,
+				RedirectStandardError = true,
+				RedirectStandardOutput = true,
+				WindowStyle = ProcessWindowStyle.Hidden,
+				WorkingDirectory = AppDataCoverletFolder,
+				Arguments = $"tool update {CoverletName} --verbosity normal --version {MimimumCoverletVersion} --tool-path \"{AppDataCoverletFolder}\"",
+			});
+
+			process.WaitForExit();
+
+			if (process.ExitCode != 0)
+			{
+				ThrowException(process);
+			}
+
+			GetCoverletInfo();
+		}
+
+		public static void InstallCoverlet()
+		{
+			var process = Process.Start(new ProcessStartInfo
+			{
+				FileName = "dotnet",
+				CreateNoWindow = true,
+				UseShellExecute = false,
+				RedirectStandardError = true,
+				RedirectStandardOutput = true,
+				WindowStyle = ProcessWindowStyle.Hidden,
+				WorkingDirectory = AppDataCoverletFolder,
+				Arguments = $"tool install {CoverletName} --verbosity normal --version {MimimumCoverletVersion} --tool-path \"{AppDataCoverletFolder}\"",
+			});
+
+			process.WaitForExit();
+
+			if (process.ExitCode != 0)
+			{
+				ThrowException(process);
+			}
+
+			GetCoverletInfo();
+		}
+
+		private static void RunCoverlet(string testDllFile, string coverageFolder, string coverageFile)
+		{
+			var testDllFileInCoverageFolder = Path.Combine(coverageFolder, Path.GetFileName(testDllFile));
+
+			var process = Process.Start(new ProcessStartInfo
+			{
+				FileName = CoverletExePath,
+				CreateNoWindow = true,
+				UseShellExecute = false,
+				RedirectStandardError = true,
+				RedirectStandardOutput = true,
+				WindowStyle = ProcessWindowStyle.Hidden,
+				Arguments = $"\"{testDllFileInCoverageFolder}\" --include-test-assembly --format json --target dotnet --output \"{coverageFile}\" --targetargs \"test \"\"{testDllFileInCoverageFolder}\"\" --no-build\"",
+			});
+
+			process.WaitForExit();
+
+			if (process.ExitCode != 0)
+			{
+				ThrowException(process);
+			}
+		}
+
+		private static void ThrowException(Process process)
+		{
+			throw new Exception($"{DashLine}{process.StandardError?.ReadToEnd()}");
+		}
+
+		private static string ConvertPathToName(string path)
+		{
+			path = path.Replace(' ', '_').Replace('-', '_').Replace('.', '_').Replace(':', '_').Replace('\\', '_').Replace('/', '_');
+
+			foreach (var character in Path.GetInvalidPathChars())
+			{
+				path = path.Replace(character, '_');
+			}
+
+			return path;
+		}
+
+		public static void LoadCoverageFromTestDllFile(string testDllFile, Action<Exception> callback = null)
+		{
+			ThreadPool.QueueUserWorkItem(x =>
 			{
 				try
-                {
-                    // project folder
+				{
+					// project folder
 
-                    var testProjectFolder = GetProjectFolderFromPath(testDllFile);
+					var testProjectFolder = GetProjectFolderFromPath(testDllFile);
 
-                    if (string.IsNullOrWhiteSpace(testProjectFolder))
-                    {
-                        throw new Exception("Could not establish project folder");
-                    }
+					if (string.IsNullOrWhiteSpace(testProjectFolder))
+					{
+						throw new Exception("Could not establish project folder");
+					}
 
-                    // coverage folder
+					// coverage folder
 
-                    var coverageFolder = Path.Combine(TempFolder, ConvertPathToName(testProjectFolder));
+					var coverageFolder = Path.Combine(AppDataFolder, ConvertPathToName(testProjectFolder));
 
-                    if (!Directory.Exists(coverageFolder))
-                    {
-                        Directory.CreateDirectory(coverageFolder);
-                    }
+					if (!Directory.Exists(coverageFolder))
+					{
+						Directory.CreateDirectory(coverageFolder);
+					}
 
-                    // coverage file
+					// coverage file
 
-                    var coverageFile = Path.Combine(coverageFolder, "coverage.json");
+					var coverageFile = Path.Combine(coverageFolder, "coverage.json");
 
-                    if (File.Exists(coverageFile))
-                    {
-                        File.Delete(coverageFile);
-                    }
+					if (File.Exists(coverageFile))
+					{
+						File.Delete(coverageFile);
+					}
 
-                    // sync built files to coverage folder
+					// sync built files to coverage folder
 
-                    var buildFolder = Path.GetDirectoryName(testDllFile);
-                    FileSynchronizationUtil.Synchronize(buildFolder, coverageFolder);
+					var buildFolder = Path.GetDirectoryName(testDllFile);
+					FileSynchronizationUtil.Synchronize(buildFolder, coverageFolder);
 
-                    // coverage process
+					// coverage process
 
-                    RunCoverlet(testDllFile, coverageFolder, coverageFile);
+					RunCoverlet(testDllFile, coverageFolder, coverageFile);
 
-                    // reload
+					// reload
 
-                    var coverageFileContent = File.ReadAllText(coverageFile);
-                    var coverageFileJObject = JObject.Parse(coverageFileContent);
+					var coverageFileContent = File.ReadAllText(coverageFile);
+					var coverageFileJObject = JObject.Parse(coverageFileContent);
 
-                    foreach (var coverageDllFileProperty in coverageFileJObject.Properties())
-                    {
-                        var coverageDllFileJObject = (JObject)coverageDllFileProperty.Value;
+					foreach (var coverageDllFileProperty in coverageFileJObject.Properties())
+					{
+						var coverageDllFileJObject = (JObject)coverageDllFileProperty.Value;
 
-                        foreach (var sourceFileProperty in coverageDllFileJObject.Properties())
-                        {
-                            var sourceFilePath = sourceFileProperty.Name;
-                            var projectFolderPath = GetProjectFolderFromPath(sourceFilePath);
+						foreach (var sourceFileProperty in coverageDllFileJObject.Properties())
+						{
+							var sourceFilePath = sourceFileProperty.Name;
+							var projectFolderPath = GetProjectFolderFromPath(sourceFilePath);
 
-                            if (string.IsNullOrWhiteSpace(projectFolderPath))
-                            {
-                                continue;
-                            }
+							if (string.IsNullOrWhiteSpace(projectFolderPath))
+							{
+								continue;
+							}
 
-                            var sourceFileProject = CoverageProjects.SingleOrDefault(pr => pr.FolderPath.Equals(projectFolderPath, StringComparison.OrdinalIgnoreCase));
+							var sourceFileProject = CoverageProjects.SingleOrDefault(pr => pr.FolderPath.Equals(projectFolderPath, StringComparison.OrdinalIgnoreCase));
 
-                            if (sourceFileProject == null)
-                            {
-                                sourceFileProject = new CoverageProject
-                                {
-                                    FolderPath = projectFolderPath
-                                };
+							if (sourceFileProject == null)
+							{
+								sourceFileProject = new CoverageProject
+								{
+									FolderPath = projectFolderPath
+								};
 
-                                CoverageProjects.Add(sourceFileProject);
-                            }
+								CoverageProjects.Add(sourceFileProject);
+							}
 
-                            var sourceFile = sourceFileProject.SourceFiles.SingleOrDefault(sf => sf.FilePath.Equals(sourceFilePath, StringComparison.OrdinalIgnoreCase));
+							var sourceFile = sourceFileProject.SourceFiles.SingleOrDefault(sf => sf.FilePath.Equals(sourceFilePath, StringComparison.OrdinalIgnoreCase));
 
-                            if (sourceFile == null)
-                            {
-                                sourceFile = new CoverageSourceFile
-                                {
-                                    FilePath = sourceFilePath
-                                };
+							if (sourceFile == null)
+							{
+								sourceFile = new CoverageSourceFile
+								{
+									FilePath = sourceFilePath
+								};
 
-                                sourceFileProject.SourceFiles.Add(sourceFile);
-                            }
+								sourceFileProject.SourceFiles.Add(sourceFile);
+							}
 
-                            sourceFile.Lines.Clear();
-                            var sourceFileJObject = (JObject)sourceFileProperty.Value;
+							sourceFile.Lines.Clear();
+							var sourceFileJObject = (JObject)sourceFileProperty.Value;
 
-                            foreach (var classProperty in sourceFileJObject.Properties())
-                            {
-                                var className = classProperty.Name;
-                                var classJObject = (JObject)classProperty.Value;
+							foreach (var classProperty in sourceFileJObject.Properties())
+							{
+								var className = classProperty.Name;
+								var classJObject = (JObject)classProperty.Value;
 
-                                foreach (var methodProperty in classJObject.Properties())
-                                {
-                                    var methodName = methodProperty.Name;
-                                    var methodJObject = (JObject)methodProperty.Value;
-                                    var linesJObject = (JObject)methodJObject["Lines"];
+								foreach (var methodProperty in classJObject.Properties())
+								{
+									var methodName = methodProperty.Name;
+									var methodJObject = (JObject)methodProperty.Value;
+									var linesJObject = (JObject)methodJObject["Lines"];
 
-                                    foreach (var lineProperty in linesJObject.Properties())
-                                    {
-                                        var lineNumber = int.Parse(lineProperty.Name);
-                                        var lineHitCount = lineProperty.Value.Value<int>();
+									foreach (var lineProperty in linesJObject.Properties())
+									{
+										var lineNumber = int.Parse(lineProperty.Name);
+										var lineHitCount = lineProperty.Value.Value<int>();
 
-                                        sourceFile.Lines.Add(new CoverageLine
-                                        {
-                                            ClassName = className,
-                                            MethodName = methodName,
-                                            LineNumber = lineNumber,
-                                            HitCount = lineHitCount
-                                        });
-                                    }
-                                }
-                            }
-                        }
-                    }
+										sourceFile.Lines.Add(new CoverageLine
+										{
+											ClassName = className,
+											MethodName = methodName,
+											LineNumber = lineNumber,
+											HitCount = lineHitCount
+										});
+									}
+								}
+							}
+						}
+					}
 
-                    // callback
+					// callback
 
-                    callback?.Invoke(null);
-                }
-                catch (Exception ex)
+					callback?.Invoke(null);
+				}
+				catch (Exception ex)
 				{
 					callback?.Invoke(ex);
 				}
 			});
 		}
-    }
+	}
 }

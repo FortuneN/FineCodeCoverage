@@ -10,7 +10,7 @@ using Microsoft.VisualStudio.TestWindow.Extensibility;
 
 namespace FineCodeCoverage.Impl
 {
-    [Export(typeof(TestContainerDiscoverer))]
+	[Export(typeof(TestContainerDiscoverer))]
 	[Export(typeof(ITestContainerDiscoverer))]
 	[Name(Vsix.TestContainerDiscovererName)]
 	internal class TestContainerDiscoverer : ITestContainerDiscoverer
@@ -36,17 +36,18 @@ namespace FineCodeCoverage.Impl
 			Logger.Clear();
 			Logger.Initialize(serviceProvider, Vsix.Name);
 
-			CoverageUtil.InstallOrUpdateCoverlet(exception =>
+			if (CoverageUtil.CurrentCoverletVersion == null)
 			{
-				if (exception != null)
-				{
-					Logger.Log(exception);
-					return;
-				}
+				CoverageUtil.InstallCoverlet();
+			}
+			else if (CoverageUtil.CurrentCoverletVersion < CoverageUtil.MimimumCoverletVersion)
+			{
+				CoverageUtil.UpdateCoverlet();
+			}
 
-				operationState.StateChanged += OperationState_StateChanged;
-				Logger.Log("Initialized!");
-			});
+			operationState.StateChanged += OperationState_StateChanged;
+
+			Logger.Log($"Initialized [coverlet:{CoverageUtil.CurrentCoverletVersion}]");
 		}
 
 		private void OperationState_StateChanged(object sender, OperationStateChangedEventArgs e)
