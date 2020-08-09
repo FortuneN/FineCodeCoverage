@@ -25,7 +25,7 @@ namespace FineCodeCoverage.Impl
 		{
 			var tag = (GlyphTag)glyphTag;
 
-            return new Rectangle
+			return new Rectangle
 			{
 				Width = 2,
 				Height = 16,

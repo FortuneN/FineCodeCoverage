@@ -6,7 +6,7 @@ using Microsoft.VisualStudio.Text.Tagging;
 
 namespace FineCodeCoverage.Impl
 {
-    [ContentType("code")]
+	[ContentType("code")]
 	[TagType(typeof(GlyphTag))]
 	[Export(typeof(ITaggerProvider))]
 	[Name(Vsix.TaggerProviderName)]
@@ -36,24 +36,24 @@ namespace FineCodeCoverage.Impl
 
 		private IEnumerable<ITagSpan<GlyphTag>> GetTags(ITextBuffer textBuffer, NormalizedSnapshotSpanCollection spans)
 		{
-            var document = (ITextDocument)textBuffer.Properties.GetProperty(typeof(ITextDocument));
+			var document = (ITextDocument)textBuffer.Properties.GetProperty(typeof(ITextDocument));
 
-            if (document != null)
-            {
-                foreach (var span in spans)
-                {
-                    var lineNumber = span.Start.GetContainingLine().LineNumber + 1;
+			if (document != null)
+			{
+				foreach (var span in spans)
+				{
+					var lineNumber = span.Start.GetContainingLine().LineNumber + 1;
 
-                    var coverageLine = CoverageUtil.GetCoverageLine(document.FilePath, lineNumber);
+					var coverageLine = CoverageUtil.GetCoverageLine(document.FilePath, lineNumber);
 
-                    if (coverageLine == null)
-                    {
-                        continue;
-                    }
+					if (coverageLine == null)
+					{
+						continue;
+					}
 
-                    yield return new TagSpan<GlyphTag>(span, new GlyphTag(coverageLine.HitCount > 0));
-                }
-            }
+					yield return new TagSpan<GlyphTag>(span, new GlyphTag(coverageLine.HitCount > 0));
+				}
+			}
 		}
 	}
 }

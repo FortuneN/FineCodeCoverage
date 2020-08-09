@@ -2,10 +2,10 @@
 
 namespace FineCodeCoverage.Impl
 {
-    internal class CoverageProject
-    {
-        public string FolderPath { get; set; }
+	internal class CoverageProject
+	{
+		public string FolderPath { get; set; }
 
-        public List<CoverageSourceFile> SourceFiles { get; } = new List<CoverageSourceFile>();
-    }
+		public List<CoverageSourceFile> SourceFiles { get; } = new List<CoverageSourceFile>();
+	}
 }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Xml;
 using System.Linq;
 using System.Reflection;
 using System.Collections.Generic;
@@ -31,23 +32,53 @@ namespace FineCodeCoverage.Impl
 			IServiceProvider serviceProvider
 		)
 		{
-			TestContainersUpdated?.ToString();
-			
-			Logger.Clear();
-			Logger.Initialize(serviceProvider, Vsix.Name);
-
-			if (CoverageUtil.CurrentCoverletVersion == null)
+			try
 			{
-				CoverageUtil.InstallCoverlet();
+				Logger.Clear();
+				Logger.Initialize(serviceProvider, Vsix.Name);
+
+				if (CoverageUtil.CurrentCoverletVersion == null)
+				{
+					CoverageUtil.InstallCoverlet();
+				}
+				else if (CoverageUtil.CurrentCoverletVersion < CoverageUtil.MimimumCoverletVersion)
+				{
+					CoverageUtil.UpdateCoverlet();
+				}
+
+				TestContainersUpdated?.ToString();
+				operationState.StateChanged += OperationState_StateChanged;
+				
+				Logger.Log
+				(
+					"Initialized",
+					$"Version            {GetVersion()}",
+					$"Coverlet Version   {CoverageUtil.CurrentCoverletVersion}",
+					$"Work Directory     {CoverageUtil.AppDataFolder}",
+					$"Coverlet Directory {CoverageUtil.AppDataCoverletFolder}"
+				);
 			}
-			else if (CoverageUtil.CurrentCoverletVersion < CoverageUtil.MimimumCoverletVersion)
+			catch (Exception exception)
 			{
-				CoverageUtil.UpdateCoverlet();
+				Logger.Log($"Failed Initialization", exception.ToString());
 			}
+		}
 
-			operationState.StateChanged += OperationState_StateChanged;
-
-			Logger.Log($"Initialized [coverlet:{CoverageUtil.CurrentCoverletVersion}]");
+		private static string GetVersion()
+		{
+			try
+			{
+				var doc = new XmlDocument();
+				doc.Load("./extension.vsixmanifest");
+				var metaData = doc.DocumentElement.ChildNodes.Cast<XmlElement>().First(x => x.Name == "Metadata");
+				var identity = metaData.ChildNodes.Cast<XmlElement>().First(x => x.Name == "Identity");
+				var version = identity.GetAttribute("Version");
+				return version;
+			}
+			catch
+			{
+				return "-";
+			}
 		}
 
 		private void OperationState_StateChanged(object sender, OperationStateChangedEventArgs e)
@@ -69,7 +100,7 @@ namespace FineCodeCoverage.Impl
 						{
 							if (exception != null)
 							{
-								Logger.Log(exception);
+								Logger.Log("Error updating coverage", exception);
 								return;
 							}
 
@@ -81,7 +112,7 @@ namespace FineCodeCoverage.Impl
 			}
 			catch (Exception exception)
 			{
-				Logger.Log(exception);
+				Logger.Log("Error processing unit test events", exception);
 			}
 		}
 	}

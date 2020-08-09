@@ -21,15 +21,13 @@ namespace FineCodeCoverage.Impl
 
 		public static Version CurrentCoverletVersion { get; private set; }
 
-		public static Version MimimumCoverletVersion { get; } = Version.Parse("1.7.0");
+		public static Version MimimumCoverletVersion { get; } = Version.Parse("1.7.2");
 
 		public static string[] ProjectExtensions { get; } = new string[] { ".csproj", ".vbproj" };
 
 		public static List<CoverageProject> CoverageProjects { get; } = new List<CoverageProject>();
 
 		public static ConcurrentDictionary<string, string> ProjectFoldersCache { get; } = new ConcurrentDictionary<string, string>();
-
-		public static string DashLine { get; } = $"{Environment.NewLine}----------------------------------------------------------------------------------------{Environment.NewLine}";
 
 		static CoverageUtil()
 		{
@@ -94,9 +92,11 @@ namespace FineCodeCoverage.Impl
 			return coverageSourceFile.Lines.FirstOrDefault(l => l.LineNumber == lineNumber);
 		}
 
-		private static void GetCoverletInfo()
+		private static Version GetCoverletInfo()
 		{
-			var process = Process.Start(new ProcessStartInfo
+			var title = "Coverlet -> Get Info";
+
+			var processStartInfo = new ProcessStartInfo
 			{
 				FileName = "dotnet",
 				CreateNoWindow = true,
@@ -106,13 +106,16 @@ namespace FineCodeCoverage.Impl
 				WindowStyle = ProcessWindowStyle.Hidden,
 				WorkingDirectory = AppDataCoverletFolder,
 				Arguments = $"tool list --tool-path \"{AppDataCoverletFolder}\"",
-			});
+			};
+
+			var process = Process.Start(processStartInfo);
 
 			process.WaitForExit();
 
 			if (process.ExitCode != 0)
 			{
-				ThrowException(process);
+				Logger.Log($"Error during {title}", process.StandardError?.ReadToEnd());
+				return null;
 			}
 
 			var outputLines = process.StandardOutput.ReadToEnd().Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
@@ -123,7 +126,7 @@ namespace FineCodeCoverage.Impl
 				// coverlet is not installed
 				CoverletExePath = null;
 				CurrentCoverletVersion = null;
-				return;
+				return null;
 			}
 
 			var coverletLineTokens = coverletLine.Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
@@ -133,11 +136,15 @@ namespace FineCodeCoverage.Impl
 
 			CoverletExePath = Directory.GetFiles(AppDataCoverletFolder, "coverlet.exe", SearchOption.AllDirectories).FirstOrDefault()
 						   ?? Directory.GetFiles(AppDataCoverletFolder, "*coverlet*.exe", SearchOption.AllDirectories).FirstOrDefault();
+
+			return CurrentCoverletVersion;
 		}
 
 		public static void UpdateCoverlet()
 		{
-			var process = Process.Start(new ProcessStartInfo
+			var title = "Coverlet -> Update";
+
+			var processStartInfo = new ProcessStartInfo
 			{
 				FileName = "dotnet",
 				CreateNoWindow = true,
@@ -147,21 +154,28 @@ namespace FineCodeCoverage.Impl
 				WindowStyle = ProcessWindowStyle.Hidden,
 				WorkingDirectory = AppDataCoverletFolder,
 				Arguments = $"tool update {CoverletName} --verbosity normal --version {MimimumCoverletVersion} --tool-path \"{AppDataCoverletFolder}\"",
-			});
+			};
+
+			var process = Process.Start(processStartInfo);
 
 			process.WaitForExit();
 
 			if (process.ExitCode != 0)
 			{
-				ThrowException(process);
+				Logger.Log($"Error during {title}", process.StandardError?.ReadToEnd());
+				return;
 			}
 
 			GetCoverletInfo();
+
+			Logger.Log(title, process.StandardOutput?.ReadToEnd());
 		}
 
 		public static void InstallCoverlet()
 		{
-			var process = Process.Start(new ProcessStartInfo
+			var title = "Coverlet -> Install";
+
+			var processStartInfo = new ProcessStartInfo
 			{
 				FileName = "dotnet",
 				CreateNoWindow = true,
@@ -171,23 +185,30 @@ namespace FineCodeCoverage.Impl
 				WindowStyle = ProcessWindowStyle.Hidden,
 				WorkingDirectory = AppDataCoverletFolder,
 				Arguments = $"tool install {CoverletName} --verbosity normal --version {MimimumCoverletVersion} --tool-path \"{AppDataCoverletFolder}\"",
-			});
+			};
+
+			var process = Process.Start(processStartInfo);
 
 			process.WaitForExit();
 
 			if (process.ExitCode != 0)
 			{
-				ThrowException(process);
+				Logger.Log($"Error during {title}", process.StandardError?.ReadToEnd());
+				return;
 			}
 
 			GetCoverletInfo();
+
+			Logger.Log(title, process.StandardOutput?.ReadToEnd());
 		}
 
 		private static void RunCoverlet(string testDllFile, string coverageFolder, string coverageFile)
 		{
+			var title = "Coverlet -> Run";
+
 			var testDllFileInCoverageFolder = Path.Combine(coverageFolder, Path.GetFileName(testDllFile));
 
-			var process = Process.Start(new ProcessStartInfo
+			var processStartInfo = new ProcessStartInfo
 			{
 				FileName = CoverletExePath,
 				CreateNoWindow = true,
@@ -195,20 +216,20 @@ namespace FineCodeCoverage.Impl
 				RedirectStandardError = true,
 				RedirectStandardOutput = true,
 				WindowStyle = ProcessWindowStyle.Hidden,
-				Arguments = $"\"{testDllFileInCoverageFolder}\" --include-test-assembly --format json --target dotnet --output \"{coverageFile}\" --targetargs \"test \"\"{testDllFileInCoverageFolder}\"\" --no-build\"",
-			});
+				Arguments = $"\"{testDllFileInCoverageFolder}\" --include-test-assembly --format json --target dotnet --output \"{coverageFile}\" --targetargs \"test \"\"{testDllFileInCoverageFolder}\"\"\"",
+			};
+
+			var process = Process.Start(processStartInfo);
 
 			process.WaitForExit();
 
 			if (process.ExitCode != 0)
 			{
-				ThrowException(process);
+				Logger.Log($"Error during {title}", process.StandardError?.ReadToEnd());
+				return;
 			}
-		}
 
-		private static void ThrowException(Process process)
-		{
-			throw new Exception($"{DashLine}{process.StandardError?.ReadToEnd()}");
+			Logger.Log(title, process.StandardOutput?.ReadToEnd());
 		}
 
 		private static string ConvertPathToName(string path)

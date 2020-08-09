@@ -2,13 +2,13 @@
 
 namespace FineCodeCoverage.Impl
 {
-    internal class GlyphTag : IGlyphTag
-    {
-        public bool IsCovered { get; }
+	internal class GlyphTag : IGlyphTag
+	{
+		public bool IsCovered { get; }
 
-        public GlyphTag(bool isCovered)
-        {
-            IsCovered = isCovered;
-        }
-    }
+		public GlyphTag(bool isCovered)
+		{
+			IsCovered = isCovered;
+		}
+	}
 }
