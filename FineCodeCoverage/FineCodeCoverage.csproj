@@ -45,6 +45,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Impl\CoverageLineBranch.cs" />
     <Compile Include="Impl\CoverageLine.cs" />
     <Compile Include="Impl\CoverageProject.cs" />
     <Compile Include="Impl\CoverageSourceFile.cs" />

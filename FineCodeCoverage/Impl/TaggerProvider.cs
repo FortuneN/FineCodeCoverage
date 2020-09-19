@@ -51,7 +51,7 @@ namespace FineCodeCoverage.Impl
 						continue;
 					}
 
-					yield return new TagSpan<GlyphTag>(span, new GlyphTag(coverageLine.HitCount > 0));
+					yield return new TagSpan<GlyphTag>(span, new GlyphTag(coverageLine));
 				}
 			}
 		}

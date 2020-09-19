@@ -4,11 +4,11 @@ namespace FineCodeCoverage.Impl
 {
 	internal class GlyphTag : IGlyphTag
 	{
-		public bool IsCovered { get; }
+		public CoverageLine CoverageLine { get; }
 
-		public GlyphTag(bool isCovered)
+		public GlyphTag(CoverageLine coverageLine)
 		{
-			IsCovered = isCovered;
+			CoverageLine = coverageLine;
 		}
 	}
 }

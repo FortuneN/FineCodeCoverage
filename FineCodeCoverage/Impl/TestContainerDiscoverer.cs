@@ -8,6 +8,7 @@ using Microsoft.VisualStudio.Utilities;
 using System.ComponentModel.Composition;
 using IServiceProvider = System.IServiceProvider;
 using Microsoft.VisualStudio.TestWindow.Extensibility;
+using System.Threading;
 
 namespace FineCodeCoverage.Impl
 {

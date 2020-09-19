@@ -112,13 +112,15 @@ namespace FineCodeCoverage.Impl
 
 			process.WaitForExit();
 
+			var processOutput = GetProcessOutput(process);
+
 			if (process.ExitCode != 0)
 			{
-				Logger.Log($"Error during {title}", process.StandardError?.ReadToEnd());
+				Logger.Log($"Error during {title}", processOutput);
 				return null;
 			}
 
-			var outputLines = process.StandardOutput.ReadToEnd().Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+			var outputLines = processOutput.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
 			var coverletLine = outputLines.FirstOrDefault(x => x.Trim().StartsWith(CoverletName, StringComparison.OrdinalIgnoreCase));
 
 			if (string.IsNullOrWhiteSpace(coverletLine))
@@ -160,15 +162,17 @@ namespace FineCodeCoverage.Impl
 
 			process.WaitForExit();
 
+			var processOutput = GetProcessOutput(process);
+
 			if (process.ExitCode != 0)
 			{
-				Logger.Log($"Error during {title}", process.StandardError?.ReadToEnd());
+				Logger.Log($"Error during {title}", processOutput);
 				return;
 			}
 
 			GetCoverletInfo();
 
-			Logger.Log(title, process.StandardOutput?.ReadToEnd());
+			Logger.Log(title, processOutput);
 		}
 
 		public static void InstallCoverlet()
@@ -191,15 +195,17 @@ namespace FineCodeCoverage.Impl
 
 			process.WaitForExit();
 
+			var processOutput = GetProcessOutput(process);
+
 			if (process.ExitCode != 0)
 			{
-				Logger.Log($"Error during {title}", process.StandardError?.ReadToEnd());
+				Logger.Log($"Error during {title}", processOutput);
 				return;
 			}
 
 			GetCoverletInfo();
 
-			Logger.Log(title, process.StandardOutput?.ReadToEnd());
+			Logger.Log(title, processOutput);
 		}
 
 		private static void RunCoverlet(string testDllFile, string coverageFolder, string coverageFile)
@@ -223,13 +229,20 @@ namespace FineCodeCoverage.Impl
 
 			process.WaitForExit();
 
+			var processOutput = GetProcessOutput(process);
+
 			if (process.ExitCode != 0)
 			{
-				Logger.Log($"Error during {title}", process.StandardError?.ReadToEnd());
+				Logger.Log($"Error during {title}", processOutput);
 				return;
 			}
 
-			Logger.Log(title, process.StandardOutput?.ReadToEnd());
+			Logger.Log(title, processOutput);
+		}
+
+		private static string GetProcessOutput(Process process)
+		{
+			return string.Join(Environment.NewLine, new[] { process.StandardOutput?.ReadToEnd(), process.StandardError?.ReadToEnd() }.Where(x => !string.IsNullOrWhiteSpace(x)));
 		}
 
 		private static string ConvertPathToName(string path)
@@ -280,6 +293,7 @@ namespace FineCodeCoverage.Impl
 					// sync built files to coverage folder
 
 					var buildFolder = Path.GetDirectoryName(testDllFile);
+
 					FileSynchronizationUtil.Synchronize(buildFolder, coverageFolder);
 
 					// coverage process
@@ -342,18 +356,21 @@ namespace FineCodeCoverage.Impl
 									var methodName = methodProperty.Name;
 									var methodJObject = (JObject)methodProperty.Value;
 									var linesJObject = (JObject)methodJObject["Lines"];
+									var branchesJArray = (JArray)methodJObject["Branches"];
 
 									foreach (var lineProperty in linesJObject.Properties())
 									{
 										var lineNumber = int.Parse(lineProperty.Name);
 										var lineHitCount = lineProperty.Value.Value<int>();
+										var lineBranches = branchesJArray.Select(b => b as JObject).Where(b => b.Value<int>("Line") == lineNumber).Select(b => b.ToObject<CoverageLineBranch>()).ToList();
 
 										sourceFile.Lines.Add(new CoverageLine
 										{
 											ClassName = className,
 											MethodName = methodName,
 											LineNumber = lineNumber,
-											HitCount = lineHitCount
+											HitCount = lineHitCount,
+											LineBranches = lineBranches
 										});
 									}
 								}

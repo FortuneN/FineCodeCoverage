@@ -9,17 +9,17 @@ namespace FineCodeCoverage.Impl
 	{
 		public static void Synchronize(string sourceFolder, string destinationFolder)
 		{
-			var srceDir = new DirectoryInfo(Path.GetFullPath(sourceFolder) + '\\');
-			var destDir = new DirectoryInfo(Path.GetFullPath(destinationFolder) + '\\');
+			var srceDir   = new DirectoryInfo(Path.GetFullPath(sourceFolder) + '\\');
+			var destDir   = new DirectoryInfo(Path.GetFullPath(destinationFolder) + '\\');
 
-			// take snapshot of files
+			// file lists
 
-			var srceFiles = srceDir.GetFiles("*.*", SearchOption.AllDirectories).Select(fi => new ComparableFile(fi, fi.FullName.Substring(srceDir.FullName.Length)));
-			var destFiles = destDir.GetFiles("*.*", SearchOption.AllDirectories).Select(fi => new ComparableFile(fi, fi.FullName.Substring(destDir.FullName.Length)));
+			var srceFiles = srceDir.GetFiles("*", SearchOption.AllDirectories).Select(fi => new ComparableFile(fi, fi.FullName.Substring(srceDir.FullName.Length)));
+			IEnumerable<ComparableFile> destFiles() => destDir.GetFiles("*", SearchOption.AllDirectories).Select(fi => new ComparableFile(fi, fi.FullName.Substring(destDir.FullName.Length)));
 
 			// copy to dest
 
-			foreach (var fileToCopy in srceFiles.Except(destFiles, FileComparer.Singleton))
+			foreach (var fileToCopy in srceFiles.Except(destFiles(), FileComparer.Singleton))
 			{
 				var to = new FileInfo(fileToCopy.FileInfo.FullName.Replace(srceDir.FullName, destDir.FullName));
 
@@ -33,7 +33,7 @@ namespace FineCodeCoverage.Impl
 
 			// delete from dest
 
-			foreach (var fileToDelete in destFiles.Except(srceFiles, FileComparer.Singleton))
+			foreach (var fileToDelete in destFiles().Except(srceFiles, FileComparer.Singleton))
 			{
 				File.Delete(fileToDelete.FileInfo.FullName);
 			}
@@ -49,31 +49,13 @@ namespace FineCodeCoverage.Impl
 
 			public override int GetHashCode() => hashCode;
 
+			public bool Equals(ComparableFile other) => hashCode.Equals(other.hashCode);
+
 			public ComparableFile(FileInfo fileInfo, string relativePath)
 			{
 				FileInfo = fileInfo;
 				RelativePath = relativePath;
-				hashCode = string.Format("{0}{1}{2}", RelativePath, FileInfo.Length, FileInfo.LastWriteTimeUtc.Ticks).GetHashCode();
-			}
-
-			public bool Equals(ComparableFile other)
-			{
-				if (RelativePath != other.RelativePath)
-				{
-					return false;
-				}
-
-				if (FileInfo.Length != other.FileInfo.Length)
-				{
-					return false;
-				}
-
-				if (FileInfo.LastWriteTimeUtc != other.FileInfo.LastWriteTimeUtc)
-				{
-					return false;
-				}
-
-				return true;
+				hashCode = string.Format("{0}|{1}|{2}", RelativePath, FileInfo.Length, FileInfo.LastWriteTimeUtc.Ticks).GetHashCode();
 			}
 		}
 
