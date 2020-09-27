@@ -17,7 +17,7 @@ namespace FineCodeCoverage.Impl
 	[Name(Vsix.GlyphFactoryProviderName)]
 	internal class GlyphFactoryProvider: IGlyphFactoryProvider
 	{
-		private static SolidColorBrush CustomGoldBrush = new SolidColorBrush(Color.FromRgb(255, 165, 0));
+		private static readonly SolidColorBrush CustomGoldBrush = new SolidColorBrush(Color.FromRgb(255, 165, 0));
 
 		public IGlyphFactory GetGlyphFactory(IWpfTextView textView, IWpfTextViewMargin textViewMargin)
 		{
