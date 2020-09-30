@@ -1,4 +1,5 @@
 ﻿using FineCodeCoverage;
+using Microsoft.VisualStudio.Shell;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -33,4 +34,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyVersion(Vsix.Version)]
 [assembly: AssemblyFileVersion(Vsix.Version)]
 
-[assembly: InternalsVisibleTo("FineCodeCoverage.UnitTests")]
+//[assembly: InternalsVisibleTo("FineCodeCoverage.UnitTests")]
+
+[ProvideBindingPath]
+public class X { }

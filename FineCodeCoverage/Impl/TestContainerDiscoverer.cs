@@ -8,7 +8,10 @@ using Microsoft.VisualStudio.Utilities;
 using System.ComponentModel.Composition;
 using IServiceProvider = System.IServiceProvider;
 using Microsoft.VisualStudio.TestWindow.Extensibility;
-using System.Threading;
+using System.IO;
+using FineCodeCoverage.Output;
+using Microsoft.VisualStudio.Shell.Interop;
+using System.Diagnostics.CodeAnalysis;
 
 namespace FineCodeCoverage.Impl
 {
@@ -38,25 +41,21 @@ namespace FineCodeCoverage.Impl
 				Logger.Clear();
 				Logger.Initialize(serviceProvider, Vsix.Name);
 
-				if (CoverageUtil.CurrentCoverletVersion == null)
-				{
-					CoverageUtil.InstallCoverlet();
-				}
-				else if (CoverageUtil.CurrentCoverletVersion < CoverageUtil.MimimumCoverletVersion)
-				{
-					CoverageUtil.UpdateCoverlet();
-				}
+				CoverageUtil.Initialize();
+				LoadToolWindow(serviceProvider);
 
 				TestContainersUpdated?.ToString();
 				operationState.StateChanged += OperationState_StateChanged;
-				
+
 				Logger.Log
 				(
 					"Initialized",
-					$"Version            {GetVersion()}",
-					$"Coverlet Version   {CoverageUtil.CurrentCoverletVersion}",
-					$"Work Directory     {CoverageUtil.AppDataFolder}",
-					$"Coverlet Directory {CoverageUtil.AppDataCoverletFolder}"
+					$"Version                   {GetVersion()}",
+					$"Coverlet Version          {CoverageUtil.CurrentCoverletVersion}",
+					$"Report Generator Version  {CoverageUtil.CurrentReportGeneratorVersion}",
+					$"Work Folder               {CoverageUtil.AppDataFolder}",
+					$"Coverlet Folder           {CoverageUtil.AppDataCoverletFolder}",
+					$"Report Generator Folder   {CoverageUtil.AppDataReportGeneratorFolder}"
 				);
 			}
 			catch (Exception exception)
@@ -65,12 +64,31 @@ namespace FineCodeCoverage.Impl
 			}
 		}
 
+		[SuppressMessage("Usage", "VSTHRD102:Implement internal logic asynchronously")]
+		private void LoadToolWindow(IServiceProvider serviceProvider)
+		{
+			ThreadHelper.JoinableTaskFactory.Run(async () =>
+			{
+				await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+
+				if (serviceProvider.GetService(typeof(SVsShell)) is IVsShell shell)
+				{
+					var PackageToBeLoadedGuid = new Guid(OutputToolWindowPackage.PackageGuidString);
+					shell.LoadPackage(ref PackageToBeLoadedGuid, out var package);
+					OutputToolWindowCommand.Instance.Execute(default, default);
+				}
+			});
+		}
+
 		private static string GetVersion()
 		{
+			Assembly assembly = null;
+
 			try
 			{
 				var doc = new XmlDocument();
-				doc.Load("./extension.vsixmanifest");
+				assembly = typeof(TestContainerDiscoverer).Assembly;
+				doc.Load(Path.Combine(Path.GetDirectoryName(assembly.Location), "extension.vsixmanifest"));
 				var metaData = doc.DocumentElement.ChildNodes.Cast<XmlElement>().First(x => x.Name == "Metadata");
 				var identity = metaData.ChildNodes.Cast<XmlElement>().First(x => x.Name == "Identity");
 				var version = identity.GetAttribute("Version");
@@ -78,7 +96,14 @@ namespace FineCodeCoverage.Impl
 			}
 			catch
 			{
-				return "-";
+				try
+				{
+					return assembly.GetName().Version.ToString();
+				}
+				catch
+				{
+					return "-";
+				}
 			}
 		}
 
@@ -106,6 +131,14 @@ namespace FineCodeCoverage.Impl
 							}
 
 							TaggerProvider.ReloadTags();
+							
+							OutputToolWindowControl.SetFilePaths
+							(
+								CoverageUtil.SummaryHtmlFilePath,
+								CoverageUtil.CoverageHtmlFilePath,
+								CoverageUtil.RiskHotspotsHtmlFilePath
+							);
+
 							Logger.Log("Coverage updated!");
 						});
 					}
