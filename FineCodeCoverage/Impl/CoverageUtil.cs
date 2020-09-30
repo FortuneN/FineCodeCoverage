@@ -659,11 +659,12 @@ namespace FineCodeCoverage.Impl
 							SummaryHtmlFilePath = path;
 							var table = doc.DocumentNode.QuerySelectorAll("table.overview").First();
 							var tableRows = table.QuerySelectorAll("tr").ToArray();
-							tableRows[0].SetAttributeValue("style", "display:none");
-							tableRows[1].SetAttributeValue("style", "display:none");
-							tableRows[10].SetAttributeValue("style", "display:none");
-							tableRows[11].SetAttributeValue("style", "display:none");
-							tableRows[12].SetAttributeValue("style", "display:none");
+							try { tableRows[0].SetAttributeValue("style", "display:none"); } catch {}
+							try { tableRows[1].SetAttributeValue("style", "display:none"); } catch { }
+							try { tableRows[10].SetAttributeValue("style", "display:none"); } catch { }
+							try { tableRows[10].SetAttributeValue("style", "display:none"); } catch { }
+							try { tableRows[11].SetAttributeValue("style", "display:none"); } catch { }
+							try { tableRows[12].SetAttributeValue("style", "display:none"); } catch { }
 							break;
 
 						case HtmlSegment.Coverage:
@@ -770,9 +771,9 @@ namespace FineCodeCoverage.Impl
 
 					html = html.Replace("</head>", $@"
 						<style type=""text/css""> 
-							table th, table td {{ font-size: small; }}
 							table td {{ text-overflow:  ellipsis | clip; white-space: nowrap; }}
 							a, a:hover {{ color: #0078D4; text-decoration: none; cursor: pointer; }}
+							table th, table td {{ font-size: small; white-space: nowrap; word-break: normal; }}
 							body {{ -webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;-o-user-select:none;user-select:none }}
 						</style>
 						</head>
