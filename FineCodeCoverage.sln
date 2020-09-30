@@ -15,6 +15,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution", "Solution", "{20
 		CONTRIBUTING.md = CONTRIBUTING.md
 		ISSUE_TEMPLATE.md = ISSUE_TEMPLATE.md
 		LICENSE = LICENSE
+		Art\Output-Coverage.png = Art\Output-Coverage.png
+		Art\Output-RiskHotspots.png = Art\Output-RiskHotspots.png
+		Art\Output-Summary.png = Art\Output-Summary.png
 		README.md = README.md
 	EndProjectSection
 EndProject

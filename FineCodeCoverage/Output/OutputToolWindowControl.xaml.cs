@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Windows;
 using System.Windows.Controls;
 using Microsoft.VisualStudio.Shell;
 using System.Runtime.InteropServices;
@@ -41,6 +40,10 @@ namespace FineCodeCoverage.Output
 			SummaryBrowser.ObjectForScripting = ScriptManager;
 			CoverageBrowser.ObjectForScripting = ScriptManager;
 			RiskHotspotsBrowser.ObjectForScripting = ScriptManager;
+
+			BtnBeer.MouseLeftButtonDown += (s, e) => System.Diagnostics.Process.Start("https://paypal.me/FortuneNgwenya");
+			BtnIssue.MouseLeftButtonDown += (s, e) => System.Diagnostics.Process.Start("https://github.com/FortuneN/FineCodeCoverage/issues");
+			BtnReview.MouseLeftButtonDown += (s, e) => System.Diagnostics.Process.Start("https://marketplace.visualstudio.com/items?itemName=FortuneNgwenya.FineCodeCoverage&ssr=false#review-details");
 		}
 
 		[SuppressMessage("Usage", "VSTHRD102:Implement internal logic asynchronously")]
@@ -66,7 +69,7 @@ namespace FineCodeCoverage.Output
 	[ComVisible(true)]
 	public class ScriptManager
 	{
-		private DTE _dte;
+		private readonly DTE _dte;
 
 		public ScriptManager(DTE dte)
 		{

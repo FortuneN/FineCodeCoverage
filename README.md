@@ -18,6 +18,15 @@ Run a(some) unit test(s) and ...
 #### Get highlights on the code doing the testing
 ![Code Doing The Testing](Art/preview-test.png)
 
+#### See Coverage View
+![Coverage View](Art/Output-Coverage.png)
+
+#### See Summary View
+![Summary View](Art/Output-Summary.png)
+
+#### See Risk Hotspots View
+![Risk Hotspots View](Art/Output-RiskHotspots.png)
+
 ## Contribute
 Check out the [contribution guidelines](CONTRIBUTING.md)
 if you want to contribute to this project.
@@ -31,7 +40,7 @@ used by this project.
 ## License
 [Apache 2.0](LICENSE)
 
-## Buy me beer (maybe)
+## Buy me a beer
 If you find this plugin useful, perhaps you can buy me a beer :)
 
 [<img src="https://www.paypalobjects.com/webstatic/mktg/Logo/pp-logo-100px.png">](https://paypal.me/FortuneNgwenya)

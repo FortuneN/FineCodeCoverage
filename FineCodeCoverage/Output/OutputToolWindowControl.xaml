@@ -7,20 +7,42 @@
 	Background="{DynamicResource {x:Static vsshell:VsBrushes.WindowKey}}"
 	Foreground="{DynamicResource {x:Static vsshell:VsBrushes.WindowTextKey}}"
 	mc:Ignorable="d"
-	d:DesignHeight="300" d:DesignWidth="300"
+	d:DesignHeight="300" d:DesignWidth="400"
 	Name="FCCOutputToolWindow">
-	<TabControl Margin="0,0,0,0" VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
-		<TabItem Header="Coverage">
-			<WebBrowser Name="CoverageBrowser">
-			</WebBrowser>
-		</TabItem>
-		<TabItem Header="Summary">
-			<WebBrowser Name="SummaryBrowser">
-			</WebBrowser>
-		</TabItem>
-		<TabItem Header="Risk Hotspots">
-			<WebBrowser Name="RiskHotspotsBrowser">
-			</WebBrowser>
-		</TabItem>
-	</TabControl>
+	<Grid Name="FCCMainGrid" Margin="0,0,0,0" VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
+		<TabControl Margin="0,0,0,0" VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
+			<TabItem Header="Coverage">
+				<WebBrowser Name="CoverageBrowser">
+				</WebBrowser>
+			</TabItem>
+			<TabItem Header="Summary">
+				<WebBrowser Name="SummaryBrowser">
+				</WebBrowser>
+			</TabItem>
+			<TabItem Header="Risk Hotspots" HorizontalAlignment="Right" Margin="0,0,0,0">
+				<WebBrowser Name="RiskHotspotsBrowser">
+				</WebBrowser>
+			</TabItem>
+		</TabControl>
+		<StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Top" Height="20" Focusable="False">
+			<Label Name="BtnReview" Height="20" HorizontalAlignment="Center" VerticalAlignment="Top" Background="{x:Null}" BorderBrush="{x:Null}" Foreground="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}" Padding="0,2,0,0" Cursor="Hand">
+				<StackPanel Orientation="Horizontal">
+					<TextBlock Padding="0,1,0,0">Rate and review</TextBlock>
+				</StackPanel>
+			</Label>
+			<Label Width="20">
+			</Label>
+			<Label Name="BtnIssue" Height="20" HorizontalAlignment="Center" VerticalAlignment="Top" Background="{x:Null}" BorderBrush="{x:Null}" Foreground="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}" Padding="0,2,0,0" Cursor="Hand">
+				<StackPanel Orientation="Horizontal">
+					<TextBlock Padding="0,1,0,0">Log an issue/suggestion</TextBlock>
+				</StackPanel>
+			</Label>
+		</StackPanel>
+		<Label Name="BtnBeer" Width="155" Height="20" HorizontalAlignment="Right" VerticalAlignment="Top" Background="{x:Null}" BorderBrush="{x:Null}" Foreground="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}" Padding="0,2,0,0" Cursor="Hand">
+			<StackPanel Orientation="Horizontal">
+				<TextBlock Margin="0,0,6,0" Padding="0,1,0,0">Buy me a beer</TextBlock>
+				<Image Source="https://www.paypalobjects.com/webstatic/mktg/Logo/pp-logo-100px.png" />
+			</StackPanel>
+		</Label>
+	</Grid>
 </UserControl>

@@ -90,6 +90,18 @@
       <Link>Resources\logo.png</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
+    <Content Include="..\Art\Output-Coverage.png">
+      <Link>Resources\Output-Coverage.png</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="..\Art\Output-RiskHotspots.png">
+      <Link>Resources\Output-RiskHotspots.png</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="..\Art\Output-Summary.png">
+      <Link>Resources\Output-Summary.png</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
     <Content Include="..\Art\preview-subject.png">
       <Link>Resources\preview-subject.png</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
@@ -113,7 +125,7 @@
     <None Include="..\.editorconfig">
       <Link>.editorconfig</Link>
     </None>
-	<!--
+    <!--
     <None Include="Key.snk" />
 	-->
     <None Include="source.extension.vsixmanifest">
