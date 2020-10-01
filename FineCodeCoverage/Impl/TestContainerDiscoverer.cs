@@ -12,6 +12,7 @@ using System.IO;
 using FineCodeCoverage.Output;
 using Microsoft.VisualStudio.Shell.Interop;
 using System.Diagnostics.CodeAnalysis;
+using System.Threading.Tasks;
 
 namespace FineCodeCoverage.Impl
 {
@@ -38,8 +39,8 @@ namespace FineCodeCoverage.Impl
 		{
 			try
 			{
-				Logger.Clear();
-				Logger.Initialize(serviceProvider, Vsix.Name);
+				//Logger.Clear();
+				Logger.Initialize(serviceProvider);
 
 				CoverageUtil.Initialize();
 				LoadToolWindow(serviceProvider);
@@ -113,16 +114,17 @@ namespace FineCodeCoverage.Impl
 			{
 				if (e.State == TestOperationStates.TestExecutionFinished)
 				{
-					Logger.Clear();
+					//Logger.Clear();
 					Logger.Log("Updating coverage ...");
 
 					var operationType = e.Operation.GetType();
 					var testConfiguration = (operationType.GetProperty("Configuration") ?? operationType.GetProperty("Configuration", BindingFlags.Instance | BindingFlags.NonPublic)).GetValue(e.Operation);
 					var testConfigurationSources = (IEnumerable<string>)testConfiguration.GetType().GetProperty("TestSources").GetValue(testConfiguration);
 
-					foreach (var testDllFile in testConfigurationSources)
+					Parallel.ForEach(testConfigurationSources, testDllFile =>
 					{
-						CoverageUtil.LoadCoverageFromTestDllFile(testDllFile,
+						CoverageUtil.LoadCoverageFromTestDllFile(
+							testDllFile,
 							exception =>
 							{
 								if (exception != null)
@@ -132,7 +134,7 @@ namespace FineCodeCoverage.Impl
 								}
 
 								TaggerProvider.ReloadTags();
-								
+
 								Logger.Log("Highlights updated!");
 							},
 							exception =>
@@ -153,7 +155,7 @@ namespace FineCodeCoverage.Impl
 								Logger.Log("Ouput window updated!");
 							}
 						);
-					}
+					});
 				}
 			}
 			catch (Exception exception)
