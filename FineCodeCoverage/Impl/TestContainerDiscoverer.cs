@@ -122,25 +122,37 @@ namespace FineCodeCoverage.Impl
 
 					foreach (var testDllFile in testConfigurationSources)
 					{
-						CoverageUtil.LoadCoverageFromTestDllFile(testDllFile, exception =>
-						{
-							if (exception != null)
+						CoverageUtil.LoadCoverageFromTestDllFile(testDllFile,
+							exception =>
 							{
-								Logger.Log("Error updating coverage", exception);
-								return;
+								if (exception != null)
+								{
+									Logger.Log("Error updating highlights", exception);
+									return;
+								}
+
+								TaggerProvider.ReloadTags();
+								
+								Logger.Log("Highlights updated!");
+							},
+							exception =>
+							{
+								if (exception != null)
+								{
+									Logger.Log("Error updating ouput window", exception);
+									return;
+								}
+
+								OutputToolWindowControl.SetFilePaths
+								(
+									CoverageUtil.SummaryHtmlFilePath,
+									CoverageUtil.CoverageHtmlFilePath,
+									CoverageUtil.RiskHotspotsHtmlFilePath
+								);
+
+								Logger.Log("Ouput window updated!");
 							}
-
-							TaggerProvider.ReloadTags();
-							
-							OutputToolWindowControl.SetFilePaths
-							(
-								CoverageUtil.SummaryHtmlFilePath,
-								CoverageUtil.CoverageHtmlFilePath,
-								CoverageUtil.RiskHotspotsHtmlFilePath
-							);
-
-							Logger.Log("Coverage updated!");
-						});
+						);
 					}
 				}
 			}

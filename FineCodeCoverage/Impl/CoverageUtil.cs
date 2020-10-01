@@ -455,7 +455,7 @@ namespace FineCodeCoverage.Impl
 			return path;
 		}
 
-		public static void LoadCoverageFromTestDllFile(string testDllFile, Action<Exception> callback = null)
+		public static void LoadCoverageFromTestDllFile(string testDllFile, Action<Exception> highlightsCallback = null, Action<Exception> outputWindowCallback = null)
 		{
 			ThreadPool.QueueUserWorkItem(x =>
 			{
@@ -487,19 +487,37 @@ namespace FineCodeCoverage.Impl
 
 					// run coverlet process
 
-					if (RunCoverlet(testDllFile, coverageFolder, out var coverageJsonFile, out var coberturaFile))
+					if (!RunCoverlet(testDllFile, coverageFolder, out var coverageJsonFile, out var coberturaFile))
+					{
+						highlightsCallback?.Invoke(null);
+						outputWindowCallback?.Invoke(null);
+						return;
+					}
+					
+					try
 					{
 						ProcessJsonFile(coverageJsonFile);
-						ProcessCoberturaFile(coberturaFile);
+						highlightsCallback?.Invoke(null);
+					}
+					catch (Exception ex)
+					{
+						highlightsCallback?.Invoke(ex);
 					}
 
-					// callback
-
-					callback?.Invoke(null);
+					try
+					{
+						ProcessCoberturaFile(coberturaFile);
+						outputWindowCallback?.Invoke(null);
+					}
+					catch (Exception ex)
+					{
+						outputWindowCallback?.Invoke(ex);
+					}
 				}
 				catch (Exception ex)
 				{
-					callback?.Invoke(ex);
+					highlightsCallback?.Invoke(ex);
+					outputWindowCallback?.Invoke(ex);
 				}
 			});
 		}
