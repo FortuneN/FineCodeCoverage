@@ -278,17 +278,17 @@ namespace FineCodeCoverage.Impl
 				coverletSettings.Add($@"--include ""{value.Replace("\"", "\\\"").Trim(' ', '\'')}""");
 			}
 
-			foreach (var value in (appSettings.IncludeDirectories ?? new string[0]).Where(x => !string.IsNullOrWhiteSpace(x)))
+			foreach (var value in (appSettings.IncludeDirectory ?? new string[0]).Where(x => !string.IsNullOrWhiteSpace(x)))
 			{
 				coverletSettings.Add($@"--include-directory ""{value.Replace("\"", "\\\"").Trim(' ', '\'')}""");
 			}
 
-			foreach (var value in (appSettings.ExcludeByFiles ?? new string[0]).Where(x => !string.IsNullOrWhiteSpace(x)))
+			foreach (var value in (appSettings.ExcludeByFile ?? new string[0]).Where(x => !string.IsNullOrWhiteSpace(x)))
 			{
 				coverletSettings.Add($@"--exclude-by-file ""{value.Replace("\"", "\\\"").Trim(' ', '\'')}""");
 			}
 
-			foreach (var value in (appSettings.ExcludeByAttributes ?? new string[0]).Where(x => !string.IsNullOrWhiteSpace(x)))
+			foreach (var value in (appSettings.ExcludeByAttribute ?? new string[0]).Where(x => !string.IsNullOrWhiteSpace(x)))
 			{
 				coverletSettings.Add($@"--exclude-by-attribute ""{value.Replace("\"", "\\\"").Trim(' ', '\'', '[', ']')}""");
 			}

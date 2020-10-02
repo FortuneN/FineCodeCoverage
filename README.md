@@ -30,8 +30,32 @@ Run a(some) unit test(s) and ...
 #### Global (Shared) options
 ![Global Options](Art/Options-Global.png)
 
-#### Local (Project) options (override in your csproj/vbproj : OPTIONAL)
-![Local Options](Art/Options-Project.png)
+#### Local (Project) options (override globals in your csproj/vbproj : OPTIONAL)
+```
+<PropertyGroup Label="FineCodeCoverage">
+	<Exclude>
+		[ThirdParty.*]*
+		[FourthParty]*
+	</Exclude>
+	<Include>
+		[*]*
+	</Include>
+	<IncludeDirectory>
+		C:\MyLibs
+	</IncludeDirectory>
+	<ExcludeByFile>
+		Migrations/**.cs
+		Utilities/**.cs
+	</ExcludeByFile>
+	<ExcludeByAttribute>
+		GeneratedCode
+		CompilerGenerated
+	</ExcludeByAttribute>
+	<IncludeTestAssembly>
+		False
+	</IncludeTestAssembly>
+</PropertyGroup>
+```
 
 #### Options
 ```

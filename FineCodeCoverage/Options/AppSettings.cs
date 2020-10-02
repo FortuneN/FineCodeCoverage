@@ -45,13 +45,13 @@ namespace FineCodeCoverage.Options
 		public string[] Include { get; set; }
 
 		[Description("Include directories containing additional assemblies to be instrumented (multiple)")]
-		public string[] IncludeDirectories { get; set; }
+		public string[] IncludeDirectory { get; set; }
 
 		[Description(
 		@"Glob patterns specifying source files to exclude (multiple)
 		Use file path or directory path with globbing (e.g dir1/*.cs)
 		")]
-		public string[] ExcludeByFiles { get; set; } = new[] { "Migrations/**.cs" };
+		public string[] ExcludeByFile { get; set; } = new[] { "Migrations/**.cs" };
 
 		[Description(
 		@"Attributes to exclude from code coverage (multiple)
@@ -63,7 +63,7 @@ namespace FineCodeCoverage.Options
 		[CompilerGenerated] => Present in System.Runtime.CompilerServices namespace
 		[CustomExcludeFromCodeCoverage] => Any custom attribute that you may define
 		")]
-		public string[] ExcludeByAttributes { get; set; } = new[] { "GeneratedCode", "CompilerGenerated" };
+		public string[] ExcludeByAttribute { get; set; } = new[] { "GeneratedCode", "CompilerGenerated" };
 
 		[Description("Specifies whether to include code coverage of the test assembly")]
 		public bool IncludeTestAssembly { get; set; } = true;
@@ -79,7 +79,7 @@ namespace FineCodeCoverage.Options
 		//[DoesNotReturn] => Present in System.Diagnostics.CodeAnalysis
 		//[CustomDoesNotReturn] => Any custom attribute that you may define
 		//")]
-		//public string[] DoesNotReturnAttributes { get; set; } = new[] { "DoesNotReturn" };
+		//public string[] DoesNotReturnAttribute { get; set; } = new[] { "DoesNotReturn" };
 
 		[SuppressMessage("Usage", "VSTHRD010:Invoke single-threaded types on Main thread")]
 		public override void SaveSettingsToStorage()
