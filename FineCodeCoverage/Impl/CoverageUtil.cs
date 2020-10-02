@@ -262,29 +262,35 @@ namespace FineCodeCoverage.Impl
 			var appSettings = GetSettings(testDllFile);
 			var coverletSettings = new List<string>();
 
+			coverletSettings.Add($@"""{testDllFileInCoverageFolder}""");
+
+			coverletSettings.Add($@"--format ""json""");
+
+			coverletSettings.Add($@"--format ""cobertura""");
+
 			foreach (var value in (appSettings.Exclude ?? new string[0]).Where(x => !string.IsNullOrWhiteSpace(x)))
 			{
-				coverletSettings.Add($@"--exclude ""{value.Replace("\"", "\\\"").Trim(' ', '[', ']')}""");
+				coverletSettings.Add($@"--exclude ""{value.Replace("\"", "\\\"").Trim(' ', '\'')}""");
 			}
 
 			foreach (var value in (appSettings.Include ?? new string[0]).Where(x => !string.IsNullOrWhiteSpace(x)))
 			{
-				coverletSettings.Add($@"--include ""{value.Replace("\"", "\\\"").Trim(' ', '[', ']')}""");
+				coverletSettings.Add($@"--include ""{value.Replace("\"", "\\\"").Trim(' ', '\'')}""");
 			}
 
 			foreach (var value in (appSettings.IncludeDirectories ?? new string[0]).Where(x => !string.IsNullOrWhiteSpace(x)))
 			{
-				coverletSettings.Add($@"--include-directory ""{value.Replace("\"", "\\\"").Trim(' ', '[', ']')}""");
+				coverletSettings.Add($@"--include-directory ""{value.Replace("\"", "\\\"").Trim(' ', '\'')}""");
 			}
 
 			foreach (var value in (appSettings.ExcludeByFiles ?? new string[0]).Where(x => !string.IsNullOrWhiteSpace(x)))
 			{
-				coverletSettings.Add($@"--exclude-by-file ""{value.Replace("\"", "\\\"").Trim(' ', '[', ']')}""");
+				coverletSettings.Add($@"--exclude-by-file ""{value.Replace("\"", "\\\"").Trim(' ', '\'')}""");
 			}
 
 			foreach (var value in (appSettings.ExcludeByAttributes ?? new string[0]).Where(x => !string.IsNullOrWhiteSpace(x)))
 			{
-				coverletSettings.Add($@"--exclude-by-attribute ""{value.Replace("\"", "\\\"").Trim(' ', '[', ']')}""");
+				coverletSettings.Add($@"--exclude-by-attribute ""{value.Replace("\"", "\\\"").Trim(' ', '\'', '[', ']')}""");
 			}
 
 			if (appSettings.IncludeTestAssembly)
@@ -304,6 +310,14 @@ namespace FineCodeCoverage.Impl
 			//	coverletSettings.Add($@"--does-not-return-attribute ""{value.Replace("\"", "\\\"")}""");
 			//}
 
+			coverletSettings.Add($@"--target ""dotnet""");
+
+			coverletSettings.Add($@"--output ""{ ouputFilePrefix}""");
+
+			coverletSettings.Add($"--targetargs \"test \"\"{testDllFileInCoverageFolder}\"\"\"");
+
+			Logger.Log($"Arguments : {Environment.NewLine}{string.Join($"{Environment.NewLine}", coverletSettings)}");
+
 			var processStartInfo = new ProcessStartInfo
 			{
 				FileName = CoverletExePath,
@@ -312,7 +326,7 @@ namespace FineCodeCoverage.Impl
 				RedirectStandardError = true,
 				RedirectStandardOutput = true,
 				WindowStyle = ProcessWindowStyle.Hidden,
-				Arguments = $"\"{testDllFileInCoverageFolder}\" {string.Join(" ", coverletSettings)} --format json --format cobertura --target dotnet --output \"{ouputFilePrefix}\" --targetargs \"test \"\"{testDllFileInCoverageFolder}\"\"\"",
+				Arguments = string.Join(" ", coverletSettings),
 			};
 			
 			var process = Process.Start(processStartInfo);
@@ -367,7 +381,7 @@ namespace FineCodeCoverage.Impl
 
 			var xsettings = xproject.Descendants("PropertyGroup").FirstOrDefault(x =>
 			{
-				var label = x.Attribute("Label")?.Value ?? string.Empty;
+				var label = x.Attribute("Label")?.Value?.Trim() ?? string.Empty;
 
 				if (!Vsix.Code.Equals(label, StringComparison.OrdinalIgnoreCase))
 				{
