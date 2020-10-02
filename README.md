@@ -34,7 +34,7 @@ Run a(some) unit test(s) and ...
 ![Local Options](Art/Options-Project.png)
 
 #### Options
-```bash
+```
 Exclude                 Filter expressions to exclude specific modules and types (multiple values)
 Include                 Filter expressions to include specific modules and types (multiple values)
 IncludeDirectories      Include directories containing additional assemblies to be instrumented (multiple values)
@@ -53,7 +53,7 @@ You can also ignore additional attributes by adding to this list (short name or 
 ```
 
 #### Filter Expressions
-```bash
+```
 Wildcards
 * => matches zero or more characters
 ? => the prefixed character is optional
