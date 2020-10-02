@@ -264,27 +264,27 @@ namespace FineCodeCoverage.Impl
 
 			foreach (var value in (appSettings.Exclude ?? new string[0]).Where(x => !string.IsNullOrWhiteSpace(x)))
 			{
-				coverletSettings.Add($@"--exclude ""{value.Replace("\"", "\\\"").Trim()}""");
+				coverletSettings.Add($@"--exclude ""{value.Replace("\"", "\\\"").Trim(' ', '[', ']')}""");
 			}
 
 			foreach (var value in (appSettings.Include ?? new string[0]).Where(x => !string.IsNullOrWhiteSpace(x)))
 			{
-				coverletSettings.Add($@"--include ""{value.Replace("\"", "\\\"").Trim()}""");
+				coverletSettings.Add($@"--include ""{value.Replace("\"", "\\\"").Trim(' ', '[', ']')}""");
 			}
 
 			foreach (var value in (appSettings.IncludeDirectories ?? new string[0]).Where(x => !string.IsNullOrWhiteSpace(x)))
 			{
-				coverletSettings.Add($@"--include-directory ""{value.Replace("\"", "\\\"").Trim()}""");
+				coverletSettings.Add($@"--include-directory ""{value.Replace("\"", "\\\"").Trim(' ', '[', ']')}""");
 			}
 
 			foreach (var value in (appSettings.ExcludeByFiles ?? new string[0]).Where(x => !string.IsNullOrWhiteSpace(x)))
 			{
-				coverletSettings.Add($@"--exclude-by-file ""{value.Replace("\"", "\\\"").Trim()}""");
+				coverletSettings.Add($@"--exclude-by-file ""{value.Replace("\"", "\\\"").Trim(' ', '[', ']')}""");
 			}
 
 			foreach (var value in (appSettings.ExcludeByAttributes ?? new string[0]).Where(x => !string.IsNullOrWhiteSpace(x)))
 			{
-				coverletSettings.Add($@"--exclude-by-attribute ""{value.Replace("\"", "\\\"").Trim()}""");
+				coverletSettings.Add($@"--exclude-by-attribute ""{value.Replace("\"", "\\\"").Trim(' ', '[', ']')}""");
 			}
 
 			if (appSettings.IncludeTestAssembly)
