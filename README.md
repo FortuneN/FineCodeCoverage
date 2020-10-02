@@ -30,7 +30,7 @@ Run a(some) unit test(s) and ...
 #### Global (Shared) options
 ![Global Options](Art/Options-Global.png)
 
-#### Local (Project) options
+#### Local (Project) options (in your csproj/vbproj)
 ![Local Options](Art/Options-Project.png)
 
 #### Options
