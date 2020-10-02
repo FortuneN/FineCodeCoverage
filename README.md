@@ -61,9 +61,9 @@ Run a(some) unit test(s) and ...
 ```
 Exclude                 Filter expressions to exclude specific modules and types (multiple values)
 Include                 Filter expressions to include specific modules and types (multiple values)
-IncludeDirectories      Include directories containing additional assemblies to be instrumented (multiple values)
-ExcludeByFiles          Glob patterns specifying source files to exclude (multiple values)
-ExcludeByAttributes     Attributes to exclude from code coverage (multiple values)
+IncludeDirectory        Include directories containing additional assemblies to be instrumented (multiple values)
+ExcludeByFile           Glob patterns specifying source files to exclude (multiple values)
+ExcludeByAttribute      Attributes to exclude from code coverage (multiple values)
 IncludeTestAssembly     Specifies whether to report code coverage of the test assembly
 
 Both 'Exclude' and 'Include' options can be used together but 'Exclude' takes precedence.

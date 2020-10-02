@@ -57,7 +57,6 @@ namespace FineCodeCoverage.Options
 		@"Attributes to exclude from code coverage (multiple)
 
 		You can ignore a method or an entire class from code coverage by creating and applying the [ExcludeFromCodeCoverage] attribute present in the System.Diagnostics.CodeAnalysis namespace.
-		
 		You can also ignore additional attributes by adding to this list (short name or full name supported) e.g. :
 		[GeneratedCode] => Present in System.CodeDom.Compiler namespace
 		[CompilerGenerated] => Present in System.Runtime.CompilerServices namespace
