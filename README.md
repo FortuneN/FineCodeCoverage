@@ -31,17 +31,20 @@ Run a(some) unit test(s) and ...
 ![Global Options](Art/Options-Global.png)
 
 #### Local (Project) options
-![Local Options](Art/Options-Local.png)
+![Local Options](Art/Options-Project.png)
 
 #### Options
+```bash
 Exclude                 Filter expressions to exclude specific modules and types (multiple values)
 Include                 Filter expressions to include specific modules and types (multiple values)
 IncludeDirectories      Include directories containing additional assemblies to be instrumented (multiple values)
 ExcludeByFiles          Glob patterns specifying source files to exclude (multiple values)
 ExcludeByAttributes     Attributes to exclude from code coverage (multiple values)
 IncludeTestAssembly     Specifies whether to report code coverage of the test assembly
+```
 
 #### Filter Expressions
+```bash
 Wildcards
 * => matches zero or more characters
 ? => the prefixed character is optional
@@ -53,7 +56,8 @@ Examples
 [coverlet.*.tests?] * => All types in any assembly starting with coverlet. and ending with .test or .tests (the ? makes the s optional)
 
 Both 'Exclude' and 'Include' options can be used together but 'Exclude' takes precedence.
-  
+```
+ 
 ## Contribute
 Check out the [contribution guidelines](CONTRIBUTING.md)
 if you want to contribute to this project.
