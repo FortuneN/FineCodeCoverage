@@ -7,6 +7,8 @@ using System.Globalization;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
+using FineCodeCoverage.Options;
+using Microsoft;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell;
@@ -38,6 +40,7 @@ namespace FineCodeCoverage.Output
 	[ProvideMenuResource("Menus.ctmenu", 1)]
 	[Export(typeof(OutputToolWindowPackage))]
 	[InstalledProductRegistration(Vsix.Name, Vsix.Description, Vsix.Id)]
+	[ProvideOptionPage(typeof(AppSettings), Vsix.Name, "General", 0, 0, true)]
 	[PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
 	[ProvideToolWindow(typeof(OutputToolWindow), Style = VsDockStyle.Tabbed, DockedHeight = 300, Window = EnvDTE.Constants.vsWindowKindOutput)]
 	[SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1650:ElementDocumentationMustBeSpelledCorrectly", Justification = "pkgdef, VS and vsixmanifest are valid VS terms")]
@@ -58,8 +61,6 @@ namespace FineCodeCoverage.Output
 			// not sited yet inside Visual Studio environment. The place to do all the other
 			// initialization is the Initialize method.
 		}
-
-		#region Package Members
 
 		/// <summary>
 		/// Initialization of the package; this method is called right after the package is sited, so this is the place
@@ -96,7 +97,5 @@ namespace FineCodeCoverage.Output
 
 			return GetToolWindowTitle(toolWindowType, id);
 		}
-
-		#endregion
 	}
 }

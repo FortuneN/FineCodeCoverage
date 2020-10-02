@@ -67,6 +67,9 @@
     <Compile Include="Impl\Tagger.cs" />
     <Compile Include="Impl\TaggerProvider.cs" />
     <Compile Include="Impl\TestContainerDiscoverer.cs" />
+    <Compile Include="Options\AppSettings.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="Output\OutputToolWindow.cs" />
     <Compile Include="Output\OutputToolWindowCommand.cs" />
     <Compile Include="Output\OutputToolWindowControl.xaml.cs">
@@ -89,6 +92,12 @@
     <Content Include="..\Art\logo.png">
       <Link>Resources\logo.png</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="..\Art\Options-Global.png">
+      <Link>Resources\Options-Global.png</Link>
+    </Content>
+    <Content Include="..\Art\Options-Project.png">
+      <Link>Resources\Options-Project.png</Link>
     </Content>
     <Content Include="..\Art\Output-Coverage.png">
       <Link>Resources\Output-Coverage.png</Link>
@@ -175,6 +184,7 @@
     <EmbeddedResource Include="Output\VSPackage.resx">
       <MergeWithCTO>true</MergeWithCTO>
       <ManifestResourceName>VSPackage</ManifestResourceName>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

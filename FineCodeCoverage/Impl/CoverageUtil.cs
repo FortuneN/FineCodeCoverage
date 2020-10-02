@@ -10,6 +10,8 @@ using System.Reflection;
 using HtmlAgilityPack;
 using Fizzler.Systems.HtmlAgilityPack;
 using Newtonsoft.Json;
+using FineCodeCoverage.Options;
+using System.Xml.Linq;
 
 namespace FineCodeCoverage.Impl
 {
@@ -257,6 +259,51 @@ namespace FineCodeCoverage.Impl
 
 			new[] { jsonFile, coberturaFile }.Where(File.Exists).ToList().ForEach(File.Delete); // delete files if they exist
 
+			var appSettings = GetSettings(testDllFile);
+			var coverletSettings = new List<string>();
+
+			foreach (var value in (appSettings.Exclude ?? new string[0]).Where(x => !string.IsNullOrWhiteSpace(x)))
+			{
+				coverletSettings.Add($@"--exclude ""{value.Replace("\"", "\\\"").Trim()}""");
+			}
+
+			foreach (var value in (appSettings.Include ?? new string[0]).Where(x => !string.IsNullOrWhiteSpace(x)))
+			{
+				coverletSettings.Add($@"--include ""{value.Replace("\"", "\\\"").Trim()}""");
+			}
+
+			foreach (var value in (appSettings.IncludeDirectories ?? new string[0]).Where(x => !string.IsNullOrWhiteSpace(x)))
+			{
+				coverletSettings.Add($@"--include-directory ""{value.Replace("\"", "\\\"").Trim()}""");
+			}
+
+			foreach (var value in (appSettings.ExcludeByFiles ?? new string[0]).Where(x => !string.IsNullOrWhiteSpace(x)))
+			{
+				coverletSettings.Add($@"--exclude-by-file ""{value.Replace("\"", "\\\"").Trim()}""");
+			}
+
+			foreach (var value in (appSettings.ExcludeByAttributes ?? new string[0]).Where(x => !string.IsNullOrWhiteSpace(x)))
+			{
+				coverletSettings.Add($@"--exclude-by-attribute ""{value.Replace("\"", "\\\"").Trim()}""");
+			}
+
+			if (appSettings.IncludeTestAssembly)
+			{
+				coverletSettings.Add("--include-test-assembly");
+			}
+
+			//https://github.com/coverlet-coverage/coverlet/issues/961
+			//if (appSettings.SkipAutoProperties)
+			//{
+			//	coverletSettings.Add("--skipautoprops");
+			//}
+
+			//https://github.com/coverlet-coverage/coverlet/issues/962
+			//foreach (var value in (appSettings.DoesNotReturnAttributes ?? new string[0]).Where(x => !string.IsNullOrWhiteSpace(x)))
+			//{
+			//	coverletSettings.Add($@"--does-not-return-attribute ""{value.Replace("\"", "\\\"")}""");
+			//}
+
 			var processStartInfo = new ProcessStartInfo
 			{
 				FileName = CoverletExePath,
@@ -265,7 +312,7 @@ namespace FineCodeCoverage.Impl
 				RedirectStandardError = true,
 				RedirectStandardOutput = true,
 				WindowStyle = ProcessWindowStyle.Hidden,
-				Arguments = $"\"{testDllFileInCoverageFolder}\" --include-test-assembly --format json --format cobertura --target dotnet --output \"{ouputFilePrefix}\" --targetargs \"test \"\"{testDllFileInCoverageFolder}\"\"\"",
+				Arguments = $"\"{testDllFileInCoverageFolder}\" {string.Join(" ", coverletSettings)} --format json --format cobertura --target dotnet --output \"{ouputFilePrefix}\" --targetargs \"test \"\"{testDllFileInCoverageFolder}\"\"\"",
 			};
 			
 			var process = Process.Start(processStartInfo);
@@ -282,6 +329,216 @@ namespace FineCodeCoverage.Impl
 
 			Logger.Log(title, processOutput);
 			return true;
+		}
+
+		private static AppSettings GetSettings(string testDllFile)
+		{
+			// get global settings
+
+			var settings = AppSettings.Get();
+
+			// override with test project settings
+
+			var testProjectFolder = GetProjectFolderFromPath(testDllFile);
+
+			if (string.IsNullOrWhiteSpace(testProjectFolder))
+			{
+				return settings;
+			}
+
+			var testProjectFile = Directory.GetFiles(testProjectFolder, "*.*proj", SearchOption.TopDirectoryOnly).FirstOrDefault();
+
+			if (string.IsNullOrWhiteSpace(testProjectFile) || !File.Exists(testProjectFile))
+			{
+				return settings;
+			}
+
+			XElement xproject;
+
+			try
+			{
+				xproject = XElement.Parse(File.ReadAllText(testProjectFile));
+			}
+			catch (Exception ex)
+			{
+				Logger.Log("Failed to parse project file", ex);
+				return settings;
+			}
+
+			var xsettings = xproject.Descendants("PropertyGroup").FirstOrDefault(x =>
+			{
+				var label = x.Attribute("Label")?.Value ?? string.Empty;
+
+				if (!Vsix.Code.Equals(label, StringComparison.OrdinalIgnoreCase))
+				{
+					return false;
+				}
+
+				return true;
+			});
+
+			if (xsettings == null)
+			{
+				return settings;
+			}
+
+			foreach (var property in settings.GetType().GetProperties())
+			{
+				try
+				{
+					var xproperty = xsettings.Descendants().FirstOrDefault(x => x.Name.LocalName.Equals(property.Name, StringComparison.OrdinalIgnoreCase));
+
+					if (xproperty == null)
+					{
+						continue;
+					}
+
+					var strValue = xproperty.Value;
+
+					if (string.IsNullOrWhiteSpace(strValue))
+					{
+						continue;
+					}
+
+					var strValueArr = strValue.Split('\n', '\r').Where(x => !string.IsNullOrWhiteSpace(x)).Select(x => x.Trim()).ToArray();
+
+					if (!strValue.Any())
+					{
+						continue;
+					}
+
+					if (TypeMatch(property.PropertyType, typeof(string)))
+					{
+						property.SetValue(settings, strValueArr.FirstOrDefault());
+					}
+					else if (TypeMatch(property.PropertyType, typeof(string[])))
+					{
+						property.SetValue(settings, strValueArr);
+					}
+
+					else if (TypeMatch(property.PropertyType, typeof(bool), typeof(bool?)))
+					{
+						if (bool.TryParse(strValueArr.FirstOrDefault(), out bool value))
+						{
+							property.SetValue(settings, value);
+						}
+					}
+					else if (TypeMatch(property.PropertyType, typeof(bool[]), typeof(bool?[])))
+					{
+						var arr = strValueArr.Where(x => bool.TryParse(x, out var _)).Select(x => bool.Parse(x));
+						if (arr.Any()) property.SetValue(settings, arr);
+					}
+
+					else if (TypeMatch(property.PropertyType, typeof(int), typeof(int?)))
+					{
+						if (int.TryParse(strValueArr.FirstOrDefault(), out var value))
+						{
+							property.SetValue(settings, value);
+						}
+					}
+					else if (TypeMatch(property.PropertyType, typeof(int[]), typeof(int?[])))
+					{
+						var arr = strValueArr.Where(x => int.TryParse(x, out var _)).Select(x => int.Parse(x));
+						if (arr.Any()) property.SetValue(settings, arr);
+					}
+
+					else if (TypeMatch(property.PropertyType, typeof(short), typeof(short?)))
+					{
+						if (short.TryParse(strValueArr.FirstOrDefault(), out var vaue))
+						{
+							property.SetValue(settings, vaue);
+						}
+					}
+					else if (TypeMatch(property.PropertyType, typeof(short[]), typeof(short?[])))
+					{
+						var arr = strValueArr.Where(x => short.TryParse(x, out var _)).Select(x => short.Parse(x));
+						if (arr.Any()) property.SetValue(settings, arr);
+					}
+
+					else if (TypeMatch(property.PropertyType, typeof(long), typeof(long?)))
+					{
+						if (long.TryParse(strValueArr.FirstOrDefault(), out var value))
+						{
+							property.SetValue(settings, value);
+						}
+					}
+					else if (TypeMatch(property.PropertyType, typeof(long[]), typeof(long?[])))
+					{
+						var arr = strValueArr.Where(x => long.TryParse(x, out var _)).Select(x => long.Parse(x));
+						if (arr.Any()) property.SetValue(settings, arr);
+					}
+
+					else if (TypeMatch(property.PropertyType, typeof(decimal), typeof(decimal?)))
+					{
+						if (decimal.TryParse(strValueArr.FirstOrDefault(), out var value))
+						{
+							property.SetValue(settings, value);
+						}
+					}
+					else if (TypeMatch(property.PropertyType, typeof(decimal[]), typeof(decimal?[])))
+					{
+						var arr = strValueArr.Where(x => decimal.TryParse(x, out var _)).Select(x => decimal.Parse(x));
+						if (arr.Any()) property.SetValue(settings, arr);
+					}
+
+					else if (TypeMatch(property.PropertyType, typeof(double), typeof(double?)))
+					{
+						if (double.TryParse(strValueArr.FirstOrDefault(), out var value))
+						{
+							property.SetValue(settings, value);
+						}
+					}
+					else if (TypeMatch(property.PropertyType, typeof(double[]), typeof(double?[])))
+					{
+						var arr = strValueArr.Where(x => double.TryParse(x, out var _)).Select(x => double.Parse(x));
+						if (arr.Any()) property.SetValue(settings, arr);
+					}
+
+					else if (TypeMatch(property.PropertyType, typeof(float), typeof(float?)))
+					{
+						if (float.TryParse(strValueArr.FirstOrDefault(), out var value))
+						{
+							property.SetValue(settings, value);
+						}
+					}
+					else if (TypeMatch(property.PropertyType, typeof(float[]), typeof(float?[])))
+					{
+						var arr = strValueArr.Where(x => float.TryParse(x, out var _)).Select(x => float.Parse(x));
+						if (arr.Any()) property.SetValue(settings, arr);
+					}
+
+					else if (TypeMatch(property.PropertyType, typeof(char), typeof(char?)))
+					{
+						if (char.TryParse(strValueArr.FirstOrDefault(), out var value))
+						{
+							property.SetValue(settings, value);
+						}
+					}
+					else if (TypeMatch(property.PropertyType, typeof(char[]), typeof(char?[])))
+					{
+						var arr = strValueArr.Where(x => char.TryParse(x, out var _)).Select(x => char.Parse(x));
+						if (arr.Any()) property.SetValue(settings, arr);
+					}
+
+					else
+					{
+						throw new Exception($"Cannot handle '{property.PropertyType.Name}' yet");
+					}
+				}
+				catch (Exception exception)
+				{
+					Logger.Log($"Failed to override '{property.Name}' setting", exception);
+				}
+			}
+
+			// return
+
+			return settings;
+		}
+
+		private static bool TypeMatch(Type type, params Type[] otherTypes)
+		{
+			return (otherTypes ?? new Type[0]).Any(ot => type == ot);
 		}
 
 		private static Version GetReportGeneratorVersion()
@@ -523,7 +780,7 @@ namespace FineCodeCoverage.Impl
 		}
 
 		private static void ProcessJsonFile(string jsonFile)
-		{
+		{			
 			var coverageFileContent = File.ReadAllText(jsonFile);
 			var coverageFileJObject = JObject.Parse(coverageFileContent);
 

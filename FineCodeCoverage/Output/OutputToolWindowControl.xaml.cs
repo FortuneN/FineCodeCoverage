@@ -8,6 +8,8 @@ using System.IO;
 using System.Linq;
 using System.Xml.Linq;
 using System.Threading;
+using System.Windows;
+using System.Collections.Generic;
 
 namespace FineCodeCoverage.Output
 {
@@ -16,10 +18,12 @@ namespace FineCodeCoverage.Output
 	/// </summary>
 	public partial class OutputToolWindowControl : UserControl
 	{
-		private static DTE DTE;
+		private static DTE Dte;
+		private static Events Events;
 		private static ScriptManager ScriptManager;
+		private static SolutionEvents SolutionEvents;
 		private static OutputToolWindowControl Instance;
-
+		
 		/// <summary>
 		/// Initializes a new instance of the <see cref="OutputToolWindowControl"/> class.
 		/// </summary>
@@ -33,10 +37,15 @@ namespace FineCodeCoverage.Output
 			ThreadHelper.JoinableTaskFactory.Run(async () =>
 			{
 				await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-				DTE = (DTE)await OutputToolWindowCommand.Instance.ServiceProvider.GetServiceAsync(typeof(DTE));
+				Dte = (DTE)await OutputToolWindowCommand.Instance.ServiceProvider.GetServiceAsync(typeof(DTE));
+
+				Events = Dte.Events;
+				SolutionEvents = Events.SolutionEvents;
+				SolutionEvents.Opened += SolutionEvents_Opened;
+				SolutionEvents.AfterClosing += SolutionEvents_AfterClosing;
 			});
 
-			ScriptManager = new ScriptManager(DTE);
+			ScriptManager = new ScriptManager(Dte);
 			SummaryBrowser.ObjectForScripting = ScriptManager;
 			CoverageBrowser.ObjectForScripting = ScriptManager;
 			RiskHotspotsBrowser.ObjectForScripting = ScriptManager;
@@ -46,6 +55,16 @@ namespace FineCodeCoverage.Output
 			BtnReview.MouseLeftButtonDown += (s, e) => System.Diagnostics.Process.Start("https://marketplace.visualstudio.com/items?itemName=FortuneNgwenya.FineCodeCoverage&ssr=false#review-details");
 		}
 
+		private static void SolutionEvents_Opened()
+		{
+			SetFilePaths(default, default, default);
+		}
+
+		private static void SolutionEvents_AfterClosing()
+		{
+			SetFilePaths(default, default, default);
+		}
+
 		[SuppressMessage("Usage", "VSTHRD102:Implement internal logic asynchronously")]
 		private static void SetUrl(WebBrowser browser, string filePath)
 		{
@@ -53,8 +72,15 @@ namespace FineCodeCoverage.Output
 			{
 				await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 
-				var fileUrl = $"file://127.0.0.1/{filePath.Replace(':', '$').Replace('\\', '/')}?t={DateTime.Now.Ticks}";
-				browser.Source = new Uri(fileUrl);
+				if (string.IsNullOrWhiteSpace(filePath))
+				{
+					browser.Source = default;
+				}
+				else
+				{
+					var fileUrl = $"file://127.0.0.1/{filePath.Replace(':', '$').Replace('\\', '/')}?t={DateTime.Now.Ticks}";
+					browser.Source = new Uri(fileUrl);
+				}
 			});
 		}
 
@@ -80,6 +106,14 @@ namespace FineCodeCoverage.Output
 		[SuppressMessage("Style", "IDE0060:Remove unused parameter")]
 		public void OpenFile(string htmlFilePath, int file, int line)
 		{
+			if (!File.Exists(htmlFilePath))
+			{
+				var message = $"Not found : { Path.GetFileName(htmlFilePath) }";
+				Logger.Log(message);
+				MessageBox.Show(message);
+				return;
+			}
+
 			ThreadPool.QueueUserWorkItem(state =>
 			{
 				// get .cs source file
@@ -95,14 +129,29 @@ namespace FineCodeCoverage.Output
 
 					_dte.MainWindow.Activate();
 
+					var notFoundList = new List<string>();
+
 					foreach (var csFile in csFilesArray)
 					{
+						if (!File.Exists(csFile))
+						{
+							notFoundList.Add(csFile);
+							continue;
+						}
+
 						_dte.ItemOperations.OpenFile(csFile, Constants.vsViewKindCode);
 						
 						if (line != 0)
 						{
 							((TextSelection)_dte.ActiveDocument.Selection).GotoLine(line, false);
 						}
+					}
+
+					if (!notFoundList.Any())
+					{
+						var message = $"Not found : { string.Join(", ", notFoundList.Select(x => Path.GetFileName(x))) }";
+						Logger.Log(message);
+						MessageBox.Show(message);
 					}
 				});
 			});
