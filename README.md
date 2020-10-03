@@ -113,6 +113,7 @@ used by this project.
 
 ## Credits
 [Coverlet](https://github.com/coverlet-coverage/coverlet)
+
 [ReportGenerator](https://github.com/danielpalme/ReportGenerator)
 
 ## Buy me a beer
