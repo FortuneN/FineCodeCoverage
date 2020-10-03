@@ -1,6 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
 using Microsoft.VisualStudio.Settings;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Settings;
@@ -10,6 +11,9 @@ namespace FineCodeCoverage.Options
 {
 	public class AppSettings : DialogPage
 	{
+		[Description("Specifies whether or not coverage output is enabled")]
+		public bool Enabled { get; set; } = true;
+
 		[Description(
 		@"Filter expressions to exclude specific modules and types (multiple)
 		
@@ -67,6 +71,9 @@ namespace FineCodeCoverage.Options
 		[Description("Specifies whether to include code coverage of the test assembly")]
 		public bool IncludeTestAssembly { get; set; } = true;
 
+		[Description("Specifies the timeout interval for the coverlet process in seconds")]
+		public int CoverletTimeout { get; set; } = 60;
+
 		//https://github.com/coverlet-coverage/coverlet/issues/961
 		//[Description("Neither track nor record auto-implemented properties (e.g. int Example { get; set; })")]
 		//public bool SkipAutoProperties { get; set; } = true;
@@ -91,7 +98,7 @@ namespace FineCodeCoverage.Options
 				settingsStore.CreateCollection(Vsix.Code);
 			}
 
-			foreach (var property in GetType().GetProperties())
+			foreach (var property in GetType().GetProperties(BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.Instance))
 			{
 				try
 				{
@@ -118,7 +125,7 @@ namespace FineCodeCoverage.Options
 				settingsStore.CreateCollection(Vsix.Code);
 			}
 
-			foreach (var property in instance.GetType().GetProperties())
+			foreach (var property in instance.GetType().GetProperties(BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.Instance))
 			{
 				try
 				{

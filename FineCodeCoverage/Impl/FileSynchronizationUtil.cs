@@ -9,13 +9,13 @@ namespace FineCodeCoverage.Impl
 	{
 		public static void Synchronize(string sourceFolder, string destinationFolder)
 		{
-			var srceDir   = new DirectoryInfo(Path.GetFullPath(sourceFolder) + '\\');
-			var destDir   = new DirectoryInfo(Path.GetFullPath(destinationFolder) + '\\');
+			var srceDir = new DirectoryInfo(Path.GetFullPath(sourceFolder) + '\\');
+			var destDir = new DirectoryInfo(Path.GetFullPath(destinationFolder) + '\\');
 
 			// file lists
 
-			var srceFiles = srceDir.GetFiles("*", SearchOption.AllDirectories).Select(fi => new ComparableFile(fi, fi.FullName.Substring(srceDir.FullName.Length)));
-			IEnumerable<ComparableFile> destFiles() => destDir.GetFiles("*", SearchOption.AllDirectories).Select(fi => new ComparableFile(fi, fi.FullName.Substring(destDir.FullName.Length)));
+			var srceFiles = srceDir.GetFiles("*", SearchOption.AllDirectories).AsParallel().Select(fi => new ComparableFile(fi, fi.FullName.Substring(srceDir.FullName.Length)));
+			ParallelQuery<ComparableFile> destFiles() => destDir.GetFiles("*", SearchOption.AllDirectories).AsParallel().Select(fi => new ComparableFile(fi, fi.FullName.Substring(destDir.FullName.Length)));
 
 			// copy to dest
 

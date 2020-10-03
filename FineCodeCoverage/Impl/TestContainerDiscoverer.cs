@@ -13,6 +13,7 @@ using FineCodeCoverage.Output;
 using Microsoft.VisualStudio.Shell.Interop;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
+using FineCodeCoverage.Options;
 
 namespace FineCodeCoverage.Impl
 {
@@ -39,7 +40,6 @@ namespace FineCodeCoverage.Impl
 		{
 			try
 			{
-				//Logger.Clear();
 				Logger.Initialize(serviceProvider);
 
 				CoverageUtil.Initialize();
@@ -114,48 +114,61 @@ namespace FineCodeCoverage.Impl
 			{
 				if (e.State == TestOperationStates.TestExecutionFinished)
 				{
-					//Logger.Clear();
-					Logger.Log("Updating coverage ...");
+					var settings = AppSettings.Get();
+
+					if (!settings.Enabled)
+					{
+						CoverageUtil.CoverageLines.Clear();
+						TaggerProvider.ReloadTags();
+						OutputToolWindowControl.SetFilePaths(default, default, default);
+						return;
+					}
+
+					Logger.Log("================================== START ==================================");
 
 					var operationType = e.Operation.GetType();
 					var testConfiguration = (operationType.GetProperty("Configuration") ?? operationType.GetProperty("Configuration", BindingFlags.Instance | BindingFlags.NonPublic)).GetValue(e.Operation);
-					var testConfigurationSources = (IEnumerable<string>)testConfiguration.GetType().GetProperty("TestSources").GetValue(testConfiguration);
+					var testDllFiles = ((IEnumerable<string>)testConfiguration.GetType().GetProperty("TestSources").GetValue(testConfiguration)).ToArray();
 
-					Parallel.ForEach(testConfigurationSources, testDllFile =>
-					{
-						CoverageUtil.LoadCoverageFromTestDllFile(
-							testDllFile,
-							exception =>
+					CoverageUtil.ReloadCoverage
+					(
+						testDllFiles,
+						(error) =>
+						{
+							if (error != null)
 							{
-								if (exception != null)
-								{
-									Logger.Log("Error updating highlights", exception);
-									return;
-								}
-
-								TaggerProvider.ReloadTags();
-
-								Logger.Log("Highlights updated!");
-							},
-							exception =>
-							{
-								if (exception != null)
-								{
-									Logger.Log("Error updating ouput window", exception);
-									return;
-								}
-
-								OutputToolWindowControl.SetFilePaths
-								(
-									CoverageUtil.SummaryHtmlFilePath,
-									CoverageUtil.CoverageHtmlFilePath,
-									CoverageUtil.RiskHotspotsHtmlFilePath
-								);
-
-								Logger.Log("Ouput window updated!");
+								Logger.Log("Margin Tags Error", error);
+								return;
 							}
-						);
-					});
+
+							TaggerProvider.ReloadTags();
+						},
+						(error) =>
+						{
+							if (error != null)
+							{
+								Logger.Log("Output Window Error", error);
+								return;
+							}
+
+							OutputToolWindowControl.SetFilePaths
+							(
+								CoverageUtil.SummaryHtmlFilePath,
+								CoverageUtil.CoverageHtmlFilePath,
+								CoverageUtil.RiskHotspotsHtmlFilePath
+							);
+						},
+						(error) =>
+						{
+							if (error != null)
+							{
+								Logger.Log("Error", error);
+								return;
+							}
+
+							Logger.Log("================================== DONE ===================================");
+						}
+					);
 				}
 			}
 			catch (Exception exception)

@@ -53,10 +53,21 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="Impl\CoverageLineBranch.cs" />
+    <Compile Include="Cobertura\Class.cs" />
+    <Compile Include="Cobertura\Classes.cs" />
+    <Compile Include="Cobertura\Condition.cs" />
+    <Compile Include="Cobertura\Conditions.cs" />
+    <Compile Include="Cobertura\CoverageReport.cs" />
+    <Compile Include="Cobertura\CoberturaReportLoader.cs" />
+    <Compile Include="Cobertura\Line.cs" />
+    <Compile Include="Cobertura\Lines.cs" />
+    <Compile Include="Cobertura\Method.cs" />
+    <Compile Include="Cobertura\Methods.cs" />
+    <Compile Include="Cobertura\Package.cs" />
+    <Compile Include="Cobertura\Packages.cs" />
+    <Compile Include="Cobertura\Sources.cs" />
     <Compile Include="Impl\CoverageLine.cs" />
     <Compile Include="Impl\CoverageProject.cs" />
-    <Compile Include="Impl\CoverageSourceFile.cs" />
     <Compile Include="Impl\CoverageUtil.cs" />
     <Compile Include="Impl\FileSynchronizationUtil.cs" />
     <Compile Include="Impl\GlyphFactory.cs" />

@@ -3,6 +3,8 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Utilities;
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Text.Tagging;
+using System.Linq;
+using System;
 
 namespace FineCodeCoverage.Impl
 {
@@ -44,8 +46,8 @@ namespace FineCodeCoverage.Impl
 				{
 					var lineNumber = span.Start.GetContainingLine().LineNumber + 1;
 
-					var coverageLine = CoverageUtil.GetCoverageLine(document.FilePath, lineNumber);
-
+					var coverageLine = CoverageUtil.GetLine(document.FilePath, lineNumber);
+						
 					if (coverageLine == null)
 					{
 						continue;

@@ -1,16 +1,21 @@
-﻿using System;
+﻿using FineCodeCoverage.Cobertura;
+using FineCodeCoverage.Options;
+using Fizzler.Systems.HtmlAgilityPack;
+using HtmlAgilityPack;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
-using System.Threading;
-using System.Diagnostics;
-using Newtonsoft.Json.Linq;
-using System.Collections.Generic;
-using System.Collections.Concurrent;
 using System.Reflection;
-using HtmlAgilityPack;
-using Fizzler.Systems.HtmlAgilityPack;
-using Newtonsoft.Json;
-using FineCodeCoverage.Options;
+using System.Security.Cryptography;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Xml.Linq;
 
 namespace FineCodeCoverage.Impl
@@ -32,10 +37,10 @@ namespace FineCodeCoverage.Impl
 		public static string SummaryHtmlFilePath { get; private set; }
 		public static string CoverageHtmlFilePath { get; private set; }
 		public static string RiskHotspotsHtmlFilePath { get; private set; }
+		public static List<CoverageLine> CoverageLines { get; private set; } = new List<CoverageLine>();
 
 		public static string AppDataFolder { get; private set; }
 		public static string[] ProjectExtensions { get; } = new string[] { ".csproj", ".vbproj" };
-		public static List<CoverageProject> CoverageProjects { get; } = new List<CoverageProject>();
 		public static ConcurrentDictionary<string, string> ProjectFoldersCache { get; } = new ConcurrentDictionary<string, string>();
 		
 		static CoverageUtil()
@@ -50,6 +55,20 @@ namespace FineCodeCoverage.Impl
 			AppDataReportGeneratorFolder = Path.Combine(AppDataFolder, "reportGenerator");
 			Directory.CreateDirectory(AppDataReportGeneratorFolder);
 			GetReportGeneratorVersion();
+
+			// cleanup legacy folders
+			Directory.GetDirectories(AppDataFolder, "*", SearchOption.TopDirectoryOnly).Where(x => x.Contains("__")).ToList().ForEach(x => Directory.Delete(x, true));
+		}
+
+		public static CoverageLine GetLine(string filePath, int lineNumber)
+		{
+			return CoverageLines
+				.AsParallel()
+				.SingleOrDefault(line =>
+				{
+					return line.Class.Filename.Equals(filePath, StringComparison.OrdinalIgnoreCase)
+						&& line.Line.Number == lineNumber;
+				});
 		}
 
 		public static void Initialize()
@@ -73,32 +92,6 @@ namespace FineCodeCoverage.Impl
 			}
 		}
 
-		public static CoverageLine GetCoverageLine(string sourceFilePath, int lineNumber)
-		{
-			var projectFolder = GetProjectFolderFromPath(sourceFilePath);
-
-			if (string.IsNullOrWhiteSpace(projectFolder))
-			{
-				return null;
-			}
-
-			var coverageProject = CoverageProjects.FirstOrDefault(cp => cp.FolderPath.Equals(projectFolder, StringComparison.OrdinalIgnoreCase));
-
-			if (coverageProject == null)
-			{
-				return null;
-			}
-
-			var coverageSourceFile = coverageProject.SourceFiles.FirstOrDefault(sf => sf.FilePath.Equals(sourceFilePath, StringComparison.OrdinalIgnoreCase));
-
-			if (coverageSourceFile == null)
-			{
-				return null;
-			}
-
-			return coverageSourceFile.Lines.FirstOrDefault(l => l.LineNumber == lineNumber);
-		}
-		
 		private static string GetProjectFolderFromPath(string path)
 		{
 			if (ProjectFoldersCache.TryGetValue(path = path.ToLower(), out var result))
@@ -113,7 +106,7 @@ namespace FineCodeCoverage.Impl
 				return null;
 			}
 
-			if (Directory.GetFiles(parentFolder).Any(x => ProjectExtensions.Any(y => x.EndsWith(y, StringComparison.OrdinalIgnoreCase))))
+			if (Directory.GetFiles(parentFolder).AsParallel().Any(x => ProjectExtensions.Any(y => x.EndsWith(y, StringComparison.OrdinalIgnoreCase))))
 			{
 				result = parentFolder;
 			}
@@ -241,7 +234,8 @@ namespace FineCodeCoverage.Impl
 			Logger.Log(title, processOutput);
 		}
 
-		private static bool RunCoverlet(string testDllFile, string coverageFolder, out string jsonFile, out string coberturaFile)
+		[SuppressMessage("Usage", "VSTHRD002:Avoid problematic synchronous waits")]
+		private static bool RunCoverlet(AppSettings appSettings, string testDllFile, string coverageFolder, out string projectCoberturaFile, bool throwError = false)
 		{
 			var title = "Coverlet -> Run";
 
@@ -251,20 +245,16 @@ namespace FineCodeCoverage.Impl
 			if (Directory.Exists(ouputFolder)) Directory.Delete(ouputFolder, true);
 			Directory.CreateDirectory(ouputFolder);
 
-			var ouputFilePrefix = Path.Combine(ouputFolder, "_outputfile");
+			projectCoberturaFile = Path.Combine(ouputFolder, "_project.cobertura.xml");
 
-			jsonFile = $"{ouputFilePrefix}.json";
+			if (File.Exists(projectCoberturaFile))
+			{
+				File.Delete(projectCoberturaFile);
+			}
 
-			coberturaFile = $"{ouputFilePrefix}.cobertura.xml";
-
-			new[] { jsonFile, coberturaFile }.Where(File.Exists).ToList().ForEach(File.Delete); // delete files if they exist
-
-			var appSettings = GetSettings(testDllFile);
 			var coverletSettings = new List<string>();
 
 			coverletSettings.Add($@"""{testDllFileInCoverageFolder}""");
-
-			coverletSettings.Add($@"--format ""json""");
 
 			coverletSettings.Add($@"--format ""cobertura""");
 
@@ -312,7 +302,7 @@ namespace FineCodeCoverage.Impl
 
 			coverletSettings.Add($@"--target ""dotnet""");
 
-			coverletSettings.Add($@"--output ""{ ouputFilePrefix}""");
+			coverletSettings.Add($@"--output ""{ projectCoberturaFile }""");
 
 			coverletSettings.Add($"--targetargs \"test \"\"{testDllFileInCoverageFolder}\"\"\"");
 
@@ -331,12 +321,27 @@ namespace FineCodeCoverage.Impl
 			
 			var process = Process.Start(processStartInfo);
 
-			process.WaitForExit();
+			if (!process.HasExited)
+			{
+				var stopWatch = new Stopwatch();
+				stopWatch.Start();
+				if (!Task.Run(() => process.WaitForExit()).Wait(TimeSpan.FromSeconds(appSettings.CoverletTimeout)))
+				{
+					stopWatch.Stop();
+					Task.Run(() => { try { process.Kill(); } catch { } }).Wait(TimeSpan.FromSeconds(10));
+					throw new Exception($"Coverlet timed out after {stopWatch.Elapsed.TotalSeconds} seconds (CoverletTimeout is {appSettings.CoverletTimeout} seconds)");
+				}
+			}
 
 			var processOutput = GetProcessOutput(process);
 
 			if (process.ExitCode != 0)
 			{
+				if (throwError)
+				{
+					throw new Exception(processOutput);
+				}
+				
 				Logger.Log($"Error during {title}", processOutput);
 				return false;
 			}
@@ -671,15 +676,16 @@ namespace FineCodeCoverage.Impl
 			Logger.Log(title, processOutput);
 		}
 
-		private static bool RunReportGenerator(string coberturaFile, out string htmlFile)
+		[SuppressMessage("Usage", "VSTHRD002:Avoid problematic synchronous waits")]
+		private static bool RunReportGenerator(IEnumerable<string> coberturaFiles, out string unifiedHtmlFile, out string unifiedXmlFile, bool throwError = false)
 		{
 			var title = "ReportGenerator -> Run";
-
-			var ouputFolder = Path.GetDirectoryName(coberturaFile);
+			var ouputFolder = Path.GetDirectoryName(coberturaFiles.OrderBy(x => x).First()); // use location of first file to output reports
 			
 			Directory.GetFiles(ouputFolder, "*.htm*").ToList().ForEach(File.Delete); // delete html files if they exist
 
-			htmlFile = Path.Combine(ouputFolder, "index.html");
+			unifiedHtmlFile = Path.Combine(ouputFolder, "index.html");
+			unifiedXmlFile = Path.Combine(ouputFolder, "cobertura.xml");//??
 
 			var processStartInfo = new ProcessStartInfo
 			{
@@ -689,18 +695,26 @@ namespace FineCodeCoverage.Impl
 				RedirectStandardError = true,
 				RedirectStandardOutput = true,
 				WindowStyle = ProcessWindowStyle.Hidden,
-				//Arguments = $"\"-reports:{coberturaFile}\" \"-targetdir:{ouputFolder}\" -reporttypes:HtmlInline_AzurePipelines_Dark",
-				Arguments = $"\"-reports:{coberturaFile}\" \"-targetdir:{ouputFolder}\" -reporttypes:HtmlInline_AzurePipelines",
+				//Arguments = $"\"-reports:{string.Join(";", coberturaFiles)}\" \"-targetdir:{ouputFolder}\" -reporttypes:Cobertura,HtmlInline_AzurePipelines_Dark",
+				Arguments = $"\"-reports:{string.Join(";", coberturaFiles)}\" \"-targetdir:{ouputFolder}\" -reporttypes:Cobertura;HtmlInline_AzurePipelines",
 			};
 
 			var process = Process.Start(processStartInfo);
 
-			process.WaitForExit();
+			if (!process.HasExited)
+			{
+				process.WaitForExit();
+			}
 
 			var processOutput = GetProcessOutput(process);
 
 			if (process.ExitCode != 0)
 			{
+				if (throwError)
+				{
+					throw new Exception(processOutput);
+				}
+
 				Logger.Log($"Error during {title}", processOutput);
 				return false;
 			}
@@ -714,182 +728,162 @@ namespace FineCodeCoverage.Impl
 			return string.Join(Environment.NewLine, new[] { process.StandardOutput?.ReadToEnd(), process.StandardError?.ReadToEnd() }.Where(x => !string.IsNullOrWhiteSpace(x)));
 		}
 
-		private static string ConvertPathToName(string path)
+		private static string Hash(string input)
 		{
-			path = path.Replace(' ', '_').Replace('-', '_').Replace('.', '_').Replace(':', '_').Replace('\\', '_').Replace('/', '_');
-
-			foreach (var character in Path.GetInvalidPathChars())
+			using (var md5 = MD5.Create())
 			{
-				path = path.Replace(character, '_');
-			}
+				var inputBytes = Encoding.ASCII.GetBytes(input);
+				var outputBytes = md5.ComputeHash(inputBytes);
+				var outputSb = new StringBuilder();
 
-			return path;
+				for (int i = 0; i < outputBytes.Length; i++)
+				{
+					outputSb.Append(outputBytes[i].ToString("X2"));
+				}
+
+				return outputSb.ToString();
+			}
 		}
 
-		public static void LoadCoverageFromTestDllFile(string testDllFile, Action<Exception> highlightsCallback = null, Action<Exception> outputWindowCallback = null)
+		public static void ReloadCoverage(IEnumerable<string> testDllFiles, Action<Exception> marginHighlightsCallback, Action<Exception> outputWindowCallback, Action<Exception> doneCallback)
 		{
-			ThreadPool.QueueUserWorkItem(x =>
+			ThreadPool.QueueUserWorkItem(state =>
 			{
 				try
 				{
-					// project folder
+					// reset
 
-					var testProjectFolder = GetProjectFolderFromPath(testDllFile);
+					CoverageLines.Clear();
+					SummaryHtmlFilePath = default;
+					CoverageHtmlFilePath = default;
+					RiskHotspotsHtmlFilePath = default;
 
-					if (string.IsNullOrWhiteSpace(testProjectFolder))
+					// process pipeline
+
+					var projects = testDllFiles
+					.AsParallel()
+					.Select(testDllFile =>
 					{
-						throw new Exception("Could not establish project folder");
-					}
+						var project = new CoverageProject();
 
-					// coverage folder
+						project.TestDllFileInOutputFolder = testDllFile;
+						project.Settings = GetSettings(project.TestDllFileInOutputFolder);
 
-					var coverageFolder = Path.Combine(AppDataFolder, ConvertPathToName(testProjectFolder));
+						if (!project.Settings.Enabled)
+						{
+							project.FailureDescription = $"Disabled";
+							return project;
+						}
+						
+						project.ProjectFolder = GetProjectFolderFromPath(project.TestDllFileInOutputFolder);
+						project.ProjectFile = Directory.GetFiles(project.ProjectFolder).FirstOrDefault(x => ProjectExtensions.Any(y => x.EndsWith(y, StringComparison.OrdinalIgnoreCase)));
 
-					if (!Directory.Exists(coverageFolder))
+						if (string.IsNullOrWhiteSpace(project.ProjectFile))
+						{
+							project.FailureDescription = $"Unsupported project type for DLL '{project.TestDllFileInOutputFolder}'";
+							return project;
+						}
+
+						project.ProjectOutputFolder = Path.GetDirectoryName(project.TestDllFileInOutputFolder);
+						project.WorkFolder = Path.Combine(AppDataFolder, Hash(project.ProjectFolder));
+						project.TestDllFileInWorkFolder = Path.Combine(project.WorkFolder, Path.GetFileName(project.TestDllFileInOutputFolder));
+
+						return project;
+					})
+					.Select(p => p.Step("Create Work Folder", project =>
 					{
-						Directory.CreateDirectory(coverageFolder);
-					}
+						// determine project properties
 
-					// sync built files to coverage folder
-
-					var buildFolder = Path.GetDirectoryName(testDllFile);
-
-					FileSynchronizationUtil.Synchronize(buildFolder, coverageFolder);
-
-					// run coverlet process
-
-					if (!RunCoverlet(testDllFile, coverageFolder, out var coverageJsonFile, out var coberturaFile))
+						Directory.CreateDirectory(project.WorkFolder);
+					}))
+					.Select(p => p.Step("Synchronize", project =>
 					{
-						highlightsCallback?.Invoke(null);
-						outputWindowCallback?.Invoke(null);
+						// sync files from output folder to work folder where we do the analysis
+
+						FileSynchronizationUtil.Synchronize(project.ProjectOutputFolder, project.WorkFolder);
+					}))
+					.Select(p => p.Step("Run Coverlet", project =>
+					{
+						// run coverlet process
+
+						RunCoverlet(project.Settings, project.TestDllFileInWorkFolder, project.WorkFolder, out var projectCoberturaFile, true);
+
+						project.ProjectCoberturaFile = projectCoberturaFile;
+					}))
+					.Where(x => !x.HasFailed)
+					.ToArray();
+
+					// project files
+
+					var projectCoberturaFiles = projects
+						.AsParallel()
+						.Select(x => x.ProjectCoberturaFile)
+						.ToArray();
+
+					if (!projectCoberturaFiles.Any())
+					{
+						marginHighlightsCallback?.Invoke(default);
+						outputWindowCallback?.Invoke(default);
+						doneCallback?.Invoke(default);
 						return;
 					}
-					
-					try
-					{
-						ProcessJsonFile(coverageJsonFile);
-						highlightsCallback?.Invoke(null);
-					}
-					catch (Exception ex)
-					{
-						highlightsCallback?.Invoke(ex);
-					}
 
-					try
-					{
-						ProcessCoberturaFile(coberturaFile);
-						outputWindowCallback?.Invoke(null);
-					}
-					catch (Exception ex)
-					{
-						outputWindowCallback?.Invoke(ex);
-					}
+					// run reportGenerator process
+
+					RunReportGenerator(projectCoberturaFiles, out var unifiedHtmlFile, out var unifiedXmlFile, true);
+
+					// finalize
+
+					Parallel.Invoke
+					(
+						() =>
+						{
+							try
+							{
+								ProcessCoberturaXmlFile(unifiedXmlFile, out var coverageLines);
+
+								CoverageLines = coverageLines;
+
+								marginHighlightsCallback?.Invoke(default);
+							}
+							catch (Exception exception)
+							{
+								marginHighlightsCallback?.Invoke(exception);
+							}
+						},
+						() =>
+						{
+							try
+							{
+								ProcessCoberturaHtmlFile(unifiedHtmlFile, out var summaryHtmlFile, out var coverageHtmlFile, out var riskHotspotsHtmlFile);
+
+								SummaryHtmlFilePath = summaryHtmlFile;
+								CoverageHtmlFilePath = coverageHtmlFile;
+								RiskHotspotsHtmlFilePath = riskHotspotsHtmlFile;
+
+								outputWindowCallback?.Invoke(default);
+							}
+							catch (Exception exception)
+							{
+								outputWindowCallback?.Invoke(exception);
+							}
+						}
+					);
+
+					doneCallback?.Invoke(default);
 				}
-				catch (Exception ex)
+				catch (Exception exception)
 				{
-					highlightsCallback?.Invoke(ex);
-					outputWindowCallback?.Invoke(ex);
+					doneCallback?.Invoke(exception);
 				}
 			});
 		}
 
-		private static void ProcessJsonFile(string jsonFile)
-		{			
-			var coverageFileContent = File.ReadAllText(jsonFile);
-			var coverageFileJObject = JObject.Parse(coverageFileContent);
-
-			foreach (var coverageDllFileProperty in coverageFileJObject.Properties())
-			{
-				var coverageDllFileJObject = (JObject)coverageDllFileProperty.Value;
-
-				foreach (var sourceFileProperty in coverageDllFileJObject.Properties())
-				{
-					var sourceFilePath = sourceFileProperty.Name;
-					var projectFolderPath = GetProjectFolderFromPath(sourceFilePath);
-
-					if (string.IsNullOrWhiteSpace(projectFolderPath))
-					{
-						continue;
-					}
-
-					var sourceFileProject = CoverageProjects.SingleOrDefault(pr => pr.FolderPath.Equals(projectFolderPath, StringComparison.OrdinalIgnoreCase));
-
-					if (sourceFileProject == null)
-					{
-						sourceFileProject = new CoverageProject
-						{
-							FolderPath = projectFolderPath
-						};
-
-						CoverageProjects.Add(sourceFileProject);
-					}
-
-					var sourceFile = sourceFileProject.SourceFiles.SingleOrDefault(sf => sf.FilePath.Equals(sourceFilePath, StringComparison.OrdinalIgnoreCase));
-
-					if (sourceFile == null)
-					{
-						sourceFile = new CoverageSourceFile
-						{
-							FilePath = sourceFilePath
-						};
-
-						sourceFileProject.SourceFiles.Add(sourceFile);
-					}
-
-					sourceFile.Lines.Clear();
-					var sourceFileJObject = (JObject)sourceFileProperty.Value;
-
-					foreach (var classProperty in sourceFileJObject.Properties())
-					{
-						var className = classProperty.Name;
-						var classJObject = (JObject)classProperty.Value;
-
-						foreach (var methodProperty in classJObject.Properties())
-						{
-							var methodName = methodProperty.Name;
-							var methodJObject = (JObject)methodProperty.Value;
-							var linesJObject = (JObject)methodJObject["Lines"];
-							var branchesJArray = (JArray)methodJObject["Branches"];
-
-							foreach (var lineProperty in linesJObject.Properties())
-							{
-								var lineNumber = int.Parse(lineProperty.Name);
-								var lineHitCount = lineProperty.Value.Value<int>();
-								var lineBranches = branchesJArray.Select(b => b as JObject).Where(b => b.Value<int>("Line") == lineNumber).Select(b => b.ToObject<CoverageLineBranch>()).ToList();
-
-								sourceFile.Lines.Add(new CoverageLine
-								{
-									ClassName = className,
-									MethodName = methodName,
-									LineNumber = lineNumber,
-									HitCount = lineHitCount,
-									LineBranches = lineBranches
-								});
-							}
-						}
-					}
-				}
-			}
-		}
-
-		private static void ProcessCoberturaFile(string coberturaFile)
+		private static void ProcessCoberturaHtmlFile(string htmlFile, out string summaryHtmlFile, out string coverageHtmlFile, out string riskHotspotsHtmlFile)
 		{
 			try
 			{
 				AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
-
-				// clear
-
-				SummaryHtmlFilePath = string.Empty;
-				CoverageHtmlFilePath = string.Empty;
-				RiskHotspotsHtmlFilePath = string.Empty;
-
-				// run report generator
-
-				if (!RunReportGenerator(coberturaFile, out var htmlFile))
-				{
-					return;
-				}
 
 				// read [htmlFile] into memory
 
@@ -936,7 +930,7 @@ namespace FineCodeCoverage.Impl
 					return doc;
 				}
 
-				void saveHtmlDocument(HtmlSegment segment, HtmlDocument doc)
+				string saveHtmlDocument(HtmlSegment segment, HtmlDocument doc)
 				{
 					var path = Path.Combine(folder, $"_{segment}.html".ToLower());
 
@@ -945,7 +939,6 @@ namespace FineCodeCoverage.Impl
 					switch (segment)
 					{
 						case HtmlSegment.Summary:
-							SummaryHtmlFilePath = path;
 							var table = doc.DocumentNode.QuerySelectorAll("table.overview").First();
 							var tableRows = table.QuerySelectorAll("tr").ToArray();
 							try { tableRows[0].SetAttributeValue("style", "display:none"); } catch {}
@@ -957,12 +950,9 @@ namespace FineCodeCoverage.Impl
 							break;
 
 						case HtmlSegment.Coverage:
-							CoverageHtmlFilePath = path;
-
 							break;
 
 						case HtmlSegment.RiskHotspots:
-							RiskHotspotsHtmlFilePath = path;
 							break;
 					}
 
@@ -1112,17 +1102,41 @@ namespace FineCodeCoverage.Impl
 					// save
 
 					File.WriteAllText(path, html);
+					return path;
 				}
 
 				// produce segment html files
 
-				saveHtmlDocument(HtmlSegment.Summary, createHtmlDocument(HtmlSegment.Summary));
-				saveHtmlDocument(HtmlSegment.Coverage, createHtmlDocument(HtmlSegment.Coverage));
-				saveHtmlDocument(HtmlSegment.RiskHotspots, createHtmlDocument(HtmlSegment.RiskHotspots));
+				summaryHtmlFile = saveHtmlDocument(HtmlSegment.Summary, createHtmlDocument(HtmlSegment.Summary));
+				coverageHtmlFile = saveHtmlDocument(HtmlSegment.Coverage, createHtmlDocument(HtmlSegment.Coverage));
+				riskHotspotsHtmlFile = saveHtmlDocument(HtmlSegment.RiskHotspots, createHtmlDocument(HtmlSegment.RiskHotspots));
 			}
 			finally
 			{
 				AppDomain.CurrentDomain.AssemblyResolve -= CurrentDomain_AssemblyResolve;
+			}
+		}
+
+		private static void ProcessCoberturaXmlFile(string unifiedXmlFile, out List<CoverageLine> coverageLines)
+		{
+			coverageLines = new List<CoverageLine>();
+
+			var report = CoberturaReportLoader.LoadReportFile(unifiedXmlFile);
+
+			foreach (var package in report.Packages.Package.AsParallel())
+			{
+				foreach (var classs in package.Classes.Class.AsParallel())
+				{
+					foreach (var line in classs.Lines.Line.AsParallel())
+					{
+						coverageLines.Add(new CoverageLine
+						{
+							Package = package,
+							Class = classs,
+							Line = line
+						});
+					}
+				}
 			}
 		}
 

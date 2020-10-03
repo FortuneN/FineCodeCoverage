@@ -33,6 +33,9 @@ Run a(some) unit test(s) and ...
 #### Local (Project) options (override globals in your csproj/vbproj : OPTIONAL)
 ```
 <PropertyGroup Label="FineCodeCoverage">
+	<Enabled>
+		True
+	</Enabled>
 	<Exclude>
 		[ThirdParty.*]*
 		[FourthParty]*
@@ -54,17 +57,22 @@ Run a(some) unit test(s) and ...
 	<IncludeTestAssembly>
 		False
 	</IncludeTestAssembly>
+	<CoverletTimeout>
+		60
+	</CoverletTimeout>
 </PropertyGroup>
 ```
 
 #### Options
 ```
+Enabled                 Specifies whether or not coverage output is enabled
 Exclude                 Filter expressions to exclude specific modules and types (multiple values)
 Include                 Filter expressions to include specific modules and types (multiple values)
 IncludeDirectory        Include directories containing additional assemblies to be instrumented (multiple values)
 ExcludeByFile           Glob patterns specifying source files to exclude e.g. Migrations/**.cs (multiple values)
 ExcludeByAttribute      Attributes to exclude from code coverage (multiple values)
 IncludeTestAssembly     Specifies whether to report code coverage of the test assembly
+CoverletTimeout         Specifies the timeout interval for the coverlet process in seconds
 
 Both 'Exclude' and 'Include' options can be used together but 'Exclude' takes precedence.
 

@@ -34,22 +34,12 @@ namespace FineCodeCoverage.Impl
 			// brush (color)
 
 			var tooltip = default(string);
-			var brush = tag.CoverageLine.HitCount > 0 ? Brushes.Green : Brushes.Red;
+			var brush = tag.CoverageLine.Line.Hits > 0 ? Brushes.Green : Brushes.Red;
 			
-			if
-			(
-				brush == Brushes.Green && 
-				tag.CoverageLine.LineBranches.Count > 1 && 
-				tag.CoverageLine.LineBranches.Any(x => x.Hits == 0)
-			)
+			if (brush == Brushes.Green && !string.IsNullOrWhiteSpace(tag.CoverageLine.Line.ConditionCoverage))
 			{
 				brush = CustomGoldBrush;
-
-				var coveredBranchCount = (decimal)tag.CoverageLine.LineBranches.Count(x => x.Hits > 0);
-				var totalBranchCount = (decimal)tag.CoverageLine.LineBranches.Count();
-				var coveredBranchPercent = coveredBranchCount / totalBranchCount * 100m;
-
-				tooltip = $"{coveredBranchCount:0}/{totalBranchCount:0} ({coveredBranchPercent:0}%) branch coverage : {Pluralize("hit", tag.CoverageLine.HitCount)}";
+				tooltip = tag.CoverageLine.Line.ConditionCoverage;
 			}
 
 			// result

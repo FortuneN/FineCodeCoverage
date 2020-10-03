@@ -2,3 +2,9 @@
 
 # IDE0017: Simplify object initialization
 dotnet_style_object_initializer = false:suggestion
+
+# IDE0037: Use inferred member name
+dotnet_style_prefer_inferred_anonymous_type_member_names = false:suggestion
+
+# IDE0028: Simplify collection initialization
+dotnet_style_collection_initializer = false:suggestion

@@ -108,7 +108,7 @@ namespace FineCodeCoverage.Output
 		{
 			if (!File.Exists(htmlFilePath))
 			{
-				var message = $"Not found : { Path.GetFileName(htmlFilePath) }";
+				var message = $"Not Found : { Path.GetFileName(htmlFilePath) }";
 				Logger.Log(message);
 				MessageBox.Show(message);
 				return;
@@ -147,9 +147,9 @@ namespace FineCodeCoverage.Output
 						}
 					}
 
-					if (!notFoundList.Any())
+					if (notFoundList.Any())
 					{
-						var message = $"Not found : { string.Join(", ", notFoundList.Select(x => Path.GetFileName(x))) }";
+						var message = $"Not Found : { string.Join(", ", notFoundList.Select(x => Path.GetFileName(x))) }";
 						Logger.Log(message);
 						MessageBox.Show(message);
 					}
