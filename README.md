@@ -111,6 +111,10 @@ used by this project.
 ## License
 [Apache 2.0](LICENSE)
 
+## Credits
+[Coverlet](https://github.com/coverlet-coverage/coverlet)
+[ReportGenerator](https://github.com/danielpalme/ReportGenerator)
+
 ## Buy me a beer
 If you find this plugin useful, perhaps you can buy me a beer :)
 
