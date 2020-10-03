@@ -33,33 +33,33 @@ Run a(some) unit test(s) and ...
 #### Local (Project) options (override globals in your csproj/vbproj : OPTIONAL)
 ```
 <PropertyGroup Label="FineCodeCoverage">
-	<Enabled>
-		True
-	</Enabled>
-	<Exclude>
-		[ThirdParty.*]*
-		[FourthParty]*
-	</Exclude>
-	<Include>
-		[*]*
-	</Include>
-	<IncludeDirectory>
-		C:\MyLibs
-	</IncludeDirectory>
-	<ExcludeByFile>
-		**/Migrations/*
-		**/Hacks/*.cs
-	</ExcludeByFile>
-	<ExcludeByAttribute>
-		GeneratedCode
-		CompilerGenerated
-	</ExcludeByAttribute>
-	<IncludeTestAssembly>
-		False
-	</IncludeTestAssembly>
-	<CoverletTimeout>
-		60
-	</CoverletTimeout>
+  <Enabled>
+    True
+  </Enabled>
+  <Exclude>
+    [ThirdParty.*]*
+    [FourthParty]*
+  </Exclude>
+  <Include>
+    [*]*
+  </Include>
+  <IncludeDirectory>
+    C:\MyLibs
+  </IncludeDirectory>
+  <ExcludeByFile>
+    **/Migrations/*
+    **/Hacks/*.cs
+  </ExcludeByFile>
+  <ExcludeByAttribute>
+    GeneratedCode
+    CompilerGenerated
+  </ExcludeByAttribute>
+  <IncludeTestAssembly>
+    False
+  </IncludeTestAssembly>
+  <CoverletTimeout>
+    60
+  </CoverletTimeout>
 </PropertyGroup>
 ```
 
