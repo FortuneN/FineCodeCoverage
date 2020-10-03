@@ -47,8 +47,8 @@ Run a(some) unit test(s) and ...
 		C:\MyLibs
 	</IncludeDirectory>
 	<ExcludeByFile>
-		Migrations/**.cs
-		Utilities/**.cs
+		**/Migrations/*
+		**/Hacks/*.cs
 	</ExcludeByFile>
 	<ExcludeByAttribute>
 		GeneratedCode
@@ -69,7 +69,7 @@ Enabled                 Specifies whether or not coverage output is enabled
 Exclude                 Filter expressions to exclude specific modules and types (multiple values)
 Include                 Filter expressions to include specific modules and types (multiple values)
 IncludeDirectory        Include directories containing additional assemblies to be instrumented (multiple values)
-ExcludeByFile           Glob patterns specifying source files to exclude e.g. Migrations/**.cs (multiple values)
+ExcludeByFile           Glob patterns specifying source files to exclude e.g. **/Migrations/* (multiple values)
 ExcludeByAttribute      Attributes to exclude from code coverage (multiple values)
 IncludeTestAssembly     Specifies whether to report code coverage of the test assembly
 CoverletTimeout         Specifies the timeout interval for the coverlet process in seconds

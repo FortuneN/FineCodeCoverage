@@ -53,9 +53,9 @@ namespace FineCodeCoverage.Options
 
 		[Description(
 		@"Glob patterns specifying source files to exclude (multiple)
-		Use file path or directory path with globbing (e.g. Migrations/**.cs)
+		Use file path or directory path with globbing (e.g. **/Migrations/*)
 		")]
-		public string[] ExcludeByFile { get; set; } = new[] { "Migrations/**.cs" };
+		public string[] ExcludeByFile { get; set; } = new[] { "**/Migrations/*" };
 
 		[Description(
 		@"Attributes to exclude from code coverage (multiple)
