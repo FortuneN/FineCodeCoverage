@@ -967,7 +967,7 @@ namespace FineCodeCoverage.Impl
 					}
 
 					var body = doc.DocumentNode.QuerySelector("body");
-					/*TODO:UNCOMMENT*/body.SetAttributeValue("oncontextmenu", "return false;");
+					/*TODO:UNCOMMENT*///body.SetAttributeValue("oncontextmenu", "return false;");
 					
 					// TEXT changes
 
