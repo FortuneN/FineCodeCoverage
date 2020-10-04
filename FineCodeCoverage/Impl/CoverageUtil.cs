@@ -967,7 +967,7 @@ namespace FineCodeCoverage.Impl
 					}
 
 					var body = doc.DocumentNode.QuerySelector("body");
-					body.SetAttributeValue("oncontextmenu", "return false;");
+					/*TODO:UNCOMMENT*/body.SetAttributeValue("oncontextmenu", "return false;");
 					
 					// TEXT changes
 
@@ -1131,7 +1131,7 @@ namespace FineCodeCoverage.Impl
 		{
 			coverageLines = new List<CoverageLine>();
 
-			var report = CoberturaReportLoader.LoadReportFile(unifiedXmlFile);
+			var report = CoberturaUtil.LoadReportFile(unifiedXmlFile);
 
 			foreach (var package in report.Packages.Package)
 			{

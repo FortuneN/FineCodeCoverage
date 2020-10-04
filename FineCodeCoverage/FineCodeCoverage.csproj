@@ -58,7 +58,7 @@
     <Compile Include="Cobertura\Condition.cs" />
     <Compile Include="Cobertura\Conditions.cs" />
     <Compile Include="Cobertura\CoverageReport.cs" />
-    <Compile Include="Cobertura\CoberturaReportLoader.cs" />
+    <Compile Include="Cobertura\CoberturaUtil.cs" />
     <Compile Include="Cobertura\Line.cs" />
     <Compile Include="Cobertura\Lines.cs" />
     <Compile Include="Cobertura\Method.cs" />
