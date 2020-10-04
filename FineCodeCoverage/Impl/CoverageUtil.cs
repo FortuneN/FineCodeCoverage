@@ -238,19 +238,21 @@ namespace FineCodeCoverage.Impl
 		private static bool RunCoverlet(AppSettings appSettings, string testDllFile, string coverageFolder, out string projectCoberturaFile, bool throwError = false)
 		{
 			var title = "Coverlet -> Run";
-
-			var testDllFileInCoverageFolder = Path.Combine(coverageFolder, Path.GetFileName(testDllFile));
-
 			var ouputFolder = Path.Combine(coverageFolder, "_outputfolder");
-			if (Directory.Exists(ouputFolder)) Directory.Delete(ouputFolder, true);
-			Directory.CreateDirectory(ouputFolder);
-
 			projectCoberturaFile = Path.Combine(ouputFolder, "_project.cobertura.xml");
+			var testDllFileInCoverageFolder = Path.Combine(coverageFolder, Path.GetFileName(testDllFile));
 
 			if (File.Exists(projectCoberturaFile))
 			{
 				File.Delete(projectCoberturaFile);
 			}
+
+			if (Directory.Exists(ouputFolder))
+			{
+				Directory.Delete(ouputFolder, true);
+			}
+
+			Directory.CreateDirectory(ouputFolder);
 
 			var coverletSettings = new List<string>();
 
@@ -304,7 +306,7 @@ namespace FineCodeCoverage.Impl
 
 			coverletSettings.Add($@"--output ""{ projectCoberturaFile }""");
 
-			coverletSettings.Add($"--targetargs \"test \"\"{testDllFileInCoverageFolder}\"\"\"");
+			coverletSettings.Add($@"--targetargs ""test  """"{testDllFileInCoverageFolder}"""" --results-directory ""{ouputFolder}""  """);
 
 			Logger.Log($"Arguments : {Environment.NewLine}{string.Join($"{Environment.NewLine}", coverletSettings)}");
 
