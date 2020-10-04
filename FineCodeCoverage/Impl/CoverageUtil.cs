@@ -120,7 +120,7 @@ namespace FineCodeCoverage.Impl
 
 		private static Version GetCoverletVersion()
 		{
-			var title = "Coverlet -> Get Info";
+			var title = "Coverlet Get Info";
 
 			var processStartInfo = new ProcessStartInfo
 			{
@@ -142,7 +142,7 @@ namespace FineCodeCoverage.Impl
 
 			if (process.ExitCode != 0)
 			{
-				Logger.Log($"Error during {title}", processOutput);
+				Logger.Log($"{title} Error", processOutput);
 				return null;
 			}
 
@@ -170,7 +170,7 @@ namespace FineCodeCoverage.Impl
 
 		private static void UpdateCoverlet()
 		{
-			var title = "Coverlet -> Update";
+			var title = "Coverlet Update";
 
 			var processStartInfo = new ProcessStartInfo
 			{
@@ -192,7 +192,7 @@ namespace FineCodeCoverage.Impl
 
 			if (process.ExitCode != 0)
 			{
-				Logger.Log($"Error during {title}", processOutput);
+				Logger.Log($"{title} Error", processOutput);
 				return;
 			}
 
@@ -203,7 +203,7 @@ namespace FineCodeCoverage.Impl
 
 		private static void InstallCoverlet()
 		{
-			var title = "Coverlet -> Install";
+			var title = "Coverlet Install";
 
 			var processStartInfo = new ProcessStartInfo
 			{
@@ -225,7 +225,7 @@ namespace FineCodeCoverage.Impl
 
 			if (process.ExitCode != 0)
 			{
-				Logger.Log($"Error during {title}", processOutput);
+				Logger.Log($"{title} Error", processOutput);
 				return;
 			}
 
@@ -235,57 +235,54 @@ namespace FineCodeCoverage.Impl
 		}
 
 		[SuppressMessage("Usage", "VSTHRD002:Avoid problematic synchronous waits")]
-		private static bool RunCoverlet(AppSettings appSettings, string testDllFile, string coverageFolder, out string projectCoberturaFile, bool throwError = false)
+		private static bool RunCoverlet(CoverageProject project, bool throwError = false)
 		{
-			var title = "Coverlet -> Run";
-			var ouputFolder = Path.Combine(coverageFolder, "_outputfolder");
-			projectCoberturaFile = Path.Combine(ouputFolder, "_project.cobertura.xml");
-			var testDllFileInCoverageFolder = Path.Combine(coverageFolder, Path.GetFileName(testDllFile));
-
-			if (File.Exists(projectCoberturaFile))
+			var title = $"Coverlet Run ({project.ProjectName})";
+			
+			if (File.Exists(project.ProjectCoberturaFile))
 			{
-				File.Delete(projectCoberturaFile);
+				File.Delete(project.ProjectCoberturaFile);
 			}
 
-			if (Directory.Exists(ouputFolder))
+			if (Directory.Exists(project.WorkOutputFolder))
 			{
-				Directory.Delete(ouputFolder, true);
+				Directory.Delete(project.WorkOutputFolder, true);
 			}
 
-			Directory.CreateDirectory(ouputFolder);
+			Directory.CreateDirectory(project.WorkOutputFolder);
 
 			var coverletSettings = new List<string>();
 
-			coverletSettings.Add($@"""{testDllFileInCoverageFolder}""");
+			coverletSettings.Add($@"""{project.TestDllFileInWorkFolder}""");
 
 			coverletSettings.Add($@"--format ""cobertura""");
 
-			foreach (var value in (appSettings.Exclude ?? new string[0]).Where(x => !string.IsNullOrWhiteSpace(x)))
+			foreach (var value in (project.Settings.Exclude ?? new string[0]).Where(x => !string.IsNullOrWhiteSpace(x)))
 			{
 				coverletSettings.Add($@"--exclude ""{value.Replace("\"", "\\\"").Trim(' ', '\'')}""");
 			}
 
-			foreach (var value in (appSettings.Include ?? new string[0]).Where(x => !string.IsNullOrWhiteSpace(x)))
+			foreach (var value in (project.Settings.Include ?? new string[0]).Where(x => !string.IsNullOrWhiteSpace(x)))
 			{
 				coverletSettings.Add($@"--include ""{value.Replace("\"", "\\\"").Trim(' ', '\'')}""");
 			}
 
-			foreach (var value in (appSettings.IncludeDirectory ?? new string[0]).Where(x => !string.IsNullOrWhiteSpace(x)))
+			foreach (var value in (project.Settings.IncludeDirectory ?? new string[0]).Where(x => !string.IsNullOrWhiteSpace(x)))
 			{
 				coverletSettings.Add($@"--include-directory ""{value.Replace("\"", "\\\"").Trim(' ', '\'')}""");
 			}
 
-			foreach (var value in (appSettings.ExcludeByFile ?? new string[0]).Where(x => !string.IsNullOrWhiteSpace(x)))
+			foreach (var value in (project.Settings.ExcludeByFile ?? new string[0]).Where(x => !string.IsNullOrWhiteSpace(x)))
 			{
 				coverletSettings.Add($@"--exclude-by-file ""{value.Replace("\"", "\\\"").Trim(' ', '\'')}""");
 			}
 
-			foreach (var value in (appSettings.ExcludeByAttribute ?? new string[0]).Where(x => !string.IsNullOrWhiteSpace(x)))
+			foreach (var value in (project.Settings.ExcludeByAttribute ?? new string[0]).Where(x => !string.IsNullOrWhiteSpace(x)))
 			{
 				coverletSettings.Add($@"--exclude-by-attribute ""{value.Replace("\"", "\\\"").Trim(' ', '\'', '[', ']')}""");
 			}
 
-			if (appSettings.IncludeTestAssembly)
+			if (project.Settings.IncludeTestAssembly)
 			{
 				coverletSettings.Add("--include-test-assembly");
 			}
@@ -304,11 +301,11 @@ namespace FineCodeCoverage.Impl
 
 			coverletSettings.Add($@"--target ""dotnet""");
 
-			coverletSettings.Add($@"--output ""{ projectCoberturaFile }""");
+			coverletSettings.Add($@"--output ""{ project.ProjectCoberturaFile }""");
 
-			coverletSettings.Add($@"--targetargs ""test  """"{testDllFileInCoverageFolder}"""" --results-directory ""{ouputFolder}""  """);
+			coverletSettings.Add($@"--targetargs ""test  """"{project.TestDllFileInWorkFolder}"""" --blame --results-directory """"{project.WorkOutputFolder}"""" --diag """"{project.WorkOutputFolder}/diagnostics.log""""  """);
 
-			Logger.Log($"Arguments : {Environment.NewLine}{string.Join($"{Environment.NewLine}", coverletSettings)}");
+			Logger.Log($"{title} Arguments {Environment.NewLine}{string.Join($"{Environment.NewLine}", coverletSettings)}");
 
 			var processStartInfo = new ProcessStartInfo
 			{
@@ -327,11 +324,21 @@ namespace FineCodeCoverage.Impl
 			{
 				var stopWatch = new Stopwatch();
 				stopWatch.Start();
-				if (!Task.Run(() => process.WaitForExit()).Wait(TimeSpan.FromSeconds(appSettings.CoverletTimeout)))
+				
+				if (!Task.Run(() => process.WaitForExit()).Wait(TimeSpan.FromSeconds(project.Settings.CoverletTimeout)))
 				{
 					stopWatch.Stop();
 					Task.Run(() => { try { process.Kill(); } catch { } }).Wait(TimeSpan.FromSeconds(10));
-					throw new Exception($"Coverlet timed out after {stopWatch.Elapsed.TotalSeconds} seconds (CoverletTimeout is {appSettings.CoverletTimeout} seconds)");
+
+					var errorMessage = $"Coverlet timed out after {stopWatch.Elapsed.TotalSeconds} seconds (CoverletTimeout is {project.Settings.CoverletTimeout} seconds)";
+
+					if (throwError)
+					{
+						throw new Exception(errorMessage);
+					}
+
+					Logger.Log($"{title} Error", errorMessage);
+					return false;
 				}
 			}
 
@@ -344,7 +351,7 @@ namespace FineCodeCoverage.Impl
 					throw new Exception(processOutput);
 				}
 				
-				Logger.Log($"Error during {title}", processOutput);
+				Logger.Log($"{title} Error", processOutput);
 				return false;
 			}
 
@@ -564,7 +571,7 @@ namespace FineCodeCoverage.Impl
 
 		private static Version GetReportGeneratorVersion()
 		{
-			var title = "ReportGenerator -> Get Info";
+			var title = "ReportGenerator Get Info";
 
 			var processStartInfo = new ProcessStartInfo
 			{
@@ -586,7 +593,7 @@ namespace FineCodeCoverage.Impl
 
 			if (process.ExitCode != 0)
 			{
-				Logger.Log($"Error during {title}", processOutput);
+				Logger.Log($"{title} Error", processOutput);
 				return null;
 			}
 
@@ -614,7 +621,7 @@ namespace FineCodeCoverage.Impl
 
 		private static void UpdateReportGenerator()
 		{
-			var title = "ReportGenerator -> Update";
+			var title = "ReportGenerator Update";
 
 			var processStartInfo = new ProcessStartInfo
 			{
@@ -636,7 +643,7 @@ namespace FineCodeCoverage.Impl
 
 			if (process.ExitCode != 0)
 			{
-				Logger.Log($"Error during {title}", processOutput);
+				Logger.Log($"{title} Error", processOutput);
 				return;
 			}
 
@@ -647,7 +654,7 @@ namespace FineCodeCoverage.Impl
 
 		private static void InstallReportGenerator()
 		{
-			var title = "ReportGenerator -> Install";
+			var title = "ReportGenerator Install";
 
 			var processStartInfo = new ProcessStartInfo
 			{
@@ -669,7 +676,7 @@ namespace FineCodeCoverage.Impl
 
 			if (process.ExitCode != 0)
 			{
-				Logger.Log($"Error during {title}", processOutput);
+				Logger.Log($"{title} Error", processOutput);
 				return;
 			}
 
@@ -681,7 +688,7 @@ namespace FineCodeCoverage.Impl
 		[SuppressMessage("Usage", "VSTHRD002:Avoid problematic synchronous waits")]
 		private static bool RunReportGenerator(IEnumerable<string> coberturaFiles, out string unifiedHtmlFile, out string unifiedXmlFile, bool throwError = false)
 		{
-			var title = "ReportGenerator -> Run";
+			var title = "ReportGenerator Run";
 			var ouputFolder = Path.GetDirectoryName(coberturaFiles.OrderBy(x => x).First()); // use location of first file to output reports
 			
 			Directory.GetFiles(ouputFolder, "*.htm*").ToList().ForEach(File.Delete); // delete html files if they exist
@@ -717,7 +724,7 @@ namespace FineCodeCoverage.Impl
 					throw new Exception(processOutput);
 				}
 
-				Logger.Log($"Error during {title}", processOutput);
+				Logger.Log($"{title} Error", processOutput);
 				return false;
 			}
 
@@ -788,29 +795,30 @@ namespace FineCodeCoverage.Impl
 
 						project.ProjectOutputFolder = Path.GetDirectoryName(project.TestDllFileInOutputFolder);
 						project.WorkFolder = Path.Combine(AppDataFolder, Hash(project.ProjectFolder));
+						project.WorkOutputFolder = Path.Combine(project.WorkFolder, "_outputfolder");
+						project.ProjectCoberturaFile = Path.Combine(project.WorkOutputFolder, "_project.cobertura.xml");
 						project.TestDllFileInWorkFolder = Path.Combine(project.WorkFolder, Path.GetFileName(project.TestDllFileInOutputFolder));
 
 						return project;
 					})
-					.Select(p => p.Step("Create Work Folder", project =>
+					.Select(p => p.Step("Ensure Work Folder Exists", project =>
 					{
-						// determine project properties
+						// create folders
 
 						Directory.CreateDirectory(project.WorkFolder);
+						Directory.CreateDirectory(project.WorkOutputFolder);
 					}))
-					.Select(p => p.Step("Synchronize", project =>
+					.Select(p => p.Step("Synchronize Output Files To Work Folder", project =>
 					{
 						// sync files from output folder to work folder where we do the analysis
 
 						FileSynchronizationUtil.Synchronize(project.ProjectOutputFolder, project.WorkFolder);
 					}))
-					.Select(p => p.Step("Run Coverlet", project =>
+					.Select(p => p.Step("Coverlet Run", project =>
 					{
 						// run coverlet process
 
-						RunCoverlet(project.Settings, project.TestDllFileInWorkFolder, project.WorkFolder, out var projectCoberturaFile, true);
-
-						project.ProjectCoberturaFile = projectCoberturaFile;
+						RunCoverlet(project, true);
 					}))
 					.Where(x => !x.HasFailed)
 					.ToArray();

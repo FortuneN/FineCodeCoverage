@@ -22,6 +22,7 @@ namespace FineCodeCoverage.Impl
 		public string TestDllFileInWorkFolder { get; internal set; }
 
 		public AppSettings Settings { get; internal set; }
+		public string WorkOutputFolder { get; internal set; }
 
 		public CoverageProject Step(string stepName, Action<CoverageProject> action)
 		{
