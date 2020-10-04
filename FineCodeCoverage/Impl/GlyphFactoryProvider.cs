@@ -34,7 +34,8 @@ namespace FineCodeCoverage.Impl
 			// brush (color)
 
 			var tooltip = default(string);
-			var brush = tag.CoverageLine.Line.Hits > 0 ? Brushes.Green : Brushes.Red;
+
+			var brush = (tag?.CoverageLine?.Line?.Hits ?? 0) > 0 ? Brushes.Green : Brushes.Red;
 			
 			if (brush == Brushes.Green && !string.IsNullOrWhiteSpace(tag.CoverageLine.Line.ConditionCoverage))
 			{

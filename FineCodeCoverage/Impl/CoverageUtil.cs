@@ -1123,11 +1123,11 @@ namespace FineCodeCoverage.Impl
 
 			var report = CoberturaReportLoader.LoadReportFile(unifiedXmlFile);
 
-			foreach (var package in report.Packages.Package.AsParallel())
+			foreach (var package in report.Packages.Package)
 			{
-				foreach (var classs in package.Classes.Class.AsParallel())
+				foreach (var classs in package.Classes.Class)
 				{
-					foreach (var line in classs.Lines.Line.AsParallel())
+					foreach (var line in classs.Lines.Line)
 					{
 						coverageLines.Add(new CoverageLine
 						{
