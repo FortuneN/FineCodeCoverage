@@ -303,8 +303,8 @@ namespace FineCodeCoverage.Impl
 
 			coverletSettings.Add($@"--output ""{ project.ProjectCoberturaFile }""");
 
-			coverletSettings.Add($@"--targetargs ""test  """"{project.TestDllFileInWorkFolder}"""" --blame --results-directory """"{project.WorkOutputFolder}"""" --diag """"{project.WorkOutputFolder}/diagnostics.log""""  """);
-
+			coverletSettings.Add($@"--targetargs ""test  """"{project.TestDllFileInWorkFolder}"""" --nologo --blame --results-directory """"{project.WorkOutputFolder}"""" --diag """"{project.WorkOutputFolder}/diagnostics.log""""  """);
+			
 			Logger.Log($"{title} Arguments {Environment.NewLine}{string.Join($"{Environment.NewLine}", coverletSettings)}");
 
 			var processStartInfo = new ProcessStartInfo
