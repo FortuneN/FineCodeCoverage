@@ -994,7 +994,7 @@ namespace FineCodeCoverage.Impl
 							table.coverage {{ width:150px;height:13px }}
 							a, a:hover {{ color: #0078D4; text-decoration: none; cursor: pointer; }}
 							body {{ -webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;-o-user-select:none;user-select:none }}
-							table.overview th, table.overview td {{ font-size: 13px; white-space: nowrap; word-break: normal; padding-left:10px;padding-right:10px; }}
+							table.overview th, table.overview td {{ font-size: small; white-space: nowrap; word-break: normal; padding-left:10px;padding-right:10px; }}
 						</style>
 						</head>
 					");
