@@ -967,11 +967,78 @@ namespace FineCodeCoverage.Impl
 					}
 
 					var body = doc.DocumentNode.QuerySelector("body");
-					/*TODO:UNCOMMENT*///body.SetAttributeValue("oncontextmenu", "return false;");
+					body.SetAttributeValue("oncontextmenu", "return false;");
 					
 					// TEXT changes
 
 					var html = doc.DocumentNode.OuterHtml;
+
+					html = html.Replace(".table-fixed", ".table-fixed-ignore-me");
+
+					html = string.Join(
+						Environment.NewLine,
+						html.Split('\r', '\n')
+						.Select(line =>
+						{
+							if (line.StartsWith(".column"))
+							{
+								line = $"{line.Substring(0, line.IndexOf('{')).Trim('{')} {{white-space: nowrap; width:1%;}}"; 
+							}
+
+							return line;
+						}));
+								
+					html = html.Replace("</head>", $@"
+						<style type=""text/css"">
+						    table td {{ white-space: nowrap; }}
+							table.coverage {{ width:150px;height:13px }}
+							a, a:hover {{ color: #0078D4; text-decoration: none; cursor: pointer; }}
+							body {{ -webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;-o-user-select:none;user-select:none }}
+							table.overview th, table.overview td {{ font-size: 13px; white-space: nowrap; word-break: normal; padding-left:10px;padding-right:10px; }}
+						</style>
+						</head>
+					");
+
+					html = html.Replace("</body>", $@"
+						<script type=""text/javascript"">
+							
+							var htmlExtension = '.html';
+							var pageFolder = '{folder.Trim('\\').Replace("\\", "\\\\")}\\';
+							
+							var eventListener = function (element, event, func) {{
+								if (element.addEventListener) element.addEventListener(event, func, false);
+								else if (element.attachEvent) element.attachEvent('on' + event, func);
+								else element['on' + event] = func;
+							}};
+							
+							eventListener(document, 'click', function (event) {{
+								
+								var target = event.target;
+								if (target.tagName.toLowerCase() !== 'a') return;
+								
+								var href = target.getAttribute('href');
+								if (!href || href[0] !== '#') return;
+								
+								var htmlExtensionIndex = href.toLowerCase().indexOf(htmlExtension);
+								if (htmlExtensionIndex == -1) return;
+								
+								if (event.preventDefault) event.preventDefault()
+								if (event.stopPropagation) event.stopPropagation();
+								
+								var fullHref = pageFolder + href.substring(1, htmlExtensionIndex + htmlExtension.length);
+								var fileLine = href.substring(htmlExtensionIndex + htmlExtension.length);
+								
+								if (fileLine.indexOf('#') != -1) fileLine = fileLine.substring(fileLine.indexOf('#') + 1).replace('file', '').replace('line', '').split('_');
+								else fileLine = ['0', '0'];
+								
+								window.external.OpenFile(fullHref, parseInt(fileLine[0]), parseInt(fileLine[1]));
+								
+								return false;
+							}});
+							
+						</script>
+						</body>
+					");
 
 					switch (segment)
 					{
@@ -1023,8 +1090,6 @@ namespace FineCodeCoverage.Impl
 
 						case HtmlSegment.RiskHotspots:
 
-							html = html.Replace("https://en.wikipedia.org/wiki/Cyclomatic_complexity", "#");
-							
 							html = string.Join(
 								Environment.NewLine,
 								html.Split('\r', '\n')
@@ -1054,60 +1119,16 @@ namespace FineCodeCoverage.Impl
 									return line;
 								})
 							);
-							
+
+							html = html.Replace("</head>", $@"
+								<style type=""text/css"">
+									table.overview.table-fixed.stripped > thead > tr > th:nth-of-type(4) > a:nth-of-type(2) {{ display:none; }}
+								</style>
+								</head>
+							");
+
 							break;
 					}
-
-					html = html.Replace("</head>", $@"
-						<style type=""text/css""> 
-							table td {{ text-overflow:  ellipsis | clip; white-space: nowrap; }}
-							a, a:hover {{ color: #0078D4; text-decoration: none; cursor: pointer; }}
-							table th, table td {{ font-size: small; white-space: nowrap; word-break: normal; }}
-							body {{ -webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;-o-user-select:none;user-select:none }}
-						</style>
-						</head>
-					");
-
-					html = html.Replace("</body>", $@"
-						<script type=""text/javascript"">
-							
-							var htmlExtension = '.html';
-							var pageFolder = '{folder.Trim('\\').Replace("\\", "\\\\")}\\';
-							
-							var eventListener = function (element, event, func) {{
-								if (element.addEventListener) element.addEventListener(event, func, false);
-								else if (element.attachEvent) element.attachEvent('on' + event, func);
-								else element['on' + event] = func;
-							}};
-							
-							eventListener(document, 'click', function (event) {{
-								
-								var target = event.target;
-								if (target.tagName.toLowerCase() !== 'a') return;
-								
-								var href = target.getAttribute('href');
-								if (!href || href[0] !== '#') return;
-								
-								var htmlExtensionIndex = href.toLowerCase().indexOf(htmlExtension);
-								if (htmlExtensionIndex == -1) return;
-								
-								if (event.preventDefault) event.preventDefault()
-								if (event.stopPropagation) event.stopPropagation();
-								
-								var fullHref = pageFolder + href.substring(1, htmlExtensionIndex + htmlExtension.length);
-								var fileLine = href.substring(htmlExtensionIndex + htmlExtension.length);
-								
-								if (fileLine.indexOf('#') != -1) fileLine = fileLine.substring(fileLine.indexOf('#') + 1).replace('file', '').replace('line', '').split('_');
-								else fileLine = ['0', '0'];
-								
-								window.external.OpenFile(fullHref, parseInt(fileLine[0]), parseInt(fileLine[1]));
-								
-								return false;
-							}});
-							
-						</script>
-						</body>
-					");
 
 					// save
 

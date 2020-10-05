@@ -74,7 +74,7 @@ namespace FineCodeCoverage.Output
 
 				if (string.IsNullOrWhiteSpace(filePath))
 				{
-					browser.Source = default;
+					browser.NavigateToString("<body oncontextmenu=\"return false;\"></body>");
 				}
 				else
 				{
