@@ -35,7 +35,7 @@ namespace FineCodeCoverage.Impl
 			
 			var line = tag?.CoverageLine?.Line;
 			var lineHitCount = line?.Hits ?? 0;
-			var lineConditionCoverage = line?.ConditionCoverage;
+			var lineConditionCoverage = line?.ConditionCoverage?.Trim();
 
 			// brush (color)
 
@@ -45,7 +45,7 @@ namespace FineCodeCoverage.Impl
 			{
 				brush = Brushes.Green;
 
-				if (!string.IsNullOrWhiteSpace(lineConditionCoverage) && !lineConditionCoverage.Contains("100"))
+				if (!string.IsNullOrWhiteSpace(lineConditionCoverage) && !lineConditionCoverage.StartsWith("100"))
 				{
 					brush = CustomGoldBrush;
 				}
