@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using FineCodeCoverage.Engine.Model;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -6,9 +7,9 @@ using System.Linq;
 using System.Xml;
 using System.Xml.Serialization;
 
-namespace FineCodeCoverage.Cobertura
+namespace FineCodeCoverage.Engine.Cobertura
 {
-	public sealed class CoberturaUtil
+	internal class CoberturaUtil
 	{
 		private static readonly XmlSerializer SERIALIZER = new XmlSerializer(typeof(CoverageReport));
 		private static readonly XmlReaderSettings READER_SETTINGS = new XmlReaderSettings { DtdProcessing = DtdProcessing.Ignore };
@@ -80,5 +81,29 @@ namespace FineCodeCoverage.Cobertura
 
 			return jsonText;
 		}
+
+		public static void ProcessCoberturaXmlFile(string unifiedXmlFile, out List<CoverageLine> coverageLines)
+		{
+			coverageLines = new List<CoverageLine>();
+
+			var report = CoberturaUtil.LoadReportFile(unifiedXmlFile);
+
+			foreach (var package in report.Packages.Package)
+			{
+				foreach (var classs in package.Classes.Class)
+				{
+					foreach (var line in classs.Lines.Line)
+					{
+						coverageLines.Add(new CoverageLine
+						{
+							Package = package,
+							Class = classs,
+							Line = line
+						});
+					}
+				}
+			}
+		}
+
 	}
 }

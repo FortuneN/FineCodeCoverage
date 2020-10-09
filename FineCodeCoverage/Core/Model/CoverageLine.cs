@@ -1,6 +1,6 @@
-﻿using FineCodeCoverage.Cobertura;
+﻿using FineCodeCoverage.Engine.Cobertura;
 
-namespace FineCodeCoverage.Impl
+namespace FineCodeCoverage.Engine.Model
 {
 	internal class CoverageLine
 	{

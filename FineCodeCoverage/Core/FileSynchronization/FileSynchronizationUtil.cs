@@ -1,11 +1,10 @@
-﻿using System;
+﻿using FineCodeCoverage.Engine.Utilities;
 using System.IO;
 using System.Linq;
-using System.Collections.Generic;
 
-namespace FineCodeCoverage.Impl
+namespace FineCodeCoverage.Engine.FileSynchronization
 {
-	internal static class FileSynchronizationUtil
+	internal static partial class FileSynchronizationUtil
 	{
 		public static void Synchronize(string sourceFolder, string destinationFolder)
 		{
@@ -37,35 +36,6 @@ namespace FineCodeCoverage.Impl
 			{
 				File.Delete(fileToDelete.FileInfo.FullName);
 			}
-		}
-
-		private class ComparableFile : IEquatable<ComparableFile>
-		{
-			private readonly int hashCode;
-
-			public FileInfo FileInfo { get; }
-
-			public string RelativePath { get; }
-
-			public override int GetHashCode() => hashCode;
-
-			public bool Equals(ComparableFile other) => hashCode.Equals(other.hashCode);
-
-			public ComparableFile(FileInfo fileInfo, string relativePath)
-			{
-				FileInfo = fileInfo;
-				RelativePath = relativePath;
-				hashCode = string.Format("{0}|{1}|{2}", RelativePath, FileInfo.Length, FileInfo.LastWriteTimeUtc.Ticks).GetHashCode();
-			}
-		}
-
-		private class FileComparer : IEqualityComparer<ComparableFile>
-		{
-			public static FileComparer Singleton { get; } = new FileComparer();
-			
-			public int GetHashCode(ComparableFile file) => file.GetHashCode();
-
-			public bool Equals(ComparableFile file, ComparableFile otherFile) => file.Equals(otherFile);
 		}
 	}
 }

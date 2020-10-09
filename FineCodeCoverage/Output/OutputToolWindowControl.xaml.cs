@@ -31,7 +31,7 @@ namespace FineCodeCoverage.Output
 		public OutputToolWindowControl()
 		{
 			Instance = this;
-			
+
 			InitializeComponent();
 
 			ThreadHelper.JoinableTaskFactory.Run(async () =>

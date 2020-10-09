@@ -31,16 +31,24 @@ namespace FineCodeCoverage.Impl
 				return null;
 			}
 
+			// vars
+			
+			var line = tag?.CoverageLine?.Line;
+			var lineHitCount = line?.Hits ?? 0;
+			var lineConditionCoverage = line?.ConditionCoverage;
+
 			// brush (color)
 
-			var tooltip = default(string);
+			var brush = Brushes.Red;
 
-			var brush = (tag?.CoverageLine?.Line?.Hits ?? 0) > 0 ? Brushes.Green : Brushes.Red;
-			
-			if (brush == Brushes.Green && !string.IsNullOrWhiteSpace(tag.CoverageLine.Line.ConditionCoverage))
+			if (lineHitCount > 0)
 			{
-				brush = CustomGoldBrush;
-				tooltip = tag.CoverageLine.Line.ConditionCoverage;
+				brush = Brushes.Green;
+
+				if (!string.IsNullOrWhiteSpace(lineConditionCoverage) && !lineConditionCoverage.Contains("100"))
+				{
+					brush = CustomGoldBrush;
+				}
 			}
 
 			// result
@@ -49,28 +57,8 @@ namespace FineCodeCoverage.Impl
 			result.Width = 3;
 			result.Height = 16;
 			result.Fill = brush;
-			result.ToolTip = tooltip; // not showing, why?
 						
 			// return
-
-			return result;
-		}
-
-		private static string Pluralize(string text, int count)
-		{
-			var result = $"{count} {text}";
-
-			if (count != 1)
-			{
-				if (text.EndsWith("ch"))
-				{
-					result += "es";
-				}
-				else
-				{
-					result += "s";
-				}
-			}
 
 			return result;
 		}

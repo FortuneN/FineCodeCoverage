@@ -1,15 +1,13 @@
-﻿using FineCodeCoverage.Options;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.IO;
-using System.Linq;
+using FineCodeCoverage.Options;
 
-namespace FineCodeCoverage.Impl
+namespace FineCodeCoverage.Engine.Model
 {
 	internal class CoverageProject
 	{
 		public string ProjectFolder { get; set; }
-
+		public bool IsDotNetCore { get; internal set; }
 		public string TestDllFileInOutputFolder { get; internal set; }
 		public string WorkFolder { get; internal set; }
 		public string ProjectOutputFolder { get; internal set; }
@@ -18,11 +16,11 @@ namespace FineCodeCoverage.Impl
 		public bool HasFailed => !string.IsNullOrWhiteSpace(FailureStage) || !string.IsNullOrWhiteSpace(FailureDescription);
 		public string ProjectFile { get; internal set; }
 		public string ProjectName => Path.GetFileNameWithoutExtension(ProjectFile);
-		public string ProjectCoberturaFile { get; internal set; }
+		public string CoverOutputFile { get; internal set; }
 		public string TestDllFileInWorkFolder { get; internal set; }
-
 		public AppSettings Settings { get; internal set; }
 		public string WorkOutputFolder { get; internal set; }
+		public string ProjectFileXml { get; internal set; }
 
 		public CoverageProject Step(string stepName, Action<CoverageProject> action)
 		{

@@ -4,12 +4,12 @@ using System.Xml.Serialization;
 // Generated from cobertura XML schema
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
 
-namespace FineCodeCoverage.Cobertura
+namespace FineCodeCoverage.Engine.Cobertura
 {
-    [XmlRoot(ElementName = "packages")]
-    public class Packages
+    [XmlRoot(ElementName = "lines")]
+    public class Lines
     {
-        [XmlElement(ElementName = "package")]
-        public List<Package> Package { get; set; }
+        [XmlElement(ElementName = "line")]
+        public List<Line> Line { get; set; }
     }
 }

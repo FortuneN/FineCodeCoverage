@@ -5,6 +5,7 @@ using System.Runtime.InteropServices;
 using System.IO;
 using FineCodeCoverage.Impl;
 using System.Linq;
+using FineCodeCoverage.Engine;
 
 namespace FineCodeCoverage.Output
 {
@@ -69,7 +70,7 @@ namespace FineCodeCoverage.Output
 				try
 				{
 					var dllName = $"{assemblyName.Name}.dll";
-					var projectDllPath = Path.GetDirectoryName(typeof(CoverageUtil).Assembly.Location);
+					var projectDllPath = Path.GetDirectoryName(typeof(FCCEngine).Assembly.Location);
 					var dllPath = Directory.GetFiles(projectDllPath, "*.dll", SearchOption.AllDirectories).FirstOrDefault(x => Path.GetFileName(x).Equals(x.Equals(dllName, StringComparison.OrdinalIgnoreCase)));
 
 					if (!string.IsNullOrWhiteSpace(dllPath))

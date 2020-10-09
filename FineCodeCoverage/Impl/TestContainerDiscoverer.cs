@@ -12,8 +12,10 @@ using System.IO;
 using FineCodeCoverage.Output;
 using Microsoft.VisualStudio.Shell.Interop;
 using System.Diagnostics.CodeAnalysis;
-using System.Threading.Tasks;
 using FineCodeCoverage.Options;
+using FineCodeCoverage.Engine;
+using FineCodeCoverage.Engine.Coverlet;
+using FineCodeCoverage.Engine.ReportGenerator;
 
 namespace FineCodeCoverage.Impl
 {
@@ -42,7 +44,7 @@ namespace FineCodeCoverage.Impl
 			{
 				Logger.Initialize(serviceProvider);
 
-				CoverageUtil.Initialize();
+				FCCEngine.Initialize();
 				LoadToolWindow(serviceProvider);
 
 				TestContainersUpdated?.ToString();
@@ -51,12 +53,14 @@ namespace FineCodeCoverage.Impl
 				Logger.Log
 				(
 					"Initialized",
-					$"Version                   {GetVersion()}",
-					$"Coverlet Version          {CoverageUtil.CurrentCoverletVersion}",
-					$"Report Generator Version  {CoverageUtil.CurrentReportGeneratorVersion}",
-					$"Work Folder               {CoverageUtil.AppDataFolder}",
-					$"Coverlet Folder           {CoverageUtil.AppDataCoverletFolder}",
-					$"Report Generator Folder   {CoverageUtil.AppDataReportGeneratorFolder}"
+					$"Version                     {GetVersion()}",
+					$"Work Folder                 {FCCEngine.AppDataFolder}",
+					$"Coverlet Version            {CoverletUtil.CurrentCoverletVersion}",
+					$"Coverlet Folder             {CoverletUtil.AppDataCoverletFolder}",
+					$"Report Generator Version    {ReportGeneratorUtil.CurrentReportGeneratorVersion}",
+					$"Report Generator Folder     {ReportGeneratorUtil.AppDataReportGeneratorFolder}"
+					//$"OpenCover Generator Version {OpenCoverUtil.CurrentOpenCoverVersion}",
+					//$"OpenCover Generator Folder  {OpenCoverUtil.AppDataOpenCoverFolder}"
 				);
 			}
 			catch (Exception exception)
@@ -118,7 +122,7 @@ namespace FineCodeCoverage.Impl
 
 					if (!settings.Enabled)
 					{
-						CoverageUtil.CoverageLines.Clear();
+						FCCEngine.CoverageLines.Clear();
 						TaggerProvider.ReloadTags();
 						OutputToolWindowControl.SetFilePaths(default, default, default);
 						return;
@@ -130,7 +134,7 @@ namespace FineCodeCoverage.Impl
 					var testConfiguration = (operationType.GetProperty("Configuration") ?? operationType.GetProperty("Configuration", BindingFlags.Instance | BindingFlags.NonPublic)).GetValue(e.Operation);
 					var testDllFiles = ((IEnumerable<string>)testConfiguration.GetType().GetProperty("TestSources").GetValue(testConfiguration)).ToArray();
 
-					CoverageUtil.ReloadCoverage
+					FCCEngine.ReloadCoverage
 					(
 						testDllFiles,
 						(error) =>
@@ -153,9 +157,9 @@ namespace FineCodeCoverage.Impl
 
 							OutputToolWindowControl.SetFilePaths
 							(
-								CoverageUtil.SummaryHtmlFilePath,
-								CoverageUtil.CoverageHtmlFilePath,
-								CoverageUtil.RiskHotspotsHtmlFilePath
+								FCCEngine.SummaryHtmlFilePath,
+								FCCEngine.CoverageHtmlFilePath,
+								FCCEngine.RiskHotspotsHtmlFilePath
 							);
 						},
 						(error) =>
