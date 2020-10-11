@@ -3,6 +3,8 @@ using FineCodeCoverage.Engine.Cobertura;
 using FineCodeCoverage.Engine.Coverlet;
 using FineCodeCoverage.Engine.FileSynchronization;
 using FineCodeCoverage.Engine.Model;
+using FineCodeCoverage.Engine.MsTestPlatform;
+using FineCodeCoverage.Engine.OpenCover;
 using FineCodeCoverage.Engine.ReportGenerator;
 using FineCodeCoverage.Options;
 using System;
@@ -37,7 +39,8 @@ namespace FineCodeCoverage.Engine
 
 			CoverletUtil.Initialize(AppDataFolder);
 			ReportGeneratorUtil.Initialize(AppDataFolder);
-			//OpenCoverUtil.Initialize(AppDataFolder);
+			MsTestPlatformUtil.Initialize(AppDataFolder);
+			OpenCoverUtil.Initialize(AppDataFolder);
 		}
 
 		public static CoverageLine GetLine(string filePath, int lineNumber)
@@ -77,11 +80,11 @@ namespace FineCodeCoverage.Engine
 			return ProjectFoldersCache[path] = result;
 		}
 
-		private static AppSettings GetSettings(string testDllFile)
+		private static AppOptions GetSettings(string testDllFile)
 		{
 			// get global settings
 
-			var settings = AppSettings.Get();
+			var settings = AppOptions.Get();
 
 			// override with test project settings
 
@@ -329,12 +332,12 @@ namespace FineCodeCoverage.Engine
 						project.ProjectOutputFolder = Path.GetDirectoryName(project.TestDllFileInOutputFolder);
 						project.WorkFolder = Path.Combine(AppDataFolder, HashUtil.Hash(project.ProjectFolder));
 						project.WorkOutputFolder = Path.Combine(project.WorkFolder, "_outputfolder");
-						project.CoverOutputFile = Path.Combine(project.WorkOutputFolder, "_project.cobertura.xml");
+						project.CoverToolOutputFile = Path.Combine(project.WorkOutputFolder, "_cover.tool.xml");
 						project.TestDllFileInWorkFolder = Path.Combine(project.WorkFolder, Path.GetFileName(project.TestDllFileInOutputFolder));
 						project.ProjectFileXml = File.ReadAllText(project.ProjectFile);
 
 						//TODO:Probably should check target
-						project.IsDotNetCore = new[] { XElement.Parse(project.ProjectFileXml) }
+						project.IsDotNetSdkStyle = new[] { XElement.Parse(project.ProjectFileXml) }
 							.Where(x => x.Name.LocalName.Equals("Project", StringComparison.OrdinalIgnoreCase))
 							.Attributes()
 							.Where(x => x.Name.LocalName.Equals("Sdk", StringComparison.OrdinalIgnoreCase))
@@ -358,16 +361,16 @@ namespace FineCodeCoverage.Engine
 					}))
 					.Select(p => p.Step("Run Coverage Tool", project =>
 					{
-						// run the right cover tool
+						// run the appropriate cover tool
 
-						//if (project.IsDotNetCore)
-						//{
+						if (project.IsDotNetSdkStyle)
+						{
 							CoverletUtil.RunCoverlet(project, true);
-						//}
-						//else
-						//{
-						//	OpenCoverUtil.RunOpenCover(project, true);
-						//}
+						}
+						else
+						{
+							OpenCoverUtil.RunOpenCover(project, true);
+						}
 					}))
 					.Where(x => !x.HasFailed)
 					.ToArray();
@@ -376,7 +379,7 @@ namespace FineCodeCoverage.Engine
 
 					var coverOutputFiles = projects
 						.AsParallel()
-						.Select(x => x.CoverOutputFile)
+						.Select(x => x.CoverToolOutputFile)
 						.ToArray();
 
 					if (!coverOutputFiles.Any())

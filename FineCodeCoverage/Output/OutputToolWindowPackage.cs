@@ -40,7 +40,7 @@ namespace FineCodeCoverage.Output
 	[ProvideMenuResource("Menus.ctmenu", 1)]
 	[Export(typeof(OutputToolWindowPackage))]
 	[InstalledProductRegistration(Vsix.Name, Vsix.Description, Vsix.Id)]
-	[ProvideOptionPage(typeof(AppSettings), Vsix.Name, "General", 0, 0, true)]
+	[ProvideOptionPage(typeof(AppOptions), Vsix.Name, "General", 0, 0, true)]
 	[PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
 	[ProvideToolWindow(typeof(OutputToolWindow), Style = VsDockStyle.Tabbed, DockedHeight = 300, Window = EnvDTE.Constants.vsWindowKindOutput)]
 	[SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1650:ElementDocumentationMustBeSpelledCorrectly", Justification = "pkgdef, VS and vsixmanifest are valid VS terms")]

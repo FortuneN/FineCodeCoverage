@@ -155,9 +155,9 @@ namespace FineCodeCoverage.Engine.Coverlet
 		{
 			var title = $"Coverlet Run ({project.ProjectName})";
 
-			if (File.Exists(project.CoverOutputFile))
+			if (File.Exists(project.CoverToolOutputFile))
 			{
-				File.Delete(project.CoverOutputFile);
+				File.Delete(project.CoverToolOutputFile);
 			}
 
 			if (Directory.Exists(project.WorkOutputFolder))
@@ -183,11 +183,6 @@ namespace FineCodeCoverage.Engine.Coverlet
 				coverletSettings.Add($@"--include ""{value.Replace("\"", "\\\"").Trim(' ', '\'')}""");
 			}
 
-			foreach (var value in (project.Settings.IncludeDirectory ?? new string[0]).Where(x => !string.IsNullOrWhiteSpace(x)))
-			{
-				coverletSettings.Add($@"--include-directory ""{value.Replace("\"", "\\\"").Trim(' ', '\'')}""");
-			}
-
 			foreach (var value in (project.Settings.ExcludeByFile ?? new string[0]).Where(x => !string.IsNullOrWhiteSpace(x)))
 			{
 				coverletSettings.Add($@"--exclude-by-file ""{value.Replace("\"", "\\\"").Trim(' ', '\'')}""");
@@ -198,26 +193,11 @@ namespace FineCodeCoverage.Engine.Coverlet
 				coverletSettings.Add($@"--exclude-by-attribute ""{value.Replace("\"", "\\\"").Trim(' ', '\'', '[', ']')}""");
 			}
 
-			if (project.Settings.IncludeTestAssembly)
-			{
-				coverletSettings.Add("--include-test-assembly");
-			}
-
-			//https://github.com/coverlet-coverage/coverlet/issues/961
-			//if (appSettings.SkipAutoProperties)
-			//{
-			//	coverletSettings.Add("--skipautoprops");
-			//}
-
-			//https://github.com/coverlet-coverage/coverlet/issues/962
-			//foreach (var value in (appSettings.DoesNotReturnAttributes ?? new string[0]).Where(x => !string.IsNullOrWhiteSpace(x)))
-			//{
-			//	coverletSettings.Add($@"--does-not-return-attribute ""{value.Replace("\"", "\\\"")}""");
-			//}
+			coverletSettings.Add("--include-test-assembly");
 
 			coverletSettings.Add($@"--target ""dotnet""");
 
-			coverletSettings.Add($@"--output ""{ project.CoverOutputFile }""");
+			coverletSettings.Add($@"--output ""{ project.CoverToolOutputFile }""");
 
 			coverletSettings.Add($@"--targetargs ""test  """"{project.TestDllFileInWorkFolder}"""" --nologo --blame --results-directory """"{project.WorkOutputFolder}"""" --diag """"{project.WorkOutputFolder}/diagnostics.log""""  """);
 
@@ -230,6 +210,7 @@ namespace FineCodeCoverage.Engine.Coverlet
 				UseShellExecute = false,
 				RedirectStandardError = true,
 				RedirectStandardOutput = true,
+				WorkingDirectory = project.WorkFolder,
 				WindowStyle = ProcessWindowStyle.Hidden,
 				Arguments = string.Join(" ", coverletSettings),
 			};
@@ -241,12 +222,12 @@ namespace FineCodeCoverage.Engine.Coverlet
 				var stopWatch = new Stopwatch();
 				stopWatch.Start();
 
-				if (!Task.Run(() => process.WaitForExit()).Wait(TimeSpan.FromSeconds(project.Settings.CoverletTimeout)))
+				if (!Task.Run(() => process.WaitForExit()).Wait(TimeSpan.FromSeconds(project.Settings.CoverToolTimeout)))
 				{
 					stopWatch.Stop();
 					Task.Run(() => { try { process.Kill(); } catch { } }).Wait(TimeSpan.FromSeconds(10));
 
-					var errorMessage = $"Coverlet timed out after {stopWatch.Elapsed.TotalSeconds} seconds (CoverletTimeout is {project.Settings.CoverletTimeout} seconds)";
+					var errorMessage = $"Coverlet timed out after {stopWatch.Elapsed.TotalSeconds} seconds ({nameof(project.Settings.CoverToolTimeout)} is {project.Settings.CoverToolTimeout} seconds)";
 
 					if (throwError)
 					{

@@ -43,9 +43,6 @@ Run a(some) unit test(s) and ...
   <Include>
 	[*]*
   </Include>
-  <IncludeDirectory>
-	C:\MyLibs
-  </IncludeDirectory>
   <ExcludeByFile>
 	**/Migrations/*
 	**/Hacks/*.cs
@@ -53,12 +50,9 @@ Run a(some) unit test(s) and ...
   <ExcludeByAttribute>
 	MyCustomExcludeFromCodeCoverage
   </ExcludeByAttribute>
-  <IncludeTestAssembly>
-	False
-  </IncludeTestAssembly>
-  <CoverletTimeout>
-	60
-  </CoverletTimeout>
+  <CoverToolTimeout>
+	120
+  </CoverToolTimeout>
 </PropertyGroup>
 ```
 
@@ -67,11 +61,9 @@ Run a(some) unit test(s) and ...
 Enabled                 Specifies whether or not coverage output is enabled
 Exclude                 Filter expressions to exclude specific modules and types (multiple values)
 Include                 Filter expressions to include specific modules and types (multiple values)
-IncludeDirectory        Include directories containing additional assemblies to be instrumented (multiple values)
 ExcludeByFile           Glob patterns specifying source files to exclude e.g. **/Migrations/* (multiple values)
 ExcludeByAttribute      Attributes to exclude from code coverage (multiple values)
-IncludeTestAssembly     Specifies whether to report code coverage of the test assembly
-CoverletTimeout         Specifies the timeout interval for the coverlet process in seconds
+CoverToolTimeout        Specifies the timeout interval for the coverlet/opencover process in seconds
 
 Both 'Exclude' and 'Include' options can be used together but 'Exclude' takes precedence.
 
@@ -85,13 +77,12 @@ You can also ignore additional attributes by adding to the 'ExcludeByAttributes'
 ```
 Wildcards
 * => matches zero or more characters
-? => the prefixed character is optional
 		
 Examples
 [*]* => All types in all assemblies (nothing is instrumented)
 [coverlet.*]Coverlet.Core.Coverage => The Coverage class in the Coverlet.Core namespace belonging to any assembly that matches coverlet.* (e.g coverlet.core)
 [*]Coverlet.Core.Instrumentation.* => All types belonging to Coverlet.Core.Instrumentation namespace in any assembly
-[coverlet.*.tests?] * => All types in any assembly starting with coverlet. and ending with .test or .tests (the ? makes the s optional)
+[coverlet.*.tests]* => All types in any assembly starting with coverlet. and ending with .tests
 
 Both 'Exclude' and 'Include' options can be used together but 'Exclude' takes precedence.
 ```
@@ -113,6 +104,8 @@ used by this project.
 [Coverlet](https://github.com/coverlet-coverage/coverlet)
 
 [ReportGenerator](https://github.com/danielpalme/ReportGenerator)
+
+[OpenCover](https://github.com/OpenCover/opencover)
 
 ## Buy me a beer
 If you find this plugin useful, perhaps you can buy me a beer :)

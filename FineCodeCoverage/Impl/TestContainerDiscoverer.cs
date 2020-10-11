@@ -16,6 +16,7 @@ using FineCodeCoverage.Options;
 using FineCodeCoverage.Engine;
 using FineCodeCoverage.Engine.Coverlet;
 using FineCodeCoverage.Engine.ReportGenerator;
+using FineCodeCoverage.Engine.OpenCover;
 
 namespace FineCodeCoverage.Impl
 {
@@ -43,7 +44,6 @@ namespace FineCodeCoverage.Impl
 			try
 			{
 				Logger.Initialize(serviceProvider);
-
 				FCCEngine.Initialize();
 				LoadToolWindow(serviceProvider);
 
@@ -58,9 +58,9 @@ namespace FineCodeCoverage.Impl
 					$"Coverlet Version            {CoverletUtil.CurrentCoverletVersion}",
 					$"Coverlet Folder             {CoverletUtil.AppDataCoverletFolder}",
 					$"Report Generator Version    {ReportGeneratorUtil.CurrentReportGeneratorVersion}",
-					$"Report Generator Folder     {ReportGeneratorUtil.AppDataReportGeneratorFolder}"
-					//$"OpenCover Generator Version {OpenCoverUtil.CurrentOpenCoverVersion}",
-					//$"OpenCover Generator Folder  {OpenCoverUtil.AppDataOpenCoverFolder}"
+					$"Report Generator Folder     {ReportGeneratorUtil.AppDataReportGeneratorFolder}",
+					$"OpenCover Generator Version {OpenCoverUtil.CurrentOpenCoverVersion}",
+					$"OpenCover Generator Folder  {OpenCoverUtil.AppDataOpenCoverFolder}"
 				);
 			}
 			catch (Exception exception)
@@ -118,7 +118,7 @@ namespace FineCodeCoverage.Impl
 			{
 				if (e.State == TestOperationStates.TestExecutionFinished)
 				{
-					var settings = AppSettings.Get();
+					var settings = AppOptions.Get();
 
 					if (!settings.Enabled)
 					{

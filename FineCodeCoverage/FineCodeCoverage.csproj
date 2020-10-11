@@ -67,6 +67,7 @@
     <Compile Include="Core\Cobertura\Packages.cs" />
     <Compile Include="Core\Cobertura\Sources.cs" />
     <Compile Include="Core\Coverlet\CoverletUtil.cs" />
+    <Compile Include="Core\MsTestPlatform\MsTestPlatformUtil.cs" />
     <Compile Include="Core\Utilities\ComparableFile.cs" />
     <Compile Include="Core\Utilities\FileComparer.cs" />
     <Compile Include="Core\ReportGenerator\HtmlSegment.cs" />
@@ -86,7 +87,7 @@
     <Compile Include="Impl\TaggerProvider.cs" />
     <Compile Include="Impl\TestContainerDiscoverer.cs" />
     <Compile Include="Core\OpenCover\OpenCoverUtil.cs" />
-    <Compile Include="Options\AppSettings.cs">
+    <Compile Include="Options\AppOptions.cs">
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="Output\OutputToolWindow.cs" />
