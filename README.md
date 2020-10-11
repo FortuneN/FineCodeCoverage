@@ -103,9 +103,9 @@ used by this project.
 ## Credits
 [Coverlet](https://github.com/coverlet-coverage/coverlet)
 
-[ReportGenerator](https://github.com/danielpalme/ReportGenerator)
-
 [OpenCover](https://github.com/OpenCover/opencover)
+
+[ReportGenerator](https://github.com/danielpalme/ReportGenerator)
 
 ## Buy me a beer
 If you find this plugin useful, perhaps you can buy me a beer :)
