@@ -161,7 +161,7 @@ namespace FineCodeCoverage.Engine.OpenCover
 
 			var opencoverSettings = new List<string>();
 
-			opencoverSettings.Add($@" -register ");
+			opencoverSettings.Add($@" -register:path32 ");
 
 			opencoverSettings.Add($@" -mergebyhash ");
 
