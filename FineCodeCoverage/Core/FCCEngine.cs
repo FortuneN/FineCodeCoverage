@@ -20,9 +20,7 @@ namespace FineCodeCoverage.Engine
 {
 	internal static class FCCEngine
 	{
-		public static string SummaryHtmlFilePath { get; private set; }
-		public static string CoverageHtmlFilePath { get; private set; }
-		public static string RiskHotspotsHtmlFilePath { get; private set; }
+		public static string HtmlFilePath { get; private set; }
 		public static List<CoverageLine> CoverageLines { get; private set; } = new List<CoverageLine>();
 
 		public static string AppDataFolder { get; private set; }
@@ -290,7 +288,7 @@ namespace FineCodeCoverage.Engine
 			return (otherTypes ?? new Type[0]).Any(ot => type == ot);
 		}
 
-		public static void ReloadCoverage(IEnumerable<string> testDllFiles, Action<Exception> marginHighlightsCallback, Action<Exception> outputWindowCallback, Action<Exception> doneCallback)
+		public static void ReloadCoverage(IEnumerable<string> testDllFiles, bool darkMode, Action<Exception> marginHighlightsCallback, Action<Exception> outputWindowCallback, Action<Exception> doneCallback)
 		{
 			ThreadPool.QueueUserWorkItem(state =>
 			{
@@ -299,9 +297,7 @@ namespace FineCodeCoverage.Engine
 					// reset
 
 					CoverageLines.Clear();
-					SummaryHtmlFilePath = default;
-					CoverageHtmlFilePath = default;
-					RiskHotspotsHtmlFilePath = default;
+					HtmlFilePath = default;
 
 					// process pipeline
 
@@ -392,7 +388,7 @@ namespace FineCodeCoverage.Engine
 
 					// run reportGenerator process
 
-					ReportGeneratorUtil.RunReportGenerator(coverOutputFiles, out var unifiedHtmlFile, out var unifiedXmlFile, true);
+					ReportGeneratorUtil.RunReportGenerator(coverOutputFiles, darkMode, out var unifiedHtmlFile, out var unifiedXmlFile, true);
 
 					// finalize
 
@@ -417,11 +413,9 @@ namespace FineCodeCoverage.Engine
 						{
 							try
 							{
-								ReportGeneratorUtil.ProcessCoberturaHtmlFile(unifiedHtmlFile, out var summaryHtmlFile, out var coverageHtmlFile, out var riskHotspotsHtmlFile);
+								ReportGeneratorUtil.ProcessCoberturaHtmlFile(unifiedHtmlFile, darkMode, out var coverageHtml);
 
-								SummaryHtmlFilePath = summaryHtmlFile;
-								CoverageHtmlFilePath = coverageHtmlFile;
-								RiskHotspotsHtmlFilePath = riskHotspotsHtmlFile;
+								HtmlFilePath = coverageHtml;
 
 								outputWindowCallback?.Invoke(default);
 							}

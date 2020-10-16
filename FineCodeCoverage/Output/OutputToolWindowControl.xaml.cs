@@ -41,32 +41,21 @@ namespace FineCodeCoverage.Output
 
 				Events = Dte.Events;
 				SolutionEvents = Events.SolutionEvents;
-				SolutionEvents.Opened += SolutionEvents_Opened;
-				SolutionEvents.AfterClosing += SolutionEvents_AfterClosing;
+				SolutionEvents.Opened += () => Clear();
+				SolutionEvents.AfterClosing += () => Clear();
 			});
 
 			ScriptManager = new ScriptManager(Dte);
-			SummaryBrowser.ObjectForScripting = ScriptManager;
-			CoverageBrowser.ObjectForScripting = ScriptManager;
-			RiskHotspotsBrowser.ObjectForScripting = ScriptManager;
-
-			BtnBeer.MouseLeftButtonDown += (s, e) => System.Diagnostics.Process.Start("https://paypal.me/FortuneNgwenya");
-			BtnIssue.MouseLeftButtonDown += (s, e) => System.Diagnostics.Process.Start("https://github.com/FortuneN/FineCodeCoverage/issues");
-			BtnReview.MouseLeftButtonDown += (s, e) => System.Diagnostics.Process.Start("https://marketplace.visualstudio.com/items?itemName=FortuneNgwenya.FineCodeCoverage&ssr=false#review-details");
+			FCCOutputBrowser.ObjectForScripting = ScriptManager;
 		}
 
-		private static void SolutionEvents_Opened()
+		public static void Clear()
 		{
-			SetFilePaths(default, default, default);
+			Instance.FCCOutputBrowser.Visibility = Visibility.Hidden;
 		}
-
-		private static void SolutionEvents_AfterClosing()
-		{
-			SetFilePaths(default, default, default);
-		}
-
-		[SuppressMessage("Usage", "VSTHRD102:Implement internal logic asynchronously")]
-		private static void SetUrl(WebBrowser browser, string filePath)
+		
+		[SuppressMessage("Usage", "VSTHRD104:Offer async methods")]
+		public static void SetFilePath(string filePath)
 		{
 			ThreadHelper.JoinableTaskFactory.Run(async () =>
 			{
@@ -74,21 +63,14 @@ namespace FineCodeCoverage.Output
 
 				if (string.IsNullOrWhiteSpace(filePath))
 				{
-					browser.NavigateToString("<body oncontextmenu=\"return false;\"></body>");
+					Clear();
 				}
 				else
 				{
-					var fileUrl = $"file://127.0.0.1/{filePath.Replace(':', '$').Replace('\\', '/')}?t={DateTime.Now.Ticks}";
-					browser.Source = new Uri(fileUrl);
+					Instance.FCCOutputBrowser.NavigateToString(File.ReadAllText(filePath));
+					Instance.FCCOutputBrowser.Visibility = Visibility.Visible;
 				}
 			});
-		}
-
-		public static void SetFilePaths(string summaryHtmlFilePath, string coverageHtmlFilePath, string riskHotspotsHtmlFilePath)
-		{
-			SetUrl(Instance.SummaryBrowser, summaryHtmlFilePath);
-			SetUrl(Instance.CoverageBrowser, coverageHtmlFilePath);
-			SetUrl(Instance.RiskHotspotsBrowser, riskHotspotsHtmlFilePath);
 		}
 	}
 
@@ -102,7 +84,6 @@ namespace FineCodeCoverage.Output
 			_dte = dte;
 		}
 
-		[SuppressMessage("Usage", "VSTHRD104:Offer async methods")]
 		[SuppressMessage("Style", "IDE0060:Remove unused parameter")]
 		public void OpenFile(string htmlFilePath, int file, int line)
 		{
@@ -155,6 +136,21 @@ namespace FineCodeCoverage.Output
 					}
 				});
 			});
+		}
+
+		public void BuyMeABeer()
+		{
+			System.Diagnostics.Process.Start("https://paypal.me/FortuneNgwenya");
+		}
+
+		public void LogIssueOrSuggestion()
+		{
+			System.Diagnostics.Process.Start("https://github.com/FortuneN/FineCodeCoverage/issues");
+		}
+
+		public void RateAndReview()
+		{
+			System.Diagnostics.Process.Start("https://marketplace.visualstudio.com/items?itemName=FortuneNgwenya.FineCodeCoverage&ssr=false#review-details");
 		}
 	}
 }

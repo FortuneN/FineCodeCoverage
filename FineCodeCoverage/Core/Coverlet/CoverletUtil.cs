@@ -193,7 +193,10 @@ namespace FineCodeCoverage.Engine.Coverlet
 				coverletSettings.Add($@"--exclude-by-attribute ""{value.Replace("\"", "\\\"").Trim(' ', '\'', '[', ']')}""");
 			}
 
-			coverletSettings.Add("--include-test-assembly");
+			if (project.Settings.IncludeTestAssembly)
+			{
+				coverletSettings.Add("--include-test-assembly");
+			}
 
 			coverletSettings.Add($@"--target ""dotnet""");
 

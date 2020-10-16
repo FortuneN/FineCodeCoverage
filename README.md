@@ -50,6 +50,9 @@ Run a(some) unit test(s) and ...
   <ExcludeByAttribute>
 	MyCustomExcludeFromCodeCoverage
   </ExcludeByAttribute>
+  <IncludeTestAssembly>
+	True
+  </IncludeTestAssembly>
   <CoverToolTimeout>
 	120
   </CoverToolTimeout>
@@ -63,6 +66,7 @@ Exclude                 Filter expressions to exclude specific modules and types
 Include                 Filter expressions to include specific modules and types (multiple values)
 ExcludeByFile           Glob patterns specifying source files to exclude e.g. **/Migrations/* (multiple values)
 ExcludeByAttribute      Attributes to exclude from code coverage (multiple values)
+IncludeTestAssembly     Specifies whether to report code coverage of the test assembly
 CoverToolTimeout        Specifies the timeout interval for the coverlet/opencover process in seconds
 
 Both 'Exclude' and 'Include' options can be used together but 'Exclude' takes precedence.

@@ -17,6 +17,7 @@ using FineCodeCoverage.Engine;
 using FineCodeCoverage.Engine.Coverlet;
 using FineCodeCoverage.Engine.ReportGenerator;
 using FineCodeCoverage.Engine.OpenCover;
+using System.Runtime.InteropServices;
 
 namespace FineCodeCoverage.Impl
 {
@@ -31,6 +32,10 @@ namespace FineCodeCoverage.Impl
 
 		public IEnumerable<ITestContainer> TestContainers => Enumerable.Empty<ITestContainer>();
 
+		private readonly IServiceProvider _serviceProvider;
+
+		private string CurrentTheme => $"{((dynamic)_serviceProvider.GetService(typeof(SVsColorThemeService)))?.CurrentTheme?.Name}".Trim();
+
 		[ImportingConstructor]
 		internal TestContainerDiscoverer
 		(
@@ -43,6 +48,8 @@ namespace FineCodeCoverage.Impl
 		{
 			try
 			{
+				_serviceProvider = serviceProvider;
+
 				Logger.Initialize(serviceProvider);
 				FCCEngine.Initialize();
 				LoadToolWindow(serviceProvider);
@@ -112,8 +119,10 @@ namespace FineCodeCoverage.Impl
 			}
 		}
 
+		[SuppressMessage("Usage", "VSTHRD108:Assert thread affinity unconditionally")]
 		private void OperationState_StateChanged(object sender, OperationStateChangedEventArgs e)
 		{
+			
 			try
 			{
 				if (e.State == TestOperationStates.TestExecutionFinished)
@@ -124,7 +133,7 @@ namespace FineCodeCoverage.Impl
 					{
 						FCCEngine.CoverageLines.Clear();
 						TaggerProvider.ReloadTags();
-						OutputToolWindowControl.SetFilePaths(default, default, default);
+						OutputToolWindowControl.Clear();
 						return;
 					}
 
@@ -133,10 +142,12 @@ namespace FineCodeCoverage.Impl
 					var operationType = e.Operation.GetType();
 					var testConfiguration = (operationType.GetProperty("Configuration") ?? operationType.GetProperty("Configuration", BindingFlags.Instance | BindingFlags.NonPublic)).GetValue(e.Operation);
 					var testDllFiles = ((IEnumerable<string>)testConfiguration.GetType().GetProperty("TestSources").GetValue(testConfiguration)).ToArray();
+					var darkMode = CurrentTheme.Equals("Dark", StringComparison.OrdinalIgnoreCase);
 
 					FCCEngine.ReloadCoverage
 					(
 						testDllFiles,
+						darkMode,
 						(error) =>
 						{
 							if (error != null)
@@ -155,12 +166,7 @@ namespace FineCodeCoverage.Impl
 								return;
 							}
 
-							OutputToolWindowControl.SetFilePaths
-							(
-								FCCEngine.SummaryHtmlFilePath,
-								FCCEngine.CoverageHtmlFilePath,
-								FCCEngine.RiskHotspotsHtmlFilePath
-							);
+							OutputToolWindowControl.SetFilePath(FCCEngine.HtmlFilePath);
 						},
 						(error) =>
 						{
@@ -181,4 +187,8 @@ namespace FineCodeCoverage.Impl
 			}
 		}
 	}
+
+	[Guid("0D915B59-2ED7-472A-9DE8-9161737EA1C5")]
+	[SuppressMessage("Style", "IDE1006:Naming Styles")]
+	public interface SVsColorThemeService {}
 }

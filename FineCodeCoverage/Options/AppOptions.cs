@@ -53,6 +53,11 @@ namespace FineCodeCoverage.Options
 		public string[] ExcludeByFile { get; set; } = new[] { "**/Migrations/*" };
 
 		[Description(
+		@"Specifies whether to report code coverage of the test assembly
+		")]
+		public bool IncludeTestAssembly { get; set; } = true;
+
+		[Description(
 		@"Attributes to exclude from code coverage (multiple)
 
 		You can ignore a method or an entire class from code coverage by creating and applying the [ExcludeFromCodeCoverage] attribute present in the System.Diagnostics.CodeAnalysis namespace.

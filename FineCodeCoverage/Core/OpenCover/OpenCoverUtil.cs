@@ -170,6 +170,8 @@ namespace FineCodeCoverage.Engine.OpenCover
 			opencoverSettings.Add($@" ""-target:{MsTestPlatformUtil.MsTestPlatformExePath}"" ");
 
 			{
+				// -filter:
+
 				var filters = new List<string>();
 
 				foreach (var value in (project.Settings.Exclude ?? new string[0]).Where(x => !string.IsNullOrWhiteSpace(x)))
@@ -189,6 +191,8 @@ namespace FineCodeCoverage.Engine.OpenCover
 			}
 
 			{
+				// -excludebyfile:
+
 				var excludes = new List<string>();
 
 				foreach (var value in (project.Settings.ExcludeByFile ?? new string[0]).Where(x => !string.IsNullOrWhiteSpace(x)))
@@ -203,6 +207,8 @@ namespace FineCodeCoverage.Engine.OpenCover
 			}
 
 			{
+				// -excludebyattribute:
+
 				var excludes = new List<string>();
 
 				foreach (var value in (project.Settings.ExcludeByAttribute ?? new string[0]).Where(x => !string.IsNullOrWhiteSpace(x)))
@@ -214,6 +220,19 @@ namespace FineCodeCoverage.Engine.OpenCover
 				{
 					opencoverSettings.Add($@" ""-excludebyattribute:{string.Join(";", excludes)}"" ");
 				}
+			}
+
+			if (!project.Settings.IncludeTestAssembly)
+			{
+				// deleting the pdb of the test assembly seems to work; this is a VERY VERY shameful hack :(
+				
+				var testDllPdbFile = Path.Combine(project.WorkFolder, Path.GetFileNameWithoutExtension(project.TestDllFileInWorkFolder)) + ".pdb";
+				File.Delete(testDllPdbFile);
+
+				// filtering out the test-assembly blows up the entire process and nothing gets instrumented or analysed
+				
+				//var nameOnlyOfDll = Path.GetFileNameWithoutExtension(project.TestDllFileInWorkFolder);
+				//filters.Add($@"-[{nameOnlyOfDll}]*");
 			}
 
 			opencoverSettings.Add($@" ""-targetargs:{project.TestDllFileInWorkFolder}"" ");

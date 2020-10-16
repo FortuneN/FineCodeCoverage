@@ -70,7 +70,6 @@
     <Compile Include="Core\MsTestPlatform\MsTestPlatformUtil.cs" />
     <Compile Include="Core\Utilities\ComparableFile.cs" />
     <Compile Include="Core\Utilities\FileComparer.cs" />
-    <Compile Include="Core\ReportGenerator\HtmlSegment.cs" />
     <Compile Include="Core\ReportGenerator\ReportGeneratorUtil.cs" />
     <Compile Include="Core\Utilities\AssemblyUtil.cs" />
     <Compile Include="Core\Model\CoverageLine.cs" />

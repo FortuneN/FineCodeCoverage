@@ -1,40 +1,22 @@
-﻿<UserControl x:Class="FineCodeCoverage.Output.OutputToolWindowControl"
-			 xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-			 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-			 xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-			 xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-			 xmlns:vsshell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"
-			 Background="{DynamicResource {x:Static vsshell:VsBrushes.WindowKey}}"
-			 Foreground="{DynamicResource {x:Static vsshell:VsBrushes.WindowTextKey}}"
-			 mc:Ignorable="d"
-			 d:DesignWidth="500"
-			 d:DesignHeight="300"
-			 Name="FCCOutputToolWindow">
+﻿<UserControl
+	Name="FCCOutputToolWindow"
+	x:Class="FineCodeCoverage.Output.OutputToolWindowControl"
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	Opacity="0"
+	mc:Ignorable="d"
+	d:DesignWidth="500"
+	d:DesignHeight="300"
+	>
 
-	<Grid Name="FCCMainGrid" VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
-		<TabControl VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
-			<TabItem Header="Coverage">
-				<WebBrowser Name="CoverageBrowser" />
-			</TabItem>
-			<TabItem Header="Summary">
-				<WebBrowser Name="SummaryBrowser"/>
-			</TabItem>
-			<TabItem Header="Risk Hotspots">
-				<WebBrowser Name="RiskHotspotsBrowser"/>
-			</TabItem>
-		</TabControl>
-		<StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Top" Height="20" Focusable="False">
-			<Label Name="BtnReview" HorizontalAlignment="Center" Padding="0,3,0,0" Cursor="Hand" Foreground="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}">
-				Rate and review
-			</Label>
-			<Label Width="30">
-			</Label>
-			<Label Name="BtnIssue" HorizontalAlignment="Center" Padding="0,3,0,0" Cursor="Hand" Foreground="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}">
-				Log an issue/suggestion
-			</Label>
-		</StackPanel>
-		<Label Name="BtnBeer" HorizontalAlignment="Right" Padding="0,3,5,0" Cursor="Hand" Foreground="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}">
-			Buy me a beer
-		</Label>
-	</Grid>
+	<WebBrowser
+		Name="FCCOutputBrowser"
+		VerticalAlignment="Stretch"
+		HorizontalAlignment="Stretch"
+		Opacity="0"
+		Visibility="Hidden"
+		/>
+	
 </UserControl>
