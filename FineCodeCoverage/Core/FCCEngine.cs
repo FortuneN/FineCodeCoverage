@@ -332,12 +332,83 @@ namespace FineCodeCoverage.Engine
 						project.TestDllFileInWorkFolder = Path.Combine(project.WorkFolder, Path.GetFileName(project.TestDllFileInOutputFolder));
 						project.ProjectFileXml = File.ReadAllText(project.ProjectFile);
 
-						//TODO:Probably should check target
-						project.IsDotNetSdkStyle = new[] { XElement.Parse(project.ProjectFileXml) }
-							.Where(x => x.Name.LocalName.Equals("Project", StringComparison.OrdinalIgnoreCase))
-							.Attributes()
-							.Where(x => x.Name.LocalName.Equals("Sdk", StringComparison.OrdinalIgnoreCase))
-							.Where(x => x.Value.Equals("Microsoft.NET.Sdk", StringComparison.OrdinalIgnoreCase))
+						project.IsDotNetSdkStyle = XElement
+							.Parse(project.ProjectFileXml)
+							.DescendantsAndSelf()
+							.Where(x =>
+							{
+								//https://docs.microsoft.com/en-us/visualstudio/msbuild/how-to-use-project-sdk?view=vs-2019
+
+								/*
+								<Project Sdk="My.Custom.Sdk">
+									...
+								</Project>
+								<Project Sdk="My.Custom.Sdk/1.2.3">
+									...
+								</Project>
+								*/
+								if
+								(
+									x?.Name?.LocalName?.Equals("Project", StringComparison.OrdinalIgnoreCase) == true &&
+									x?.Parent == null
+								)
+								{
+									var sdkAttr = x?.Attributes()?.FirstOrDefault(attr => attr?.Name?.LocalName?.Equals("Sdk", StringComparison.OrdinalIgnoreCase) == true);
+									
+									if (sdkAttr?.Value?.Trim()?.StartsWith("Microsoft.NET.Sdk", StringComparison.OrdinalIgnoreCase) == true)
+									{
+										return true;
+									}
+								}
+
+								/*
+								<Project>
+									<Sdk Name="My.Custom.Sdk" Version="1.2.3" />
+									...
+								</Project>
+								*/
+								if
+								(
+									x?.Name?.LocalName?.Equals("Sdk", StringComparison.OrdinalIgnoreCase) == true &&
+									x?.Parent?.Name?.LocalName?.Equals("Project", StringComparison.OrdinalIgnoreCase) == true &&
+									x?.Parent?.Parent == null
+								)
+								{
+									var nameAttr = x?.Attributes()?.FirstOrDefault(attr => attr?.Name?.LocalName?.Equals("Name", StringComparison.OrdinalIgnoreCase) == true);
+
+									if (nameAttr?.Value?.Trim()?.StartsWith("Microsoft.NET.Sdk", StringComparison.OrdinalIgnoreCase) == true)
+									{
+										return true;
+									}
+								}
+
+								/*
+								<Project>
+									<PropertyGroup>
+										<MyProperty>Value</MyProperty>
+									</PropertyGroup>
+									<Import Project="Sdk.props" Sdk="My.Custom.Sdk" />
+										...
+									<Import Project="Sdk.targets" Sdk="My.Custom.Sdk" />
+								</Project>
+								*/
+								if
+								(
+									x?.Name?.LocalName?.Equals("Import", StringComparison.OrdinalIgnoreCase) == true &&
+									x?.Parent?.Name?.LocalName?.Equals("Project", StringComparison.OrdinalIgnoreCase) == true &&
+									x?.Parent?.Parent == null
+								)
+								{
+									var sdkAttr = x?.Attributes()?.FirstOrDefault(attr => attr?.Name?.LocalName?.Equals("Sdk", StringComparison.OrdinalIgnoreCase) == true);
+
+									if (sdkAttr?.Value?.Trim()?.StartsWith("Microsoft.NET.Sdk", StringComparison.OrdinalIgnoreCase) == true)
+									{
+										return true;
+									}
+								}
+
+								return false;
+							})
 							.Any();
 
 						return project;
