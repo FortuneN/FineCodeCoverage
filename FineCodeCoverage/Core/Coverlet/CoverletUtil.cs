@@ -200,6 +200,12 @@ namespace FineCodeCoverage.Engine.Coverlet
 
 			coverletSettings.Add($@"--target ""dotnet""");
 
+			coverletSettings.Add($@"--threshold-type line");
+
+			coverletSettings.Add($@"--threshold-stat total");
+
+			coverletSettings.Add($@"--threshold 0");
+
 			coverletSettings.Add($@"--output ""{ project.CoverToolOutputFile }""");
 
 			coverletSettings.Add($@"--targetargs ""test  """"{project.TestDllFileInWorkFolder}"""" --nologo --blame --results-directory """"{project.WorkOutputFolder}"""" --diag """"{project.WorkOutputFolder}/diagnostics.log""""  """);
@@ -244,7 +250,13 @@ namespace FineCodeCoverage.Engine.Coverlet
 
 			var processOutput = process.GetOutput();
 
-			if (process.ExitCode != 0)
+			/*
+			0 - Success.
+			1 - If any test fails.
+			2 - Coverage percentage is below threshold.
+			3 - Test fails and also coverage percentage is below threshold.
+			*/
+			if (process.ExitCode > 3)
 			{
 				if (throwError)
 				{
