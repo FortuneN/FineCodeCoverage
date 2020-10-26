@@ -16,3 +16,7 @@ Explain what it's doing and why it's wrong
 
 ### Expected behavior
 Explain what it should be doing after it's fixed.
+
+### Notes
+- It helps to attach a repro solution so i can test the fix
+- It helps to attach a screen recoding video of steps to recreate (sometimes a video is worth a thousand words)
