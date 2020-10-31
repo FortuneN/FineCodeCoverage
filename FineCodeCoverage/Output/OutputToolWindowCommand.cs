@@ -86,14 +86,41 @@ namespace FineCodeCoverage.Output
 		/// <param name="e">The event args.</param>
 		public void Execute(object sender, EventArgs e)
 		{
+			ShowToolWindow();
+		}
+
+		public ToolWindowPane ShowToolWindow()
+		{
+			ToolWindowPane window = null;
+
 			package.JoinableTaskFactory.RunAsync(async delegate
 			{
-				ToolWindowPane window = await package.ShowToolWindowAsync(typeof(OutputToolWindow), 0, true, package.DisposalToken);
+				window = await package.ShowToolWindowAsync(typeof(OutputToolWindow), 0, true, package.DisposalToken);
+
 				if ((null == window) || (null == window.Frame))
 				{
 					throw new NotSupportedException($"Cannot create '{Vsix.Name}' output window");
 				}
 			});
+
+			return window;
+		}
+
+		public ToolWindowPane FindToolWindow()
+		{
+			ToolWindowPane window = null;
+
+			package.JoinableTaskFactory.RunAsync(async delegate
+			{
+				window = await package.FindToolWindowAsync(typeof(OutputToolWindow), 0, true, package.DisposalToken);
+
+				if ((null == window) || (null == window.Frame))
+				{
+					throw new NotSupportedException($"Cannot create '{Vsix.Name}' output window");
+				}
+			});
+
+			return window;
 		}
 	}
 }

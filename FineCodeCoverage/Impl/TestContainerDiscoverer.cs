@@ -97,7 +97,7 @@ namespace FineCodeCoverage.Impl
 				{
 					var PackageToBeLoadedGuid = new Guid(OutputToolWindowPackage.PackageGuidString);
 					shell.LoadPackage(ref PackageToBeLoadedGuid, out var package);
-					OutputToolWindowCommand.Instance.Execute(default, default);
+					OutputToolWindowCommand.Instance.ShowToolWindow();
 					File.WriteAllText(outputWindowInitializedFile, string.Empty);
 				}
 			});

@@ -52,12 +52,22 @@ namespace FineCodeCoverage.Output
 
 		public static void Clear()
 		{
+			if (Instance == null)
+			{
+				return;
+			}
+
 			Instance.FCCOutputBrowser.Visibility = Visibility.Hidden;
 		}
 		
 		[SuppressMessage("Usage", "VSTHRD104:Offer async methods")]
 		public static void SetFilePath(string filePath)
 		{
+			if (Instance == null)
+			{
+				return;
+			}
+
 			ThreadHelper.JoinableTaskFactory.Run(async () =>
 			{
 				await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
