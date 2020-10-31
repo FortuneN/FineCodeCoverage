@@ -67,9 +67,6 @@ namespace FineCodeCoverage.Options
 		")]
 		public string[] ExcludeByAttribute { get; set; } = new[] { "GeneratedCode" };
 
-		[Description("Specifies the timeout interval for the coverlet/opencover process in seconds")]
-		public int CoverToolTimeout { get; set; } = 120;
-
 		[SuppressMessage("Usage", "VSTHRD010:Invoke single-threaded types on Main thread")]
 		public override void SaveSettingsToStorage()
 		{

@@ -6,21 +6,21 @@ namespace FineCodeCoverage.Engine.Model
 {
 	internal class CoverageProject
 	{
-		public string ProjectFolder { get; set; }
-		public bool IsDotNetSdkStyle { get; internal set; }
-		public string TestDllFileInOutputFolder { get; internal set; }
-		public string WorkFolder { get; internal set; }
-		public string ProjectOutputFolder { get; internal set; }
-		public string FailureDescription { get; internal set; }
-		public string FailureStage { get; internal set; }
+		public string ProjectGuid { get; set; }
+		public string ProjectFolder => Path.GetDirectoryName(ProjectFile);
+		public bool IsDotNetSdkStyle { get; set; }
+		public string TestDllFileInOutputFolder { get; set; }
+		public string WorkFolder { get; set; }
+		public string ProjectOutputFolder => Path.GetDirectoryName(TestDllFileInOutputFolder);
+		public string FailureDescription { get; set; }
+		public string FailureStage { get; set; }
 		public bool HasFailed => !string.IsNullOrWhiteSpace(FailureStage) || !string.IsNullOrWhiteSpace(FailureDescription);
-		public string ProjectFile { get; internal set; }
-		public string ProjectName => Path.GetFileNameWithoutExtension(ProjectFile);
-		public string CoverToolOutputFile { get; internal set; }
-		public string TestDllFileInWorkFolder { get; internal set; }
-		public AppOptions Settings { get; internal set; }
-		public string WorkOutputFolder { get; internal set; }
-		public string ProjectFileXml { get; internal set; }
+		public string ProjectFile { get; set; }
+		public string ProjectName { get; set; }
+		public string CoverToolOutputFile { get; set; }
+		public string TestDllFileInWorkFolder { get; set; }
+		public AppOptions Settings { get; set; }
+		public string WorkOutputFolder { get; set; }
 
 		public CoverageProject Step(string stepName, Action<CoverageProject> action)
 		{

@@ -18,6 +18,7 @@ using FineCodeCoverage.Engine.Coverlet;
 using FineCodeCoverage.Engine.ReportGenerator;
 using FineCodeCoverage.Engine.OpenCover;
 using System.Runtime.InteropServices;
+using FineCodeCoverage.Engine.Model;
 
 namespace FineCodeCoverage.Impl
 {
@@ -140,13 +141,32 @@ namespace FineCodeCoverage.Impl
 					Logger.Log("================================== START ==================================");
 
 					var operationType = e.Operation.GetType();
-					var testConfiguration = (operationType.GetProperty("Configuration") ?? operationType.GetProperty("Configuration", BindingFlags.Instance | BindingFlags.NonPublic)).GetValue(e.Operation);
-					var testDllFiles = ((IEnumerable<string>)testConfiguration.GetType().GetProperty("TestSources").GetValue(testConfiguration)).ToArray();
 					var darkMode = CurrentTheme.Equals("Dark", StringComparison.OrdinalIgnoreCase);
+					var testConfiguration = (operationType.GetProperty("Configuration") ?? operationType.GetProperty("Configuration", BindingFlags.Instance | BindingFlags.NonPublic)).GetValue(e.Operation);
+					var testContainers = ((IEnumerable<object>) testConfiguration.GetType().GetProperty("Containers").GetValue(testConfiguration)).ToArray();
+					var projects = new List<CoverageProject>(); 
+					
+					foreach (var container in testContainers)
+					{
+						var project = new CoverageProject();
+						var containerType = container.GetType();
+						var containerData = containerType.GetProperty("ProjectData").GetValue(container);
+						var containerDataType = containerData.GetType();
+						
+						project.ProjectGuid = containerType.GetProperty("ProjectGuid").GetValue(container).ToString();
+						project.ProjectName = containerType.GetProperty("ProjectName").GetValue(container).ToString();
+						project.TestDllFileInOutputFolder = containerType.GetProperty("Source").GetValue(container).ToString();
+						project.ProjectFile = containerDataType.GetProperty("ProjectFilePath", BindingFlags.Instance | BindingFlags.FlattenHierarchy | BindingFlags.Public | BindingFlags.NonPublic).GetValue(containerData).ToString();
+						
+						var defaultOutputFolder = Path.GetDirectoryName(containerDataType.GetProperty("DefaultOutputPath", BindingFlags.Instance | BindingFlags.FlattenHierarchy | BindingFlags.Public | BindingFlags.NonPublic).GetValue(containerData).ToString());
+						project.WorkFolder = Path.Combine(Path.GetDirectoryName(defaultOutputFolder), "fine-code-coverage");
+
+						projects.Add(project);
+					}
 
 					FCCEngine.ReloadCoverage
 					(
-						testDllFiles,
+						projects.ToArray(),
 						darkMode,
 						(error) =>
 						{

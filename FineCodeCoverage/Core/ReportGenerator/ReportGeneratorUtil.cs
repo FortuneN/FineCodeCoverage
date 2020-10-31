@@ -153,6 +153,7 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 			Logger.Log(title, processOutput);
 		}
 
+		[SuppressMessage("Usage", "VSTHRD002:Avoid problematic synchronous waits")]
 		public static bool RunReportGenerator(IEnumerable<string> coverOutputFiles, bool darkMode, out string unifiedHtmlFile, out string unifiedXmlFile, bool throwError = false)
 		{
 			var title = "ReportGenerator Run";
@@ -163,38 +164,38 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 			unifiedHtmlFile = Path.Combine(ouputFolder, "index.html");
 			unifiedXmlFile = Path.Combine(ouputFolder, "cobertura.xml");//??
 
-			var processStartInfo = new ProcessStartInfo
+			var reportGeneratorSettings = new List<string>();
+
+			reportGeneratorSettings.Add($@"""-reports:{string.Join(";", coverOutputFiles)}""");
+
+			reportGeneratorSettings.Add($@"""-targetdir:{ouputFolder}""");
+
+			reportGeneratorSettings.Add($@"""-reporttypes:Cobertura;HtmlInline_AzurePipelines{(darkMode ? "_Dark" : string.Empty)}""");
+
+			Logger.Log($"{title} Arguments {Environment.NewLine}{string.Join($"{Environment.NewLine}", reportGeneratorSettings)}");
+
+			var result = ProcessUtil
+			.ExecuteAsync(new ExecuteRequest
 			{
-				FileName = ReportGeneratorExePath,
-				CreateNoWindow = true,
-				UseShellExecute = false,
-				RedirectStandardError = true,
-				RedirectStandardOutput = true,
-				WindowStyle = ProcessWindowStyle.Hidden,
-				Arguments = $"\"-reports:{string.Join(";", coverOutputFiles)}\" \"-targetdir:{ouputFolder}\" -reporttypes:Cobertura;HtmlInline_AzurePipelines{(darkMode ? "_Dark" : string.Empty )}",
-			};
+				FilePath = ReportGeneratorExePath,
+				Arguments = string.Join(" ", reportGeneratorSettings),
+				WorkingDirectory = ouputFolder
+			})
+			.GetAwaiter()
+			.GetResult();
 
-			var process = Process.Start(processStartInfo);
-
-			if (!process.HasExited)
-			{
-				process.WaitForExit();
-			}
-
-			var processOutput = process.GetOutput();
-
-			if (process.ExitCode != 0)
+			if (result.ExitCode != 0)
 			{
 				if (throwError)
 				{
-					throw new Exception(processOutput);
+					throw new Exception(result.Output);
 				}
 
-				Logger.Log($"{title} Error", processOutput);
+				Logger.Log($"{title} Error", result.Output);
 				return false;
 			}
 
-			Logger.Log(title, processOutput);
+			Logger.Log(title, result.Output);
 			return true;
 		}
 

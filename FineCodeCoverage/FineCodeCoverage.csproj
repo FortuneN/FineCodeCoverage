@@ -164,6 +164,9 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="CliWrap">
+      <Version>3.2.2</Version>
+    </PackageReference>
     <PackageReference Include="Microsoft.TestPlatform.TestHost">
       <Version>16.7.0</Version>
     </PackageReference>

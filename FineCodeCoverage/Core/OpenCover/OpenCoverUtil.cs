@@ -1,4 +1,6 @@
-﻿using FineCodeCoverage.Engine.Model;
+﻿using CliWrap;
+using CliWrap.Buffered;
+using FineCodeCoverage.Engine.Model;
 using FineCodeCoverage.Engine.MsTestPlatform;
 using FineCodeCoverage.Engine.Utilities;
 using System;
@@ -241,56 +243,28 @@ namespace FineCodeCoverage.Engine.OpenCover
 
 			Logger.Log($"{title} Arguments {Environment.NewLine}{string.Join($"{Environment.NewLine}", opencoverSettings)}");
 
-			var processStartInfo = new ProcessStartInfo
+			var result = ProcessUtil
+			.ExecuteAsync(new ExecuteRequest
 			{
-				FileName = OpenCoverExePath,
-				CreateNoWindow = true,
-				UseShellExecute = false,
-				RedirectStandardError = true,
-				RedirectStandardOutput = true,
-				WorkingDirectory = project.WorkFolder,
-				WindowStyle = ProcessWindowStyle.Hidden,
+				FilePath = OpenCoverExePath,
 				Arguments = string.Join(" ", opencoverSettings),
-			};
+				WorkingDirectory = project.WorkFolder
+			})
+			.GetAwaiter()
+			.GetResult();
 
-			var process = Process.Start(processStartInfo);
-
-			if (!process.HasExited)
-			{
-				var stopWatch = new Stopwatch();
-				stopWatch.Start();
-
-				if (!Task.Run(() => process.WaitForExit()).Wait(TimeSpan.FromSeconds(project.Settings.CoverToolTimeout)))
-				{
-					stopWatch.Stop();
-					Task.Run(() => { try { process.Kill(); } catch { } }).Wait(TimeSpan.FromSeconds(10));
-
-					var errorMessage = $"OpenCover timed out after {stopWatch.Elapsed.TotalSeconds} seconds ({nameof(project.Settings.CoverToolTimeout)} is {project.Settings.CoverToolTimeout} seconds)";
-
-					if (throwError)
-					{
-						throw new Exception(errorMessage);
-					}
-
-					Logger.Log($"{title} Error", errorMessage);
-					return false;
-				}
-			}
-
-			var processOutput = process.GetOutput();
-
-			if (process.ExitCode != 0)
+			if (result.ExitCode != 0)
 			{
 				if (throwError)
 				{
-					throw new Exception(processOutput);
+					throw new Exception(result.Output);
 				}
 
-				Logger.Log($"{title} Error", processOutput);
+				Logger.Log($"{title} Error", result.Output);
 				return false;
 			}
 
-			Logger.Log(title, processOutput);
+			Logger.Log(title, result.Output);
 			return true;
 		}
 	}

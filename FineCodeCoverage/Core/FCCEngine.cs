@@ -1,5 +1,4 @@
-﻿using FineCodeCoverage.Core.Utilities;
-using FineCodeCoverage.Engine.Cobertura;
+﻿using FineCodeCoverage.Engine.Cobertura;
 using FineCodeCoverage.Engine.Coverlet;
 using FineCodeCoverage.Engine.FileSynchronization;
 using FineCodeCoverage.Engine.Model;
@@ -52,33 +51,7 @@ namespace FineCodeCoverage.Engine
 				});
 		}
 
-		private static string GetProjectFolderFromPath(string path)
-		{
-			if (ProjectFoldersCache.TryGetValue(path = path.ToLower(), out var result))
-			{
-				return result;
-			}
-
-			var parentFolder = Path.GetDirectoryName(path);
-
-			if (parentFolder == null)
-			{
-				return null;
-			}
-
-			if (Directory.GetFiles(parentFolder).AsParallel().Any(x => ProjectExtensions.Any(y => x.EndsWith(y, StringComparison.OrdinalIgnoreCase))))
-			{
-				result = parentFolder;
-			}
-			else
-			{
-				result = GetProjectFolderFromPath(parentFolder);
-			}
-
-			return ProjectFoldersCache[path] = result;
-		}
-
-		private static AppOptions GetSettings(string testDllFile)
+		private static AppOptions GetSettings(CoverageProject project)
 		{
 			// get global settings
 
@@ -86,25 +59,11 @@ namespace FineCodeCoverage.Engine
 
 			// override with test project settings
 
-			var testProjectFolder = GetProjectFolderFromPath(testDllFile);
-
-			if (string.IsNullOrWhiteSpace(testProjectFolder))
-			{
-				return settings;
-			}
-
-			var testProjectFile = Directory.GetFiles(testProjectFolder, "*.*proj", SearchOption.TopDirectoryOnly).FirstOrDefault();
-
-			if (string.IsNullOrWhiteSpace(testProjectFile) || !File.Exists(testProjectFile))
-			{
-				return settings;
-			}
-
 			XElement xproject;
 
 			try
 			{
-				xproject = XElement.Parse(File.ReadAllText(testProjectFile));
+				xproject = XElement.Parse(File.ReadAllText(project.ProjectFile));
 			}
 			catch (Exception ex)
 			{
@@ -283,12 +242,94 @@ namespace FineCodeCoverage.Engine
 			return settings;
 		}
 
+		private static bool IsDotNetSdkStyle(CoverageProject project)
+		{
+			return XElement
+			.Parse(File.ReadAllText(project.ProjectFile))
+			.DescendantsAndSelf()
+			.Where(x =>
+			{
+				//https://docs.microsoft.com/en-us/visualstudio/msbuild/how-to-use-project-sdk?view=vs-2019
+
+				/*
+				<Project Sdk="My.Custom.Sdk">
+					...
+				</Project>
+				<Project Sdk="My.Custom.Sdk/1.2.3">
+					...
+				</Project>
+				*/
+				if
+				(
+					x?.Name?.LocalName?.Equals("Project", StringComparison.OrdinalIgnoreCase) == true &&
+					x?.Parent == null
+				)
+				{
+					var sdkAttr = x?.Attributes()?.FirstOrDefault(attr => attr?.Name?.LocalName?.Equals("Sdk", StringComparison.OrdinalIgnoreCase) == true);
+
+					if (sdkAttr?.Value?.Trim()?.StartsWith("Microsoft.NET.Sdk", StringComparison.OrdinalIgnoreCase) == true)
+					{
+						return true;
+					}
+				}
+
+				/*
+				<Project>
+					<Sdk Name="My.Custom.Sdk" Version="1.2.3" />
+					...
+				</Project>
+				*/
+				if
+				(
+					x?.Name?.LocalName?.Equals("Sdk", StringComparison.OrdinalIgnoreCase) == true &&
+					x?.Parent?.Name?.LocalName?.Equals("Project", StringComparison.OrdinalIgnoreCase) == true &&
+					x?.Parent?.Parent == null
+				)
+				{
+					var nameAttr = x?.Attributes()?.FirstOrDefault(attr => attr?.Name?.LocalName?.Equals("Name", StringComparison.OrdinalIgnoreCase) == true);
+
+					if (nameAttr?.Value?.Trim()?.StartsWith("Microsoft.NET.Sdk", StringComparison.OrdinalIgnoreCase) == true)
+					{
+						return true;
+					}
+				}
+
+				/*
+				<Project>
+					<PropertyGroup>
+						<MyProperty>Value</MyProperty>
+					</PropertyGroup>
+					<Import Project="Sdk.props" Sdk="My.Custom.Sdk" />
+						...
+					<Import Project="Sdk.targets" Sdk="My.Custom.Sdk" />
+				</Project>
+				*/
+				if
+				(
+					x?.Name?.LocalName?.Equals("Import", StringComparison.OrdinalIgnoreCase) == true &&
+					x?.Parent?.Name?.LocalName?.Equals("Project", StringComparison.OrdinalIgnoreCase) == true &&
+					x?.Parent?.Parent == null
+				)
+				{
+					var sdkAttr = x?.Attributes()?.FirstOrDefault(attr => attr?.Name?.LocalName?.Equals("Sdk", StringComparison.OrdinalIgnoreCase) == true);
+
+					if (sdkAttr?.Value?.Trim()?.StartsWith("Microsoft.NET.Sdk", StringComparison.OrdinalIgnoreCase) == true)
+					{
+						return true;
+					}
+				}
+
+				return false;
+			})
+			.Any();
+		}
+		
 		private static bool TypeMatch(Type type, params Type[] otherTypes)
 		{
 			return (otherTypes ?? new Type[0]).Any(ot => type == ot);
 		}
 
-		public static void ReloadCoverage(IEnumerable<string> testDllFiles, bool darkMode, Action<Exception> marginHighlightsCallback, Action<Exception> outputWindowCallback, Action<Exception> doneCallback)
+		public static void ReloadCoverage(IEnumerable<CoverageProject> projects, bool darkMode, Action<Exception> marginHighlightsCallback, Action<Exception> outputWindowCallback, Action<Exception> doneCallback)
 		{
 			ThreadPool.QueueUserWorkItem(state =>
 			{
@@ -301,23 +342,17 @@ namespace FineCodeCoverage.Engine
 
 					// process pipeline
 
-					var projects = testDllFiles
+					projects = projects
 					.AsParallel()
-					.Select(testDllFile =>
+					.Select(project =>
 					{
-						var project = new CoverageProject();
-
-						project.TestDllFileInOutputFolder = testDllFile;
-						project.Settings = GetSettings(project.TestDllFileInOutputFolder);
+						project.Settings = GetSettings(project);
 
 						if (!project.Settings.Enabled)
 						{
 							project.FailureDescription = $"Disabled";
 							return project;
 						}
-						
-						project.ProjectFolder = GetProjectFolderFromPath(project.TestDllFileInOutputFolder);
-						project.ProjectFile = Directory.GetFiles(project.ProjectFolder).FirstOrDefault(x => ProjectExtensions.Any(y => x.EndsWith(y, StringComparison.OrdinalIgnoreCase)));
 
 						if (string.IsNullOrWhiteSpace(project.ProjectFile))
 						{
@@ -325,91 +360,10 @@ namespace FineCodeCoverage.Engine
 							return project;
 						}
 
-						project.ProjectOutputFolder = Path.GetDirectoryName(project.TestDllFileInOutputFolder);
-						project.WorkFolder = Path.Combine(AppDataFolder, HashUtil.Hash(project.ProjectFolder));
 						project.WorkOutputFolder = Path.Combine(project.WorkFolder, "_outputfolder");
 						project.CoverToolOutputFile = Path.Combine(project.WorkOutputFolder, "_cover.tool.xml");
 						project.TestDllFileInWorkFolder = Path.Combine(project.WorkFolder, Path.GetFileName(project.TestDllFileInOutputFolder));
-						project.ProjectFileXml = File.ReadAllText(project.ProjectFile);
-
-						project.IsDotNetSdkStyle = XElement
-							.Parse(project.ProjectFileXml)
-							.DescendantsAndSelf()
-							.Where(x =>
-							{
-								//https://docs.microsoft.com/en-us/visualstudio/msbuild/how-to-use-project-sdk?view=vs-2019
-
-								/*
-								<Project Sdk="My.Custom.Sdk">
-									...
-								</Project>
-								<Project Sdk="My.Custom.Sdk/1.2.3">
-									...
-								</Project>
-								*/
-								if
-								(
-									x?.Name?.LocalName?.Equals("Project", StringComparison.OrdinalIgnoreCase) == true &&
-									x?.Parent == null
-								)
-								{
-									var sdkAttr = x?.Attributes()?.FirstOrDefault(attr => attr?.Name?.LocalName?.Equals("Sdk", StringComparison.OrdinalIgnoreCase) == true);
-									
-									if (sdkAttr?.Value?.Trim()?.StartsWith("Microsoft.NET.Sdk", StringComparison.OrdinalIgnoreCase) == true)
-									{
-										return true;
-									}
-								}
-
-								/*
-								<Project>
-									<Sdk Name="My.Custom.Sdk" Version="1.2.3" />
-									...
-								</Project>
-								*/
-								if
-								(
-									x?.Name?.LocalName?.Equals("Sdk", StringComparison.OrdinalIgnoreCase) == true &&
-									x?.Parent?.Name?.LocalName?.Equals("Project", StringComparison.OrdinalIgnoreCase) == true &&
-									x?.Parent?.Parent == null
-								)
-								{
-									var nameAttr = x?.Attributes()?.FirstOrDefault(attr => attr?.Name?.LocalName?.Equals("Name", StringComparison.OrdinalIgnoreCase) == true);
-
-									if (nameAttr?.Value?.Trim()?.StartsWith("Microsoft.NET.Sdk", StringComparison.OrdinalIgnoreCase) == true)
-									{
-										return true;
-									}
-								}
-
-								/*
-								<Project>
-									<PropertyGroup>
-										<MyProperty>Value</MyProperty>
-									</PropertyGroup>
-									<Import Project="Sdk.props" Sdk="My.Custom.Sdk" />
-										...
-									<Import Project="Sdk.targets" Sdk="My.Custom.Sdk" />
-								</Project>
-								*/
-								if
-								(
-									x?.Name?.LocalName?.Equals("Import", StringComparison.OrdinalIgnoreCase) == true &&
-									x?.Parent?.Name?.LocalName?.Equals("Project", StringComparison.OrdinalIgnoreCase) == true &&
-									x?.Parent?.Parent == null
-								)
-								{
-									var sdkAttr = x?.Attributes()?.FirstOrDefault(attr => attr?.Name?.LocalName?.Equals("Sdk", StringComparison.OrdinalIgnoreCase) == true);
-
-									if (sdkAttr?.Value?.Trim()?.StartsWith("Microsoft.NET.Sdk", StringComparison.OrdinalIgnoreCase) == true)
-									{
-										return true;
-									}
-								}
-
-								return false;
-							})
-							.Any();
+						project.IsDotNetSdkStyle = IsDotNetSdkStyle(project);
 
 						return project;
 					})

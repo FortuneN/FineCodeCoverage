@@ -1,4 +1,6 @@
-﻿using FineCodeCoverage.Engine.Model;
+﻿using CliWrap;
+using CliWrap.Buffered;
+using FineCodeCoverage.Engine.Model;
 using FineCodeCoverage.Engine.Utilities;
 using System;
 using System.Collections.Generic;
@@ -6,7 +8,6 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace FineCodeCoverage.Engine.Coverlet
 {
@@ -211,44 +212,16 @@ namespace FineCodeCoverage.Engine.Coverlet
 			coverletSettings.Add($@"--targetargs ""test  """"{project.TestDllFileInWorkFolder}"""" --nologo --blame --results-directory """"{project.WorkOutputFolder}"""" --diag """"{project.WorkOutputFolder}/diagnostics.log""""  """);
 
 			Logger.Log($"{title} Arguments {Environment.NewLine}{string.Join($"{Environment.NewLine}", coverletSettings)}");
-
-			var processStartInfo = new ProcessStartInfo
+			
+			var result = ProcessUtil
+			.ExecuteAsync(new ExecuteRequest
 			{
-				FileName = CoverletExePath,
-				CreateNoWindow = true,
-				UseShellExecute = false,
-				RedirectStandardError = true,
-				RedirectStandardOutput = true,
-				WorkingDirectory = project.WorkFolder,
-				WindowStyle = ProcessWindowStyle.Hidden,
+				FilePath = CoverletExePath,
 				Arguments = string.Join(" ", coverletSettings),
-			};
-
-			var process = Process.Start(processStartInfo);
-
-			if (!process.HasExited)
-			{
-				var stopWatch = new Stopwatch();
-				stopWatch.Start();
-
-				if (!Task.Run(() => process.WaitForExit()).Wait(TimeSpan.FromSeconds(project.Settings.CoverToolTimeout)))
-				{
-					stopWatch.Stop();
-					Task.Run(() => { try { process.Kill(); } catch { } }).Wait(TimeSpan.FromSeconds(10));
-
-					var errorMessage = $"Coverlet timed out after {stopWatch.Elapsed.TotalSeconds} seconds ({nameof(project.Settings.CoverToolTimeout)} is {project.Settings.CoverToolTimeout} seconds)";
-
-					if (throwError)
-					{
-						throw new Exception(errorMessage);
-					}
-
-					Logger.Log($"{title} Error", errorMessage);
-					return false;
-				}
-			}
-
-			var processOutput = process.GetOutput();
+				WorkingDirectory = project.WorkFolder
+			})
+			.GetAwaiter()
+			.GetResult();
 
 			/*
 			0 - Success.
@@ -256,19 +229,67 @@ namespace FineCodeCoverage.Engine.Coverlet
 			2 - Coverage percentage is below threshold.
 			3 - Test fails and also coverage percentage is below threshold.
 			*/
-			if (process.ExitCode > 3)
+			if (result.ExitCode > 3)
 			{
 				if (throwError)
 				{
-					throw new Exception(processOutput);
+					throw new Exception(result.Output);
 				}
 
-				Logger.Log($"{title} Error", processOutput);
+				Logger.Log($"{title} Error", result.Output);
 				return false;
 			}
 
-			Logger.Log(title, processOutput);
+			Logger.Log(title, result.Output);
 			return true;
 		}
+
+		//public static (Process Process, string OutputData, string ErrorData) CMD(string fileName, string arguments, string workingDirectory = null)
+		//{
+		//	var process = new Process
+		//	{
+		//		StartInfo = new ProcessStartInfo
+		//		{
+		//			FileName = fileName,
+		//			Arguments = arguments,
+		//			CreateNoWindow = true,
+		//			UseShellExecute = false,
+		//			RedirectStandardError = true,
+		//			RedirectStandardOutput = true,
+		//			WorkingDirectory = workingDirectory,
+		//			WindowStyle = ProcessWindowStyle.Hidden,
+		//		}
+		//	};
+
+		//	var outputData = new StringBuilder();
+		//	var errorData = new StringBuilder();
+
+		//	process.OutputDataReceived += (object sender, DataReceivedEventArgs e) =>
+		//	{
+		//		if (e?.Data == null)
+		//		{
+		//			return;
+		//		}
+
+		//		outputData.AppendLine(e?.Data ?? string.Empty);
+		//	};
+
+		//	process.ErrorDataReceived += (object sender, DataReceivedEventArgs e) =>
+		//	{
+		//		if (e?.Data == null)
+		//		{
+		//			return;
+		//		}
+
+		//		errorData?.AppendLine(e?.Data ?? string.Empty);
+		//	};
+
+		//	process.Start();
+		//	process.BeginOutputReadLine();
+		//	process.BeginErrorReadLine();
+		//	process.WaitForExit();
+
+		//	return (process, outputData.ToString(), errorData.ToString());
+		//}
 	}
 }
