@@ -68,9 +68,6 @@ namespace FineCodeCoverage.Options
 		")]
 		public string[] ExcludeByAttribute { get; set; } = new[] { "GeneratedCode" };
 
-		[IgnoreDataMember]
-		public bool IsFirstRun { get; set; } = true;
-
 		[SuppressMessage("Usage", "VSTHRD010:Invoke single-threaded types on Main thread")]
 		public override void SaveSettingsToStorage()
 		{
