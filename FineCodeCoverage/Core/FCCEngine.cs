@@ -43,9 +43,9 @@ namespace FineCodeCoverage.Engine
 		{
 			Directory
 			.GetDirectories(AppDataFolder, "*", SearchOption.TopDirectoryOnly)
-			.Where(folder =>
+			.Where(path =>
 			{
-				var name = Path.GetFileName(folder);
+				var name = Path.GetFileName(path);
 
 				if (name.Contains("__"))
 				{
@@ -60,11 +60,11 @@ namespace FineCodeCoverage.Engine
 				return false;
 			})
 			.ToList()
-			.ForEach(folder =>
+			.ForEach(path =>
 			{
 				try
 				{
-					Directory.Delete(folder, true);
+					Directory.Delete(path, true);
 				}
 				catch
 				{
