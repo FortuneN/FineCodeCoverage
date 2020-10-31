@@ -80,25 +80,26 @@ namespace FineCodeCoverage.Impl
 		[SuppressMessage("Usage", "VSTHRD102:Implement internal logic asynchronously")]
 		private void InitializeOutputWindow(IServiceProvider serviceProvider)
 		{
-			//https://github.com/FortuneN/FineCodeCoverage/issues/12
-			
-			var outputWindowInitializedFile = Path.Combine(FCCEngine.AppDataFolder, "outputWindowInitialized");
-			
-			if (File.Exists(outputWindowInitializedFile))
-			{
-				return;
-			}
-
 			ThreadHelper.JoinableTaskFactory.Run(async () =>
 			{
 				await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 
 				if (serviceProvider.GetService(typeof(SVsShell)) is IVsShell shell)
 				{
-					var PackageToBeLoadedGuid = new Guid(OutputToolWindowPackage.PackageGuidString);
-					shell.LoadPackage(ref PackageToBeLoadedGuid, out var package);
-					OutputToolWindowCommand.Instance.ShowToolWindow();
-					File.WriteAllText(outputWindowInitializedFile, string.Empty);
+					var packageToBeLoadedGuid = new Guid(OutputToolWindowPackage.PackageGuidString);
+					var outputWindowInitializedFile = Path.Combine(FCCEngine.AppDataFolder, "outputWindowInitialized");
+
+					shell.LoadPackage(ref packageToBeLoadedGuid, out var package);
+
+					if (File.Exists(outputWindowInitializedFile))
+					{
+						OutputToolWindowCommand.Instance.FindToolWindow();
+					}
+					else
+					{
+						OutputToolWindowCommand.Instance.ShowToolWindow();
+						File.WriteAllText(outputWindowInitializedFile, string.Empty);
+					}
 				}
 			});
 		}
