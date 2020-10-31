@@ -1,6 +1,7 @@
 ﻿using FineCodeCoverage.Engine.Utilities;
 using Fizzler.Systems.HtmlAgilityPack;
 using HtmlAgilityPack;
+using Microsoft.VisualStudio.Shell;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
@@ -10,6 +11,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace FineCodeCoverage.Engine.ReportGenerator
 {
@@ -169,34 +171,61 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 			reportGeneratorSettings.Add($@"""-reports:{string.Join(";", coverOutputFiles)}""");
 
 			reportGeneratorSettings.Add($@"""-targetdir:{ouputFolder}""");
-
-			reportGeneratorSettings.Add($@"""-reporttypes:Cobertura;HtmlInline_AzurePipelines{(darkMode ? "_Dark" : string.Empty)}""");
-
-			Logger.Log($"{title} Arguments {Environment.NewLine}{string.Join($"{Environment.NewLine}", reportGeneratorSettings)}");
-
-			var result = ProcessUtil
-			.ExecuteAsync(new ExecuteRequest
+			
+			bool run(string reportType)
 			{
-				FilePath = ReportGeneratorExePath,
-				Arguments = string.Join(" ", reportGeneratorSettings),
-				WorkingDirectory = ouputFolder
-			})
-			.GetAwaiter()
-			.GetResult();
+				var reportTypeSettings = reportGeneratorSettings.ToArray().ToList();
 
-			if (result.ExitCode != 0)
-			{
-				if (throwError)
+				if (reportType.Equals("Cobertura", StringComparison.OrdinalIgnoreCase))
 				{
-					throw new Exception(result.Output);
+					reportTypeSettings.Add($@"""-reporttypes:Cobertura""");
+				}
+				else if (reportType.Equals("HtmlInline_AzurePipelines", StringComparison.OrdinalIgnoreCase))
+				{
+					reportTypeSettings.Add($@"""-reporttypes:HtmlInline_AzurePipelines{(darkMode ? "_Dark" : string.Empty)}""");
+				}
+				else
+				{
+					throw new Exception($"Unknown reporttype '{reportType}'");
 				}
 
-				Logger.Log($"{title} Error", result.Output);
-				return false;
+				Logger.Log($"{title} Arguments [reporttype:{reportType}] {Environment.NewLine}{string.Join($"{Environment.NewLine}", reportTypeSettings)}");
+
+				var result = ProcessUtil
+				.ExecuteAsync(new ExecuteRequest
+				{
+					FilePath = ReportGeneratorExePath,
+					Arguments = string.Join(" ", reportTypeSettings),
+					WorkingDirectory = ouputFolder
+				})
+				.GetAwaiter()
+				.GetResult();
+
+				if (result.ExitCode != 0)
+				{
+					if (throwError)
+					{
+						throw new Exception(result.Output);
+					}
+
+					Logger.Log($"{title} [reporttype:{reportType}] Error", result.Output);
+					return false;
+				}
+
+				Logger.Log($"{title} [reporttype:{reportType}]", result.Output);
+				return true;
 			}
 
-			Logger.Log(title, result.Output);
-			return true;
+			var Cobertura_Success = false;
+			var HtmlInline_AzurePipelines_Success = false;
+
+			Parallel.Invoke
+			(
+				() => Cobertura_Success = run("Cobertura"),
+				() => HtmlInline_AzurePipelines_Success = run("HtmlInline_AzurePipelines")
+			);
+
+			return Cobertura_Success && HtmlInline_AzurePipelines_Success;
 		}
 
 		public static void ProcessCoberturaHtmlFile(string htmlFile, bool darkMode, out string coverageHtml)

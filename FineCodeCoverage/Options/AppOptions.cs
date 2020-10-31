@@ -2,6 +2,7 @@
 using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
+using System.Runtime.Serialization;
 using Microsoft.VisualStudio.Settings;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Settings;
@@ -66,6 +67,9 @@ namespace FineCodeCoverage.Options
 		[MyCustomExcludeFromCodeCoverage] => Any custom attribute that you may define
 		")]
 		public string[] ExcludeByAttribute { get; set; } = new[] { "GeneratedCode" };
+
+		[IgnoreDataMember]
+		public bool IsFirstRun { get; set; } = true;
 
 		[SuppressMessage("Usage", "VSTHRD010:Invoke single-threaded types on Main thread")]
 		public override void SaveSettingsToStorage()
