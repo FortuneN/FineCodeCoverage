@@ -10,6 +10,7 @@ using System.Xml.Linq;
 using System.Threading;
 using System.Windows;
 using System.Collections.Generic;
+using FineCodeCoverage.Engine;
 
 namespace FineCodeCoverage.Output
 {
@@ -84,57 +85,33 @@ namespace FineCodeCoverage.Output
 			_dte = dte;
 		}
 
+		[SuppressMessage("Usage", "VSTHRD104:Offer async methods")]
 		[SuppressMessage("Style", "IDE0060:Remove unused parameter")]
 		public void OpenFile(string htmlFilePath, int file, int line)
 		{
-			if (!File.Exists(htmlFilePath))
+			var htmlFileName = Path.GetFileNameWithoutExtension(htmlFilePath);
+			var csFileName = FCCEngine.GetSourceFileNameFromReportGeneratorHtmlFileName(htmlFileName);
+
+			if (string.IsNullOrWhiteSpace(csFileName))
 			{
-				var message = $"Not Found : { Path.GetFileName(htmlFilePath) }";
+				var message = $"Not Found : { htmlFileName }";
 				Logger.Log(message);
 				MessageBox.Show(message);
 				return;
 			}
 
-			ThreadPool.QueueUserWorkItem(state =>
+			ThreadHelper.JoinableTaskFactory.Run(async () =>
 			{
-				// get .cs source file
+				await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 
-				var csFilesRowXml = File.ReadAllLines(htmlFilePath).First(x => x.IndexOf("<tr><th>File(s):", StringComparison.OrdinalIgnoreCase) != -1);
-				var csFilesArray = XElement.Parse(csFilesRowXml).Descendants().Where(x => x.Name.LocalName.Equals("a", StringComparison.OrdinalIgnoreCase)).Select(x => x.Value.Trim()).ToArray();
+				_dte.MainWindow.Activate();
 
-				// load source file into IDE
+				_dte.ItemOperations.OpenFile(csFileName, Constants.vsViewKindCode);
 
-				ThreadHelper.JoinableTaskFactory.Run(async () =>
+				if (line != 0)
 				{
-					await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-
-					_dte.MainWindow.Activate();
-
-					var notFoundList = new List<string>();
-
-					foreach (var csFile in csFilesArray)
-					{
-						if (!File.Exists(csFile))
-						{
-							notFoundList.Add(csFile);
-							continue;
-						}
-
-						_dte.ItemOperations.OpenFile(csFile, Constants.vsViewKindCode);
-						
-						if (line != 0)
-						{
-							((TextSelection)_dte.ActiveDocument.Selection).GotoLine(line, false);
-						}
-					}
-
-					if (notFoundList.Any())
-					{
-						var message = $"Not Found : { string.Join(", ", notFoundList.Select(x => Path.GetFileName(x))) }";
-						Logger.Log(message);
-						MessageBox.Show(message);
-					}
-				});
+					((TextSelection)_dte.ActiveDocument.Selection).GotoLine(line, false);
+				}
 			});
 		}
 

@@ -1,9 +1,9 @@
 ﻿using FineCodeCoverage.Engine.Utilities;
 using Fizzler.Systems.HtmlAgilityPack;
 using HtmlAgilityPack;
-using Microsoft.VisualStudio.Shell;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using ReportGeneratorPlugins;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -11,7 +11,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace FineCodeCoverage.Engine.ReportGenerator
 {
@@ -21,7 +20,14 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 		public static string ReportGeneratorExePath { get; private set; }
 		public static string AppDataReportGeneratorFolder { get; private set; }
 		public static Version CurrentReportGeneratorVersion { get; private set; }
-		public static Version MimimumReportGeneratorVersion { get; } = Version.Parse("4.6.7");
+		public static Version MimimumReportGeneratorVersion { get; private set; }
+
+		static ReportGeneratorUtil()
+		{
+			// version of report generator from class inherited by our custom plugins
+			var reportGeneratorLibVersion = typeof(FccLightReportBuilder).BaseType.Assembly.GetName().Version.ToString().Split('.').Take(3);
+			MimimumReportGeneratorVersion = Version.Parse(string.Join(".", reportGeneratorLibVersion));
+		}
 
 		public static void Initialize(string appDataFolder)
 		{
@@ -164,32 +170,35 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 			Directory.GetFiles(ouputFolder, "*.htm*").ToList().ForEach(File.Delete); // delete html files if they exist
 
 			unifiedHtmlFile = Path.Combine(ouputFolder, "index.html");
-			unifiedXmlFile = Path.Combine(ouputFolder, "cobertura.xml");//??
+			unifiedXmlFile = Path.Combine(ouputFolder, "cobertura.xml");
 
 			var reportGeneratorSettings = new List<string>();
 
-			reportGeneratorSettings.Add($@"""-reports:{string.Join(";", coverOutputFiles)}""");
-
 			reportGeneratorSettings.Add($@"""-targetdir:{ouputFolder}""");
 			
-			bool run(string reportType)
+			bool run(string outputReportType, string inputReports)
 			{
 				var reportTypeSettings = reportGeneratorSettings.ToArray().ToList();
 
-				if (reportType.Equals("Cobertura", StringComparison.OrdinalIgnoreCase))
+				if (outputReportType.Equals("Cobertura", StringComparison.OrdinalIgnoreCase))
 				{
+					reportTypeSettings.Add($@"""-reports:{inputReports}""");
 					reportTypeSettings.Add($@"""-reporttypes:Cobertura""");
 				}
-				else if (reportType.Equals("HtmlInline_AzurePipelines", StringComparison.OrdinalIgnoreCase))
+				else if (outputReportType.Equals("HtmlInline_AzurePipelines", StringComparison.OrdinalIgnoreCase))
 				{
-					reportTypeSettings.Add($@"""-reporttypes:HtmlInline_AzurePipelines{(darkMode ? "_Dark" : string.Empty)}""");
+					reportTypeSettings.Add($@"""-reports:{inputReports}""");
+					reportTypeSettings.Add($@"""-plugins:{typeof(FccLightReportBuilder).Assembly.Location}""");
+					reportTypeSettings.Add($@"""-reporttypes:{(darkMode ? FccDarkReportBuilder.REPORT_TYPE : FccLightReportBuilder.REPORT_TYPE)}""");
 				}
 				else
 				{
-					throw new Exception($"Unknown reporttype '{reportType}'");
+					throw new Exception($"Unknown reporttype '{outputReportType}'");
 				}
 
-				Logger.Log($"{title} Arguments [reporttype:{reportType}] {Environment.NewLine}{string.Join($"{Environment.NewLine}", reportTypeSettings)}");
+				Logger.Log($"{title} Arguments [reporttype:{outputReportType}] {Environment.NewLine}{string.Join($"{Environment.NewLine}", reportTypeSettings)}");
+
+				//var exitCode = Palmmedia.ReportGenerator.Core.Program.Main(reportTypeSettings.ToArray());
 
 				var result = ProcessUtil
 				.ExecuteAsync(new ExecuteRequest
@@ -208,14 +217,25 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 						throw new Exception(result.Output);
 					}
 
-					Logger.Log($"{title} [reporttype:{reportType}] Error", result.Output);
+					Logger.Log($"{title} [reporttype:{outputReportType}] Error", result.Output);
 					return false;
 				}
 
-				Logger.Log($"{title} [reporttype:{reportType}]", result.Output);
+				Logger.Log($"{title} [reporttype:{outputReportType}]", result.Output);
 				return true;
 			}
 
+			if (!run("Cobertura", string.Join(";", coverOutputFiles)))
+			{
+				return false;
+			}
+
+			if (!run("HtmlInline_AzurePipelines", unifiedXmlFile))
+			{
+				return false;
+			}
+
+			/*
 			var Cobertura_Success = false;
 			var HtmlInline_AzurePipelines_Success = false;
 
@@ -226,6 +246,9 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 			);
 
 			return Cobertura_Success && HtmlInline_AzurePipelines_Success;
+			*/
+
+			return false;
 		}
 
 		public static void ProcessCoberturaHtmlFile(string htmlFile, bool darkMode, out string coverageHtml)

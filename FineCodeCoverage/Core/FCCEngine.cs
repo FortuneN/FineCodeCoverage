@@ -242,6 +242,23 @@ namespace FineCodeCoverage.Engine
 			return settings;
 		}
 
+		public static string GetSourceFileNameFromReportGeneratorHtmlFileName(string htmlFileNameWithoutExtension)
+		{
+			var html_file_tokens = htmlFileNameWithoutExtension.Split('_');
+			var html_file_package = html_file_tokens.First();
+			var html_file_class = $".{html_file_tokens.Last()}";
+
+			var cs_file_name = CoverageLines
+				.AsParallel()
+				.Where(x => x.Package.Name.Equals(html_file_package, StringComparison.OrdinalIgnoreCase))
+				.Where(x => x.Class.Name.EndsWith(html_file_class, StringComparison.OrdinalIgnoreCase))
+				.Where(x => !string.IsNullOrWhiteSpace(x.Class.Filename))
+				.Select(x => x.Class.Filename)
+				.FirstOrDefault();
+
+			return cs_file_name;
+		}
+
 		private static bool IsDotNetSdkStyle(CoverageProject project)
 		{
 			return XElement

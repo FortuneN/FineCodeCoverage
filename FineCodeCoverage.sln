@@ -18,6 +18,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution", "Solution", "{20
 		README.md = README.md
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReportGeneratorPlugins", "ReportGeneratorPlugins\ReportGeneratorPlugins.csproj", "{14FB668B-4B70-41E4-964B-405E5C9A6A58}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -28,6 +30,10 @@ Global
 		{31C104BB-D294-4942-B206-896AA7A5FCB9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{31C104BB-D294-4942-B206-896AA7A5FCB9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{31C104BB-D294-4942-B206-896AA7A5FCB9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{14FB668B-4B70-41E4-964B-405E5C9A6A58}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{14FB668B-4B70-41E4-964B-405E5C9A6A58}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{14FB668B-4B70-41E4-964B-405E5C9A6A58}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{14FB668B-4B70-41E4-964B-405E5C9A6A58}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

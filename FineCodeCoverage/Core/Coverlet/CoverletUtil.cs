@@ -1,6 +1,4 @@
-﻿using CliWrap;
-using CliWrap.Buffered;
-using FineCodeCoverage.Engine.Model;
+﻿using FineCodeCoverage.Engine.Model;
 using FineCodeCoverage.Engine.Utilities;
 using System;
 using System.Collections.Generic;
