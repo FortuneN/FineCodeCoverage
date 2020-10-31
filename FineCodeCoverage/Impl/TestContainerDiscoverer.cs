@@ -53,7 +53,7 @@ namespace FineCodeCoverage.Impl
 
 				Logger.Initialize(serviceProvider);
 				FCCEngine.Initialize();
-				LoadToolWindow(serviceProvider);
+				InitializeOutputWindow(serviceProvider);
 
 				TestContainersUpdated?.ToString();
 				operationState.StateChanged += OperationState_StateChanged;
@@ -78,8 +78,17 @@ namespace FineCodeCoverage.Impl
 		}
 
 		[SuppressMessage("Usage", "VSTHRD102:Implement internal logic asynchronously")]
-		private void LoadToolWindow(IServiceProvider serviceProvider)
+		private void InitializeOutputWindow(IServiceProvider serviceProvider)
 		{
+			//https://github.com/FortuneN/FineCodeCoverage/issues/12
+			
+			var outputWindowInitializedFile = Path.Combine(FCCEngine.AppDataFolder, "outputWindowInitialized");
+			
+			if (File.Exists(outputWindowInitializedFile))
+			{
+				return;
+			}
+
 			ThreadHelper.JoinableTaskFactory.Run(async () =>
 			{
 				await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
@@ -89,6 +98,7 @@ namespace FineCodeCoverage.Impl
 					var PackageToBeLoadedGuid = new Guid(OutputToolWindowPackage.PackageGuidString);
 					shell.LoadPackage(ref PackageToBeLoadedGuid, out var package);
 					OutputToolWindowCommand.Instance.Execute(default, default);
+					File.WriteAllText(outputWindowInitializedFile, string.Empty);
 				}
 			});
 		}

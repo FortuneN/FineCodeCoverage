@@ -25,19 +25,52 @@ namespace FineCodeCoverage.Engine
 		public static string AppDataFolder { get; private set; }
 		public static string[] ProjectExtensions { get; } = new string[] { ".csproj", ".vbproj" };
 		public static ConcurrentDictionary<string, string> ProjectFoldersCache { get; } = new ConcurrentDictionary<string, string>();
-
+		
 		public static void Initialize()
 		{
 			AppDataFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), Vsix.Code);
 			Directory.CreateDirectory(AppDataFolder);
-
-			// cleanup legacy folders
-			Directory.GetDirectories(AppDataFolder, "*", SearchOption.TopDirectoryOnly).Where(x => x.Contains("__")).ToList().ForEach(x => Directory.Delete(x, true));
+			
+			CleanupLegacyFolders();
 
 			CoverletUtil.Initialize(AppDataFolder);
 			ReportGeneratorUtil.Initialize(AppDataFolder);
 			MsTestPlatformUtil.Initialize(AppDataFolder);
 			OpenCoverUtil.Initialize(AppDataFolder);
+		}
+
+		private static void CleanupLegacyFolders()
+		{
+			Directory
+			.GetDirectories(AppDataFolder, "*", SearchOption.TopDirectoryOnly)
+			.Where(folder =>
+			{
+				var name = Path.GetFileName(folder);
+
+				if (name.Contains("__"))
+				{
+					return true;
+				}
+
+				if (Guid.TryParse(name, out var _))
+				{
+					return true;
+				}
+
+				return false;
+			})
+			.ToList()
+			.ForEach(folder =>
+			{
+				try
+				{
+					Directory.Delete(folder, true);
+				}
+				catch
+				{
+					// ignore
+				}
+			});
 		}
 
 		public static CoverageLine GetLine(string filePath, int lineNumber)
