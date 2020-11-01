@@ -12,7 +12,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Xml.Linq;
 
 namespace FineCodeCoverage.Engine
@@ -76,12 +75,10 @@ namespace FineCodeCoverage.Engine
 		public static CoverageLine GetLine(string filePath, int lineNumber)
 		{
 			return CoverageLines
-				.AsParallel()
-				.SingleOrDefault(line =>
-				{
-					return line.Class.Filename.Equals(filePath, StringComparison.OrdinalIgnoreCase)
-						&& line.Line.Number == lineNumber;
-				});
+			.AsParallel()
+			.Where(x => x.Class.Filename.Equals(filePath, StringComparison.OrdinalIgnoreCase))
+			.Where(x => x.Line.Number == lineNumber)
+			.SingleOrDefault();
 		}
 
 		private static AppOptions GetSettings(CoverageProject project)
@@ -393,7 +390,6 @@ namespace FineCodeCoverage.Engine
 					// process pipeline
 
 					projects = projects
-					.AsParallel()
 					.Select(project =>
 					{
 						project.Settings = GetSettings(project);
@@ -449,7 +445,6 @@ namespace FineCodeCoverage.Engine
 					// project files
 
 					var coverOutputFiles = projects
-						.AsParallel()
 						.Select(x => x.CoverToolOutputFile)
 						.ToArray();
 
@@ -465,41 +460,37 @@ namespace FineCodeCoverage.Engine
 
 					ReportGeneratorUtil.RunReportGenerator(coverOutputFiles, darkMode, out var unifiedHtmlFile, out var unifiedXmlFile, true);
 
-					// finalize
+					// marginHighlightsCallback
 
-					Parallel.Invoke
-					(
-						() =>
-						{
-							try
-							{
-								CoberturaUtil.ProcessCoberturaXmlFile(unifiedXmlFile, out var coverageLines);
+					try
+					{
+						CoberturaUtil.ProcessCoberturaXmlFile(unifiedXmlFile, out var coverageLines);
 
-								CoverageLines = coverageLines;
+						CoverageLines = coverageLines;
 
-								marginHighlightsCallback?.Invoke(default);
-							}
-							catch (Exception exception)
-							{
-								marginHighlightsCallback?.Invoke(exception);
-							}
-						},
-						() =>
-						{
-							try
-							{
-								ReportGeneratorUtil.ProcessCoberturaHtmlFile(unifiedHtmlFile, darkMode, out var coverageHtml);
+						marginHighlightsCallback?.Invoke(default);
+					}
+					catch (Exception exception)
+					{
+						marginHighlightsCallback?.Invoke(exception);
+					}
 
-								HtmlFilePath = coverageHtml;
+					// outputWindowCallback
 
-								outputWindowCallback?.Invoke(default);
-							}
-							catch (Exception exception)
-							{
-								outputWindowCallback?.Invoke(exception);
-							}
-						}
-					);
+					try
+					{
+						ReportGeneratorUtil.ProcessCoberturaHtmlFile(unifiedHtmlFile, darkMode, out var coverageHtml);
+
+						HtmlFilePath = coverageHtml;
+
+						outputWindowCallback?.Invoke(default);
+					}
+					catch (Exception exception)
+					{
+						outputWindowCallback?.Invoke(exception);
+					}
+
+					// doneCallback
 
 					doneCallback?.Invoke(default);
 				}

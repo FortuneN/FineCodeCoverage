@@ -235,20 +235,7 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 				return false;
 			}
 
-			/*
-			var Cobertura_Success = false;
-			var HtmlInline_AzurePipelines_Success = false;
-
-			Parallel.Invoke
-			(
-				() => Cobertura_Success = run("Cobertura"),
-				() => HtmlInline_AzurePipelines_Success = run("HtmlInline_AzurePipelines")
-			);
-
-			return Cobertura_Success && HtmlInline_AzurePipelines_Success;
-			*/
-
-			return false;
+			return true;
 		}
 
 		public static void ProcessCoberturaHtmlFile(string htmlFile, bool darkMode, out string coverageHtml)
