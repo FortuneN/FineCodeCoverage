@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
     <Metadata>
-        <Identity Id="fcc-f339fe606-9d51-4fca-895c-d50375137b62" Version="1.1.1" Language="en-US" Publisher="Fortune Ngwenya" />
+        <Identity Id="fcc-f339fe606-9d51-4fca-895c-d50375137b62" Version="1.0.0" Language="en-US" Publisher="Fortune Ngwenya" />
         <DisplayName>Fine Code Coverage</DisplayName>
         <Description xml:space="preserve">Visualize unit test code coverage easily for free in Visual Studio Community Edition (and other editions too)</Description>
         <MoreInfo>https://marketplace.visualstudio.com/items?itemName=FortuneNgwenya.FineCodeCoverage</MoreInfo>
