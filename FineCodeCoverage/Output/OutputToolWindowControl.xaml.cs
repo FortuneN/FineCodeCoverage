@@ -1,15 +1,10 @@
-﻿using System;
-using System.Windows.Controls;
+﻿using System.Windows.Controls;
 using Microsoft.VisualStudio.Shell;
 using System.Runtime.InteropServices;
 using System.Diagnostics.CodeAnalysis;
 using EnvDTE;
 using System.IO;
-using System.Linq;
-using System.Xml.Linq;
-using System.Threading;
 using System.Windows;
-using System.Collections.Generic;
 using FineCodeCoverage.Engine;
 
 namespace FineCodeCoverage.Output
@@ -52,36 +47,42 @@ namespace FineCodeCoverage.Output
 
 		public static void Clear()
 		{
-			if (Instance == null)
+			lock (Instance)
 			{
-				return;
-			}
+				if (Instance == null)
+				{
+					return;
+				}
 
-			Instance.FCCOutputBrowser.Visibility = Visibility.Hidden;
+				Instance.FCCOutputBrowser.Visibility = Visibility.Hidden;
+			}
 		}
 		
 		[SuppressMessage("Usage", "VSTHRD104:Offer async methods")]
 		public static void SetFilePath(string filePath)
 		{
-			if (Instance == null)
+			lock (Instance)
 			{
-				return;
+				if (Instance == null)
+				{
+					return;
+				}
+
+				ThreadHelper.JoinableTaskFactory.Run(async () =>
+				{
+					await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+
+					if (string.IsNullOrWhiteSpace(filePath))
+					{
+						Clear();
+					}
+					else
+					{
+						Instance.FCCOutputBrowser.NavigateToString(File.ReadAllText(filePath));
+						Instance.FCCOutputBrowser.Visibility = Visibility.Visible;
+					}
+				});
 			}
-
-			ThreadHelper.JoinableTaskFactory.Run(async () =>
-			{
-				await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-
-				if (string.IsNullOrWhiteSpace(filePath))
-				{
-					Clear();
-				}
-				else
-				{
-					Instance.FCCOutputBrowser.NavigateToString(File.ReadAllText(filePath));
-					Instance.FCCOutputBrowser.Visibility = Visibility.Visible;
-				}
-			});
 		}
 	}
 
