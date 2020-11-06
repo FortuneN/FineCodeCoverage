@@ -6,6 +6,7 @@ using EnvDTE;
 using System.IO;
 using System.Windows;
 using FineCodeCoverage.Engine;
+using FineCodeCoverage.Impl;
 
 namespace FineCodeCoverage.Output
 {
@@ -14,20 +15,17 @@ namespace FineCodeCoverage.Output
 	/// </summary>
 	public partial class OutputToolWindowControl : UserControl
 	{
-		private static DTE Dte;
-		private static Events Events;
-		private static ScriptManager ScriptManager;
-		private static SolutionEvents SolutionEvents;
-		private static OutputToolWindowControl Instance;
-		
+		private DTE Dte;
+		private Events Events;
+		private SolutionEvents SolutionEvents;
+		private readonly ScriptManager ScriptManager;
+
 		/// <summary>
 		/// Initializes a new instance of the <see cref="OutputToolWindowControl"/> class.
 		/// </summary>
 		[SuppressMessage("Usage", "VSTHRD104:Offer async methods")]
 		public OutputToolWindowControl()
 		{
-			Instance = this;
-
 			InitializeComponent();
 
 			ThreadHelper.JoinableTaskFactory.Run(async () =>
@@ -43,46 +41,28 @@ namespace FineCodeCoverage.Output
 
 			ScriptManager = new ScriptManager(Dte);
 			FCCOutputBrowser.ObjectForScripting = ScriptManager;
-		}
-
-		public static void Clear()
-		{
-			lock (Instance)
+			
+			TestContainerDiscoverer.UpdateOutputWindow += (sender, args) =>
 			{
-				if (Instance == null)
-				{
-					return;
-				}
-
-				Instance.FCCOutputBrowser.Visibility = Visibility.Hidden;
-			}
-		}
-		
-		[SuppressMessage("Usage", "VSTHRD104:Offer async methods")]
-		public static void SetFilePath(string filePath)
-		{
-			lock (Instance)
-			{
-				if (Instance == null)
-				{
-					return;
-				}
-
 				ThreadHelper.JoinableTaskFactory.Run(async () =>
 				{
 					await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 
-					if (string.IsNullOrWhiteSpace(filePath))
+					if (string.IsNullOrWhiteSpace(args?.HtmlContent))
 					{
 						Clear();
+						return;
 					}
-					else
-					{
-						Instance.FCCOutputBrowser.NavigateToString(File.ReadAllText(filePath));
-						Instance.FCCOutputBrowser.Visibility = Visibility.Visible;
-					}
+					
+					FCCOutputBrowser.NavigateToString(args.HtmlContent);
+					FCCOutputBrowser.Visibility = Visibility.Visible;
 				});
-			}
+			};
+		}
+
+		private void Clear()
+		{
+			FCCOutputBrowser.Visibility = Visibility.Hidden;
 		}
 	}
 

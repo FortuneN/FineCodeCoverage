@@ -72,13 +72,13 @@ namespace FineCodeCoverage.Engine
 			});
 		}
 
-		public static CoverageLine GetLine(string filePath, int lineNumber)
+		public static IEnumerable<CoverageLine> GetLines(string filePath, int startLineNumber, int endLineNumber)
 		{
 			return CoverageLines
 			.AsParallel()
 			.Where(x => x.Class.Filename.Equals(filePath, StringComparison.OrdinalIgnoreCase))
-			.Where(x => x.Line.Number == lineNumber)
-			.SingleOrDefault();
+			.Where(x => x.Line.Number >= startLineNumber && x.Line.Number <= endLineNumber)
+			.ToArray();
 		}
 
 		private static AppOptions GetSettings(CoverageProject project)

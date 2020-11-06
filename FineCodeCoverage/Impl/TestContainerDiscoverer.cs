@@ -37,6 +37,12 @@ namespace FineCodeCoverage.Impl
 
 		private string CurrentTheme => $"{((dynamic)_serviceProvider.GetService(typeof(SVsColorThemeService)))?.CurrentTheme?.Name}".Trim();
 
+		public static event UpdateMarginTagsDelegate UpdateMarginTags;
+		public static event UpdateOutputWindowDelegate UpdateOutputWindow;
+
+		public delegate void UpdateMarginTagsDelegate(object sender, UpdateMarginTagsEventArgs e);
+		public delegate void UpdateOutputWindowDelegate(object sender, UpdateOutputWindowEventArgs e);
+
 		[ImportingConstructor]
 		internal TestContainerDiscoverer
 		(
@@ -80,28 +86,26 @@ namespace FineCodeCoverage.Impl
 		[SuppressMessage("Usage", "VSTHRD102:Implement internal logic asynchronously")]
 		private void InitializeOutputWindow(IServiceProvider serviceProvider)
 		{
-			ThreadHelper.JoinableTaskFactory.Run(async () =>
+			// First time initialization -> So first time users don't have to dig through [View > Other Windows > FCC] which they won't know about
+
+			var outputWindowInitializedFile = Path.Combine(FCCEngine.AppDataFolder, "outputWindowInitialized");
+
+			if (!File.Exists(outputWindowInitializedFile))
 			{
-				await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-
-				if (serviceProvider.GetService(typeof(SVsShell)) is IVsShell shell)
+				ThreadHelper.JoinableTaskFactory.Run(async () =>
 				{
-					var packageToBeLoadedGuid = new Guid(OutputToolWindowPackage.PackageGuidString);
-					var outputWindowInitializedFile = Path.Combine(FCCEngine.AppDataFolder, "outputWindowInitialized");
+					await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 
-					shell.LoadPackage(ref packageToBeLoadedGuid, out var package);
+					if (serviceProvider.GetService(typeof(SVsShell)) is IVsShell shell)
+					{
+						var packageToBeLoadedGuid = new Guid(OutputToolWindowPackage.PackageGuidString);
+						shell.LoadPackage(ref packageToBeLoadedGuid, out var package);
 
-					if (File.Exists(outputWindowInitializedFile))
-					{
-						OutputToolWindowCommand.Instance.FindToolWindow();
-					}
-					else
-					{
 						OutputToolWindowCommand.Instance.ShowToolWindow();
 						File.WriteAllText(outputWindowInitializedFile, string.Empty);
 					}
-				}
-			});
+				});
+			}
 		}
 
 		private static string GetVersion()
@@ -134,7 +138,6 @@ namespace FineCodeCoverage.Impl
 		[SuppressMessage("Usage", "VSTHRD108:Assert thread affinity unconditionally")]
 		private void OperationState_StateChanged(object sender, OperationStateChangedEventArgs e)
 		{
-			
 			try
 			{
 				if (e.State == TestOperationStates.TestExecutionFinished)
@@ -144,8 +147,8 @@ namespace FineCodeCoverage.Impl
 					if (!settings.Enabled)
 					{
 						FCCEngine.CoverageLines.Clear();
-						TaggerProvider.ReloadTags();
-						OutputToolWindowControl.Clear();
+						UpdateMarginTags?.Invoke(this, null);
+						UpdateOutputWindow?.Invoke(this, null);
 						return;
 					}
 
@@ -187,7 +190,7 @@ namespace FineCodeCoverage.Impl
 								return;
 							}
 
-							TaggerProvider.ReloadTags();
+							UpdateMarginTags?.Invoke(this, UpdateMarginTagsEventArgs.Empty);
 						},
 						(error) =>
 						{
@@ -197,7 +200,10 @@ namespace FineCodeCoverage.Impl
 								return;
 							}
 
-							OutputToolWindowControl.SetFilePath(FCCEngine.HtmlFilePath);
+							UpdateOutputWindow?.Invoke(this, new UpdateOutputWindowEventArgs
+							{
+								HtmlContent = File.ReadAllText(FCCEngine.HtmlFilePath)
+							});
 						},
 						(error) =>
 						{
@@ -222,4 +228,16 @@ namespace FineCodeCoverage.Impl
 	[Guid("0D915B59-2ED7-472A-9DE8-9161737EA1C5")]
 	[SuppressMessage("Style", "IDE1006:Naming Styles")]
 	public interface SVsColorThemeService {}
+
+	public class UpdateMarginTagsEventArgs : EventArgs
+	{
+		public static new readonly UpdateMarginTagsEventArgs Empty = new UpdateMarginTagsEventArgs(); 
+	}
+
+	public class UpdateOutputWindowEventArgs : EventArgs
+	{
+		public static new readonly UpdateOutputWindowEventArgs Empty = new UpdateOutputWindowEventArgs();
+
+		public string HtmlContent { get; set; }
+	}
 }

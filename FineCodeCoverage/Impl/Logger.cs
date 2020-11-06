@@ -15,7 +15,6 @@ public static class Logger
 	private static IServiceProvider _serviceProvider;
 	private static Guid _paneGuid = VSConstants.GUID_BuildOutputWindowPane;
 
-	[SuppressMessage("Usage", "VSTHRD104:Offer async methods")]
 	public static void Initialize(IServiceProvider serviceProvider)
 	{
 		_serviceProvider = serviceProvider;
