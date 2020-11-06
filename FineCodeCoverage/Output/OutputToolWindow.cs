@@ -3,7 +3,6 @@ using System.Reflection;
 using Microsoft.VisualStudio.Shell;
 using System.Runtime.InteropServices;
 using System.IO;
-using FineCodeCoverage.Impl;
 using System.Linq;
 using FineCodeCoverage.Engine;
 

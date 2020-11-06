@@ -1,17 +1,13 @@
-﻿using CliWrap;
-using CliWrap.Buffered;
-using FineCodeCoverage.Engine.Model;
+﻿using FineCodeCoverage.Engine.Model;
 using FineCodeCoverage.Engine.MsTestPlatform;
 using FineCodeCoverage.Engine.Utilities;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Net.Http;
-using System.Threading.Tasks;
 using System.Xml.Linq;
 
 namespace FineCodeCoverage.Engine.OpenCover

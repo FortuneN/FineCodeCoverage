@@ -241,53 +241,5 @@ namespace FineCodeCoverage.Engine.Coverlet
 			Logger.Log(title, result.Output);
 			return true;
 		}
-
-		//public static (Process Process, string OutputData, string ErrorData) CMD(string fileName, string arguments, string workingDirectory = null)
-		//{
-		//	var process = new Process
-		//	{
-		//		StartInfo = new ProcessStartInfo
-		//		{
-		//			FileName = fileName,
-		//			Arguments = arguments,
-		//			CreateNoWindow = true,
-		//			UseShellExecute = false,
-		//			RedirectStandardError = true,
-		//			RedirectStandardOutput = true,
-		//			WorkingDirectory = workingDirectory,
-		//			WindowStyle = ProcessWindowStyle.Hidden,
-		//		}
-		//	};
-
-		//	var outputData = new StringBuilder();
-		//	var errorData = new StringBuilder();
-
-		//	process.OutputDataReceived += (object sender, DataReceivedEventArgs e) =>
-		//	{
-		//		if (e?.Data == null)
-		//		{
-		//			return;
-		//		}
-
-		//		outputData.AppendLine(e?.Data ?? string.Empty);
-		//	};
-
-		//	process.ErrorDataReceived += (object sender, DataReceivedEventArgs e) =>
-		//	{
-		//		if (e?.Data == null)
-		//		{
-		//			return;
-		//		}
-
-		//		errorData?.AppendLine(e?.Data ?? string.Empty);
-		//	};
-
-		//	process.Start();
-		//	process.BeginOutputReadLine();
-		//	process.BeginErrorReadLine();
-		//	process.WaitForExit();
-
-		//	return (process, outputData.ToString(), errorData.ToString());
-		//}
 	}
 }

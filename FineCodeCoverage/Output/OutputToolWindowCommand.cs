@@ -1,10 +1,6 @@
 ﻿using System;
 using System.ComponentModel.Design;
-using System.Globalization;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.Interop;
 using Task = System.Threading.Tasks.Task;
 
 namespace FineCodeCoverage.Output
@@ -57,11 +53,11 @@ namespace FineCodeCoverage.Output
 		/// <summary>
 		/// Gets the service provider from the owner package.
 		/// </summary>
-		public Microsoft.VisualStudio.Shell.IAsyncServiceProvider ServiceProvider
+		public IAsyncServiceProvider ServiceProvider
 		{
 			get
 			{
-				return this.package;
+				return package;
 			}
 		}
 

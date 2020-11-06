@@ -1,6 +1,4 @@
-﻿using FineCodeCoverage.Engine.Utilities;
-using System;
-using System.Diagnostics;
+﻿using System;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.IO.Compression;
