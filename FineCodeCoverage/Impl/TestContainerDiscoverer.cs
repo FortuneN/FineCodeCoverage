@@ -1,54 +1,43 @@
 ﻿using System;
-using System.Xml;
+using System.IO;
 using System.Linq;
 using System.Reflection;
+using FineCodeCoverage.Output;
+using FineCodeCoverage.Engine;
+using FineCodeCoverage.Options;
 using System.Collections.Generic;
 using Microsoft.VisualStudio.Shell;
+using FineCodeCoverage.Engine.Model;
+using System.Runtime.InteropServices;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.VisualStudio.Utilities;
 using System.ComponentModel.Composition;
-using IServiceProvider = System.IServiceProvider;
-using Microsoft.VisualStudio.TestWindow.Extensibility;
-using System.IO;
-using FineCodeCoverage.Output;
 using Microsoft.VisualStudio.Shell.Interop;
-using System.Diagnostics.CodeAnalysis;
-using FineCodeCoverage.Options;
-using FineCodeCoverage.Engine;
-using FineCodeCoverage.Engine.Coverlet;
-using FineCodeCoverage.Engine.ReportGenerator;
-using FineCodeCoverage.Engine.OpenCover;
-using System.Runtime.InteropServices;
-using FineCodeCoverage.Engine.Model;
+using Microsoft.VisualStudio.TestWindow.Extensibility;
 
 namespace FineCodeCoverage.Impl
 {
+	[Name(Vsix.TestContainerDiscovererName)]
 	[Export(typeof(TestContainerDiscoverer))]
 	[Export(typeof(ITestContainerDiscoverer))]
-	[Name(Vsix.TestContainerDiscovererName)]
 	internal class TestContainerDiscoverer : ITestContainerDiscoverer
 	{
 		public event EventHandler TestContainersUpdated;
-
-		public Uri ExecutorUri => new Uri($"executor://{Vsix.Code}.Executor/v1");
-
-		public IEnumerable<ITestContainer> TestContainers => Enumerable.Empty<ITestContainer>();
-
 		private readonly IServiceProvider _serviceProvider;
-
-		private string CurrentTheme => $"{((dynamic)_serviceProvider.GetService(typeof(SVsColorThemeService)))?.CurrentTheme?.Name}".Trim();
-
 		public static event UpdateMarginTagsDelegate UpdateMarginTags;
 		public static event UpdateOutputWindowDelegate UpdateOutputWindow;
-
+		public Uri ExecutorUri => new Uri($"executor://{Vsix.Code}.Executor/v1");
+		public IEnumerable<ITestContainer> TestContainers => Enumerable.Empty<ITestContainer>();
 		public delegate void UpdateMarginTagsDelegate(object sender, UpdateMarginTagsEventArgs e);
 		public delegate void UpdateOutputWindowDelegate(object sender, UpdateOutputWindowEventArgs e);
+		private string CurrentTheme => $"{((dynamic)_serviceProvider.GetService(typeof(SVsColorThemeService)))?.CurrentTheme?.Name}".Trim();
 
 		[ImportingConstructor]
 		internal TestContainerDiscoverer
 		(
 			[Import(typeof(IOperationState))]
 			IOperationState operationState,
-
+			
 			[Import(typeof(SVsServiceProvider))]
 			IServiceProvider serviceProvider
 		)
@@ -56,30 +45,18 @@ namespace FineCodeCoverage.Impl
 			try
 			{
 				_serviceProvider = serviceProvider;
+				Logger.Initialize(_serviceProvider);
 
-				Logger.Initialize(serviceProvider);
 				FCCEngine.Initialize();
-				InitializeOutputWindow(serviceProvider);
-
 				TestContainersUpdated?.ToString();
+				InitializeOutputWindow(_serviceProvider);
 				operationState.StateChanged += OperationState_StateChanged;
 
-				Logger.Log
-				(
-					"Initialized",
-					$"Version                     {GetVersion()}",
-					$"Work Folder                 {FCCEngine.AppDataFolder}",
-					$"Coverlet Version            {CoverletUtil.CurrentCoverletVersion}",
-					$"Coverlet Folder             {CoverletUtil.AppDataCoverletFolder}",
-					$"Report Generator Version    {ReportGeneratorUtil.CurrentReportGeneratorVersion}",
-					$"Report Generator Folder     {ReportGeneratorUtil.AppDataReportGeneratorFolder}",
-					$"OpenCover Generator Version {OpenCoverUtil.CurrentOpenCoverVersion}",
-					$"OpenCover Generator Folder  {OpenCoverUtil.AppDataOpenCoverFolder}"
-				);
+				Logger.Log($"Initialized");
 			}
 			catch (Exception exception)
 			{
-				Logger.Log($"Failed Initialization", exception.ToString());
+				Logger.Log($"Failed Initialization", exception);
 			}
 		}
 
@@ -105,33 +82,6 @@ namespace FineCodeCoverage.Impl
 						File.WriteAllText(outputWindowInitializedFile, string.Empty);
 					}
 				});
-			}
-		}
-
-		private static string GetVersion()
-		{
-			Assembly assembly = null;
-
-			try
-			{
-				var doc = new XmlDocument();
-				assembly = typeof(TestContainerDiscoverer).Assembly;
-				doc.Load(Path.Combine(Path.GetDirectoryName(assembly.Location), "extension.vsixmanifest"));
-				var metaData = doc.DocumentElement.ChildNodes.Cast<XmlElement>().First(x => x.Name == "Metadata");
-				var identity = metaData.ChildNodes.Cast<XmlElement>().First(x => x.Name == "Identity");
-				var version = identity.GetAttribute("Version");
-				return version;
-			}
-			catch
-			{
-				try
-				{
-					return assembly.GetName().Version.ToString();
-				}
-				catch
-				{
-					return "-";
-				}
 			}
 		}
 
@@ -227,7 +177,9 @@ namespace FineCodeCoverage.Impl
 
 	[Guid("0D915B59-2ED7-472A-9DE8-9161737EA1C5")]
 	[SuppressMessage("Style", "IDE1006:Naming Styles")]
-	public interface SVsColorThemeService {}
+	public interface SVsColorThemeService
+	{
+	}
 
 	public class UpdateMarginTagsEventArgs : EventArgs
 	{
@@ -236,8 +188,7 @@ namespace FineCodeCoverage.Impl
 
 	public class UpdateOutputWindowEventArgs : EventArgs
 	{
-		public static new readonly UpdateOutputWindowEventArgs Empty = new UpdateOutputWindowEventArgs();
-
 		public string HtmlContent { get; set; }
+		public static new readonly UpdateOutputWindowEventArgs Empty = new UpdateOutputWindowEventArgs();
 	}
 }

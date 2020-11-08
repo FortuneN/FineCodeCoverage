@@ -1,16 +1,16 @@
-﻿using FineCodeCoverage.Engine.Utilities;
-using Fizzler.Systems.HtmlAgilityPack;
-using HtmlAgilityPack;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using ReportGeneratorPlugins;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
+﻿using System;
 using System.IO;
 using System.Linq;
 using System.Text;
+using HtmlAgilityPack;
+using Newtonsoft.Json;
+using System.Diagnostics;
+using Newtonsoft.Json.Linq;
+using ReportGeneratorPlugins;
+using System.Collections.Generic;
+using Fizzler.Systems.HtmlAgilityPack;
+using System.Diagnostics.CodeAnalysis;
+using FineCodeCoverage.Engine.Utilities;
 
 namespace FineCodeCoverage.Engine.ReportGenerator
 {

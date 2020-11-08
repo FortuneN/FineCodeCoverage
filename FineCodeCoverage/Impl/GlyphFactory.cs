@@ -1,8 +1,8 @@
-﻿using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.Text.Formatting;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Media;
 using System.Windows.Shapes;
+using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.Formatting;
 
 namespace FineCodeCoverage.Impl
 {

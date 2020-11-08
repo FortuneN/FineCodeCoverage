@@ -76,7 +76,6 @@
     <Compile Include="Core\Model\CoverageProject.cs" />
     <Compile Include="Core\FCCEngine.cs" />
     <Compile Include="Core\FileSynchronization\FileSynchronizationUtil.cs" />
-    <Compile Include="Core\Utilities\HashUtil.cs" />
     <Compile Include="Impl\GlyphFactory.cs" />
     <Compile Include="Impl\GlyphFactoryProvider.cs" />
     <Compile Include="Impl\GlyphTag.cs" />

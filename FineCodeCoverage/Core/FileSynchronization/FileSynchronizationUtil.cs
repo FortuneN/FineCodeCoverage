@@ -1,6 +1,6 @@
-﻿using FineCodeCoverage.Engine.Utilities;
-using System.IO;
+﻿using System.IO;
 using System.Linq;
+using FineCodeCoverage.Engine.Utilities;
 
 namespace FineCodeCoverage.Engine.FileSynchronization
 {

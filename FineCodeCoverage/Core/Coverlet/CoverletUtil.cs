@@ -1,11 +1,11 @@
-﻿using FineCodeCoverage.Engine.Model;
-using FineCodeCoverage.Engine.Utilities;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
+﻿using System;
 using System.IO;
 using System.Linq;
+using System.Diagnostics;
+using System.Collections.Generic;
+using FineCodeCoverage.Engine.Model;
+using System.Diagnostics.CodeAnalysis;
+using FineCodeCoverage.Engine.Utilities;
 
 namespace FineCodeCoverage.Engine.Coverlet
 {

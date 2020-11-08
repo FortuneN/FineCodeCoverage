@@ -1,12 +1,12 @@
-﻿using System.Windows.Controls;
+﻿using EnvDTE;
+using System.IO;
+using System.Windows;
+using FineCodeCoverage.Impl;
+using FineCodeCoverage.Engine;
+using System.Windows.Controls;
 using Microsoft.VisualStudio.Shell;
 using System.Runtime.InteropServices;
 using System.Diagnostics.CodeAnalysis;
-using EnvDTE;
-using System.IO;
-using System.Windows;
-using FineCodeCoverage.Engine;
-using FineCodeCoverage.Impl;
 
 namespace FineCodeCoverage.Output
 {

@@ -1,12 +1,11 @@
 ﻿using System;
-using System.ComponentModel;
-using System.Diagnostics.CodeAnalysis;
-using System.Reflection;
-using System.Runtime.Serialization;
-using Microsoft.VisualStudio.Settings;
-using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.Settings;
 using Newtonsoft.Json;
+using System.Reflection;
+using System.ComponentModel;
+using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Settings;
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.VisualStudio.Shell.Settings;
 
 namespace FineCodeCoverage.Options
 {

@@ -1,11 +1,11 @@
-﻿using FineCodeCoverage.Engine.Model;
-using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.IO;
-using System.Linq;
 using System.Xml;
+using System.Linq;
+using Newtonsoft.Json;
 using System.Xml.Serialization;
+using System.Collections.Generic;
+using FineCodeCoverage.Engine.Model;
 
 namespace FineCodeCoverage.Engine.Cobertura
 {

@@ -1,7 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using FineCodeCoverage.Engine;
+using System.Collections.Generic;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
 
@@ -9,18 +8,27 @@ namespace FineCodeCoverage.Impl
 {
 	internal class Tagger<T> : ITagger<T> where T : ITag
 	{
+		private readonly ITextBuffer _textBuffer;
 		public event EventHandler<SnapshotSpanEventArgs> TagsChanged;
 
 		public Tagger(ITextBuffer textBuffer)
 		{
-			TestContainerDiscoverer.UpdateMarginTags += (sender, args) => TagsChanged?.Invoke(this, new SnapshotSpanEventArgs(new SnapshotSpan(textBuffer.CurrentSnapshot, 0, textBuffer.CurrentSnapshot.Length)));
+			_textBuffer = textBuffer;
+			TestContainerDiscoverer.UpdateMarginTags += TestContainerDiscoverer_UpdateMarginTags;
+		}
+
+		private void TestContainerDiscoverer_UpdateMarginTags(object sender, UpdateMarginTagsEventArgs e)
+		{
+			var span = new SnapshotSpan(_textBuffer.CurrentSnapshot, 0, _textBuffer.CurrentSnapshot.Length);
+			var spanEventArgs = new SnapshotSpanEventArgs(span);
+			TagsChanged?.Invoke(this, spanEventArgs);
 		}
 
 		IEnumerable<ITagSpan<T>> ITagger<T>.GetTags(NormalizedSnapshotSpanCollection spans)
 		{
 			var result = new List<ITagSpan<T>>();
 
-			if (spans == null || !spans.Any())
+			if (spans == null)
 			{
 				return result;
 			}

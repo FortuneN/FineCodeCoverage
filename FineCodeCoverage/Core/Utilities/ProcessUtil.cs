@@ -1,9 +1,9 @@
-﻿using CliWrap;
-using CliWrap.Buffered;
-using System;
-using System.Diagnostics;
+﻿using System;
+using CliWrap;
 using System.IO;
 using System.Linq;
+using CliWrap.Buffered;
+using System.Diagnostics;
 using System.Threading.Tasks;
 
 namespace FineCodeCoverage.Engine.Utilities

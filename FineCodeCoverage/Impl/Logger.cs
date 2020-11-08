@@ -1,11 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using FineCodeCoverage;
+using System.Diagnostics;
 using Microsoft.VisualStudio;
+using System.Collections.Generic;
 using Microsoft.VisualStudio.Shell;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.VisualStudio.Shell.Interop;
 
 public static class Logger

@@ -8,8 +8,8 @@ namespace FineCodeCoverage.Impl
 	[ContentType("code")]
 	[TagType(typeof(GlyphTag))]
 	[Order(Before = "VsTextMarker")]
-	[Export(typeof(IGlyphFactoryProvider))]
 	[Name(Vsix.GlyphFactoryProviderName)]
+	[Export(typeof(IGlyphFactoryProvider))]
 	internal class GlyphFactoryProvider: IGlyphFactoryProvider
 	{
 		public IGlyphFactory GetGlyphFactory(IWpfTextView textView, IWpfTextViewMargin textViewMargin)

@@ -1,18 +1,18 @@
-﻿using FineCodeCoverage.Engine.Cobertura;
-using FineCodeCoverage.Engine.Coverlet;
-using FineCodeCoverage.Engine.FileSynchronization;
-using FineCodeCoverage.Engine.Model;
-using FineCodeCoverage.Engine.MsTestPlatform;
-using FineCodeCoverage.Engine.OpenCover;
-using FineCodeCoverage.Engine.ReportGenerator;
-using FineCodeCoverage.Options;
-using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
+﻿using System;
 using System.IO;
 using System.Linq;
-using System.Threading;
 using System.Xml.Linq;
+using System.Threading;
+using FineCodeCoverage.Options;
+using System.Collections.Generic;
+using FineCodeCoverage.Engine.Model;
+using System.Collections.Concurrent;
+using FineCodeCoverage.Engine.Coverlet;
+using FineCodeCoverage.Engine.Cobertura;
+using FineCodeCoverage.Engine.OpenCover;
+using FineCodeCoverage.Engine.MsTestPlatform;
+using FineCodeCoverage.Engine.ReportGenerator;
+using FineCodeCoverage.Engine.FileSynchronization;
 
 namespace FineCodeCoverage.Engine
 {

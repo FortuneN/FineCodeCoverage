@@ -1,10 +1,10 @@
 ﻿using System;
-using System.Reflection;
-using Microsoft.VisualStudio.Shell;
-using System.Runtime.InteropServices;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using FineCodeCoverage.Engine;
+using Microsoft.VisualStudio.Shell;
+using System.Runtime.InteropServices;
 
 namespace FineCodeCoverage.Output
 {
