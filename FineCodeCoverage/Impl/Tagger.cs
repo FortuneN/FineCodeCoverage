@@ -42,7 +42,10 @@ namespace FineCodeCoverage.Impl
 
 				foreach (var coverageLine in coverageLines)
 				{
-					result.Add(new TagSpan<GlyphTag>(span, new GlyphTag(coverageLine)) as ITagSpan<T>);
+					var tag = new GlyphTag(coverageLine);
+					var tagSpan = new TagSpan<GlyphTag>(span, tag);
+					var iTagSpan = tagSpan as ITagSpan<T>;
+					result.Add(iTagSpan);
 				}
 			}
 
