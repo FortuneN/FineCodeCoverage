@@ -2,7 +2,6 @@
 using System.IO;
 using System.Linq;
 using System.Xml.Linq;
-using System.Threading;
 using FineCodeCoverage.Options;
 using System.Collections.Generic;
 using FineCodeCoverage.Engine.Model;
@@ -376,129 +375,92 @@ namespace FineCodeCoverage.Engine
 			return (otherTypes ?? new Type[0]).Any(ot => type == ot);
 		}
 
-		public static void ReloadCoverage(IEnumerable<CoverageProject> projects, bool darkMode, Action<Exception> marginHighlightsCallback, Action<Exception> outputWindowCallback, Action<Exception> doneCallback)
+		public static void ReloadCoverage(IEnumerable<CoverageProject> projects, bool darkMode)
 		{
-			ThreadPool.QueueUserWorkItem(state =>
+			// reset
+
+			CoverageLines.Clear();
+			HtmlFilePath = null;
+
+			// process pipeline
+
+			projects = projects
+			.Select(project =>
 			{
-				try
+				project.Settings = GetSettings(project);
+
+				if (!project.Settings.Enabled)
 				{
-					// reset
-
-					CoverageLines.Clear();
-					HtmlFilePath = default;
-
-					// process pipeline
-
-					projects = projects
-					.Select(project =>
-					{
-						project.Settings = GetSettings(project);
-
-						if (!project.Settings.Enabled)
-						{
-							project.FailureDescription = $"Disabled";
-							return project;
-						}
-
-						if (string.IsNullOrWhiteSpace(project.ProjectFile))
-						{
-							project.FailureDescription = $"Unsupported project type for DLL '{project.TestDllFileInOutputFolder}'";
-							return project;
-						}
-
-						project.WorkOutputFolder = Path.Combine(project.WorkFolder, "_outputfolder");
-						project.CoverToolOutputFile = Path.Combine(project.WorkOutputFolder, "_cover.tool.xml");
-						project.TestDllFileInWorkFolder = Path.Combine(project.WorkFolder, Path.GetFileName(project.TestDllFileInOutputFolder));
-						project.IsDotNetSdkStyle = IsDotNetSdkStyle(project);
-
-						return project;
-					})
-					.Select(p => p.Step("Ensure Work Folder Exists", project =>
-					{
-						// create folders
-
-						Directory.CreateDirectory(project.WorkFolder);
-						Directory.CreateDirectory(project.WorkOutputFolder);
-					}))
-					.Select(p => p.Step("Synchronize Output Files To Work Folder", project =>
-					{
-						// sync files from output folder to work folder where we do the analysis
-
-						FileSynchronizationUtil.Synchronize(project.ProjectOutputFolder, project.WorkFolder);
-					}))
-					.Select(p => p.Step("Run Coverage Tool", project =>
-					{
-						// run the appropriate cover tool
-
-						if (project.IsDotNetSdkStyle)
-						{
-							CoverletUtil.RunCoverlet(project, true);
-						}
-						else
-						{
-							OpenCoverUtil.RunOpenCover(project, true);
-						}
-					}))
-					.Where(x => !x.HasFailed)
-					.ToArray();
-
-					// project files
-
-					var coverOutputFiles = projects
-						.Select(x => x.CoverToolOutputFile)
-						.ToArray();
-
-					if (!coverOutputFiles.Any())
-					{
-						marginHighlightsCallback?.Invoke(default);
-						outputWindowCallback?.Invoke(default);
-						doneCallback?.Invoke(default);
-						return;
-					}
-
-					// run reportGenerator process
-
-					ReportGeneratorUtil.RunReportGenerator(coverOutputFiles, darkMode, out var unifiedHtmlFile, out var unifiedXmlFile, true);
-
-					// marginHighlightsCallback
-
-					try
-					{
-						CoberturaUtil.ProcessCoberturaXmlFile(unifiedXmlFile, out var coverageLines);
-
-						CoverageLines = coverageLines;
-
-						marginHighlightsCallback?.Invoke(default);
-					}
-					catch (Exception exception)
-					{
-						marginHighlightsCallback?.Invoke(exception);
-					}
-
-					// outputWindowCallback
-
-					try
-					{
-						ReportGeneratorUtil.ProcessCoberturaHtmlFile(unifiedHtmlFile, darkMode, out var coverageHtml);
-
-						HtmlFilePath = coverageHtml;
-
-						outputWindowCallback?.Invoke(default);
-					}
-					catch (Exception exception)
-					{
-						outputWindowCallback?.Invoke(exception);
-					}
-
-					// doneCallback
-
-					doneCallback?.Invoke(default);
+					project.FailureDescription = $"Disabled";
+					return project;
 				}
-				catch (Exception exception)
+
+				if (string.IsNullOrWhiteSpace(project.ProjectFile))
 				{
-					doneCallback?.Invoke(exception);
+					project.FailureDescription = $"Unsupported project type for DLL '{project.TestDllFileInOutputFolder}'";
+					return project;
 				}
-			});
+
+				project.WorkOutputFolder = Path.Combine(project.WorkFolder, "_outputfolder");
+				project.CoverToolOutputFile = Path.Combine(project.WorkOutputFolder, "_cover.tool.xml");
+				project.TestDllFileInWorkFolder = Path.Combine(project.WorkFolder, Path.GetFileName(project.TestDllFileInOutputFolder));
+				project.IsDotNetSdkStyle = IsDotNetSdkStyle(project);
+
+				return project;
+			})
+			.Select(p => p.Step("Ensure Work Folder Exists", project =>
+			{
+				// create folders
+
+				Directory.CreateDirectory(project.WorkFolder);
+				Directory.CreateDirectory(project.WorkOutputFolder);
+			}))
+			.Select(p => p.Step("Synchronize Output Files To Work Folder", project =>
+			{
+				// sync files from output folder to work folder where we do the analysis
+
+				FileSynchronizationUtil.Synchronize(project.ProjectOutputFolder, project.WorkFolder);
+			}))
+			.Select(p => p.Step("Run Coverage Tool", project =>
+			{
+				// run the appropriate cover tool
+
+				if (project.IsDotNetSdkStyle)
+				{
+					CoverletUtil.RunCoverlet(project, true);
+				}
+				else
+				{
+					OpenCoverUtil.RunOpenCover(project, true);
+				}
+			}))
+			.Where(x => !x.HasFailed)
+			.ToArray();
+
+			// project files
+
+			var coverOutputFiles = projects
+				.Select(x => x.CoverToolOutputFile)
+				.ToArray();
+
+			if (!coverOutputFiles.Any())
+			{
+				return;
+			}
+
+			// run reportGenerator process
+
+			ReportGeneratorUtil.RunReportGenerator(coverOutputFiles, darkMode, out var unifiedHtmlFile, out var unifiedXmlFile, true);
+
+			// update CoverageLines
+
+			CoberturaUtil.ProcessCoberturaXmlFile(unifiedXmlFile, out var coverageLines);
+			CoverageLines = coverageLines;
+
+			// update HtmlFilePath
+
+			ReportGeneratorUtil.ProcessCoberturaHtmlFile(unifiedHtmlFile, darkMode, out var coverageHtml);
+			HtmlFilePath = coverageHtml;
 		}
 	}
 }

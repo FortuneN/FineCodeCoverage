@@ -14,6 +14,7 @@ using Microsoft.VisualStudio.Utilities;
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestWindow.Extensibility;
+using System.Threading;
 
 namespace FineCodeCoverage.Impl
 {
@@ -22,6 +23,7 @@ namespace FineCodeCoverage.Impl
 	[Export(typeof(ITestContainerDiscoverer))]
 	internal class TestContainerDiscoverer : ITestContainerDiscoverer
 	{
+		private Thread _reloadCoverageThread;
 		public event EventHandler TestContainersUpdated;
 		private readonly IServiceProvider _serviceProvider;
 		public static event UpdateMarginTagsDelegate UpdateMarginTags;
@@ -63,26 +65,29 @@ namespace FineCodeCoverage.Impl
 		[SuppressMessage("Usage", "VSTHRD102:Implement internal logic asynchronously")]
 		private void InitializeOutputWindow(IServiceProvider serviceProvider)
 		{
-			// First time initialization -> So first time users don't have to dig through [View > Other Windows > FCC] which they won't know about
-
-			var outputWindowInitializedFile = Path.Combine(FCCEngine.AppDataFolder, "outputWindowInitialized");
-
-			if (!File.Exists(outputWindowInitializedFile))
+			ThreadHelper.JoinableTaskFactory.Run(async () =>
 			{
-				ThreadHelper.JoinableTaskFactory.Run(async () =>
+				await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+
+				if (serviceProvider.GetService(typeof(SVsShell)) is IVsShell shell)
 				{
-					await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+					var packageToBeLoadedGuid = new Guid(OutputToolWindowPackage.PackageGuidString);
+					shell.LoadPackage(ref packageToBeLoadedGuid, out var package);
 
-					if (serviceProvider.GetService(typeof(SVsShell)) is IVsShell shell)
+					var outputWindowInitializedFile = Path.Combine(FCCEngine.AppDataFolder, "outputWindowInitialized");
+
+					if (File.Exists(outputWindowInitializedFile))
 					{
-						var packageToBeLoadedGuid = new Guid(OutputToolWindowPackage.PackageGuidString);
-						shell.LoadPackage(ref packageToBeLoadedGuid, out var package);
-
+						OutputToolWindowCommand.Instance.FindToolWindow();
+					}
+					else
+					{
+						// for first time users, the window is automatically docked 
 						OutputToolWindowCommand.Instance.ShowToolWindow();
 						File.WriteAllText(outputWindowInitializedFile, string.Empty);
 					}
-				});
-			}
+				}
+			});
 		}
 
 		[SuppressMessage("Usage", "VSTHRD108:Assert thread affinity unconditionally")]
@@ -90,6 +95,18 @@ namespace FineCodeCoverage.Impl
 		{
 			try
 			{
+				if (e.State == TestOperationStates.TestExecutionStarting)
+				{
+					try
+					{
+						_reloadCoverageThread?.Abort();
+					}
+					catch
+					{
+						// ignore
+					}
+				}
+
 				if (e.State == TestOperationStates.TestExecutionFinished)
 				{
 					var settings = AppOptions.Get();
@@ -107,65 +124,59 @@ namespace FineCodeCoverage.Impl
 					var operationType = e.Operation.GetType();
 					var darkMode = CurrentTheme.Equals("Dark", StringComparison.OrdinalIgnoreCase);
 					var testConfiguration = (operationType.GetProperty("Configuration") ?? operationType.GetProperty("Configuration", BindingFlags.Instance | BindingFlags.NonPublic)).GetValue(e.Operation);
-					var testContainers = ((IEnumerable<object>) testConfiguration.GetType().GetProperty("Containers").GetValue(testConfiguration)).ToArray();
-					var projects = new List<CoverageProject>(); 
-					
+					var testContainers = ((IEnumerable<object>)testConfiguration.GetType().GetProperty("Containers").GetValue(testConfiguration)).ToArray();
+					var projects = new List<CoverageProject>();
+
 					foreach (var container in testContainers)
 					{
 						var project = new CoverageProject();
 						var containerType = container.GetType();
 						var containerData = containerType.GetProperty("ProjectData").GetValue(container);
 						var containerDataType = containerData.GetType();
-						
+
 						project.ProjectGuid = containerType.GetProperty("ProjectGuid").GetValue(container).ToString();
 						project.ProjectName = containerType.GetProperty("ProjectName").GetValue(container).ToString();
 						project.TestDllFileInOutputFolder = containerType.GetProperty("Source").GetValue(container).ToString();
 						project.ProjectFile = containerDataType.GetProperty("ProjectFilePath", BindingFlags.Instance | BindingFlags.FlattenHierarchy | BindingFlags.Public | BindingFlags.NonPublic).GetValue(containerData).ToString();
-						
+
 						var defaultOutputFolder = Path.GetDirectoryName(containerDataType.GetProperty("DefaultOutputPath", BindingFlags.Instance | BindingFlags.FlattenHierarchy | BindingFlags.Public | BindingFlags.NonPublic).GetValue(containerData).ToString());
 						project.WorkFolder = Path.Combine(Path.GetDirectoryName(defaultOutputFolder), "fine-code-coverage");
 
 						projects.Add(project);
 					}
 
-					FCCEngine.ReloadCoverage
-					(
-						projects.ToArray(),
-						darkMode,
-						(error) =>
+					_reloadCoverageThread = new Thread(() =>
+					{
+						try
 						{
-							if (error != null)
-							{
-								Logger.Log("Margin Tags Error", error);
-								return;
-							}
+							FCCEngine.ReloadCoverage(projects.ToArray(), darkMode);
 
-							UpdateMarginTags?.Invoke(this, UpdateMarginTagsEventArgs.Empty);
-						},
-						(error) =>
-						{
-							if (error != null)
+							UpdateMarginTags?.Invoke(this, new UpdateMarginTagsEventArgs
 							{
-								Logger.Log("Output Window Error", error);
-								return;
-							}
+							});
 
 							UpdateOutputWindow?.Invoke(this, new UpdateOutputWindowEventArgs
 							{
 								HtmlContent = File.ReadAllText(FCCEngine.HtmlFilePath)
 							});
-						},
-						(error) =>
-						{
-							if (error != null)
-							{
-								Logger.Log("Error", error);
-								return;
-							}
 
 							Logger.Log("================================== DONE ===================================");
 						}
-					);
+						catch (Exception exception)
+						{
+							if (!(exception is ThreadAbortException))
+							{
+								Logger.Log("Error", exception);
+								Logger.Log("================================== ERROR ==================================");
+							}
+						}
+						finally
+						{
+							_reloadCoverageThread = null;
+						}
+					});
+
+					_reloadCoverageThread.Start();
 				}
 			}
 			catch (Exception exception)
@@ -183,12 +194,10 @@ namespace FineCodeCoverage.Impl
 
 	public class UpdateMarginTagsEventArgs : EventArgs
 	{
-		public static new readonly UpdateMarginTagsEventArgs Empty = new UpdateMarginTagsEventArgs(); 
 	}
 
 	public class UpdateOutputWindowEventArgs : EventArgs
 	{
 		public string HtmlContent { get; set; }
-		public static new readonly UpdateOutputWindowEventArgs Empty = new UpdateOutputWindowEventArgs();
 	}
 }
