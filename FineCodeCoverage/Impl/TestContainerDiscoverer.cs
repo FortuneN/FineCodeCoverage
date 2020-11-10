@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Reflection;
 using FineCodeCoverage.Output;
 using FineCodeCoverage.Engine;
@@ -14,7 +15,6 @@ using Microsoft.VisualStudio.Utilities;
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestWindow.Extensibility;
-using System.Threading;
 
 namespace FineCodeCoverage.Impl
 {
@@ -39,27 +39,31 @@ namespace FineCodeCoverage.Impl
 		(
 			[Import(typeof(IOperationState))]
 			IOperationState operationState,
-			
+
 			[Import(typeof(SVsServiceProvider))]
 			IServiceProvider serviceProvider
 		)
 		{
-			try
-			{
-				_serviceProvider = serviceProvider;
-				Logger.Initialize(_serviceProvider);
+			_serviceProvider = serviceProvider;
 
-				FCCEngine.Initialize();
-				TestContainersUpdated?.ToString();
-				InitializeOutputWindow(_serviceProvider);
-				operationState.StateChanged += OperationState_StateChanged;
-
-				Logger.Log($"Initialized");
-			}
-			catch (Exception exception)
+			new Thread(() =>
 			{
-				Logger.Log($"Failed Initialization", exception);
-			}
+				try
+				{		
+					Logger.Initialize(_serviceProvider);
+
+					FCCEngine.Initialize();
+					TestContainersUpdated?.ToString();
+					InitializeOutputWindow(_serviceProvider);
+					operationState.StateChanged += OperationState_StateChanged;
+
+					Logger.Log($"Initialized");
+				}
+				catch (Exception exception)
+				{
+					Logger.Log($"Failed Initialization", exception);
+				}
+			}).Start();
 		}
 
 		[SuppressMessage("Usage", "VSTHRD102:Implement internal logic asynchronously")]
