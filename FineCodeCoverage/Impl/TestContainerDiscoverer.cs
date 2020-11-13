@@ -15,6 +15,7 @@ using Microsoft.VisualStudio.Utilities;
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestWindow.Extensibility;
+using FineCodeCoverage.Engine.Utilities;
 
 namespace FineCodeCoverage.Impl
 {
@@ -94,7 +95,6 @@ namespace FineCodeCoverage.Impl
 			});
 		}
 
-		[SuppressMessage("Usage", "VSTHRD108:Assert thread affinity unconditionally")]
 		private void OperationState_StateChanged(object sender, OperationStateChangedEventArgs e)
 		{
 			try
@@ -141,6 +141,7 @@ namespace FineCodeCoverage.Impl
 						project.ProjectGuid = containerType.GetProperty("ProjectGuid").GetValue(container).ToString();
 						project.ProjectName = containerType.GetProperty("ProjectName").GetValue(container).ToString();
 						project.TestDllFileInOutputFolder = containerType.GetProperty("Source").GetValue(container).ToString();
+						project.TestDllCompilationMode = AssemblyUtil.GetCompilationMode(project.TestDllFileInOutputFolder);
 						project.ProjectFile = containerDataType.GetProperty("ProjectFilePath", BindingFlags.Instance | BindingFlags.FlattenHierarchy | BindingFlags.Public | BindingFlags.NonPublic).GetValue(containerData).ToString();
 
 						var defaultOutputFolder = Path.GetDirectoryName(containerDataType.GetProperty("DefaultOutputPath", BindingFlags.Instance | BindingFlags.FlattenHierarchy | BindingFlags.Public | BindingFlags.NonPublic).GetValue(containerData).ToString());

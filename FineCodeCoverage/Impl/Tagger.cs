@@ -36,7 +36,10 @@ namespace FineCodeCoverage.Impl
 			foreach (var span in spans)
 			{
 				var startLineNumber = span.Start.GetContainingLine().LineNumber + 1;
-				var endLineNumber = span.End.GetContainingLine().LineNumber + 1;
+				var endLineNumber = startLineNumber;
+				
+				try { endLineNumber = span.End.GetContainingLine().LineNumber + 1; } catch { }
+				
 				var document = (ITextDocument)span.Snapshot.TextBuffer.Properties.GetProperty(typeof(ITextDocument));
 				var coverageLines = FCCEngine.GetLines(document.FilePath, startLineNumber, endLineNumber);
 

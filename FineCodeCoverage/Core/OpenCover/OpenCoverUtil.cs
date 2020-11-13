@@ -159,13 +159,28 @@ namespace FineCodeCoverage.Engine.OpenCover
 
 			var opencoverSettings = new List<string>();
 
-			opencoverSettings.Add($@" -register:path32 ");
-
 			opencoverSettings.Add($@" -mergebyhash ");
 
 			opencoverSettings.Add($@" -hideskipped:all ");
 
-			opencoverSettings.Add($@" ""-target:{MsTestPlatformUtil.MsTestPlatformExePath}"" ");
+			{
+				// -register:
+
+				var registerValue = "path32";
+
+				if (project.TestDllCompilationMode.HasFlag(CompilationMode.Bit64))
+				{
+					registerValue = "path64";
+				}
+
+				opencoverSettings.Add($@" -register:{registerValue} ");
+			}
+
+			{
+				// -target:
+
+				opencoverSettings.Add($@" ""-target:{MsTestPlatformUtil.MsTestPlatformExePath}"" ");
+			}
 
 			{
 				// -filter:
@@ -207,16 +222,41 @@ namespace FineCodeCoverage.Engine.OpenCover
 			{
 				// -excludebyattribute:
 
-				var excludes = new List<string>();
+				var excludes = new List<string>()
+				{
+					// coverlet knows these implicitly
+					"ExcludeFromCoverage",
+					"ExcludeFromCodeCoverage" 
+				};
 
 				foreach (var value in (project.Settings.ExcludeByAttribute ?? new string[0]).Where(x => !string.IsNullOrWhiteSpace(x)))
 				{
 					excludes.Add(value.Replace("\"", "\\\"").Trim(' ', '\''));
 				}
 
+				foreach (var exclude in excludes.ToArray())
+				{
+					var excludeAlternateName = default(string);
+
+					if (exclude.EndsWith("Attribute", StringComparison.OrdinalIgnoreCase))
+					{
+						// remove 'Attribute' suffix
+						excludeAlternateName = exclude.Substring(0, exclude.IndexOf("Attribute", StringComparison.OrdinalIgnoreCase));
+					}
+					else
+					{
+						// add 'Attribute' suffix
+						excludeAlternateName = $"{exclude}Attribute";
+					}
+
+					excludes.Add(excludeAlternateName);
+				}
+
+				excludes = excludes.Distinct(StringComparer.OrdinalIgnoreCase).OrderBy(x => x).ToList();
+
 				if (excludes.Any())
 				{
-					opencoverSettings.Add($@" ""-excludebyattribute:{string.Join(";", excludes)}"" ");
+					opencoverSettings.Add($@" ""-excludebyattribute:(*.{string.Join(")|(*.", excludes)})"" ");
 				}
 			}
 

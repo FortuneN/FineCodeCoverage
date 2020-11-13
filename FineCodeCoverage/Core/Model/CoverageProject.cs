@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using FineCodeCoverage.Engine.Utilities;
 using FineCodeCoverage.Options;
 
 namespace FineCodeCoverage.Engine.Model
@@ -21,6 +22,7 @@ namespace FineCodeCoverage.Engine.Model
 		public string TestDllFileInWorkFolder { get; set; }
 		public AppOptions Settings { get; set; }
 		public string WorkOutputFolder { get; set; }
+		public CompilationMode TestDllCompilationMode { get; internal set; }
 
 		public CoverageProject Step(string stepName, Action<CoverageProject> action)
 		{
