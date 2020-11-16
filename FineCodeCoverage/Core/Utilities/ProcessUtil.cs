@@ -11,6 +11,8 @@ namespace FineCodeCoverage.Engine.Utilities
 {
 	internal static class ProcessUtil
 	{
+		public const int FAILED_TO_PRODUCE_OUTPUT_FILE_CODE = 999;
+
 		public static string GetOutput(this Process process)
 		{
 			return string.Join(
@@ -45,6 +47,8 @@ namespace FineCodeCoverage.Engine.Utilities
 				.WithWorkingDirectory(request.WorkingDirectory)
 				.ExecuteBufferedAsync();
 
+				var exitCode = result.ExitCode;
+
 				// get script output
 
 				var outputList = new List<string>();
@@ -75,6 +79,11 @@ namespace FineCodeCoverage.Engine.Utilities
 						outputList.Add(redirectOutput);
 					}
 				}
+				else
+				{
+					// There is a problem if the shellScriptOutputFile is not produced
+					exitCode = FAILED_TO_PRODUCE_OUTPUT_FILE_CODE;
+				}
 
 				var output = string.Join(Environment.NewLine, outputList)
 				.Trim('\r', '\n')
@@ -84,7 +93,7 @@ namespace FineCodeCoverage.Engine.Utilities
 
 				return new ExecuteResponse
 				{
-					ExitCode = result.ExitCode,
+					ExitCode = exitCode,
 					ExitTime = result.ExitTime,
 					RunTime = result.RunTime,
 					StartTime = result.StartTime,
