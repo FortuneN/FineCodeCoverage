@@ -5,6 +5,7 @@ using System.Linq;
 using CliWrap.Buffered;
 using System.Diagnostics;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 
 namespace FineCodeCoverage.Engine.Utilities
 {
@@ -46,25 +47,38 @@ namespace FineCodeCoverage.Engine.Utilities
 
 				// get script output
 
-				string output = null;
-				
-				if (File.Exists(shellScriptOutputFile))
+				var outputList = new List<string>();
+
+				var directOutput = string.Join(Environment.NewLine, new[]
 				{
-					output = File.ReadAllText(shellScriptOutputFile);
+					result.StandardOutput,
+					Environment.NewLine,
+					result.StandardError
+				}
+				.Where(x => !string.IsNullOrWhiteSpace(x)))
+				.Trim('\r', '\n')
+				.Trim();
+
+				if (!string.IsNullOrWhiteSpace(directOutput))
+				{
+					outputList.Add(directOutput);
 				}
 
-				if (string.IsNullOrWhiteSpace(output))
+				if (File.Exists(shellScriptOutputFile))
 				{
-					output = string.Join(Environment.NewLine, new[]
-					{
-						result.StandardOutput,
-						Environment.NewLine,
-						result.StandardError
-					}
-					.Where(x => !string.IsNullOrWhiteSpace(x)))
+					var redirectOutput = File.ReadAllText(shellScriptOutputFile)
 					.Trim('\r', '\n')
 					.Trim();
+
+					if (!string.IsNullOrWhiteSpace(redirectOutput))
+					{
+						outputList.Add(redirectOutput);
+					}
 				}
+
+				var output = string.Join(Environment.NewLine, outputList)
+				.Trim('\r', '\n')
+				.Trim();
 
 				// return
 
