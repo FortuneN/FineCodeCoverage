@@ -46,9 +46,25 @@ namespace FineCodeCoverage.Engine.Utilities
 
 				// get script output
 
-				var output = File.Exists(shellScriptOutputFile)
-					? File.ReadAllText(shellScriptOutputFile)
-					: string.Join(Environment.NewLine, new[] { result.StandardOutput, result.StandardError }.Where(x => !string.IsNullOrWhiteSpace(x))).Trim('\r', '\n').Trim();
+				string output = null;
+				
+				if (File.Exists(shellScriptOutputFile))
+				{
+					output = File.ReadAllText(shellScriptOutputFile);
+				}
+
+				if (string.IsNullOrWhiteSpace(output))
+				{
+					output = string.Join(Environment.NewLine, new[]
+					{
+						result.StandardOutput,
+						Environment.NewLine,
+						result.StandardError
+					}
+					.Where(x => !string.IsNullOrWhiteSpace(x)))
+					.Trim('\r', '\n')
+					.Trim();
+				}
 
 				// return
 
