@@ -13,6 +13,34 @@ namespace FineCodeCoverage.Engine.Utilities
 	{
 		public const int FAILED_TO_PRODUCE_OUTPUT_FILE_CODE = 999;
 
+		private static List<Process> Processes { get; } = new List<Process>();
+
+		public static void ClearProcesses()
+		{
+			try
+			{
+				Processes.ToArray().AsParallel().ForAll(process =>
+				{
+					try
+					{
+						process.Kill();
+					}
+					catch
+					{
+						// ignore
+					}
+					finally
+					{
+						Processes.Remove(process);
+					}
+				});
+			}
+			catch
+			{
+				// ignore
+			}
+		}
+
 		public static string GetOutput(this Process process)
 		{
 			return string.Join(
@@ -28,6 +56,7 @@ namespace FineCodeCoverage.Engine.Utilities
 
 		public static async Task<ExecuteResponse> ExecuteAsync(ExecuteRequest request)
 		{
+			Process process = null;
 			string shellScriptFile = null;
 			string shellScriptOutputFile = null;
 
@@ -41,12 +70,27 @@ namespace FineCodeCoverage.Engine.Utilities
 
 				// run script file
 
-				var result = await Cli
+				var commandTask = Cli
 				.Wrap(shellScriptFile)
 				.WithValidation(CommandResultValidation.None)
 				.WithWorkingDirectory(request.WorkingDirectory)
 				.ExecuteBufferedAsync();
 
+				// enlist process
+
+				try
+				{
+					process = Process.GetProcessById(commandTask.ProcessId);
+					if (process != null) Processes.Add(process);
+				}
+				catch
+				{
+					// ignore
+				}
+
+				// run command
+
+				var result = await commandTask;
 				var exitCode = result.ExitCode;
 
 				// get script output
@@ -104,10 +148,7 @@ namespace FineCodeCoverage.Engine.Utilities
 			{
 				try
 				{
-					if (!string.IsNullOrWhiteSpace(shellScriptFile) && File.Exists(shellScriptFile))
-					{
-						File.Delete(shellScriptFile);
-					}
+					File.Delete(shellScriptFile);
 				}
 				catch
 				{
@@ -116,10 +157,34 @@ namespace FineCodeCoverage.Engine.Utilities
 
 				try
 				{
-					if (!string.IsNullOrWhiteSpace(shellScriptOutputFile) && File.Exists(shellScriptOutputFile))
-					{
-						File.Delete(shellScriptOutputFile);
-					}
+					File.Delete(shellScriptOutputFile);
+				}
+				catch
+				{
+					// ignore
+				}
+
+				try
+				{
+					process?.Kill();
+				}
+				catch
+				{
+					// ignore
+				}
+
+				try
+				{
+					process?.Dispose();
+				}
+				catch
+				{
+					// ignore
+				}
+
+				try
+				{
+					Processes.Remove(process);
 				}
 				catch
 				{

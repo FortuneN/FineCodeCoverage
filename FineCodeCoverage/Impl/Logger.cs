@@ -20,8 +20,8 @@ public static class Logger
 		_serviceProvider = serviceProvider;
 	}
 
-	[SuppressMessage("Usage", "VSTHRD104:Offer async methods")]
-	public static void Log(params object[] message)
+	[SuppressMessage("Usage", "VSTHRD102:Implement internal logic asynchronously")]
+	private static void LogImpl(object[] message, bool withTitle)
 	{
 		try
 		{
@@ -50,12 +50,62 @@ public static class Logger
 			ThreadHelper.JoinableTaskFactory.Run(async () =>
 			{
 				await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-				_pane.OutputStringThreadSafe($"{Environment.NewLine}{Vsix.Name} : {string.Join(Environment.NewLine, messageList)}{Environment.NewLine}");
+
+				var logs = string.Join(Environment.NewLine, messageList);
+
+				if (withTitle)
+				{
+					_pane.OutputStringThreadSafe($"{Environment.NewLine}{Vsix.Name} : {logs}{Environment.NewLine}");
+				}
+				else
+				{
+					_pane.OutputStringThreadSafe($"{logs}{Environment.NewLine}");
+				}
 			});
 		}
 		catch (Exception ex)
 		{
 			Debug.Write(ex);
 		}
+	}
+
+	public static void Log(params object[] message)
+	{
+		LogImpl(message, true);
+	}
+
+	public static void Log(params string[] message)
+	{
+		LogImpl(message, true);
+	}
+
+	public static void Log(IEnumerable<object> message)
+	{
+		LogImpl(message.ToArray(), true);
+	}
+
+	public static void Log(IEnumerable<string> message)
+	{
+		LogImpl(message.ToArray(), true);
+	}
+
+	public static void LogWithoutTitle(params object[] message)
+	{
+		LogImpl(message, false);
+	}
+
+	public static void LogWithoutTitle(params string[] message)
+	{
+		LogImpl(message, false);
+	}
+
+	public static void LogWithoutTitle(IEnumerable<object> message)
+	{
+		LogImpl(message.ToArray(), false);
+	}
+
+	public static void LogWithoutTitle(IEnumerable<string> message)
+	{
+		LogImpl(message.ToArray(), false);
 	}
 }

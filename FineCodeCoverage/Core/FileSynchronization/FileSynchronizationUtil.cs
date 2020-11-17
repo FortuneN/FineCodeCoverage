@@ -1,4 +1,6 @@
-﻿using System.IO;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using FineCodeCoverage.Engine.Utilities;
 
@@ -6,11 +8,12 @@ namespace FineCodeCoverage.Engine.FileSynchronization
 {
 	internal static partial class FileSynchronizationUtil
 	{
-		public static void Synchronize(string sourceFolder, string destinationFolder)
+		public static List<string> Synchronize(string sourceFolder, string destinationFolder)
 		{
+			var logs = new List<string>();
 			var srceDir = new DirectoryInfo(Path.GetFullPath(sourceFolder) + '\\');
 			var destDir = new DirectoryInfo(Path.GetFullPath(destinationFolder) + '\\');
-
+			
 			// file lists
 
 			var srceFiles = srceDir.GetFiles("*", SearchOption.AllDirectories).AsParallel().Select(fi => new ComparableFile(fi, fi.FullName.Substring(srceDir.FullName.Length)));
@@ -24,18 +27,47 @@ namespace FineCodeCoverage.Engine.FileSynchronization
 
 				if (!to.Directory.Exists)
 				{
-					Directory.CreateDirectory(to.DirectoryName);
+					try
+					{
+						Directory.CreateDirectory(to.DirectoryName);
+						logs.Add($"Create : {to.DirectoryName}");
+					}
+					catch (Exception exception)
+					{
+						logs.Add($"Create : {to.DirectoryName} : {exception.Message}");
+						continue;
+					}
 				}
 
-				File.Copy(fileToCopy.FileInfo.FullName, to.FullName, true);
+				try
+				{
+					File.Copy(fileToCopy.FileInfo.FullName, to.FullName, true);
+					logs.Add($"Copy : {fileToCopy.FileInfo.FullName} -> {to.FullName}");
+				}
+				catch (Exception exception)
+				{
+					logs.Add($"Copy : {fileToCopy.FileInfo.FullName} -> {to.FullName} : {exception.Message}");
+				}
 			}
 
 			// delete from dest
 
 			foreach (var fileToDelete in destFiles().Except(srceFiles, FileComparer.Singleton))
 			{
-				File.Delete(fileToDelete.FileInfo.FullName);
+				try
+				{
+					File.Delete(fileToDelete.FileInfo.FullName);
+					logs.Add($"Delete : {fileToDelete.FileInfo.FullName}");
+				}
+				catch (Exception exception)
+				{
+					logs.Add($"Delete : {fileToDelete.FileInfo.FullName} : {exception.Message}");
+				}
 			}
+
+			// return
+
+			return logs;
 		}
 	}
 }

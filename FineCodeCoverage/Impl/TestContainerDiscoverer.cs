@@ -109,6 +109,11 @@ namespace FineCodeCoverage.Impl
 					{
 						// ignore
 					}
+					finally
+					{
+						_reloadCoverageThread = null;
+						FCCEngine.ClearProcesses();
+					}
 				}
 
 				if (e.State == TestOperationStates.TestExecutionFinished)
@@ -154,30 +159,64 @@ namespace FineCodeCoverage.Impl
 					{
 						try
 						{
+							// compute coverage
+
 							FCCEngine.ReloadCoverage(projects.ToArray(), darkMode);
 
-							UpdateMarginTags?.Invoke(this, new UpdateMarginTagsEventArgs
-							{
-							});
+							// update margins
 
-							UpdateOutputWindow?.Invoke(this, new UpdateOutputWindowEventArgs
 							{
-								HtmlContent = File.ReadAllText(FCCEngine.HtmlFilePath)
-							});
+								UpdateMarginTagsEventArgs updateMarginTagsEventArgs = null;
+
+								try
+								{
+									updateMarginTagsEventArgs = new UpdateMarginTagsEventArgs
+									{
+									};
+								}
+								catch
+								{
+									// ignore
+								}
+								finally
+								{
+									UpdateMarginTags?.Invoke(this, updateMarginTagsEventArgs);
+								}
+							}
+
+							// update output window
+
+							{
+								UpdateOutputWindowEventArgs updateOutputWindowEventArgs = null;
+
+								try
+								{
+									updateOutputWindowEventArgs = new UpdateOutputWindowEventArgs
+									{
+										HtmlContent = File.ReadAllText(FCCEngine.HtmlFilePath)
+									};
+								}
+								catch
+								{
+									// ignore
+								}
+								finally
+								{
+									UpdateOutputWindow?.Invoke(this, updateOutputWindowEventArgs);
+								}
+							}
+
+							// log
 
 							Logger.Log("================================== DONE ===================================");
 						}
 						catch (Exception exception)
 						{
-							if (!(exception is ThreadAbortException))
+							if (!(exception is ThreadAbortException) && _reloadCoverageThread != null)
 							{
 								Logger.Log("Error", exception);
 								Logger.Log("================================== ERROR ==================================");
 							}
-						}
-						finally
-						{
-							_reloadCoverageThread = null;
 						}
 					});
 

@@ -12,6 +12,8 @@ using FineCodeCoverage.Engine.OpenCover;
 using FineCodeCoverage.Engine.MsTestPlatform;
 using FineCodeCoverage.Engine.ReportGenerator;
 using FineCodeCoverage.Engine.FileSynchronization;
+using System.Diagnostics;
+using FineCodeCoverage.Engine.Utilities;
 
 namespace FineCodeCoverage.Engine
 {
@@ -375,12 +377,20 @@ namespace FineCodeCoverage.Engine
 			return (otherTypes ?? new Type[0]).Any(ot => type == ot);
 		}
 
+		public static void ClearProcesses()
+		{
+			ProcessUtil.ClearProcesses();
+		}
+
 		public static void ReloadCoverage(IEnumerable<CoverageProject> projects, bool darkMode)
 		{
 			// reset
 
-			CoverageLines.Clear();
+			ClearProcesses();
+
 			HtmlFilePath = null;
+
+			CoverageLines.Clear();
 
 			// process pipeline
 
@@ -412,14 +422,29 @@ namespace FineCodeCoverage.Engine
 			{
 				// create folders
 
-				Directory.CreateDirectory(project.WorkFolder);
-				Directory.CreateDirectory(project.WorkOutputFolder);
+				var logs = new List<string>();
+
+				if (!Directory.Exists(project.WorkFolder))
+				{
+					Directory.CreateDirectory(project.WorkFolder);
+					logs.Add($"Created : {project.WorkFolder}");
+				}
+
+				if (!Directory.Exists(project.WorkOutputFolder))
+				{
+					Directory.CreateDirectory(project.WorkOutputFolder);
+					logs.Add($"Created : {project.WorkOutputFolder}");
+				}
+
+				//Logger.LogWithoutTitle(logs);
 			}))
 			.Select(p => p.Step("Synchronize Output Files To Work Folder", project =>
 			{
 				// sync files from output folder to work folder where we do the analysis
 
-				FileSynchronizationUtil.Synchronize(project.ProjectOutputFolder, project.WorkFolder);
+				var logs = FileSynchronizationUtil.Synchronize(project.ProjectOutputFolder, project.WorkFolder);
+
+				//Logger.LogWithoutTitle(logs);
 			}))
 			.Select(p => p.Step("Run Coverage Tool", project =>
 			{
