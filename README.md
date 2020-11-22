@@ -106,7 +106,7 @@ used by this project.
 
 [ReportGenerator](https://github.com/danielpalme/ReportGenerator)
 
-## Buy me a beer
-If you find this plugin useful, perhaps you can buy me a beer :)
+## Buy me a coffee
+If you find this plugin useful, perhaps you can buy me a coffee :)
 
 [<img src="https://www.paypalobjects.com/webstatic/mktg/Logo/pp-logo-100px.png">](https://paypal.me/FortuneNgwenya)

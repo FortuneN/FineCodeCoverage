@@ -106,7 +106,7 @@ namespace FineCodeCoverage.Output
 			});
 		}
 
-		public void BuyMeABeer()
+		public void BuyMeACoffee()
 		{
 			System.Diagnostics.Process.Start("https://paypal.me/FortuneNgwenya");
 		}

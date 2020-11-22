@@ -198,8 +198,6 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 
 				Logger.Log($"{title} Arguments [reporttype:{outputReportType}] {Environment.NewLine}{string.Join($"{Environment.NewLine}", reportTypeSettings)}");
 
-				//var exitCode = Palmmedia.ReportGenerator.Core.Program.Main(reportTypeSettings.ToArray());
-
 				var result = ProcessUtil
 				.ExecuteAsync(new ExecuteRequest
 				{
@@ -474,7 +472,7 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 									<a href='#' onclick='return window.external.LogIssueOrSuggestion();' style='margin-left:7px'>Log Issue/Suggestion</a>
 								</td>
 								<td style='width:1%;white-space:no-wrap;border-top:transparent;border-right:transparent;border-left:transparent;padding-top:0px'>
-									<a href='#' onclick='return window.external.BuyMeABeer();'>Buy me a beer</a>
+									<a href='#' onclick='return window.external.BuyMeACoffee();'>Buy me a coffee</a>
 								</td>
 							</tr>
 						</table>
