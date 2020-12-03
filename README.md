@@ -7,7 +7,7 @@ or get the [CI build](https://www.vsixgallery.com/extension/fcc-f339fe606-9d51-4
 
 ---------------------------------------
 
-See the [change log](CHANGELOG.md) for changes and road map.
+### <a href="https://www.youtube.com/watch?v=Rae5bTE2D3o" target="_blank">Watch introduction Video</a>
 
 ### Highlights unit test code coverage
 Run a(some) unit test(s) and ...
