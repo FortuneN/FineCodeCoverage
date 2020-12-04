@@ -9,21 +9,20 @@ using System.Collections.Concurrent;
 using FineCodeCoverage.Engine.Coverlet;
 using FineCodeCoverage.Engine.Cobertura;
 using FineCodeCoverage.Engine.OpenCover;
+using FineCodeCoverage.Engine.Utilities;
 using FineCodeCoverage.Engine.MsTestPlatform;
 using FineCodeCoverage.Engine.ReportGenerator;
 using FineCodeCoverage.Engine.FileSynchronization;
-using System.Diagnostics;
-using FineCodeCoverage.Engine.Utilities;
 
 namespace FineCodeCoverage.Engine
 {
 	internal static class FCCEngine
 	{
 		public static string HtmlFilePath { get; private set; }
-		public static List<CoverageLine> CoverageLines { get; private set; } = new List<CoverageLine>();
-
 		public static string AppDataFolder { get; private set; }
+		public static CoverageReport CoverageReport { get; private set; }
 		public static string[] ProjectExtensions { get; } = new string[] { ".csproj", ".vbproj" };
+		public static List<CoverageLine> CoverageLines { get; private set; } = new List<CoverageLine>();
 		public static ConcurrentDictionary<string, string> ProjectFoldersCache { get; } = new ConcurrentDictionary<string, string>();
 		
 		public static void Initialize()
@@ -273,21 +272,30 @@ namespace FineCodeCoverage.Engine
 			return settings;
 		}
 
-		public static string GetSourceFileNameFromReportGeneratorHtmlFileName(string htmlFileNameWithoutExtension)
+		public static string[] GetSourceFilesFromReportGeneratorHtmlFileName(string htmlFileNameWithoutExtension)
 		{
-			var html_file_tokens = htmlFileNameWithoutExtension.Split('_');
+			// Note : There may be more than one file; e.g. in the case of partial classes
+
+			var html_file_tokens = htmlFileNameWithoutExtension.Split(new[] { '_' }, 2);
 			var html_file_package = html_file_tokens.First();
 			var html_file_class = $".{html_file_tokens.Last()}";
 
-			var cs_file_name = CoverageLines
-				.AsParallel()
-				.Where(x => x.Package.Name.Equals(html_file_package, StringComparison.OrdinalIgnoreCase))
-				.Where(x => x.Class.Name.EndsWith(html_file_class, StringComparison.OrdinalIgnoreCase))
-				.Where(x => !string.IsNullOrWhiteSpace(x.Class.Filename))
-				.Select(x => x.Class.Filename)
-				.FirstOrDefault();
+			var package = CoverageReport
+				.Packages.Package
+				.SingleOrDefault(x => x.Name?.Equals(html_file_package, StringComparison.OrdinalIgnoreCase) == true);
 
-			return cs_file_name;
+			if (package == null)
+			{
+				return new string[0];
+			}
+
+			var classFiles = package
+				.Classes.Class
+				.Where(x => x.Name?.Replace('`', '_')?.EndsWith(html_file_class) == true)
+				.Select(x => x.Filename)
+				.ToArray();
+
+			return classFiles;
 		}
 
 		private static bool IsDotNetSdkStyle(CoverageProject project)
@@ -479,7 +487,7 @@ namespace FineCodeCoverage.Engine
 
 			// update CoverageLines
 
-			CoberturaUtil.ProcessCoberturaXmlFile(unifiedXmlFile, out var coverageLines);
+			CoverageReport = CoberturaUtil.ProcessCoberturaXmlFile(unifiedXmlFile, out var coverageLines);
 			CoverageLines = coverageLines;
 
 			// update HtmlFilePath

@@ -7,6 +7,7 @@ using System.Windows.Controls;
 using Microsoft.VisualStudio.Shell;
 using System.Runtime.InteropServices;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 
 namespace FineCodeCoverage.Output
 {
@@ -80,10 +81,12 @@ namespace FineCodeCoverage.Output
 		[SuppressMessage("Style", "IDE0060:Remove unused parameter")]
 		public void OpenFile(string htmlFilePath, int file, int line)
 		{
-			var htmlFileName = Path.GetFileNameWithoutExtension(htmlFilePath);
-			var csFileName = FCCEngine.GetSourceFileNameFromReportGeneratorHtmlFileName(htmlFileName);
+			// Note : There may be more than one file; e.g. in the case of partial classes
 
-			if (string.IsNullOrWhiteSpace(csFileName))
+			var htmlFileName = Path.GetFileNameWithoutExtension(htmlFilePath);
+			var sourceFiles = FCCEngine.GetSourceFilesFromReportGeneratorHtmlFileName(htmlFileName);
+
+			if (!sourceFiles.Any())
 			{
 				var message = $"Not Found : { htmlFileName }";
 				Logger.Log(message);
@@ -97,11 +100,14 @@ namespace FineCodeCoverage.Output
 
 				_dte.MainWindow.Activate();
 
-				_dte.ItemOperations.OpenFile(csFileName, Constants.vsViewKindCode);
-
-				if (line != 0)
+				foreach (var sourceFile in sourceFiles)
 				{
-					((TextSelection)_dte.ActiveDocument.Selection).GotoLine(line, false);
+					_dte.ItemOperations.OpenFile(sourceFile, Constants.vsViewKindCode);
+
+					if (line != 0)
+					{
+						((TextSelection)_dte.ActiveDocument.Selection).GotoLine(line, false);
+					}
 				}
 			});
 		}
