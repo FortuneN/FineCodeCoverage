@@ -19,6 +19,11 @@ Explain what it should be doing after it's fixed.
 
 ### Side Notes
 - It helps to attach a repro solution so i can test the fix
+- It helps to attach the log (send it to my mailbox if you need todo so privately : fortunengwenya@gmail.com)
 - It helps to attach a screen recoding video of steps to recreate (sometimes a video is worth a thousand words)
-- [Please consider giving this project a star and become one of the stagazers](https://github.com/FortuneN/FineCodeCoverage/stargazers) 
-- [Please consider buying me a coffee](https://paypal.me/FortuneNgwenya)
+- Please consider giving this project a star and become one of the stagazers
+  https://github.com/FortuneN/FineCodeCoverage/stargazers 
+- Please consider buying me a coffee
+  https://paypal.me/FortuneNgwenya
+- Please consider rating and/or reviewing
+  https://marketplace.visualstudio.com/items?itemName=FortuneNgwenya.FineCodeCoverage&ssr=false#review-details
