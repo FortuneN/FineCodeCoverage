@@ -64,7 +64,7 @@ namespace FineCodeCoverage.Engine.Utilities
 			{
 				// create script file
 
-				shellScriptFile = Path.Combine(request.WorkingDirectory, $"{Path.GetFileNameWithoutExtension(request.FilePath)}-{Guid.NewGuid().ToString().Split('-').First()}.bat");
+				shellScriptFile = Path.Combine(request.WorkingDirectory, $"{Guid.NewGuid().ToString().Split('-').First()}.bat");
 				shellScriptOutputFile = $"{shellScriptFile}.output";
 				File.WriteAllText(shellScriptFile, $@"""{request.FilePath}"" {request.Arguments} > ""{shellScriptOutputFile}""");
 
