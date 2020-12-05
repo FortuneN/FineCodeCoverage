@@ -109,6 +109,7 @@ used by this project.
 ## Support the project
 If you find this extension useful, perhaps you can support the project
 
-[<img src="https://www.paypalobjects.com/webstatic/mktg/Logo/pp-logo-100px.png">](https://paypal.me/FortuneNgwenya)
-
-[<img alt="Donate using Liberapay" src="https://liberapay.com/assets/widgets/donate.svg">](https://liberapay.com/FortuneN/donate)
+| Provider | Type      | Link                                                                                                                              |
+|----------|-----------|-----------------------------------------------------------------------------------------------------------------------------------|
+| Paypal   | Once      | [<img src="https://www.paypalobjects.com/webstatic/mktg/Logo/pp-logo-100px.png">](https://paypal.me/FortuneNgwenya)               |
+| Librepay | Recurring | [<img alt="Donate using Liberapay" src="https://liberapay.com/assets/widgets/donate.svg">](https://liberapay.com/FortuneN/donate) |
