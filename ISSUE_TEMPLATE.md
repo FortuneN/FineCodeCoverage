@@ -24,6 +24,6 @@ Explain what it should be doing after it's fixed.
 - Please consider giving this project a star and become one of the stagazers
   https://github.com/FortuneN/FineCodeCoverage/stargazers 
 - Please consider buying me a coffee
-  https://paypal.me/FortuneNgwenya
+  https://paypal.me/FortuneNgwenya (Once) OR https://liberapay.com/FortuneN/donate (Recurring)
 - Please consider rating and/or reviewing
   https://marketplace.visualstudio.com/items?itemName=FortuneNgwenya.FineCodeCoverage&ssr=false#review-details
