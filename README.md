@@ -108,6 +108,6 @@ used by this project.
 
 ## Please support the project
 | Provider | Type      | Link                                                                                                                              |
-|----------|-----------|-----------------------------------------------------------------------------------------------------------------------------------|
+|:---------|:---------:|:---------------------------------------------------------------------------------------------------------------------------------:|
 | Paypal   | Once      | [<img src="https://www.paypalobjects.com/webstatic/mktg/Logo/pp-logo-100px.png">](https://paypal.me/FortuneNgwenya)               |
 | Librepay | Recurring | [<img alt="Donate using Liberapay" src="https://liberapay.com/assets/widgets/donate.svg">](https://liberapay.com/FortuneN/donate) |
