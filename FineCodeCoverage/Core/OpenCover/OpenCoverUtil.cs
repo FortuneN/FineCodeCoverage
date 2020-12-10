@@ -186,18 +186,24 @@ namespace FineCodeCoverage.Engine.OpenCover
 				// -filter:
 
 				var filters = new List<string>();
-
-				foreach (var value in (project.Settings.Exclude ?? new string[0]).Where(x => !string.IsNullOrWhiteSpace(x)))
-				{
-					filters.Add($@"-{value.Replace("\"", "\\\"").Trim(' ', '\'')}");
-				}
+				var defaultFilter = "+[*]*";
 
 				foreach (var value in (project.Settings.Include ?? new string[0]).Where(x => !string.IsNullOrWhiteSpace(x)))
 				{
 					filters.Add($@"+{value.Replace("\"", "\\\"").Trim(' ', '\'')}");
 				}
 
-				if (filters.Any())
+				if (!filters.Any())
+				{
+					filters.Add(defaultFilter);
+				}
+
+				foreach (var value in (project.Settings.Exclude ?? new string[0]).Where(x => !string.IsNullOrWhiteSpace(x)))
+				{
+					filters.Add($@"-{value.Replace("\"", "\\\"").Trim(' ', '\'')}");
+				}
+
+				if (filters.Any(x => !x.Equals(defaultFilter)))
 				{
 					opencoverSettings.Add($@" ""-filter:{string.Join(" ", filters)}"" ");
 				}

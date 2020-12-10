@@ -101,17 +101,10 @@ namespace FineCodeCoverage.Engine
 				return settings;
 			}
 
-			var xsettings = xproject.Descendants("PropertyGroup").FirstOrDefault(x =>
-			{
-				var label = x.Attribute("Label")?.Value?.Trim() ?? string.Empty;
-
-				if (!Vsix.Code.Equals(label, StringComparison.OrdinalIgnoreCase))
-				{
-					return false;
-				}
-
-				return true;
-			});
+			var xsettings = xproject
+				.Elements()
+				.Where(x => x.Name.LocalName.Equals("PropertyGroup", StringComparison.OrdinalIgnoreCase))
+				.FirstOrDefault(x => Vsix.Code.Equals(x.Attribute("Label")?.Value?.Trim(), StringComparison.OrdinalIgnoreCase));
 
 			if (xsettings == null)
 			{
