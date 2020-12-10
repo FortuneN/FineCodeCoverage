@@ -106,7 +106,8 @@ used by this project.
 
 [ReportGenerator](https://github.com/danielpalme/ReportGenerator)
 
-## Buy me a coffee
-If you find this extension useful, perhaps you can buy me a coffee :)
-
-[<img src="https://www.paypalobjects.com/webstatic/mktg/Logo/pp-logo-100px.png">](https://paypal.me/FortuneNgwenya)
+## Please support the project
+| Provider | Type      | Link                                                                                                                              |
+|:---------|:---------:|:---------------------------------------------------------------------------------------------------------------------------------:|
+| Paypal   | Once      | [<img src="https://www.paypalobjects.com/webstatic/mktg/Logo/pp-logo-100px.png">](https://paypal.me/FortuneNgwenya)               |
+| Librepay | Recurring | [<img alt="Donate using Liberapay" src="https://liberapay.com/assets/widgets/donate.svg">](https://liberapay.com/FortuneN/donate) |
