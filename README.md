@@ -67,7 +67,7 @@ IncludeTestAssembly     Specifies whether to report code coverage of the test as
 
 Both 'Exclude' and 'Include' options can be used together but 'Exclude' takes precedence.
 
-You can ignore a method or an entire class from code coverage by creating and applying the [ExcludeFromCodeCoverage] attribute present in the System.Diagnostics.CodeAnalysis namespace.
+You can ignore a method or an entire class or assembly ( .NET Core only ) from code coverage by creating and applying the [ExcludeFromCodeCoverage] attribute present in the System.Diagnostics.CodeAnalysis namespace.
 You can also ignore additional attributes by adding to the 'ExcludeByAttributes' list (short name or full name supported) e.g. :
 [GeneratedCode] => Present in System.CodeDom.Compiler namespace
 [MyCustomExcludeFromCodeCoverage] => Any custom attribute that you may define
