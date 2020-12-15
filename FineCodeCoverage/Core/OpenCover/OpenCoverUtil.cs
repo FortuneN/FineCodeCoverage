@@ -279,8 +279,8 @@ namespace FineCodeCoverage.Engine.OpenCover
 				//filters.Add($@"-[{nameOnlyOfDll}]*");
 			}
 
-			opencoverSettings.Add($@" ""-targetargs:{project.TestDllFileInWorkFolder}"" ");
-			
+			opencoverSettings.Add($@" ""-targetargs:\""{project.TestDllFileInWorkFolder}\"""" ");
+
 			opencoverSettings.Add($@" ""-output:{ project.CoverToolOutputFile }"" ");
 
 			Logger.Log($"{title} Arguments {Environment.NewLine}{string.Join($"{Environment.NewLine}", opencoverSettings)}");
