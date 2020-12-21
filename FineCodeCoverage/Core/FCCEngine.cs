@@ -269,9 +269,13 @@ namespace FineCodeCoverage.Engine
 		{
 			// Note : There may be more than one file; e.g. in the case of partial classes
 
-			var html_file_tokens = htmlFileNameWithoutExtension.Split(new[] { '_' }, 2);
-			var html_file_package = html_file_tokens.First();
-			var html_file_class = $".{html_file_tokens.Last()}";
+			//var html_file_tokens = htmlFileNameWithoutExtension.Split(new[] { '_' }, 2);
+			//var html_file_package = html_file_tokens.First();
+			//var html_file_class = $".{html_file_tokens.Last()}";
+
+			var underscoreSeparatorIndex = htmlFileNameWithoutExtension.LastIndexOf('_');
+			var html_file_package = htmlFileNameWithoutExtension.Substring(0, underscoreSeparatorIndex);
+			var html_file_class = $".{htmlFileNameWithoutExtension.Substring(underscoreSeparatorIndex + 1)}";
 
 			var package = CoverageReport
 				.Packages.Package
