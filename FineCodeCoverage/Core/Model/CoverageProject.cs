@@ -1,5 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Xml.Linq;
+using FineCodeCoverage.Core.Model;
 using FineCodeCoverage.Engine.Utilities;
 using FineCodeCoverage.Options;
 
@@ -22,7 +25,11 @@ namespace FineCodeCoverage.Engine.Model
 		public string TestDllFileInWorkFolder { get; set; }
 		public AppOptions Settings { get; set; }
 		public string WorkOutputFolder { get; set; }
-		public CompilationMode TestDllCompilationMode { get; internal set; }
+		public CompilationMode TestDllCompilationMode { get; set; }
+		public XElement ProjectFileXElement { get; set; }
+		public List<ReferencedProject> ReferencedProjects { get; set; }
+		public bool HasExcludeFromCodeCoverageAssemblyAttribute { get; set; }
+		public string AssemblyName { get; internal set; }
 
 		public CoverageProject Step(string stepName, Action<CoverageProject> action)
 		{

@@ -79,16 +79,15 @@ namespace FineCodeCoverage.Output
 
 		[SuppressMessage("Usage", "VSTHRD104:Offer async methods")]
 		[SuppressMessage("Style", "IDE0060:Remove unused parameter")]
-		public void OpenFile(string htmlFilePath, int file, int line)
+		public void OpenFile(string assemblyName, string className, int file, int line)
 		{
 			// Note : There may be more than one file; e.g. in the case of partial classes
 
-			var htmlFileName = Path.GetFileNameWithoutExtension(htmlFilePath);
-			var sourceFiles = FCCEngine.GetSourceFilesFromReportGeneratorHtmlFileName(htmlFileName);
+			var sourceFiles = FCCEngine.GetSourceFiles(assemblyName, className);
 
 			if (!sourceFiles.Any())
 			{
-				var message = $"Not Found : { htmlFileName }";
+				var message = $"Source File(s) Not Found : [{ assemblyName }]{ className }";
 				Logger.Log(message);
 				MessageBox.Show(message);
 				return;

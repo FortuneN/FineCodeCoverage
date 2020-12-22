@@ -67,6 +67,7 @@
     <Compile Include="Core\Cobertura\Packages.cs" />
     <Compile Include="Core\Cobertura\Sources.cs" />
     <Compile Include="Core\Coverlet\CoverletUtil.cs" />
+    <Compile Include="Core\Model\ReferencedProject.cs" />
     <Compile Include="Core\MsTestPlatform\MsTestPlatformUtil.cs" />
     <Compile Include="Core\Utilities\ComparableFile.cs" />
     <Compile Include="Core\Utilities\FileComparer.cs" />
@@ -76,6 +77,7 @@
     <Compile Include="Core\Model\CoverageProject.cs" />
     <Compile Include="Core\FCCEngine.cs" />
     <Compile Include="Core\FileSynchronization\FileSynchronizationUtil.cs" />
+    <Compile Include="Core\Utilities\XElementUtil.cs" />
     <Compile Include="Impl\GlyphFactory.cs" />
     <Compile Include="Impl\GlyphFactoryProvider.cs" />
     <Compile Include="Impl\GlyphTag.cs" />
