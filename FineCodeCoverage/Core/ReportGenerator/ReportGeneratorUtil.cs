@@ -261,7 +261,7 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 				doc.DocumentNode.QuerySelectorAll(".container").ToList().ForEach(x => x.SetAttributeValue("style", "margin:0;padding:0;border:0"));
 				doc.DocumentNode.QuerySelectorAll(".containerleft").ToList().ForEach(x => x.SetAttributeValue("style", "margin:0;padding:0;border:0"));
 				doc.DocumentNode.QuerySelectorAll(".containerleft > h1 , .containerleft > p").ToList().ForEach(x => x.SetAttributeValue("style", "display:none"));
-
+				
 				// DOM changes
 
 				var table = doc.DocumentNode.QuerySelectorAll("table.overview").First();
@@ -318,38 +318,55 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 
 				htmlSb.Replace("</body>", $@"
 					<script type=""text/javascript"">
-							
+						
 						var htmlExtension = '.html';
-						var pageFolder = '{folder.Trim('\\').Replace("\\", "\\\\")}\\';
-							
+						
 						var eventListener = function (element, event, func) {{
-							if (element.addEventListener) element.addEventListener(event, func, false);
-							else if (element.attachEvent) element.attachEvent('on' + event, func);
-							else element['on' + event] = func;
+							if (element.addEventListener)
+								element.addEventListener(event, func, false);
+							else if (element.attachEvent)
+								element.attachEvent('on' + event, func);
+							else
+								element['on' + event] = func;
 						}};
-							
+
+						var classes = {{}};
+						
+						Array.prototype.forEach.call(assemblies, function (assembly) {{
+							setTimeout(function () {{
+								Array.prototype.forEach.call(assembly.classes, function (classs) {{
+									setTimeout(function () {{
+										classs.assembly = assembly;
+										classes[classs.rp] = classs;
+									}});
+								}});
+							}});
+						}});
+						
 						eventListener(document, 'click', function (event) {{
-								
+							
 							var target = event.target;
 							if (target.tagName.toLowerCase() !== 'a') return;
-								
+							
 							var href = target.getAttribute('href');
 							if (!href || href[0] !== '#') return;
-								
+							
 							var htmlExtensionIndex = href.toLowerCase().indexOf(htmlExtension);
-							if (htmlExtensionIndex == -1) return;
-								
+							if (htmlExtensionIndex === -1) return;
+							
 							if (event.preventDefault) event.preventDefault()
 							if (event.stopPropagation) event.stopPropagation();
-								
-							var fullHref = pageFolder + href.substring(1, htmlExtensionIndex + htmlExtension.length);
+							
+							var classs = classes[href];
 							var fileLine = href.substring(htmlExtensionIndex + htmlExtension.length);
-								
-							if (fileLine.indexOf('#') != -1) fileLine = fileLine.substring(fileLine.indexOf('#') + 1).replace('file', '').replace('line', '').split('_');
-							else fileLine = ['0', '0'];
-								
-							window.external.OpenFile(fullHref, parseInt(fileLine[0]), parseInt(fileLine[1]));
-								
+							
+							if (fileLine.indexOf('#') !== -1)
+								fileLine = fileLine.substring(fileLine.indexOf('#') + 1).replace('file', '').replace('line', '').split('_');
+							else
+								fileLine = ['0', '0'];
+							
+							window.external.OpenFile(classs.assembly.name, classs.name, parseInt(fileLine[0]), parseInt(fileLine[1]));
+							
 							return false;
 						}});
 							

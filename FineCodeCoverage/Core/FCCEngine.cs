@@ -13,6 +13,9 @@ using FineCodeCoverage.Engine.Utilities;
 using FineCodeCoverage.Engine.MsTestPlatform;
 using FineCodeCoverage.Engine.ReportGenerator;
 using FineCodeCoverage.Engine.FileSynchronization;
+using FineCodeCoverage.Core.Model;
+using FineCodeCoverage.Core.Utilities;
+using System.Xml.XPath;
 
 namespace FineCodeCoverage.Engine
 {
@@ -87,176 +90,166 @@ namespace FineCodeCoverage.Engine
 
 			var settings = AppOptions.Get();
 
-			// override with test project settings
+			/*
+			========================================
+			Process PropertyGroup settings
+			========================================
+			<PropertyGroup Label="FineCodeCoverage">
+				...
+			</PropertyGroup>
+			*/
 
-			XElement xproject;
-
-			try
+			var settingsPropertyGroup = project.ProjectFileXElement.XPathSelectElement($"/PropertyGroup[@Label='{Vsix.Code}']");
+			
+			if (settingsPropertyGroup != null)
 			{
-				xproject = XElement.Parse(File.ReadAllText(project.ProjectFile));
-			}
-			catch (Exception ex)
-			{
-				Logger.Log("Failed to parse project file", ex);
-				return settings;
-			}
-
-			var xsettings = xproject
-				.Elements()
-				.Where(x => x.Name.LocalName.Equals("PropertyGroup", StringComparison.OrdinalIgnoreCase))
-				.FirstOrDefault(x => Vsix.Code.Equals(x.Attribute("Label")?.Value?.Trim(), StringComparison.OrdinalIgnoreCase));
-
-			if (xsettings == null)
-			{
-				return settings;
-			}
-
-			foreach (var property in settings.GetType().GetProperties())
-			{
-				try
+				foreach (var property in settings.GetType().GetProperties())
 				{
-					var xproperty = xsettings.Descendants().FirstOrDefault(x => x.Name.LocalName.Equals(property.Name, StringComparison.OrdinalIgnoreCase));
-
-					if (xproperty == null)
+					try
 					{
-						continue;
-					}
+						var xproperty = settingsPropertyGroup.Descendants().FirstOrDefault(x => x.Name.LocalName.Equals(property.Name, StringComparison.OrdinalIgnoreCase));
 
-					var strValue = xproperty.Value;
-
-					if (string.IsNullOrWhiteSpace(strValue))
-					{
-						continue;
-					}
-
-					var strValueArr = strValue.Split('\n', '\r').Where(x => !string.IsNullOrWhiteSpace(x)).Select(x => x.Trim()).ToArray();
-
-					if (!strValue.Any())
-					{
-						continue;
-					}
-
-					if (TypeMatch(property.PropertyType, typeof(string)))
-					{
-						property.SetValue(settings, strValueArr.FirstOrDefault());
-					}
-					else if (TypeMatch(property.PropertyType, typeof(string[])))
-					{
-						property.SetValue(settings, strValueArr);
-					}
-
-					else if (TypeMatch(property.PropertyType, typeof(bool), typeof(bool?)))
-					{
-						if (bool.TryParse(strValueArr.FirstOrDefault(), out bool value))
+						if (xproperty == null)
 						{
-							property.SetValue(settings, value);
+							continue;
+						}
+
+						var strValue = xproperty.Value;
+
+						if (string.IsNullOrWhiteSpace(strValue))
+						{
+							continue;
+						}
+
+						var strValueArr = strValue.Split('\n', '\r').Where(x => !string.IsNullOrWhiteSpace(x)).Select(x => x.Trim()).ToArray();
+
+						if (!strValue.Any())
+						{
+							continue;
+						}
+
+						if (TypeMatch(property.PropertyType, typeof(string)))
+						{
+							property.SetValue(settings, strValueArr.FirstOrDefault());
+						}
+						else if (TypeMatch(property.PropertyType, typeof(string[])))
+						{
+							property.SetValue(settings, strValueArr);
+						}
+
+						else if (TypeMatch(property.PropertyType, typeof(bool), typeof(bool?)))
+						{
+							if (bool.TryParse(strValueArr.FirstOrDefault(), out bool value))
+							{
+								property.SetValue(settings, value);
+							}
+						}
+						else if (TypeMatch(property.PropertyType, typeof(bool[]), typeof(bool?[])))
+						{
+							var arr = strValueArr.Where(x => bool.TryParse(x, out var _)).Select(x => bool.Parse(x));
+							if (arr.Any()) property.SetValue(settings, arr);
+						}
+
+						else if (TypeMatch(property.PropertyType, typeof(int), typeof(int?)))
+						{
+							if (int.TryParse(strValueArr.FirstOrDefault(), out var value))
+							{
+								property.SetValue(settings, value);
+							}
+						}
+						else if (TypeMatch(property.PropertyType, typeof(int[]), typeof(int?[])))
+						{
+							var arr = strValueArr.Where(x => int.TryParse(x, out var _)).Select(x => int.Parse(x));
+							if (arr.Any()) property.SetValue(settings, arr);
+						}
+
+						else if (TypeMatch(property.PropertyType, typeof(short), typeof(short?)))
+						{
+							if (short.TryParse(strValueArr.FirstOrDefault(), out var vaue))
+							{
+								property.SetValue(settings, vaue);
+							}
+						}
+						else if (TypeMatch(property.PropertyType, typeof(short[]), typeof(short?[])))
+						{
+							var arr = strValueArr.Where(x => short.TryParse(x, out var _)).Select(x => short.Parse(x));
+							if (arr.Any()) property.SetValue(settings, arr);
+						}
+
+						else if (TypeMatch(property.PropertyType, typeof(long), typeof(long?)))
+						{
+							if (long.TryParse(strValueArr.FirstOrDefault(), out var value))
+							{
+								property.SetValue(settings, value);
+							}
+						}
+						else if (TypeMatch(property.PropertyType, typeof(long[]), typeof(long?[])))
+						{
+							var arr = strValueArr.Where(x => long.TryParse(x, out var _)).Select(x => long.Parse(x));
+							if (arr.Any()) property.SetValue(settings, arr);
+						}
+
+						else if (TypeMatch(property.PropertyType, typeof(decimal), typeof(decimal?)))
+						{
+							if (decimal.TryParse(strValueArr.FirstOrDefault(), out var value))
+							{
+								property.SetValue(settings, value);
+							}
+						}
+						else if (TypeMatch(property.PropertyType, typeof(decimal[]), typeof(decimal?[])))
+						{
+							var arr = strValueArr.Where(x => decimal.TryParse(x, out var _)).Select(x => decimal.Parse(x));
+							if (arr.Any()) property.SetValue(settings, arr);
+						}
+
+						else if (TypeMatch(property.PropertyType, typeof(double), typeof(double?)))
+						{
+							if (double.TryParse(strValueArr.FirstOrDefault(), out var value))
+							{
+								property.SetValue(settings, value);
+							}
+						}
+						else if (TypeMatch(property.PropertyType, typeof(double[]), typeof(double?[])))
+						{
+							var arr = strValueArr.Where(x => double.TryParse(x, out var _)).Select(x => double.Parse(x));
+							if (arr.Any()) property.SetValue(settings, arr);
+						}
+
+						else if (TypeMatch(property.PropertyType, typeof(float), typeof(float?)))
+						{
+							if (float.TryParse(strValueArr.FirstOrDefault(), out var value))
+							{
+								property.SetValue(settings, value);
+							}
+						}
+						else if (TypeMatch(property.PropertyType, typeof(float[]), typeof(float?[])))
+						{
+							var arr = strValueArr.Where(x => float.TryParse(x, out var _)).Select(x => float.Parse(x));
+							if (arr.Any()) property.SetValue(settings, arr);
+						}
+
+						else if (TypeMatch(property.PropertyType, typeof(char), typeof(char?)))
+						{
+							if (char.TryParse(strValueArr.FirstOrDefault(), out var value))
+							{
+								property.SetValue(settings, value);
+							}
+						}
+						else if (TypeMatch(property.PropertyType, typeof(char[]), typeof(char?[])))
+						{
+							var arr = strValueArr.Where(x => char.TryParse(x, out var _)).Select(x => char.Parse(x));
+							if (arr.Any()) property.SetValue(settings, arr);
+						}
+
+						else
+						{
+							throw new Exception($"Cannot handle '{property.PropertyType.Name}' yet");
 						}
 					}
-					else if (TypeMatch(property.PropertyType, typeof(bool[]), typeof(bool?[])))
+					catch (Exception exception)
 					{
-						var arr = strValueArr.Where(x => bool.TryParse(x, out var _)).Select(x => bool.Parse(x));
-						if (arr.Any()) property.SetValue(settings, arr);
+						Logger.Log($"Failed to override '{property.Name}' setting", exception);
 					}
-
-					else if (TypeMatch(property.PropertyType, typeof(int), typeof(int?)))
-					{
-						if (int.TryParse(strValueArr.FirstOrDefault(), out var value))
-						{
-							property.SetValue(settings, value);
-						}
-					}
-					else if (TypeMatch(property.PropertyType, typeof(int[]), typeof(int?[])))
-					{
-						var arr = strValueArr.Where(x => int.TryParse(x, out var _)).Select(x => int.Parse(x));
-						if (arr.Any()) property.SetValue(settings, arr);
-					}
-
-					else if (TypeMatch(property.PropertyType, typeof(short), typeof(short?)))
-					{
-						if (short.TryParse(strValueArr.FirstOrDefault(), out var vaue))
-						{
-							property.SetValue(settings, vaue);
-						}
-					}
-					else if (TypeMatch(property.PropertyType, typeof(short[]), typeof(short?[])))
-					{
-						var arr = strValueArr.Where(x => short.TryParse(x, out var _)).Select(x => short.Parse(x));
-						if (arr.Any()) property.SetValue(settings, arr);
-					}
-
-					else if (TypeMatch(property.PropertyType, typeof(long), typeof(long?)))
-					{
-						if (long.TryParse(strValueArr.FirstOrDefault(), out var value))
-						{
-							property.SetValue(settings, value);
-						}
-					}
-					else if (TypeMatch(property.PropertyType, typeof(long[]), typeof(long?[])))
-					{
-						var arr = strValueArr.Where(x => long.TryParse(x, out var _)).Select(x => long.Parse(x));
-						if (arr.Any()) property.SetValue(settings, arr);
-					}
-
-					else if (TypeMatch(property.PropertyType, typeof(decimal), typeof(decimal?)))
-					{
-						if (decimal.TryParse(strValueArr.FirstOrDefault(), out var value))
-						{
-							property.SetValue(settings, value);
-						}
-					}
-					else if (TypeMatch(property.PropertyType, typeof(decimal[]), typeof(decimal?[])))
-					{
-						var arr = strValueArr.Where(x => decimal.TryParse(x, out var _)).Select(x => decimal.Parse(x));
-						if (arr.Any()) property.SetValue(settings, arr);
-					}
-
-					else if (TypeMatch(property.PropertyType, typeof(double), typeof(double?)))
-					{
-						if (double.TryParse(strValueArr.FirstOrDefault(), out var value))
-						{
-							property.SetValue(settings, value);
-						}
-					}
-					else if (TypeMatch(property.PropertyType, typeof(double[]), typeof(double?[])))
-					{
-						var arr = strValueArr.Where(x => double.TryParse(x, out var _)).Select(x => double.Parse(x));
-						if (arr.Any()) property.SetValue(settings, arr);
-					}
-
-					else if (TypeMatch(property.PropertyType, typeof(float), typeof(float?)))
-					{
-						if (float.TryParse(strValueArr.FirstOrDefault(), out var value))
-						{
-							property.SetValue(settings, value);
-						}
-					}
-					else if (TypeMatch(property.PropertyType, typeof(float[]), typeof(float?[])))
-					{
-						var arr = strValueArr.Where(x => float.TryParse(x, out var _)).Select(x => float.Parse(x));
-						if (arr.Any()) property.SetValue(settings, arr);
-					}
-
-					else if (TypeMatch(property.PropertyType, typeof(char), typeof(char?)))
-					{
-						if (char.TryParse(strValueArr.FirstOrDefault(), out var value))
-						{
-							property.SetValue(settings, value);
-						}
-					}
-					else if (TypeMatch(property.PropertyType, typeof(char[]), typeof(char?[])))
-					{
-						var arr = strValueArr.Where(x => char.TryParse(x, out var _)).Select(x => char.Parse(x));
-						if (arr.Any()) property.SetValue(settings, arr);
-					}
-
-					else
-					{
-						throw new Exception($"Cannot handle '{property.PropertyType.Name}' yet");
-					}
-				}
-				catch (Exception exception)
-				{
-					Logger.Log($"Failed to override '{property.Name}' setting", exception);
 				}
 			}
 
@@ -265,30 +258,24 @@ namespace FineCodeCoverage.Engine
 			return settings;
 		}
 
-		public static string[] GetSourceFilesFromReportGeneratorHtmlFileName(string htmlFileNameWithoutExtension)
+		public static string[] GetSourceFiles(string assemblyName, string className)
 		{
 			// Note : There may be more than one file; e.g. in the case of partial classes
-
-			//var html_file_tokens = htmlFileNameWithoutExtension.Split(new[] { '_' }, 2);
-			//var html_file_package = html_file_tokens.First();
-			//var html_file_class = $".{html_file_tokens.Last()}";
-
-			var underscoreSeparatorIndex = htmlFileNameWithoutExtension.LastIndexOf('_');
-			var html_file_package = htmlFileNameWithoutExtension.Substring(0, underscoreSeparatorIndex);
-			var html_file_class = $".{htmlFileNameWithoutExtension.Substring(underscoreSeparatorIndex + 1)}";
-
+      
 			var package = CoverageReport
 				.Packages.Package
-				.SingleOrDefault(x => x.Name?.Equals(html_file_package, StringComparison.OrdinalIgnoreCase) == true);
+				.SingleOrDefault(x => x.Name.Equals(assemblyName));
 
 			if (package == null)
 			{
 				return new string[0];
 			}
 
+			var longClassName = $"{assemblyName}.{className}";
+
 			var classFiles = package
 				.Classes.Class
-				.Where(x => x.Name?.Replace('`', '_')?.EndsWith(html_file_class) == true)
+				.Where(x => x.Name.Equals(longClassName))
 				.Select(x => x.Filename)
 				.ToArray();
 
@@ -297,8 +284,7 @@ namespace FineCodeCoverage.Engine
 
 		private static bool IsDotNetSdkStyle(CoverageProject project)
 		{
-			return XElement
-			.Parse(File.ReadAllText(project.ProjectFile))
+			return project.ProjectFileXElement
 			.DescendantsAndSelf()
 			.Where(x =>
 			{
@@ -402,6 +388,7 @@ namespace FineCodeCoverage.Engine
 			projects = projects
 			.Select(project =>
 			{
+				project.ProjectFileXElement = XElementUtil.Load(project.ProjectFile, true);
 				project.Settings = GetSettings(project);
 
 				if (!project.Settings.Enabled)
@@ -420,6 +407,9 @@ namespace FineCodeCoverage.Engine
 				project.CoverToolOutputFile = Path.Combine(project.WorkOutputFolder, "_cover.tool.xml");
 				project.TestDllFileInWorkFolder = Path.Combine(project.WorkFolder, Path.GetFileName(project.TestDllFileInOutputFolder));
 				project.IsDotNetSdkStyle = IsDotNetSdkStyle(project);
+				project.ReferencedProjects = GetReferencedProjects(project);
+				project.HasExcludeFromCodeCoverageAssemblyAttribute = HasExcludeFromCodeCoverageAssemblyAttribute(project.ProjectFileXElement);
+				project.AssemblyName = GetAssemblyName(project.ProjectFileXElement, Path.GetFileNameWithoutExtension(project.ProjectFile));
 
 				return project;
 			})
@@ -492,5 +482,89 @@ namespace FineCodeCoverage.Engine
 			ReportGeneratorUtil.ProcessCoberturaHtmlFile(unifiedHtmlFile, darkMode, out var coverageHtml);
 			HtmlFilePath = coverageHtml;
 		}
+
+		private static List<ReferencedProject> GetReferencedProjects(CoverageProject project)
+		{
+			/*
+			<ItemGroup>
+				<ProjectReference Include="..\BranchCoverage\Branch_Coverage.csproj" />
+				<ProjectReference Include="..\FxClassLibrary1\FxClassLibrary1.csproj"></ProjectReference>
+			</ItemGroup>
+			 */
+
+			var referencedProjects = new List<ReferencedProject>();
+
+			var xprojectReferences = project.ProjectFileXElement.XPathSelectElements($"/ItemGroup/ProjectReference[@Include]");
+			
+			foreach (var xprojectReference in xprojectReferences)
+			{
+				var referencedProject = new ReferencedProject();
+
+				// ProjectFile
+
+				referencedProject.ProjectFile = xprojectReference.Attribute("Include").Value;
+
+				if (!Path.IsPathRooted(referencedProject.ProjectFile))
+				{
+					referencedProject.ProjectFile = Path.GetFullPath(Path.Combine(project.ProjectFolder, referencedProject.ProjectFile));
+				}
+
+				// ProjectFileXElement
+
+				referencedProject.ProjectFileXElement = XElementUtil.Load(referencedProject.ProjectFile, true);
+
+				// HasExcludeFromCodeCoverageAssemblyAttribute
+				
+				referencedProject.HasExcludeFromCodeCoverageAssemblyAttribute = HasExcludeFromCodeCoverageAssemblyAttribute(referencedProject.ProjectFileXElement);
+
+				// AssemblyName
+
+				referencedProject.AssemblyName = GetAssemblyName(referencedProject.ProjectFileXElement, Path.GetFileNameWithoutExtension(referencedProject.ProjectFile));
+
+				// add
+
+				referencedProjects.Add(referencedProject);
+			}
+			
+			return referencedProjects;
+		}
+
+		private static bool HasExcludeFromCodeCoverageAssemblyAttribute(XElement projectFileXElement)
+		{
+			/*
+			 ...
+			<ItemGroup>
+				<AssemblyAttribute Include="System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute" />
+			</ItemGroup>
+			...
+			 */
+
+			var xassemblyAttribute = projectFileXElement.XPathSelectElement($"/ItemGroup/AssemblyAttribute[@Include='System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute']");
+			
+			return xassemblyAttribute != null;
+		}
+
+		private static string GetAssemblyName(XElement projectFileXElement, string fallbackName = null)
+		{
+			/*
+			<PropertyGroup>
+				...
+				<AssemblyName>Branch_Coverage.Tests</AssemblyName>
+				...
+			</PropertyGroup>
+			 */
+
+			var xassemblyName = projectFileXElement.XPathSelectElement("/PropertyGroup/AssemblyName");
+
+			var result = xassemblyName?.Value?.Trim();
+
+			if (string.IsNullOrWhiteSpace(result))
+			{
+				result = fallbackName;
+			}
+
+			return result;
+		}
+
 	}
 }

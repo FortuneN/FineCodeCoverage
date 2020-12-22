@@ -203,9 +203,14 @@ namespace FineCodeCoverage.Engine.OpenCover
 					filters.Add($@"-{value.Replace("\"", "\\\"").Trim(' ', '\'')}");
 				}
 
+				foreach (var referenceProjectWithExcludeAttribute in project.ReferencedProjects.Where(x => x.HasExcludeFromCodeCoverageAssemblyAttribute))
+				{
+					filters.Add($@"-[{referenceProjectWithExcludeAttribute.AssemblyName}]*");
+				}
+
 				if (filters.Any(x => !x.Equals(defaultFilter)))
 				{
-					opencoverSettings.Add($@" ""-filter:{string.Join(" ", filters)}"" ");
+					opencoverSettings.Add($@" ""-filter:{string.Join(" ", filters.Distinct())}"" ");
 				}
 			}
 
@@ -279,8 +284,8 @@ namespace FineCodeCoverage.Engine.OpenCover
 				//filters.Add($@"-[{nameOnlyOfDll}]*");
 			}
 
-			opencoverSettings.Add($@" ""-targetargs:{project.TestDllFileInWorkFolder}"" ");
-			
+			opencoverSettings.Add($@" ""-targetargs:\""{project.TestDllFileInWorkFolder}\"""" ");
+
 			opencoverSettings.Add($@" ""-output:{ project.CoverToolOutputFile }"" ");
 
 			Logger.Log($"{title} Arguments {Environment.NewLine}{string.Join($"{Environment.NewLine}", opencoverSettings)}");
