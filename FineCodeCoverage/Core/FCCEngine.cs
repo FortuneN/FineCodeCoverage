@@ -269,26 +269,26 @@ namespace FineCodeCoverage.Engine
 		{
 			// Note : There may be more than one file; e.g. in the case of partial classes
 
-			var html_file_tokens = htmlFileNameWithoutExtension.Split(new[] { '_' }, 2);
-			var html_file_package = html_file_tokens.First();
-			var html_file_class = $".{html_file_tokens.Last()}";
+			var assemblyDelimiterIndex = htmlFileNameWithoutExtension.IndexOf("!");
+			var assembly = htmlFileNameWithoutExtension.Substring(0, assemblyDelimiterIndex);
+			var qualifiedClassName = htmlFileNameWithoutExtension.Substring(assemblyDelimiterIndex + 1);
 
 			var package = CoverageReport
 				.Packages.Package
-				.SingleOrDefault(x => x.Name?.Equals(html_file_package, StringComparison.OrdinalIgnoreCase) == true);
+				.SingleOrDefault(x => x.Name?.Equals(assembly, StringComparison.OrdinalIgnoreCase) == true);
 
 			if (package == null)
 			{
 				return new string[0];
 			}
 
-			var classFiles = package
-				.Classes.Class
-				.Where(x => x.Name?.Replace('`', '_')?.EndsWith(html_file_class) == true)
-				.Select(x => x.Filename)
-				.ToArray();
+            var classFiles = package
+                .Classes.Class
+                .Where(x => x.Name == qualifiedClassName)
+                .Select(x => x.Filename)
+                .ToArray();
 
-			return classFiles;
+            return classFiles;
 		}
 
 		private static bool IsDotNetSdkStyle(CoverageProject project)
