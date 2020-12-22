@@ -258,7 +258,7 @@ namespace FineCodeCoverage.Engine
 			return settings;
 		}
 
-		public static string[] GetSourceFiles(string assemblyName, string className)
+		public static string[] GetSourceFiles(string assemblyName, string qualifiedClassName)
 		{
 			// Note : There may be more than one file; e.g. in the case of partial classes
 
@@ -271,11 +271,9 @@ namespace FineCodeCoverage.Engine
 				return new string[0];
 			}
 
-			var longClassName = $"{assemblyName}.{className}";
-
 			var classFiles = package
 				.Classes.Class
-				.Where(x => x.Name.Equals(longClassName))
+				.Where(x => x.Name.Equals(qualifiedClassName))
 				.Select(x => x.Filename)
 				.ToArray();
 
