@@ -12,7 +12,6 @@ using FineCodeCoverage.Engine.OpenCover;
 using FineCodeCoverage.Engine.Utilities;
 using FineCodeCoverage.Engine.MsTestPlatform;
 using FineCodeCoverage.Engine.ReportGenerator;
-using FineCodeCoverage.Engine.FileSynchronization;
 using FineCodeCoverage.Core.Model;
 using FineCodeCoverage.Core.Utilities;
 using System.Xml.XPath;
@@ -397,48 +396,34 @@ namespace FineCodeCoverage.Engine
 
 				if (string.IsNullOrWhiteSpace(project.ProjectFile))
 				{
-					project.FailureDescription = $"Unsupported project type for DLL '{project.TestDllFileInOutputFolder}'";
+					project.FailureDescription = $"Unsupported project type for DLL '{project.TestDllFile}'";
 					return project;
 				}
 
-				project.WorkOutputFolder = Path.Combine(project.WorkFolder, "_outputfolder");
-				project.CoverToolOutputFile = Path.Combine(project.WorkOutputFolder, "_cover.tool.xml");
-				project.TestDllFileInWorkFolder = Path.Combine(project.WorkFolder, Path.GetFileName(project.TestDllFileInOutputFolder));
+				project.CoverageOutputFolder = Path.Combine(project.ProjectOutputFolder, "fine-code-coverage");
+				project.CoverageOutputFile = Path.Combine(project.CoverageOutputFolder, "project.coverage.xml");
 				project.IsDotNetSdkStyle = IsDotNetSdkStyle(project);
 				project.ReferencedProjects = GetReferencedProjects(project);
 				project.HasExcludeFromCodeCoverageAssemblyAttribute = HasExcludeFromCodeCoverageAssemblyAttribute(project.ProjectFileXElement);
 				project.AssemblyName = GetAssemblyName(project.ProjectFileXElement, Path.GetFileNameWithoutExtension(project.ProjectFile));
 
+				if (!Directory.Exists(project.CoverageOutputFolder))
+				{
+					Directory.CreateDirectory(project.CoverageOutputFolder);
+				}
+
+				try
+				{
+					var legacyOutputFolder = Path.Combine(project.ProjectOutputFolder, "_outputFolder");
+					Directory.Delete(legacyOutputFolder, true);
+				}
+				catch
+				{
+					// ignore
+				}
+
 				return project;
 			})
-			.Select(p => p.Step("Ensure Work Folder Exists", project =>
-			{
-				// create folders
-
-				var logs = new List<string>();
-
-				if (!Directory.Exists(project.WorkFolder))
-				{
-					Directory.CreateDirectory(project.WorkFolder);
-					logs.Add($"Created : {project.WorkFolder}");
-				}
-
-				if (!Directory.Exists(project.WorkOutputFolder))
-				{
-					Directory.CreateDirectory(project.WorkOutputFolder);
-					logs.Add($"Created : {project.WorkOutputFolder}");
-				}
-
-				//Logger.LogWithoutTitle(logs);
-			}))
-			.Select(p => p.Step("Synchronize Output Files To Work Folder", project =>
-			{
-				// sync files from output folder to work folder where we do the analysis
-
-				var logs = FileSynchronizationUtil.Synchronize(project.ProjectOutputFolder, project.WorkFolder);
-
-				//Logger.LogWithoutTitle(logs);
-			}))
 			.Select(p => p.Step("Run Coverage Tool", project =>
 			{
 				// run the appropriate cover tool
@@ -458,7 +443,7 @@ namespace FineCodeCoverage.Engine
 			// project files
 
 			var coverOutputFiles = projects
-				.Select(x => x.CoverToolOutputFile)
+				.Select(x => x.CoverageOutputFile)
 				.ToArray();
 
 			if (!coverOutputFiles.Any())
@@ -477,7 +462,7 @@ namespace FineCodeCoverage.Engine
 
 			// update HtmlFilePath
 
-			ReportGeneratorUtil.ProcessCoberturaHtmlFile(unifiedHtmlFile, darkMode, out var coverageHtml);
+			ReportGeneratorUtil.ProcessUnifiedHtmlFile(unifiedHtmlFile, darkMode, out var coverageHtml);
 			HtmlFilePath = coverageHtml;
 		}
 

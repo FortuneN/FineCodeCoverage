@@ -24,7 +24,10 @@ namespace FineCodeCoverage.Impl
 	[Export(typeof(ITestContainerDiscoverer))]
 	internal class TestContainerDiscoverer : ITestContainerDiscoverer
 	{
+		private EnvDTE.DTE _dte;
+		private EnvDTE.Events _dteEvents;
 		private Thread _reloadCoverageThread;
+		private EnvDTE.BuildEvents _dteBuildEvents;
 		public event EventHandler TestContainersUpdated;
 		private readonly IServiceProvider _serviceProvider;
 		public static event UpdateMarginTagsDelegate UpdateMarginTags;
@@ -54,8 +57,8 @@ namespace FineCodeCoverage.Impl
 					Logger.Initialize(_serviceProvider);
 
 					FCCEngine.Initialize();
-					TestContainersUpdated?.ToString();
-					InitializeOutputWindow(_serviceProvider);
+					Initialize(_serviceProvider);
+					TestContainersUpdated.ToString();
 					operationState.StateChanged += OperationState_StateChanged;
 
 					Logger.Log($"Initialized");
@@ -68,11 +71,20 @@ namespace FineCodeCoverage.Impl
 		}
 
 		[SuppressMessage("Usage", "VSTHRD102:Implement internal logic asynchronously")]
-		private void InitializeOutputWindow(IServiceProvider serviceProvider)
+		private void Initialize(IServiceProvider serviceProvider)
 		{
 			ThreadHelper.JoinableTaskFactory.Run(async () =>
 			{
 				await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+
+				_dte = (EnvDTE.DTE)serviceProvider.GetService(typeof(EnvDTE.DTE));
+				
+				if (_dte != null)
+				{
+					_dteEvents = _dte.Events;
+					_dteBuildEvents = _dteEvents.BuildEvents;
+					_dteBuildEvents.OnBuildBegin += (scope, action) => StopCoverageProcess();
+				}
 
 				if (serviceProvider.GetService(typeof(SVsShell)) is IVsShell shell)
 				{
@@ -95,25 +107,30 @@ namespace FineCodeCoverage.Impl
 			});
 		}
 
+		private void StopCoverageProcess()
+		{
+			try
+			{
+				_reloadCoverageThread?.Abort();
+			}
+			catch
+			{
+				// ignore
+			}
+			finally
+			{
+				_reloadCoverageThread = null;
+				FCCEngine.ClearProcesses();
+			}
+		}
+
 		private void OperationState_StateChanged(object sender, OperationStateChangedEventArgs e)
 		{
 			try
 			{
 				if (e.State == TestOperationStates.TestExecutionStarting)
 				{
-					try
-					{
-						_reloadCoverageThread?.Abort();
-					}
-					catch
-					{
-						// ignore
-					}
-					finally
-					{
-						_reloadCoverageThread = null;
-						FCCEngine.ClearProcesses();
-					}
+					StopCoverageProcess(); // just to be sure
 				}
 
 				if (e.State == TestOperationStates.TestExecutionFinished)
@@ -145,12 +162,20 @@ namespace FineCodeCoverage.Impl
 
 						project.ProjectGuid = containerType.GetProperty("ProjectGuid").GetValue(container).ToString();
 						project.ProjectName = containerType.GetProperty("ProjectName").GetValue(container).ToString();
-						project.TestDllFileInOutputFolder = containerType.GetProperty("Source").GetValue(container).ToString();
-						project.TestDllCompilationMode = AssemblyUtil.GetCompilationMode(project.TestDllFileInOutputFolder);
+						project.TestDllFile = containerType.GetProperty("Source").GetValue(container).ToString();
+						project.Is64Bit = containerType.GetProperty("TargetPlatform").GetValue(container).ToString().ToLower().Equals("x64");
 						project.ProjectFile = containerDataType.GetProperty("ProjectFilePath", BindingFlags.Instance | BindingFlags.FlattenHierarchy | BindingFlags.Public | BindingFlags.NonPublic).GetValue(containerData).ToString();
 
-						var defaultOutputFolder = Path.GetDirectoryName(containerDataType.GetProperty("DefaultOutputPath", BindingFlags.Instance | BindingFlags.FlattenHierarchy | BindingFlags.Public | BindingFlags.NonPublic).GetValue(containerData).ToString());
-						project.WorkFolder = Path.Combine(Path.GetDirectoryName(defaultOutputFolder), "fine-code-coverage");
+						try
+						{
+							var defaultOutputFolder = Path.GetDirectoryName(containerDataType.GetProperty("DefaultOutputPath", BindingFlags.Instance | BindingFlags.FlattenHierarchy | BindingFlags.Public | BindingFlags.NonPublic).GetValue(containerData).ToString());
+							var legacyWorkFolder = Path.Combine(Path.GetDirectoryName(defaultOutputFolder), "fine-code-coverage");
+							Directory.Delete(legacyWorkFolder, true);
+						}
+						catch
+						{
+							// ignore
+						}
 						
 						projects.Add(project);
 					}

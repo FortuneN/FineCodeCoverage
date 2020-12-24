@@ -145,17 +145,17 @@ namespace FineCodeCoverage.Engine.OpenCover
 		{
 			var title = $"OpenCover Run ({project.ProjectName})";
 
-			if (File.Exists(project.CoverToolOutputFile))
+			if (File.Exists(project.CoverageOutputFile))
 			{
-				File.Delete(project.CoverToolOutputFile);
+				File.Delete(project.CoverageOutputFile);
 			}
 
-			if (Directory.Exists(project.WorkOutputFolder))
+			if (Directory.Exists(project.CoverageOutputFolder))
 			{
-				Directory.Delete(project.WorkOutputFolder, true);
+				Directory.Delete(project.CoverageOutputFolder, true);
 			}
 
-			Directory.CreateDirectory(project.WorkOutputFolder);
+			Directory.CreateDirectory(project.CoverageOutputFolder);
 
 			var opencoverSettings = new List<string>();
 
@@ -168,7 +168,7 @@ namespace FineCodeCoverage.Engine.OpenCover
 
 				var registerValue = "path32";
 
-				if (project.TestDllCompilationMode.HasFlag(CompilationMode.Bit64))
+				if (project.Is64Bit)
 				{
 					registerValue = "path64";
 				}
@@ -275,7 +275,7 @@ namespace FineCodeCoverage.Engine.OpenCover
 			{
 				// deleting the pdb of the test assembly seems to work; this is a VERY VERY shameful hack :(
 				
-				var testDllPdbFile = Path.Combine(project.WorkFolder, Path.GetFileNameWithoutExtension(project.TestDllFileInWorkFolder)) + ".pdb";
+				var testDllPdbFile = Path.Combine(project.ProjectOutputFolder, Path.GetFileNameWithoutExtension(project.TestDllFile)) + ".pdb";
 				File.Delete(testDllPdbFile);
 
 				// filtering out the test-assembly blows up the entire process and nothing gets instrumented or analysed
@@ -284,9 +284,9 @@ namespace FineCodeCoverage.Engine.OpenCover
 				//filters.Add($@"-[{nameOnlyOfDll}]*");
 			}
 
-			opencoverSettings.Add($@" ""-targetargs:\""{project.TestDllFileInWorkFolder}\"""" ");
+			opencoverSettings.Add($@" ""-targetargs:\""{project.TestDllFile}\"""" ");
 
-			opencoverSettings.Add($@" ""-output:{ project.CoverToolOutputFile }"" ");
+			opencoverSettings.Add($@" ""-output:{ project.CoverageOutputFile }"" ");
 
 			Logger.Log($"{title} Arguments {Environment.NewLine}{string.Join($"{Environment.NewLine}", opencoverSettings)}");
 
@@ -295,7 +295,7 @@ namespace FineCodeCoverage.Engine.OpenCover
 			{
 				FilePath = OpenCoverExePath,
 				Arguments = string.Join(" ", opencoverSettings),
-				WorkingDirectory = project.WorkFolder
+				WorkingDirectory = project.ProjectOutputFolder
 			})
 			.GetAwaiter()
 			.GetResult();

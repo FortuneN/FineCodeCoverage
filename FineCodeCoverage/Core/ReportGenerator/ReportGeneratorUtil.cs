@@ -165,16 +165,16 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 		public static bool RunReportGenerator(IEnumerable<string> coverOutputFiles, bool darkMode, out string unifiedHtmlFile, out string unifiedXmlFile, bool throwError = false)
 		{
 			var title = "ReportGenerator Run";
-			var ouputFolder = Path.GetDirectoryName(coverOutputFiles.OrderBy(x => x).First()); // use location of first file to output reports
+			var outputFolder = Path.GetDirectoryName(coverOutputFiles.OrderBy(x => x).First()); // use location of first file to output reports
 
-			Directory.GetFiles(ouputFolder, "*.htm*").ToList().ForEach(File.Delete); // delete html files if they exist
+			Directory.GetFiles(outputFolder, "*.htm*").ToList().ForEach(File.Delete); // delete html files if they exist
 
-			unifiedHtmlFile = Path.Combine(ouputFolder, "index.html");
-			unifiedXmlFile = Path.Combine(ouputFolder, "cobertura.xml");
+			unifiedHtmlFile = Path.Combine(outputFolder, "index.html");
+			unifiedXmlFile = Path.Combine(outputFolder, "Cobertura.xml");
 
 			var reportGeneratorSettings = new List<string>();
 
-			reportGeneratorSettings.Add($@"""-targetdir:{ouputFolder}""");
+			reportGeneratorSettings.Add($@"""-targetdir:{outputFolder}""");
 			
 			bool run(string outputReportType, string inputReports)
 			{
@@ -203,7 +203,7 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 				{
 					FilePath = ReportGeneratorExePath,
 					Arguments = string.Join(" ", reportTypeSettings),
-					WorkingDirectory = ouputFolder
+					WorkingDirectory = outputFolder
 				})
 				.GetAwaiter()
 				.GetResult();
@@ -236,7 +236,7 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 			return true;
 		}
 
-		public static void ProcessCoberturaHtmlFile(string htmlFile, bool darkMode, out string coverageHtml)
+		public static void ProcessUnifiedHtmlFile(string htmlFile, bool darkMode, out string coverageHtml)
 		{
 			coverageHtml = AssemblyUtil.RunInAssemblyResolvingContext(() =>
 			{
@@ -609,9 +609,9 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 
 				// save
 
-				var outputHtmlFile = Path.Combine(folder, $"_ouput.html".ToLower());
-				File.WriteAllText(outputHtmlFile, html);
-				return outputHtmlFile;
+				var resultHtmlFile = Path.Combine(folder, $"{Path.GetFileNameWithoutExtension(htmlFile)}-processed{Path.GetExtension(htmlFile)}");
+				File.WriteAllText(resultHtmlFile, html);
+				return resultHtmlFile;
 			});
 		}
 	}

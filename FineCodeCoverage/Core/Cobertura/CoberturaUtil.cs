@@ -82,11 +82,11 @@ namespace FineCodeCoverage.Engine.Cobertura
 			return jsonText;
 		}
 
-		public static CoverageReport ProcessCoberturaXmlFile(string unifiedXmlFile, out List<CoverageLine> coverageLines)
+		public static CoverageReport ProcessCoberturaXmlFile(string xmlFilePath, out List<CoverageLine> coverageLines)
 		{
 			coverageLines = new List<CoverageLine>();
 
-			var report = LoadReportFile(unifiedXmlFile);
+			var report = LoadReportFile(xmlFilePath);
 
 			foreach (var package in report.Packages.Package)
 			{

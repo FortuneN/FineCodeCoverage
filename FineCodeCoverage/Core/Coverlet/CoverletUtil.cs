@@ -154,21 +154,21 @@ namespace FineCodeCoverage.Engine.Coverlet
 		{
 			var title = $"Coverlet Run ({project.ProjectName})";
 
-			if (File.Exists(project.CoverToolOutputFile))
+			if (File.Exists(project.CoverageOutputFile))
 			{
-				File.Delete(project.CoverToolOutputFile);
+				File.Delete(project.CoverageOutputFile);
 			}
 
-			if (Directory.Exists(project.WorkOutputFolder))
+			if (Directory.Exists(project.CoverageOutputFolder))
 			{
-				Directory.Delete(project.WorkOutputFolder, true);
+				Directory.Delete(project.CoverageOutputFolder, true);
 			}
 
-			Directory.CreateDirectory(project.WorkOutputFolder);
+			Directory.CreateDirectory(project.CoverageOutputFolder);
 
 			var coverletSettings = new List<string>();
 
-			coverletSettings.Add($@"""{project.TestDllFileInWorkFolder}""");
+			coverletSettings.Add($@"""{project.TestDllFile}""");
 
 			coverletSettings.Add($@"--format ""cobertura""");
 
@@ -210,9 +210,9 @@ namespace FineCodeCoverage.Engine.Coverlet
 
 			coverletSettings.Add($@"--threshold 0");
 
-			coverletSettings.Add($@"--output ""{ project.CoverToolOutputFile }""");
+			coverletSettings.Add($@"--output ""{ project.CoverageOutputFile }""");
 
-			coverletSettings.Add($@"--targetargs ""test  """"{project.TestDllFileInWorkFolder}"""" --nologo --blame --results-directory """"{project.WorkOutputFolder}"""" --diag """"{project.WorkOutputFolder}/diagnostics.log""""  """);
+			coverletSettings.Add($@"--targetargs ""test  """"{project.TestDllFile}"""" --nologo --blame --results-directory """"{project.CoverageOutputFolder}"""" --diag """"{project.CoverageOutputFolder}/diagnostics.log""""  """);
 
 			Logger.Log($"{title} Arguments {Environment.NewLine}{string.Join($"{Environment.NewLine}", coverletSettings)}");
 			
@@ -221,7 +221,7 @@ namespace FineCodeCoverage.Engine.Coverlet
 			{
 				FilePath = CoverletExePath,
 				Arguments = string.Join(" ", coverletSettings),
-				WorkingDirectory = project.WorkFolder
+				WorkingDirectory = project.ProjectOutputFolder
 			})
 			.GetAwaiter()
 			.GetResult();
