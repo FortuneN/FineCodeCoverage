@@ -212,7 +212,8 @@ namespace FineCodeCoverage.Engine.Coverlet
 
 			coverletSettings.Add($@"--output ""{ project.CoverageOutputFile }""");
 
-			coverletSettings.Add($@"--targetargs ""test  """"{project.TestDllFile}"""" --nologo --blame --results-directory """"{project.CoverageOutputFolder}"""" --diag """"{project.CoverageOutputFolder}/diagnostics.log""""  """);
+			var runSettings = !string.IsNullOrWhiteSpace(project.RunSettingsFile) ? $@"--settings """"{project.RunSettingsFile}""""" : default;
+			coverletSettings.Add($@"--targetargs ""test  """"{project.TestDllFile}"""" --nologo --blame {runSettings} --results-directory """"{project.CoverageOutputFolder}"""" --diag """"{project.CoverageOutputFolder}/diagnostics.log""""  """);
 
 			Logger.Log($"{title} Arguments {Environment.NewLine}{string.Join($"{Environment.NewLine}", coverletSettings)}");
 			

@@ -28,6 +28,7 @@ namespace FineCodeCoverage.Engine.Model
 		public bool HasExcludeFromCodeCoverageAssemblyAttribute { get; set; }
 		public string AssemblyName { get; set; }
 		public bool Is64Bit { get; set; }
+		public string RunSettingsFile { get; set; }
 
 		public CoverageProject Step(string stepName, Action<CoverageProject> action)
 		{

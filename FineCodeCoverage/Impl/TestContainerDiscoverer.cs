@@ -124,6 +124,7 @@ namespace FineCodeCoverage.Impl
 			}
 		}
 
+		[SuppressMessage("Usage", "VSTHRD102:Implement internal logic asynchronously")]
 		private void OperationState_StateChanged(object sender, OperationStateChangedEventArgs e)
 		{
 			try
@@ -150,6 +151,8 @@ namespace FineCodeCoverage.Impl
 					var operationType = e.Operation.GetType();
 					var darkMode = CurrentTheme.Equals("Dark", StringComparison.OrdinalIgnoreCase);
 					var testConfiguration = (operationType.GetProperty("Configuration") ?? operationType.GetProperty("Configuration", BindingFlags.Instance | BindingFlags.NonPublic)).GetValue(e.Operation);
+					var userRunSettings = testConfiguration.GetType().GetProperty("UserRunSettings", BindingFlags.Instance | BindingFlags.Public).GetValue(testConfiguration);
+					var runSettingsRetriever = new RunSettingsRetriever();
 					var testContainers = ((IEnumerable<object>)testConfiguration.GetType().GetProperty("Containers").GetValue(testConfiguration)).ToArray();
 					var projects = new List<CoverageProject>();
 
@@ -165,6 +168,7 @@ namespace FineCodeCoverage.Impl
 						project.TestDllFile = containerType.GetProperty("Source").GetValue(container).ToString();
 						project.Is64Bit = containerType.GetProperty("TargetPlatform").GetValue(container).ToString().ToLower().Equals("x64");
 						project.ProjectFile = containerDataType.GetProperty("ProjectFilePath", BindingFlags.Instance | BindingFlags.FlattenHierarchy | BindingFlags.Public | BindingFlags.NonPublic).GetValue(containerData).ToString();
+						project.RunSettingsFile = ThreadHelper.JoinableTaskFactory.Run(() => runSettingsRetriever.GetRunSettingsFileAsync(userRunSettings, container));
 
 						try
 						{

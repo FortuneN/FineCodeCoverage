@@ -284,7 +284,8 @@ namespace FineCodeCoverage.Engine.OpenCover
 				//filters.Add($@"-[{nameOnlyOfDll}]*");
 			}
 
-			opencoverSettings.Add($@" ""-targetargs:\""{project.TestDllFile}\"""" ");
+			var runSettings = !string.IsNullOrWhiteSpace(project.RunSettingsFile) ? $@"/Settings:\""{project.RunSettingsFile}\""" : default;
+			opencoverSettings.Add($@" ""-targetargs:\""{project.TestDllFile}\"" {runSettings}"" ");
 
 			opencoverSettings.Add($@" ""-output:{ project.CoverageOutputFile }"" ");
 
