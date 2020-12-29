@@ -400,12 +400,10 @@ namespace FineCodeCoverage.Engine
 					return project;
 				}
 
+				
+
 				project.CoverageOutputFolder = Path.Combine(project.ProjectOutputFolder, "fine-code-coverage");
 				project.CoverageOutputFile = Path.Combine(project.CoverageOutputFolder, "project.coverage.xml");
-				project.IsDotNetSdkStyle = IsDotNetSdkStyle(project);
-				project.ReferencedProjects = GetReferencedProjects(project);
-				project.HasExcludeFromCodeCoverageAssemblyAttribute = HasExcludeFromCodeCoverageAssemblyAttribute(project.ProjectFileXElement);
-				project.AssemblyName = GetAssemblyName(project.ProjectFileXElement, Path.GetFileNameWithoutExtension(project.ProjectFile));
 
 				if (!Directory.Exists(project.CoverageOutputFolder))
 				{
@@ -422,20 +420,37 @@ namespace FineCodeCoverage.Engine
 					// ignore
 				}
 
+				if (project.CoverletCoberturaFile == null)
+                {
+					project.IsDotNetSdkStyle = IsDotNetSdkStyle(project);
+					project.ReferencedProjects = GetReferencedProjects(project);
+					project.HasExcludeFromCodeCoverageAssemblyAttribute = HasExcludeFromCodeCoverageAssemblyAttribute(project.ProjectFileXElement);
+					project.AssemblyName = GetAssemblyName(project.ProjectFileXElement, Path.GetFileNameWithoutExtension(project.ProjectFile));
+                }
+                else
+                {
+					// move data collector cobertura
+					File.Copy(project.CoverletCoberturaFile, project.CoverageOutputFile,true);
+                }
+				
 				return project;
 			})
 			.Select(p => p.Step("Run Coverage Tool", project =>
 			{
 				// run the appropriate cover tool
+				if (project.CoverletCoberturaFile == null)
+                {
+					if (project.IsDotNetSdkStyle)
+					{
 
-				if (project.IsDotNetSdkStyle)
-				{
-					CoverletUtil.RunCoverlet(project, true);
+						CoverletUtil.RunCoverlet(project, true);
+					}
+					else
+					{
+						OpenCoverUtil.RunOpenCover(project, true);
+					}
 				}
-				else
-				{
-					OpenCoverUtil.RunOpenCover(project, true);
-				}
+				
 			}))
 			.Where(x => !x.HasFailed)
 			.ToArray();

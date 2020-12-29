@@ -1,9 +1,12 @@
-﻿using System.Reflection;
+﻿using System.ComponentModel.Composition;
+using System.Reflection;
 using System.Threading.Tasks;
 
 namespace FineCodeCoverage.Impl
 {
-	internal class RunSettingsRetriever
+
+    [Export(typeof(IRunSettingsRetriever))]
+	internal class RunSettingsRetriever:IRunSettingsRetriever
 	{
 		private object userSettings;
 		

@@ -19,7 +19,7 @@ using FineCodeCoverage.Engine.Utilities;
 
 namespace FineCodeCoverage.Impl
 {
-	[Name(Vsix.TestContainerDiscovererName)]
+    [Name(Vsix.TestContainerDiscovererName)]
 	[Export(typeof(TestContainerDiscoverer))]
 	[Export(typeof(ITestContainerDiscoverer))]
 	internal class TestContainerDiscoverer : ITestContainerDiscoverer
@@ -38,6 +38,8 @@ namespace FineCodeCoverage.Impl
 		public delegate void UpdateOutputWindowDelegate(object sender, UpdateOutputWindowEventArgs e);
 		private string CurrentTheme => $"{((dynamic)_serviceProvider.GetService(typeof(SVsColorThemeService)))?.CurrentTheme?.Name}".Trim();
 
+		private ICoverletCoberturaCollector coverletCoberturaCollector;
+		private ICoverletCoberturaCollectorFactory _coverletCoberturaCollectorFactory;
 		[ImportingConstructor]
 		internal TestContainerDiscoverer
 		(
@@ -45,11 +47,14 @@ namespace FineCodeCoverage.Impl
 			IOperationState operationState,
 
 			[Import(typeof(SVsServiceProvider))]
-			IServiceProvider serviceProvider
-		)
+			IServiceProvider serviceProvider,
+
+            [Import(typeof(ICoverletCoberturaCollectorFactory))]
+            ICoverletCoberturaCollectorFactory coverletCoberturaCollectorFactory
+        )
 		{
 			_serviceProvider = serviceProvider;
-
+			_coverletCoberturaCollectorFactory = coverletCoberturaCollectorFactory;
 			new Thread(() =>
 			{
 				try
@@ -60,7 +65,6 @@ namespace FineCodeCoverage.Impl
 					Initialize(_serviceProvider);
 					TestContainersUpdated.ToString();
 					operationState.StateChanged += OperationState_StateChanged;
-
 					Logger.Log($"Initialized");
 				}
 				catch (Exception exception)
@@ -106,11 +110,19 @@ namespace FineCodeCoverage.Impl
 				}
 			});
 		}
-
+		private void DisposeCoberturaCollector()
+        {
+			if (coverletCoberturaCollector != null)
+			{
+				coverletCoberturaCollector.Dispose();
+				coverletCoberturaCollector = null;
+			}
+		}
 		private void StopCoverageProcess()
 		{
 			try
 			{
+				DisposeCoberturaCollector();
 				_reloadCoverageThread?.Abort();
 			}
 			catch
@@ -132,6 +144,10 @@ namespace FineCodeCoverage.Impl
 				if (e.State == TestOperationStates.TestExecutionStarting)
 				{
 					StopCoverageProcess(); // just to be sure
+
+					coverletCoberturaCollector = _coverletCoberturaCollectorFactory.Create(e.Operation);
+
+					
 				}
 
 				if (e.State == TestOperationStates.TestExecutionFinished)
@@ -159,6 +175,7 @@ namespace FineCodeCoverage.Impl
 					foreach (var container in testContainers)
 					{
 						var project = new CoverageProject();
+
 						var containerType = container.GetType();
 						var containerData = containerType.GetProperty("ProjectData").GetValue(container);
 						var containerDataType = containerData.GetType();
@@ -166,10 +183,12 @@ namespace FineCodeCoverage.Impl
 						project.ProjectGuid = containerType.GetProperty("ProjectGuid").GetValue(container).ToString();
 						project.ProjectName = containerType.GetProperty("ProjectName").GetValue(container).ToString();
 						project.TestDllFile = containerType.GetProperty("Source").GetValue(container).ToString();
+						project.CoverletCoberturaFile = coverletCoberturaCollector.GetCollected(project.TestDllFile);
+
 						project.Is64Bit = containerType.GetProperty("TargetPlatform").GetValue(container).ToString().ToLower().Equals("x64");
 						project.ProjectFile = containerDataType.GetProperty("ProjectFilePath", BindingFlags.Instance | BindingFlags.FlattenHierarchy | BindingFlags.Public | BindingFlags.NonPublic).GetValue(containerData).ToString();
 						project.RunSettingsFile = ThreadHelper.JoinableTaskFactory.Run(() => runSettingsRetriever.GetRunSettingsFileAsync(userRunSettings, container));
-
+                        
 						try
 						{
 							var defaultOutputFolder = Path.GetDirectoryName(containerDataType.GetProperty("DefaultOutputPath", BindingFlags.Instance | BindingFlags.FlattenHierarchy | BindingFlags.Public | BindingFlags.NonPublic).GetValue(containerData).ToString());
@@ -183,6 +202,8 @@ namespace FineCodeCoverage.Impl
 						
 						projects.Add(project);
 					}
+
+					DisposeCoberturaCollector();
 
 					_reloadCoverageThread = new Thread(() =>
 					{
@@ -251,13 +272,19 @@ namespace FineCodeCoverage.Impl
 
 					_reloadCoverageThread.Start();
 				}
+
+				if (e.State == TestOperationStates.Canceled)
+                {
+					DisposeCoberturaCollector();
+                }
 			}
 			catch (Exception exception)
 			{
 				Logger.Log("Error processing unit test events", exception);
 			}
 		}
-	}
+
+    }
 
 	[Guid("0D915B59-2ED7-472A-9DE8-9161737EA1C5")]
 	[SuppressMessage("Style", "IDE1006:Naming Styles")]
