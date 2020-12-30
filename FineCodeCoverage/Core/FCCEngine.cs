@@ -449,7 +449,11 @@ namespace FineCodeCoverage.Engine
 					{
 						OpenCoverUtil.RunOpenCover(project, true);
 					}
-				}
+                }
+                else
+                {
+					Logger.Log($"Using collected coveraged for {project.ProjectName} - {project.CoverletCoberturaFile}");
+                }
 				
 			}))
 			.Where(x => !x.HasFailed)

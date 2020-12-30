@@ -1,20 +1,28 @@
-﻿using System.IO;
-using System.Linq;
+﻿using System.Linq;
 using System.ComponentModel.Composition;
-using System.Xml.Linq;
 
 namespace FineCodeCoverage.Impl
 {
+
     [Export(typeof(IRunSettingsResultsDirectoryForEnabledCollectorParser))]
     internal class RunSettingsResultsDirectoryForEnabledCollectorParser : IRunSettingsResultsDirectoryForEnabledCollectorParser
     {
-        public string Get(string runSettingsPath,string defaultTestResultsDirectory)
+        private readonly IFileSystem fileSystem;
+        private readonly IXDocumentLoader xDocumentLoader;
+
+        [ImportingConstructor]
+		public RunSettingsResultsDirectoryForEnabledCollectorParser(IFileSystem fileSystem, IXDocumentLoader xDocumentLoader)
+        {
+            this.fileSystem = fileSystem;
+            this.xDocumentLoader = xDocumentLoader;
+        }
+		public string Get(string runSettingsPath,string defaultTestResultsDirectory)
         {
 			string testResultsDirectory = null;
 			var hasDataCollector = false;
-            if (File.Exists(runSettingsPath))
+            if (fileSystem.Exists(runSettingsPath))
             {
-				var runSettings = XDocument.Load(runSettingsPath);
+				var runSettings = xDocumentLoader.Load(runSettingsPath);
 
 				var dataCollectionRunSettings = runSettings.Root.Element("DataCollectionRunSettings");
 				if (dataCollectionRunSettings != null)
@@ -45,16 +53,7 @@ namespace FineCodeCoverage.Impl
 						if (resultsDirectoryElement != null)
 						{
 							var resultsDirectoryMayBeRelative = resultsDirectoryElement.Value;
-							var relative = true;//todo
-							if (relative)
-							{
-								testResultsDirectory = Path.Combine(Path.GetDirectoryName(runSettingsPath), resultsDirectoryMayBeRelative);
-							}
-							else
-							{
-								testResultsDirectory = resultsDirectoryMayBeRelative;
-							}
-
+							testResultsDirectory = fileSystem.EnsureAbsolute(resultsDirectoryMayBeRelative,fileSystem.GetDirectoryName(runSettingsPath));
 						}
 					}
 				}

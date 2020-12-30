@@ -73,7 +73,12 @@ namespace FineCodeCoverage.Impl
 		
         public string GetCollected(string testDllFile)
         {
-			return projectCollectors[testDllFile].GetCollected(testDllFile);
+			var hasCollector = projectCollectors.TryGetValue(testDllFile, out var projectCollector);
+            if (hasCollector)
+            {
+				return projectCollector.GetCollected(testDllFile);
+			}
+			return null;
         }
     }
 }
