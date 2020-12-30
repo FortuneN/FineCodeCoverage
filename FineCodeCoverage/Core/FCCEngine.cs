@@ -452,7 +452,7 @@ namespace FineCodeCoverage.Engine
                 }
                 else
                 {
-					Logger.Log($"Using collected coveraged for {project.ProjectName} - {project.CoverletCoberturaFile}");
+					Logger.Log($"Using collected coverage for {project.ProjectName} - {project.CoverletCoberturaFile}");
                 }
 				
 			}))
