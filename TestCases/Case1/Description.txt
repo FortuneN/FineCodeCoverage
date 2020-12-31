@@ -1,0 +1,2 @@
+.Net Standard 2.0 Class Library Project
+.Net Core 3.1 NUnit Test Project

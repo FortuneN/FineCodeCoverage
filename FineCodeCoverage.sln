@@ -3,8 +3,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.30114.105
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FineCodeCoverage", "FineCodeCoverage\FineCodeCoverage.csproj", "{31C104BB-D294-4942-B206-896AA7A5FCB9}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution", "Solution", "{208EE360-4076-4680-A9B7-2BA9C17EA9FB}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
@@ -18,7 +16,13 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution", "Solution", "{20
 		README.md = README.md
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReportGeneratorPlugins", "ReportGeneratorPlugins\ReportGeneratorPlugins.csproj", "{14FB668B-4B70-41E4-964B-405E5C9A6A58}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ReportGeneratorPlugins", "ReportGeneratorPlugins\ReportGeneratorPlugins.csproj", "{14FB668B-4B70-41E4-964B-405E5C9A6A58}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisualStudio", "VisualStudio\VisualStudio.csproj", "{31C104BB-D294-4942-B206-896AA7A5FCB9}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microserver", "Microserver\Microserver.csproj", "{0AC90FCF-726E-40A3-8DD3-97F6CDFEBCBC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microserver.Tests", "Microserver.Tests\Microserver.Tests.csproj", "{CFB53D4E-2B41-4625-BF3A-7597659B0764}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -26,14 +30,22 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{31C104BB-D294-4942-B206-896AA7A5FCB9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{31C104BB-D294-4942-B206-896AA7A5FCB9}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{31C104BB-D294-4942-B206-896AA7A5FCB9}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{31C104BB-D294-4942-B206-896AA7A5FCB9}.Release|Any CPU.Build.0 = Release|Any CPU
 		{14FB668B-4B70-41E4-964B-405E5C9A6A58}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{14FB668B-4B70-41E4-964B-405E5C9A6A58}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{14FB668B-4B70-41E4-964B-405E5C9A6A58}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{14FB668B-4B70-41E4-964B-405E5C9A6A58}.Release|Any CPU.Build.0 = Release|Any CPU
+		{31C104BB-D294-4942-B206-896AA7A5FCB9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{31C104BB-D294-4942-B206-896AA7A5FCB9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{31C104BB-D294-4942-B206-896AA7A5FCB9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{31C104BB-D294-4942-B206-896AA7A5FCB9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0AC90FCF-726E-40A3-8DD3-97F6CDFEBCBC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0AC90FCF-726E-40A3-8DD3-97F6CDFEBCBC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0AC90FCF-726E-40A3-8DD3-97F6CDFEBCBC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0AC90FCF-726E-40A3-8DD3-97F6CDFEBCBC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CFB53D4E-2B41-4625-BF3A-7597659B0764}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CFB53D4E-2B41-4625-BF3A-7597659B0764}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CFB53D4E-2B41-4625-BF3A-7597659B0764}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CFB53D4E-2B41-4625-BF3A-7597659B0764}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
