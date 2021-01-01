@@ -1,38 +1,51 @@
-﻿using System;
+﻿using FineCodeCoverage.Core.Model;
+using System;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Net.Http;
+using System.Threading.Tasks;
 using System.Xml.Linq;
-using System.IO.Compression;
-using FineCodeCoverage.Core.Utilities;
 
 namespace FineCodeCoverage.Core.MsTestPlatform
 {
-	public class MsTestPlatformUtil
+	public class MsTestPlatformService : IMsTestPlatformService
 	{
-		public static string MsTestPlatformExePath { get; private set; }
+		private static string MsTestPlatformExePath { get; set; }
 		private static HttpClient HttpClient { get; } = new HttpClient();
-		public static string AppDataMsTestPlatformFolder { get; private set; }
-		public static Version CurrentMsTestPlatformVersion { get; private set; }
-		public static Version MimimumMsTestPlatformVersion { get; } = Version.Parse("16.7.1");
+		private static string AppDataMsTestPlatformFolder { get; set; }
+		private static Version CurrentMsTestPlatformVersion { get; set; }
+		private static Version MimimumMsTestPlatformVersion { get; } = Version.Parse("16.7.1");
 
-		public static void Initialize(string appDataFolder)
+		private readonly ServerSettings _serverSettings;
+
+		public MsTestPlatformService(ServerSettings serverSettings)
 		{
-			AppDataMsTestPlatformFolder = Path.Combine(appDataFolder, "msTestPlatform");
+			_serverSettings = serverSettings;
+		}
+
+		public async Task InitializeAsync()
+		{
+			AppDataMsTestPlatformFolder = Path.Combine(_serverSettings.AppDataFolder, "msTestPlatform");
 			Directory.CreateDirectory(AppDataMsTestPlatformFolder);
-			GetMsTestPlatformVersion();
+			await GetMsTestPlatformVersionAsync();
 
 			if (CurrentMsTestPlatformVersion == null)
 			{
-				InstallMsTestPlatform();
+				await InstallMsTestPlatformAsync();
 			}
 			else if (CurrentMsTestPlatformVersion < MimimumMsTestPlatformVersion)
 			{
-				UpdateMsTestPlatform();
+				await UpdateMsTestPlatformAsync();
 			}
 		}
 
-		public static Version GetMsTestPlatformVersion()
+		public string GetMsTestPlatformExePath()
+		{
+			return MsTestPlatformExePath;
+		}
+
+		public async Task<Version> GetMsTestPlatformVersionAsync()
 		{
 			var title = "MsTestPlatform Get Info";
 
@@ -54,7 +67,7 @@ namespace FineCodeCoverage.Core.MsTestPlatform
 				return null;
 			}
 
-			var nuspecXmlText = File.ReadAllText(nuspecFile);
+			var nuspecXmlText = await File.ReadAllTextAsync(nuspecFile);
 			var nuspecXml = XElement.Parse(nuspecXmlText);
 			var versionText = nuspecXml
 				?.Elements()
@@ -77,7 +90,7 @@ namespace FineCodeCoverage.Core.MsTestPlatform
 			return CurrentMsTestPlatformVersion;
 		}
 
-		public static void UpdateMsTestPlatform()
+		public async Task UpdateMsTestPlatformAsync()
 		{
 			var title = "MsTestPlatform Update";
 
@@ -85,10 +98,10 @@ namespace FineCodeCoverage.Core.MsTestPlatform
 			{
 				if (Directory.Exists(AppDataMsTestPlatformFolder))
 				{
-					Directory.Delete(AppDataMsTestPlatformFolder);
+					Directory.Delete(AppDataMsTestPlatformFolder, true);
 				}
 
-				InstallMsTestPlatform();
+				await InstallMsTestPlatformAsync();
 			}
 			catch (Exception exception)
 			{
@@ -96,7 +109,7 @@ namespace FineCodeCoverage.Core.MsTestPlatform
 			}
 		}
 
-		public static void InstallMsTestPlatform()
+		public async Task InstallMsTestPlatformAsync()
 		{
 			var title = "MsTestPlatform Install";
 
@@ -109,10 +122,10 @@ namespace FineCodeCoverage.Core.MsTestPlatform
 				var zipFile = Path.Combine(AppDataMsTestPlatformFolder, "bundle.zip");
 				var url = $"https://www.nuget.org/api/v2/package/Microsoft.TestPlatform/{MimimumMsTestPlatformVersion}";
 				
-				using (var remoteStream = HttpClient.GetStreamAsync(url).GetAwaiter().GetResult())
+				using (var remoteStream = await HttpClient.GetStreamAsync(url))
 				using (var localStream = File.OpenWrite(zipFile))
 				{
-					remoteStream.CopyToAsync(localStream).GetAwaiter().GetResult();
+					await remoteStream.CopyToAsync(localStream);
 				}
 
 				// extract and cleanup
@@ -122,7 +135,7 @@ namespace FineCodeCoverage.Core.MsTestPlatform
 
 				// process
 
-				GetMsTestPlatformVersion();
+				await GetMsTestPlatformVersionAsync();
 
 				// report
 

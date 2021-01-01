@@ -1,4 +1,4 @@
-﻿using FineCodeCoverage.Core;
+﻿using FineCodeCoverage.Core.Coverage;
 using FineCodeCoverage.Core.Model;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
@@ -9,11 +9,17 @@ namespace FineCodeCoverage.Controllers
 	[Route("Coverage")]
 	public class CoverageController : ControllerBase
 	{
+		private readonly ICoverageService _coverageService;
+
+		public CoverageController(ICoverageService coverageService)
+		{
+			_coverageService = coverageService;
+		}
+
 		[HttpPost("Calculate")]
 		public async Task<CalculateCoverageResponse> CalculateAsync([FromBody] CalculateCoverageRequest request)
 		{
-			var response = await FCCEngine.CalculateCoverageAsync(request);
-			return response;
+			return await _coverageService.CalculateCoverageAsync(request);
 		}
 	}
 }

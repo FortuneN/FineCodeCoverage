@@ -1,15 +1,15 @@
-﻿using System;
-using CliWrap;
+﻿using CliWrap;
+using CliWrap.Buffered;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using CliWrap.Buffered;
-using System.Diagnostics;
 using System.Threading.Tasks;
-using System.Collections.Generic;
 
 namespace FineCodeCoverage.Core.Utilities
 {
-	internal static class ProcessUtil
+	public static class ProcessUtil
 	{
 		public const int FAILED_TO_PRODUCE_OUTPUT_FILE_CODE = 999;
 
@@ -17,28 +17,21 @@ namespace FineCodeCoverage.Core.Utilities
 
 		public static void ClearProcesses()
 		{
-			try
+			Processes.ToArray().AsParallel().ForAll(process =>
 			{
-				Processes.ToArray().AsParallel().ForAll(process =>
+				try
 				{
-					try
-					{
-						process.Kill();
-					}
-					catch
-					{
-						// ignore
-					}
-					finally
-					{
-						Processes.Remove(process);
-					}
-				});
-			}
-			catch
-			{
-				// ignore
-			}
+					process.Kill();
+				}
+				catch
+				{
+					// ignore
+				}
+				finally
+				{
+					Processes.Remove(process);
+				}
+			});
 		}
 
 		public static string GetOutput(this Process process)
@@ -54,7 +47,7 @@ namespace FineCodeCoverage.Core.Utilities
 			);
 		}
 
-		public static async Task<ExecuteResponse> ExecuteAsync(ExecuteRequest request)
+		public static async Task<(int ExitCode, DateTimeOffset ExitTime, TimeSpan RunTime, DateTimeOffset StartTime, string Output)> ExecuteAsync(string FilePath, string Arguments, string WorkingDirectory)
 		{
 			Process process = null;
 			string shellScriptFile = null;
@@ -64,16 +57,16 @@ namespace FineCodeCoverage.Core.Utilities
 			{
 				// create script file
 
-				shellScriptFile = Path.Combine(request.WorkingDirectory, $"{Guid.NewGuid().ToString().Split('-').First()}.bat");
+				shellScriptFile = Path.Combine(WorkingDirectory, $"{Guid.NewGuid().ToString().Split('-').First()}.bat");
 				shellScriptOutputFile = $"{shellScriptFile}.output";
-				File.WriteAllText(shellScriptFile, $@"""{request.FilePath}"" {request.Arguments} > ""{shellScriptOutputFile}""");
+				File.WriteAllText(shellScriptFile, $@"""{FilePath}"" {Arguments} > ""{shellScriptOutputFile}""");
 
 				// run script file
 
 				var commandTask = Cli
 				.Wrap(shellScriptFile)
 				.WithValidation(CommandResultValidation.None)
-				.WithWorkingDirectory(request.WorkingDirectory)
+				.WithWorkingDirectory(WorkingDirectory)
 				.ExecuteBufferedAsync();
 
 				// enlist process
@@ -135,14 +128,13 @@ namespace FineCodeCoverage.Core.Utilities
 
 				// return
 
-				return new ExecuteResponse
-				{
-					ExitCode = exitCode,
-					ExitTime = result.ExitTime,
-					RunTime = result.RunTime,
-					StartTime = result.StartTime,
-					Output = output
-				};
+				return (
+					ExitCode : exitCode,
+					ExitTime : result.ExitTime,
+					RunTime : result.RunTime,
+					StartTime : result.StartTime,
+					Output : output
+				);
 			}
 			finally
 			{
@@ -192,21 +184,5 @@ namespace FineCodeCoverage.Core.Utilities
 				}
 			}
 		}
-	}
-
-	public class ExecuteRequest
-	{
-		public string FilePath { get; set; }
-		public string Arguments { get; set; }
-		public string WorkingDirectory { get; set; }
-	}
-
-	public class ExecuteResponse
-	{
-		public int ExitCode { get; set; }
-		public DateTimeOffset ExitTime { get; set; }
-		public TimeSpan RunTime { get; set; }
-		public DateTimeOffset StartTime { get; set; }
-		public string Output { get; set; }
 	}
 }

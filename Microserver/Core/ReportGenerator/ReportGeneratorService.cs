@@ -1,38 +1,47 @@
-﻿using System;
+﻿using FineCodeCoverage.Core.Model;
+using FineCodeCoverage.Core.Utilities;
+using Fizzler.Systems.HtmlAgilityPack;
+using HtmlAgilityPack;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using ReportGeneratorPlugins;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
-using HtmlAgilityPack;
-using Newtonsoft.Json;
-using System.Diagnostics;
-using Newtonsoft.Json.Linq;
-using ReportGeneratorPlugins;
-using System.Collections.Generic;
-using Fizzler.Systems.HtmlAgilityPack;
-using System.Diagnostics.CodeAnalysis;
-using FineCodeCoverage.Core.Utilities;
+using System.Threading.Tasks;
 
 namespace FineCodeCoverage.Core.ReportGenerator
 {
-	internal partial class ReportGeneratorUtil
+	public class ReportGeneratorService : IReportGeneratorService
 	{
-		public const string ReportGeneratorName = "dotnet-reportgenerator-globaltool";
-		public static string ReportGeneratorExePath { get; private set; }
-		public static string AppDataReportGeneratorFolder { get; private set; }
-		public static Version CurrentReportGeneratorVersion { get; private set; }
-		public static Version MimimumReportGeneratorVersion { get; private set; }
+		private const string ReportGeneratorName = "dotnet-reportgenerator-globaltool";
+		private string ReportGeneratorExePath { get; set; }
+		private string AppDataReportGeneratorFolder { get; set; }
+		private Version CurrentReportGeneratorVersion { get; set; }
+		private Version MimimumReportGeneratorVersion { get; set; }
 
-		static ReportGeneratorUtil()
+		private readonly ServerSettings _serverSettings;
+
+		public ReportGeneratorService
+		(
+			ServerSettings serverSettings
+		)
 		{
-			// version of report generator from class inherited by our custom plugins
+			_serverSettings = serverSettings;
+
 			var reportGeneratorLibVersion = typeof(FccLightReportBuilder).BaseType.Assembly.GetName().Version.ToString().Split('.').Take(3);
 			MimimumReportGeneratorVersion = Version.Parse(string.Join(".", reportGeneratorLibVersion));
 		}
 
-		public static void Initialize(string appDataFolder)
+		public void Initialize()
 		{
-			AppDataReportGeneratorFolder = Path.Combine(appDataFolder, "reportGenerator");
+			AppDataReportGeneratorFolder = Path.Combine(_serverSettings.AppDataFolder, "reportGenerator");
+			
 			Directory.CreateDirectory(AppDataReportGeneratorFolder);
+
 			GetReportGeneratorVersion();
 
 			if (CurrentReportGeneratorVersion == null)
@@ -45,7 +54,7 @@ namespace FineCodeCoverage.Core.ReportGenerator
 			}
 		}
 
-		public static Version GetReportGeneratorVersion()
+		public Version GetReportGeneratorVersion()
 		{
 			var title = "ReportGenerator Get Info";
 
@@ -95,7 +104,7 @@ namespace FineCodeCoverage.Core.ReportGenerator
 			return CurrentReportGeneratorVersion;
 		}
 
-		public static void UpdateReportGenerator()
+		public void UpdateReportGenerator()
 		{
 			var title = "ReportGenerator Update";
 
@@ -128,7 +137,7 @@ namespace FineCodeCoverage.Core.ReportGenerator
 			Logger.Log(title, processOutput);
 		}
 
-		public static void InstallReportGenerator()
+		public void InstallReportGenerator()
 		{
 			var title = "ReportGenerator Install";
 
@@ -161,21 +170,21 @@ namespace FineCodeCoverage.Core.ReportGenerator
 			Logger.Log(title, processOutput);
 		}
 
-		public static bool RunReportGenerator(IEnumerable<string> coverOutputFiles, bool darkMode, out string unifiedHtmlFile, out string unifiedXmlFile, bool throwError = false)
+		public async Task<(string UnifiedHtmlFile, string UnifiedXmlFile)> RunReportGeneratorAsync(IEnumerable<string> coverOutputFiles, bool darkMode)
 		{
 			var title = "ReportGenerator Run";
 			var outputFolder = Path.GetDirectoryName(coverOutputFiles.OrderBy(x => x).First()); // use location of first file to output reports
 
 			Directory.GetFiles(outputFolder, "*.htm*").ToList().ForEach(File.Delete); // delete html files if they exist
 
-			unifiedHtmlFile = Path.Combine(outputFolder, "index.html");
-			unifiedXmlFile = Path.Combine(outputFolder, "Cobertura.xml");
+			var unifiedHtmlFile = Path.Combine(outputFolder, "index.html");
+			var unifiedXmlFile = Path.Combine(outputFolder, "Cobertura.xml");
 
 			var reportGeneratorSettings = new List<string>();
 
 			reportGeneratorSettings.Add($@"""-targetdir:{outputFolder}""");
 			
-			bool run(string outputReportType, string inputReports)
+			async Task<bool> runAsync(string outputReportType, string inputReports)
 			{
 				var reportTypeSettings = reportGeneratorSettings.ToArray().ToList();
 
@@ -197,15 +206,11 @@ namespace FineCodeCoverage.Core.ReportGenerator
 
 				Logger.Log($"{title} Arguments [reporttype:{outputReportType}] {Environment.NewLine}{string.Join($"{Environment.NewLine}", reportTypeSettings)}");
 
-				var result = ProcessUtil
-				.ExecuteAsync(new ExecuteRequest
-				{
-					FilePath = ReportGeneratorExePath,
-					Arguments = string.Join(" ", reportTypeSettings),
-					WorkingDirectory = outputFolder
-				})
-				.GetAwaiter()
-				.GetResult();
+				var result = await ProcessUtil.ExecuteAsync(
+					FilePath: ReportGeneratorExePath,
+					Arguments: string.Join(" ", reportTypeSettings),
+					WorkingDirectory: outputFolder
+				);
 
 				if (result.ExitCode != 0)
 				{
@@ -222,26 +227,31 @@ namespace FineCodeCoverage.Core.ReportGenerator
 				return true;
 			}
 
-			if (!run("Cobertura", string.Join(";", coverOutputFiles)))
+			if (!await runAsync("Cobertura", string.Join(";", coverOutputFiles)))
 			{
 				return false;
 			}
 
-			if (!run("HtmlInline_AzurePipelines", unifiedXmlFile))
+			if (!await runAsync("HtmlInline_AzurePipelines", unifiedXmlFile))
 			{
 				return false;
 			}
 
-			return true;
+			//return true;
+
+			return (
+				UnifiedHtmlFile : unifiedHtmlFile,
+				UnifiedXmlFile : unifiedXmlFile
+			);
 		}
 
-		public static void ProcessUnifiedHtmlFile(string htmlFile, bool darkMode, out string coverageHtml)
+		public async Task<string> ProcessUnifiedHtmlFileAsync(string htmlFile, bool darkMode)
 		{
-			coverageHtml = AssemblyUtil.RunInAssemblyResolvingContext(() =>
+			return await AssemblyUtil.RunInAssemblyResolvingContextAsync(async () =>
 			{
 				// read [htmlFile] into memory
 
-				var htmlFileContent = File.ReadAllText(htmlFile);
+				var htmlFileContent = await File.ReadAllTextAsync(htmlFile);
 
 				var folder = Path.GetDirectoryName(htmlFile);
 

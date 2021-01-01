@@ -1,25 +1,44 @@
-﻿using System;
+﻿using FineCodeCoverage.Core.Model;
+using FineCodeCoverage.Core.Utilities;
+using Microsoft.Extensions.Logging;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Diagnostics;
-using System.Collections.Generic;
-using FineCodeCoverage.Core.Model;
-using FineCodeCoverage.Core.Utilities;
+using System.Threading.Tasks;
 
 namespace FineCodeCoverage.Core.Coverlet
 {
-	public class CoverletUtil
+	public class CoverletService : ICoverletService
 	{
-		public const string CoverletName = "coverlet.console";
-		public static string CoverletExePath { get; private set; }
-		public static string AppDataCoverletFolder { get; private set; }
-		public static Version CurrentCoverletVersion { get; private set; }
-		public static Version MimimumCoverletVersion { get; } = Version.Parse("1.7.2");
+		public const string FAILED_TO_GET_COVERLET_INFO = "FAILED_TO_GET_COVERLET_INFO";
 
-		public static void Initialize(string appDataFolder)
+		private const string CoverletExeName = "coverlet.console";
+		private static string CoverletExePath { get; set; }
+		private static string AppDataCoverletFolder { get; set; }
+		private static Version CurrentCoverletVersion { get; set; }
+		private static Version MimimumCoverletVersion { get; } = Version.Parse("1.7.2");
+
+		private readonly ILogger _logger;
+		private readonly ServerSettings _serverSettings;
+		
+		public CoverletService
+		(
+			ServerSettings serverSettings,
+			ILogger<CoverletService> logger
+		)
 		{
-			AppDataCoverletFolder = Path.Combine(appDataFolder, "coverlet");
+			_logger = logger;
+			_serverSettings = serverSettings;
+		}
+
+		public void Initialize()
+		{
+			AppDataCoverletFolder = Path.Combine(_serverSettings.AppDataFolder, "coverlet");
+
 			Directory.CreateDirectory(AppDataCoverletFolder);
+			
 			GetCoverletVersion();
 
 			if (CurrentCoverletVersion == null)
@@ -32,10 +51,8 @@ namespace FineCodeCoverage.Core.Coverlet
 			}
 		}
 
-		public static Version GetCoverletVersion()
+		public Version GetCoverletVersion()
 		{
-			var title = "Coverlet Get Info";
-
 			var processStartInfo = new ProcessStartInfo
 			{
 				FileName = "dotnet",
@@ -56,12 +73,11 @@ namespace FineCodeCoverage.Core.Coverlet
 
 			if (process.ExitCode != 0)
 			{
-				Logger.Log($"{title} Error", processOutput);
-				return null;
+				throw new Exception(processOutput);
 			}
 
 			var outputLines = processOutput.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
-			var coverletLine = outputLines.FirstOrDefault(x => x.Trim().StartsWith(CoverletName, StringComparison.OrdinalIgnoreCase));
+			var coverletLine = outputLines.FirstOrDefault(x => x.Trim().StartsWith(CoverletExeName, StringComparison.OrdinalIgnoreCase));
 
 			if (string.IsNullOrWhiteSpace(coverletLine))
 			{
@@ -82,10 +98,8 @@ namespace FineCodeCoverage.Core.Coverlet
 			return CurrentCoverletVersion;
 		}
 
-		public static void UpdateCoverlet()
+		public void UpdateCoverlet()
 		{
-			var title = "Coverlet Update";
-
 			var processStartInfo = new ProcessStartInfo
 			{
 				FileName = "dotnet",
@@ -95,7 +109,7 @@ namespace FineCodeCoverage.Core.Coverlet
 				RedirectStandardOutput = true,
 				WindowStyle = ProcessWindowStyle.Hidden,
 				WorkingDirectory = AppDataCoverletFolder,
-				Arguments = $"tool update {CoverletName} --verbosity normal --version {MimimumCoverletVersion} --tool-path \"{AppDataCoverletFolder}\"",
+				Arguments = $"tool update {CoverletExeName} --verbosity normal --version {MimimumCoverletVersion} --tool-path \"{AppDataCoverletFolder}\"",
 			};
 
 			var process = Process.Start(processStartInfo);
@@ -106,19 +120,14 @@ namespace FineCodeCoverage.Core.Coverlet
 
 			if (process.ExitCode != 0)
 			{
-				Logger.Log($"{title} Error", processOutput);
-				return;
+				throw new Exception(processOutput);
 			}
 
 			GetCoverletVersion();
-
-			Logger.Log(title, processOutput);
 		}
 
-		public static void InstallCoverlet()
+		public void InstallCoverlet()
 		{
-			var title = "Coverlet Install";
-
 			var processStartInfo = new ProcessStartInfo
 			{
 				FileName = "dotnet",
@@ -128,7 +137,7 @@ namespace FineCodeCoverage.Core.Coverlet
 				RedirectStandardOutput = true,
 				WindowStyle = ProcessWindowStyle.Hidden,
 				WorkingDirectory = AppDataCoverletFolder,
-				Arguments = $"tool install {CoverletName} --verbosity normal --version {MimimumCoverletVersion} --tool-path \"{AppDataCoverletFolder}\"",
+				Arguments = $"tool install {CoverletExeName} --verbosity normal --version {MimimumCoverletVersion} --tool-path \"{AppDataCoverletFolder}\"",
 			};
 
 			var process = Process.Start(processStartInfo);
@@ -139,16 +148,13 @@ namespace FineCodeCoverage.Core.Coverlet
 
 			if (process.ExitCode != 0)
 			{
-				Logger.Log($"{title} Error", processOutput);
-				return;
+				throw new Exception(processOutput);
 			}
 
 			GetCoverletVersion();
-
-			Logger.Log(title, processOutput);
 		}
 
-		public static bool RunCoverlet(CoverageProject project, bool throwError = false)
+		public async Task RunCoverletAsync(CoverageProject project)
 		{
 			var title = $"Coverlet Run ({project.ProjectName})";
 
@@ -213,37 +219,30 @@ namespace FineCodeCoverage.Core.Coverlet
 			var runSettings = !string.IsNullOrWhiteSpace(project.RunSettingsFile) ? $@"--settings """"{project.RunSettingsFile}""""" : default;
 			coverletSettings.Add($@"--targetargs ""test  """"{project.TestDllFile}"""" --nologo --blame {runSettings} --results-directory """"{project.CoverageOutputFolder}"""" --diag """"{project.CoverageOutputFolder}/diagnostics.log""""  """);
 
-			Logger.Log($"{title} Arguments {Environment.NewLine}{string.Join($"{Environment.NewLine}", coverletSettings)}");
-			
-			var result = ProcessUtil
-			.ExecuteAsync(new ExecuteRequest
-			{
-				FilePath = CoverletExePath,
-				Arguments = string.Join(" ", coverletSettings),
-				WorkingDirectory = project.ProjectOutputFolder
-			})
-			.GetAwaiter()
-			.GetResult();
+			await project.Logger.InfoAsync($"{title} Arguments {Environment.NewLine}{string.Join($"{Environment.NewLine}", coverletSettings)}");
+
+			var result = await ProcessUtil.ExecuteAsync(
+				FilePath: CoverletExePath,
+				Arguments: string.Join(" ", coverletSettings),
+				WorkingDirectory: project.ProjectOutputFolder
+			);
 
 			/*
+			----------
+			Exit Codes
+			-----------
 			0 - Success.
 			1 - If any test fails.
 			2 - Coverage percentage is below threshold.
 			3 - Test fails and also coverage percentage is below threshold.
 			*/
-			if (result.ExitCode > 3)
-			{
-				if (throwError)
-				{
-					throw new Exception(result.Output);
-				}
 
-				Logger.Log($"{title} Error", result.Output);
-				return false;
+			if (result.ExitCode < 0 || result.ExitCode > 3)
+			{
+				throw new Exception($"{title}{Environment.NewLine}{result.Output}");
 			}
 
-			Logger.Log(title, result.Output);
-			return true;
+			await project.Logger.InfoAsync($"{title}{Environment.NewLine}{result.Output}");
 		}
 	}
 }

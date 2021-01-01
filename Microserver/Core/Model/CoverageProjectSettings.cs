@@ -2,7 +2,7 @@
 
 namespace FineCodeCoverage.Core.Model
 {
-	public class AppOptions
+	public class CoverageProjectSettings
 	{
 		[Description("Specifies whether or not coverage output is enabled")]
 		public bool Enabled { get; set; } = true;

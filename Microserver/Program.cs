@@ -1,3 +1,4 @@
+using FineCodeCoverage.Core.Utilities;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
 
@@ -12,11 +13,19 @@ namespace FineCodeCoverage
 
 		public static IHostBuilder CreateHostBuilder(string[] args)
 		{
+			//TODO: Input
+			// - Port
+			// - LogLevel
+
 			return Host
 			.CreateDefaultBuilder(args)
-			.ConfigureWebHostDefaults(webBuilder =>
+			.ConfigureLogging(builder =>
 			{
-				webBuilder.UseStartup<Startup>();
+				builder.AddWebSocketLogger();
+			})
+			.ConfigureWebHostDefaults(builder =>
+			{
+				builder.UseStartup<Startup>();
 			});
 		}
 	}

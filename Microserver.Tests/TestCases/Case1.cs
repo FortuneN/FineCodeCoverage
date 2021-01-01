@@ -23,6 +23,7 @@ namespace Microserver.Tests.TestCases
 		{
 			_projectFile = TestHelper.GetTestCaseFullPath("Case1\\Core_3_1_NUnitTestProject1\\DotNetCore_3_1_NUnitTestProject1.csproj");
 			_testDllFile = TestHelper.GetTestCaseFullPath("Case1\\Core_3_1_NUnitTestProject1\\bin\\Debug\\netcoreapp3.1\\DotNetCore_3_1_NUnitTestProject1.dll");
+
 			TestHelper.BuildProject(_projectFile);
 			_httpClient = CreateClient();
 		}
@@ -52,6 +53,7 @@ namespace Microserver.Tests.TestCases
 
 			// assert
 
+			responseData.ToString();
 			Assert.IsTrue(httpResponse.IsSuccessStatusCode);
 		}
 	}

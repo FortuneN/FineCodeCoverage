@@ -1,26 +1,27 @@
 ﻿using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Xml.Linq;
 
 namespace FineCodeCoverage.Core.Utilities
 {
 	public static class XElementUtil
 	{
-		public static XElement RemoveAllNamespaces(this XElement @this)
+		public static XElement RemoveAllNamespaces(this XElement element)
 		{
-			return new XElement(@this.Name.LocalName,
-				from n in @this.Nodes()
+			return new XElement(element.Name.LocalName,
+				from n in element.Nodes()
 				select ((n is XElement) ? RemoveAllNamespaces(n as XElement) : n),
-				@this.HasAttributes ? (from a in @this.Attributes() select a) : null);
+				element.HasAttributes ? (from a in element.Attributes() select a) : null);
 		}
 
-		public static XElement Load(string path, bool removeNamespaces)
+		public static async Task<XElement> LoadAsync(string path, bool removeNamespaces)
 		{
-			var xelement = XElement.Parse(File.ReadAllText(path));
+			var xelement = XElement.Parse(await File.ReadAllTextAsync(path));
 
 			if (removeNamespaces)
 			{
-				xelement = xelement.RemoveAllNamespaces();
+				xelement = RemoveAllNamespaces(xelement);
 			}
 
 			return xelement;

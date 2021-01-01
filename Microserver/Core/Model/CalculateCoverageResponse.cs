@@ -5,6 +5,8 @@ namespace FineCodeCoverage.Core.Model
 {
 	public class CalculateCoverageResponse
 	{
+		public string RequestId { get; set; }
+
 		public string HtmlContent { get; set; }
 
 		public CoverageReport CoverageReport { get; set; }

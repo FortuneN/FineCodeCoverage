@@ -1,20 +1,21 @@
-﻿using System;
-using System.IO;
-using System.Xml;
-using System.Linq;
+﻿using FineCodeCoverage.Core.Model;
 using Newtonsoft.Json;
-using System.Xml.Serialization;
+using System;
 using System.Collections.Generic;
-using FineCodeCoverage.Core.Model;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
+using System.Xml;
+using System.Xml.Serialization;
 
 namespace FineCodeCoverage.Core.Cobertura
 {
-	public static class CoberturaUtil
+	public class CoberturaService : ICoberturaService
 	{
 		private static readonly XmlSerializer SERIALIZER = new XmlSerializer(typeof(CoverageReport));
 		private static readonly XmlReaderSettings READER_SETTINGS = new XmlReaderSettings { DtdProcessing = DtdProcessing.Ignore };
 
-		public static List<CoverageReport> LoadReportFiles(IEnumerable<string> inputFilePaths)
+		public List<CoverageReport> LoadReportFiles(IEnumerable<string> inputFilePaths)
 		{
 			if (inputFilePaths == null)
 			{
@@ -31,21 +32,21 @@ namespace FineCodeCoverage.Core.Cobertura
 			return reports;
 		}
 
-		public static CoverageReport LoadReportFile(string inputFilePath)
+		public CoverageReport LoadReportFile(string inputFilePath)
 		{
 			using var reader = XmlReader.Create(inputFilePath, READER_SETTINGS);
 			var report = (CoverageReport)SERIALIZER.Deserialize(reader);
 			return report;
 		}
 
-		public static void CoverageXmlFileToJsonFile(string xmlFile, string jsonFile, bool formattedJson = false)
+		public async Task CoverageXmlFileToJsonFileAsync(string xmlFile, string jsonFile, bool formattedJson = false)
 		{
-			var xmlText = File.ReadAllText(xmlFile);
+			var xmlText = await File.ReadAllTextAsync(xmlFile);
 			var jsonText = CoverageXmlTextToJsonText(xmlText, formattedJson);
 			File.WriteAllText(jsonFile, jsonText);
 		}
 
-		public static string CoverageXmlTextToJsonText(string xmlText, bool formattedJson = false)
+		public string CoverageXmlTextToJsonText(string xmlText, bool formattedJson = false)
 		{
 			long count = 0;
 
@@ -80,7 +81,7 @@ namespace FineCodeCoverage.Core.Cobertura
 			return jsonText;
 		}
 
-		public static CoverageReport ProcessCoberturaXmlFile(string xmlFilePath, out List<CoverageLine> coverageLines)
+		public CoverageReport ProcessCoberturaXmlFile(string xmlFilePath, out List<CoverageLine> coverageLines)
 		{
 			coverageLines = new List<CoverageLine>();
 

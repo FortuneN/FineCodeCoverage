@@ -2,19 +2,24 @@
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 
 namespace FineCodeCoverage.Core.Utilities
 {
-	internal static class AssemblyUtil
+	public static class AssemblyUtil
 	{
-		public static void RunInAssemblyResolvingContext(Action action)
+		public static async Task RunInAssemblyResolvingContextAsync(Func<Task> func)
 		{
 			try
 			{
 				AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
 
-				action.Invoke();
+				if (func == null)
+				{
+					return;
+				}
+
+				await func();
 			}
 			finally
 			{
@@ -22,13 +27,18 @@ namespace FineCodeCoverage.Core.Utilities
 			}
 		}
 
-		public static T RunInAssemblyResolvingContext<T>(Func<T> func)
+		public static async Task<T> RunInAssemblyResolvingContextAsync<T>(Func<Task<T>> func)
 		{
 			try
 			{
 				AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
 
-				return func.Invoke();
+				if (func == null)
+				{
+					return default;
+				}
+
+				return await func();
 			}
 			finally
 			{
@@ -36,7 +46,7 @@ namespace FineCodeCoverage.Core.Utilities
 			}
 		}
 
-		public static Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
+		private static Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
 		{
 			var assemblyName = new AssemblyName(args.Name);
 
@@ -49,7 +59,11 @@ namespace FineCodeCoverage.Core.Utilities
 				try
 				{
 					var assembly = Assembly.Load(assemblyName.Name);
-					if (assembly != null) return assembly;
+					
+					if (assembly != null)
+					{
+						return assembly;
+					}
 				}
 				catch
 				{
@@ -67,7 +81,11 @@ namespace FineCodeCoverage.Core.Utilities
 					if (!string.IsNullOrWhiteSpace(dllPath))
 					{
 						var assembly = Assembly.LoadFile(dllPath);
-						if (assembly != null) return assembly;
+						
+						if (assembly != null)
+						{
+							return assembly;
+						}
 					}
 				}
 				catch
