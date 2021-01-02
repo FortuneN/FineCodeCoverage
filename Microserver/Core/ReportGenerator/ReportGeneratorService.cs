@@ -2,6 +2,7 @@
 using FineCodeCoverage.Core.Utilities;
 using Fizzler.Systems.HtmlAgilityPack;
 using HtmlAgilityPack;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using ReportGeneratorPlugins;
@@ -17,19 +18,47 @@ namespace FineCodeCoverage.Core.ReportGenerator
 {
 	public class ReportGeneratorService : IReportGeneratorService
 	{
-		private const string ReportGeneratorName = "dotnet-reportgenerator-globaltool";
+		private static readonly EventId RUN_OTHER = EventIdUtil.New("REPORT_GENERATOR_RUN_OTHER");
+		private static readonly EventId RUN_START = EventIdUtil.New("REPORT_GENERATOR_RUN_START");
+		private static readonly EventId RUN_ERROR = EventIdUtil.New("REPORT_GENERATOR_RUN_ERROR");
+		private static readonly EventId RUN_SUCCESS = EventIdUtil.New("REPORT_GENERATOR_RUN_SUCCESS");
+
+		private static readonly EventId INSTALL_OTHER = EventIdUtil.New("REPORT_GENERATOR_INSTALL_OTHER");
+		private static readonly EventId INSTALL_START = EventIdUtil.New("REPORT_GENERATOR_INSTALL_START");
+		private static readonly EventId INSTALL_ERROR = EventIdUtil.New("REPORT_GENERATOR_INSTALL_ERROR");
+		private static readonly EventId INSTALL_SUCCESS = EventIdUtil.New("REPORT_GENERATOR_INSTALL_SUCCESS");
+
+		private static readonly EventId INITIALIZE_OTHER = EventIdUtil.New("REPORT_GENERATOR_INITIALIZE_OTHER");
+		private static readonly EventId INITIALIZE_START = EventIdUtil.New("REPORT_GENERATOR_INITIALIZE_START");
+		private static readonly EventId INITIALIZE_ERROR = EventIdUtil.New("REPORT_GENERATOR_INITIALIZE_ERROR");
+		private static readonly EventId INITIALIZE_SUCCESS = EventIdUtil.New("REPORT_GENERATOR_INITIALIZE_SUCCESS");
+
+		private static readonly EventId GET_VERSION_OTHER = EventIdUtil.New("REPORT_GENERATOR_GET_VERSION_OTHER");
+		private static readonly EventId GET_VERSION_START = EventIdUtil.New("REPORT_GENERATOR_GET_VERSION_START");
+		private static readonly EventId GET_VERSION_ERROR = EventIdUtil.New("REPORT_GENERATOR_GET_VERSION_ERROR");
+		private static readonly EventId GET_VERSION_SUCCESS = EventIdUtil.New("REPORT_GENERATOR_GET_VERSION_SUCCESS");
+
+		private static readonly EventId UPDATE_VERSION_OTHER = EventIdUtil.New("UPDATE_VERSION_OTHER");
+		private static readonly EventId UPDATE_VERSION_START = EventIdUtil.New("UPDATE_VERSION_START");
+		private static readonly EventId UPDATE_VERSION_ERROR = EventIdUtil.New("UPDATE_VERSION_ERROR");
+		private static readonly EventId UPDATE_VERSION_SUCCESS = EventIdUtil.New("UPDATE_VERSION_SUCCESS");
+
 		private string ReportGeneratorExePath { get; set; }
 		private string AppDataReportGeneratorFolder { get; set; }
 		private Version CurrentReportGeneratorVersion { get; set; }
 		private Version MimimumReportGeneratorVersion { get; set; }
+		private const string ReportGeneratorName = "dotnet-reportgenerator-globaltool";
 
+		private readonly ILogger _logger;
 		private readonly ServerSettings _serverSettings;
 
 		public ReportGeneratorService
 		(
-			ServerSettings serverSettings
+			ServerSettings serverSettings,
+			ILogger<ReportGeneratorService> logger
 		)
 		{
+			_logger = logger;
 			_serverSettings = serverSettings;
 
 			var reportGeneratorLibVersion = typeof(FccLightReportBuilder).BaseType.Assembly.GetName().Version.ToString().Split('.').Take(3);
@@ -38,211 +67,257 @@ namespace FineCodeCoverage.Core.ReportGenerator
 
 		public void Initialize()
 		{
-			AppDataReportGeneratorFolder = Path.Combine(_serverSettings.AppDataFolder, "reportGenerator");
-			
-			Directory.CreateDirectory(AppDataReportGeneratorFolder);
+			_logger.LogInformation(INITIALIZE_START, "");
 
-			GetReportGeneratorVersion();
-
-			if (CurrentReportGeneratorVersion == null)
+			try
 			{
-				InstallReportGenerator();
-			}
-			else if (CurrentReportGeneratorVersion < MimimumReportGeneratorVersion)
-			{
-				UpdateReportGenerator();
-			}
-		}
+				AppDataReportGeneratorFolder = Path.Combine(_serverSettings.AppDataFolder, "reportGenerator");
 
-		public Version GetReportGeneratorVersion()
-		{
-			var title = "ReportGenerator Get Info";
+				Directory.CreateDirectory(AppDataReportGeneratorFolder);
 
-			var processStartInfo = new ProcessStartInfo
-			{
-				FileName = "dotnet",
-				CreateNoWindow = true,
-				UseShellExecute = false,
-				RedirectStandardError = true,
-				RedirectStandardOutput = true,
-				WindowStyle = ProcessWindowStyle.Hidden,
-				WorkingDirectory = AppDataReportGeneratorFolder,
-				Arguments = $"tool list --tool-path \"{AppDataReportGeneratorFolder}\"",
-			};
+				GetVersion();
 
-			var process = Process.Start(processStartInfo);
-
-			process.WaitForExit();
-
-			var processOutput = process.GetOutput();
-
-			if (process.ExitCode != 0)
-			{
-				Logger.Log($"{title} Error", processOutput);
-				return null;
-			}
-
-			var outputLines = processOutput.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
-			var reportGeneratorLine = outputLines.FirstOrDefault(x => x.Trim().StartsWith(ReportGeneratorName, StringComparison.OrdinalIgnoreCase));
-
-			if (string.IsNullOrWhiteSpace(reportGeneratorLine))
-			{
-				// reportGenerator is not installed
-				ReportGeneratorExePath = null;
-				CurrentReportGeneratorVersion = null;
-				return null;
-			}
-
-			var reportGeneratorLineTokens = reportGeneratorLine.Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
-			var reportGeneratorVersion = reportGeneratorLineTokens[1].Trim();
-
-			CurrentReportGeneratorVersion = Version.Parse(reportGeneratorVersion);
-
-			ReportGeneratorExePath = Directory.GetFiles(AppDataReportGeneratorFolder, "reportGenerator.exe"  , SearchOption.AllDirectories).FirstOrDefault()
-								  ?? Directory.GetFiles(AppDataReportGeneratorFolder, "*reportGenerator*.exe", SearchOption.AllDirectories).FirstOrDefault();
-
-			return CurrentReportGeneratorVersion;
-		}
-
-		public void UpdateReportGenerator()
-		{
-			var title = "ReportGenerator Update";
-
-			var processStartInfo = new ProcessStartInfo
-			{
-				FileName = "dotnet",
-				CreateNoWindow = true,
-				UseShellExecute = false,
-				RedirectStandardError = true,
-				RedirectStandardOutput = true,
-				WindowStyle = ProcessWindowStyle.Hidden,
-				WorkingDirectory = AppDataReportGeneratorFolder,
-				Arguments = $"tool update {ReportGeneratorName} --verbosity normal --version {MimimumReportGeneratorVersion} --tool-path \"{AppDataReportGeneratorFolder}\"",
-			};
-
-			var process = Process.Start(processStartInfo);
-
-			process.WaitForExit();
-
-			var processOutput = process.GetOutput();
-
-			if (process.ExitCode != 0)
-			{
-				Logger.Log($"{title} Error", processOutput);
-				return;
-			}
-
-			GetReportGeneratorVersion();
-
-			Logger.Log(title, processOutput);
-		}
-
-		public void InstallReportGenerator()
-		{
-			var title = "ReportGenerator Install";
-
-			var processStartInfo = new ProcessStartInfo
-			{
-				FileName = "dotnet",
-				CreateNoWindow = true,
-				UseShellExecute = false,
-				RedirectStandardError = true,
-				RedirectStandardOutput = true,
-				WindowStyle = ProcessWindowStyle.Hidden,
-				WorkingDirectory = AppDataReportGeneratorFolder,
-				Arguments = $"tool install {ReportGeneratorName} --verbosity normal --version {MimimumReportGeneratorVersion} --tool-path \"{AppDataReportGeneratorFolder}\"",
-			};
-
-			var process = Process.Start(processStartInfo);
-
-			process.WaitForExit();
-
-			var processOutput = process.GetOutput();
-
-			if (process.ExitCode != 0)
-			{
-				Logger.Log($"{title} Error", processOutput);
-				return;
-			}
-
-			GetReportGeneratorVersion();
-
-			Logger.Log(title, processOutput);
-		}
-
-		public async Task<(string UnifiedHtmlFile, string UnifiedXmlFile)> RunReportGeneratorAsync(IEnumerable<string> coverOutputFiles, bool darkMode)
-		{
-			var title = "ReportGenerator Run";
-			var outputFolder = Path.GetDirectoryName(coverOutputFiles.OrderBy(x => x).First()); // use location of first file to output reports
-
-			Directory.GetFiles(outputFolder, "*.htm*").ToList().ForEach(File.Delete); // delete html files if they exist
-
-			var unifiedHtmlFile = Path.Combine(outputFolder, "index.html");
-			var unifiedXmlFile = Path.Combine(outputFolder, "Cobertura.xml");
-
-			var reportGeneratorSettings = new List<string>();
-
-			reportGeneratorSettings.Add($@"""-targetdir:{outputFolder}""");
-			
-			async Task<bool> runAsync(string outputReportType, string inputReports)
-			{
-				var reportTypeSettings = reportGeneratorSettings.ToArray().ToList();
-
-				if (outputReportType.Equals("Cobertura", StringComparison.OrdinalIgnoreCase))
+				if (CurrentReportGeneratorVersion == null)
 				{
-					reportTypeSettings.Add($@"""-reports:{inputReports}""");
-					reportTypeSettings.Add($@"""-reporttypes:Cobertura""");
+					Install();
 				}
-				else if (outputReportType.Equals("HtmlInline_AzurePipelines", StringComparison.OrdinalIgnoreCase))
+				else if (CurrentReportGeneratorVersion < MimimumReportGeneratorVersion)
 				{
-					reportTypeSettings.Add($@"""-reports:{inputReports}""");
-					reportTypeSettings.Add($@"""-plugins:{typeof(FccLightReportBuilder).Assembly.Location}""");
-					reportTypeSettings.Add($@"""-reporttypes:{(darkMode ? FccDarkReportBuilder.REPORT_TYPE : FccLightReportBuilder.REPORT_TYPE)}""");
-				}
-				else
-				{
-					throw new Exception($"Unknown reporttype '{outputReportType}'");
+					UpdateVersion();
 				}
 
-				Logger.Log($"{title} Arguments [reporttype:{outputReportType}] {Environment.NewLine}{string.Join($"{Environment.NewLine}", reportTypeSettings)}");
+				_logger.LogInformation(INITIALIZE_SUCCESS, "AppDataReportGeneratorFolder {AppDataReportGeneratorFolder}", AppDataReportGeneratorFolder);
+			}
+			catch (Exception exception)
+			{
+				_logger.LogError(INITIALIZE_ERROR, exception, "");
+				throw;
+			}
+		}
 
-				var result = await ProcessUtil.ExecuteAsync(
-					FilePath: ReportGeneratorExePath,
-					Arguments: string.Join(" ", reportTypeSettings),
-					WorkingDirectory: outputFolder
-				);
+		public Version GetVersion()
+		{
+			_logger.LogInformation(GET_VERSION_START, "");
 
-				if (result.ExitCode != 0)
+			try
+			{
+				var processStartInfo = new ProcessStartInfo
 				{
-					if (throwError)
+					FileName = "dotnet",
+					CreateNoWindow = true,
+					UseShellExecute = false,
+					RedirectStandardError = true,
+					RedirectStandardOutput = true,
+					WindowStyle = ProcessWindowStyle.Hidden,
+					WorkingDirectory = AppDataReportGeneratorFolder,
+					Arguments = $"tool list --tool-path \"{AppDataReportGeneratorFolder}\"",
+				};
+
+				var process = Process.Start(processStartInfo);
+
+				process.WaitForExit();
+
+				var processOutput = process.GetOutput();
+
+				if (process.ExitCode != 0)
+				{
+					return null;
+				}
+
+				var outputLines = processOutput.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+				var reportGeneratorLine = outputLines.FirstOrDefault(x => x.Trim().StartsWith(ReportGeneratorName, StringComparison.OrdinalIgnoreCase));
+
+				if (string.IsNullOrWhiteSpace(reportGeneratorLine))
+				{
+					// reportGenerator is not installed
+					ReportGeneratorExePath = null;
+					CurrentReportGeneratorVersion = null;
+					return null;
+				}
+
+				var reportGeneratorLineTokens = reportGeneratorLine.Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
+				var reportGeneratorVersion = reportGeneratorLineTokens[1].Trim();
+
+				CurrentReportGeneratorVersion = Version.Parse(reportGeneratorVersion);
+
+				ReportGeneratorExePath = Directory.GetFiles(AppDataReportGeneratorFolder, "reportGenerator.exe", SearchOption.AllDirectories).FirstOrDefault()
+									  ?? Directory.GetFiles(AppDataReportGeneratorFolder, "*reportGenerator*.exe", SearchOption.AllDirectories).FirstOrDefault();
+
+				_logger.LogInformation(GET_VERSION_SUCCESS, "");
+
+				return CurrentReportGeneratorVersion;
+			}
+			catch (Exception exception)
+			{
+				_logger.LogError(GET_VERSION_ERROR, exception, "");
+				throw;
+			}
+		}
+
+		public void UpdateVersion()
+		{
+			_logger.LogInformation(UPDATE_VERSION_START, "");
+
+			try
+			{
+				var processStartInfo = new ProcessStartInfo
+				{
+					FileName = "dotnet",
+					CreateNoWindow = true,
+					UseShellExecute = false,
+					RedirectStandardError = true,
+					RedirectStandardOutput = true,
+					WindowStyle = ProcessWindowStyle.Hidden,
+					WorkingDirectory = AppDataReportGeneratorFolder,
+					Arguments = $"tool update {ReportGeneratorName} --verbosity normal --version {MimimumReportGeneratorVersion} --tool-path \"{AppDataReportGeneratorFolder}\"",
+				};
+
+				var process = Process.Start(processStartInfo);
+
+				process.WaitForExit();
+
+				var processOutput = process.GetOutput();
+
+				if (process.ExitCode != 0)
+				{
+					return;
+				}
+
+				GetVersion();
+
+				_logger.LogInformation(UPDATE_VERSION_SUCCESS, "");
+			}
+			catch (Exception exception)
+			{
+				_logger.LogError(UPDATE_VERSION_ERROR, exception, "");
+				throw;
+			}
+		}
+
+		public void Install()
+		{
+			_logger.LogInformation(INSTALL_START, "");
+
+			try
+			{
+				var processStartInfo = new ProcessStartInfo
+				{
+					FileName = "dotnet",
+					CreateNoWindow = true,
+					UseShellExecute = false,
+					RedirectStandardError = true,
+					RedirectStandardOutput = true,
+					WindowStyle = ProcessWindowStyle.Hidden,
+					WorkingDirectory = AppDataReportGeneratorFolder,
+					Arguments = $"tool install {ReportGeneratorName} --verbosity normal --version {MimimumReportGeneratorVersion} --tool-path \"{AppDataReportGeneratorFolder}\"",
+				};
+
+				var process = Process.Start(processStartInfo);
+
+				process.WaitForExit();
+
+				var processOutput = process.GetOutput();
+
+				if (process.ExitCode != 0)
+				{
+					return;
+				}
+
+				GetVersion();
+
+				_logger.LogInformation(INSTALL_SUCCESS, "");
+			}
+			catch (Exception exception)
+			{
+				_logger.LogError(INSTALL_ERROR, exception, "");
+				throw;
+			}
+		}
+
+		public async Task<(string UnifiedHtmlFile, string UnifiedXmlFile)> RunAsync(IEnumerable<string> coverOutputFiles, bool darkMode)
+		{
+			_logger.LogInformation(RUN_START, "");
+
+			try
+			{
+				var outputFolder = Path.GetDirectoryName(coverOutputFiles.OrderBy(x => x).First()); // use location of first file to output reports
+
+				Directory.GetFiles(outputFolder, "*.htm*").ToList().ForEach(File.Delete); // delete html files if they exist
+
+				var unifiedHtmlFile = Path.Combine(outputFolder, "index.html");
+				var unifiedXmlFile = Path.Combine(outputFolder, "Cobertura.xml");
+
+				var reportGeneratorSettings = new List<string>();
+
+				reportGeneratorSettings.Add($@"""-targetdir:{outputFolder}""");
+
+				async Task<bool> runAsync(string outputReportType, string inputReports)
+				{
+					var reportTypeSettings = reportGeneratorSettings.ToArray().ToList();
+
+					if (outputReportType.Equals("Cobertura", StringComparison.OrdinalIgnoreCase))
 					{
-						throw new Exception(result.Output);
+						reportTypeSettings.Add($@"""-reports:{inputReports}""");
+						reportTypeSettings.Add($@"""-reporttypes:Cobertura""");
+					}
+					else if (outputReportType.Equals("HtmlInline_AzurePipelines", StringComparison.OrdinalIgnoreCase))
+					{
+						reportTypeSettings.Add($@"""-reports:{inputReports}""");
+						reportTypeSettings.Add($@"""-plugins:{typeof(FccLightReportBuilder).Assembly.Location}""");
+						reportTypeSettings.Add($@"""-reporttypes:{(darkMode ? FccDarkReportBuilder.REPORT_TYPE : FccLightReportBuilder.REPORT_TYPE)}""");
+					}
+					else
+					{
+						throw new Exception($"Unknown reporttype '{outputReportType}'");
 					}
 
-					Logger.Log($"{title} [reporttype:{outputReportType}] Error", result.Output);
+					Logger.Log($"{title} Arguments [reporttype:{outputReportType}] {Environment.NewLine}{string.Join($"{Environment.NewLine}", reportTypeSettings)}");
+
+					var result = await ProcessUtil.ExecuteAsync(
+						FilePath: ReportGeneratorExePath,
+						Arguments: string.Join(" ", reportTypeSettings),
+						WorkingDirectory: outputFolder
+					);
+
+					if (result.ExitCode != 0)
+					{
+						if (throwError)
+						{
+							throw new Exception(result.Output);
+						}
+
+						Logger.Log($"{title} [reporttype:{outputReportType}] Error", result.Output);
+						return false;
+					}
+
+					Logger.Log($"{title} [reporttype:{outputReportType}]", result.Output);
+					return true;
+				}
+
+				if (!await runAsync("Cobertura", string.Join(";", coverOutputFiles)))
+				{
 					return false;
 				}
 
-				Logger.Log($"{title} [reporttype:{outputReportType}]", result.Output);
-				return true;
-			}
+				if (!await runAsync("HtmlInline_AzurePipelines", unifiedXmlFile))
+				{
+					return false;
+				}
 
-			if (!await runAsync("Cobertura", string.Join(";", coverOutputFiles)))
+				// return
+
+				_logger.LogInformation(RUN_SUCCESS, "");
+
+				return (
+					UnifiedHtmlFile: unifiedHtmlFile,
+					UnifiedXmlFile: unifiedXmlFile
+				);
+			}
+			catch (Exception exception)
 			{
-				return false;
+				_logger.LogError(RUN_ERROR, exception, "");
+				throw;
 			}
-
-			if (!await runAsync("HtmlInline_AzurePipelines", unifiedXmlFile))
-			{
-				return false;
-			}
-
-			//return true;
-
-			return (
-				UnifiedHtmlFile : unifiedHtmlFile,
-				UnifiedXmlFile : unifiedXmlFile
-			);
 		}
 
 		public async Task<string> ProcessUnifiedHtmlFileAsync(string htmlFile, bool darkMode)

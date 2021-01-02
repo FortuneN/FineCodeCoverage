@@ -156,7 +156,7 @@ namespace FineCodeCoverage.Core.Coverage
 
 			// run reportGenerator process
 
-			var reportGeneratorResult = await _reportGeneratorService.RunReportGeneratorAsync(coverOutputFiles, request.DarkMode);
+			var reportGeneratorResult = await _reportGeneratorService.RunAsync(coverOutputFiles, request.DarkMode);
 
 			// update CoverageLines
 

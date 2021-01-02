@@ -8,13 +8,13 @@ namespace FineCodeCoverage.Core.ReportGenerator
 	{
 		public void Initialize();
 
-		public Version GetReportGeneratorVersion();
+		public Version GetVersion();
 
-		public void UpdateReportGenerator();
+		public void UpdateVersion();
 
-		public void InstallReportGenerator();
+		public void Install();
 
-		public Task<(string UnifiedHtmlFile, string UnifiedXmlFile)> RunReportGeneratorAsync(IEnumerable<string> coverOutputFiles, bool darkMode);
+		public Task<(string UnifiedHtmlFile, string UnifiedXmlFile)> RunAsync(IEnumerable<string> coverOutputFiles, bool darkMode);
 
 		public Task<string> ProcessUnifiedHtmlFileAsync(string htmlFile, bool darkMode);
 	}
