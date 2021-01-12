@@ -20,11 +20,11 @@ namespace FineCodeCoverage.Engine.Utilities
 			DirectoryInfo directoryInfo = new DirectoryInfo(directory);
 			if (directoryInfo.Exists)
 			{
-				foreach (FileInfo file in directory.GetFiles())
+				foreach (FileInfo file in directoryInfo.GetFiles())
 				{
 					file.Delete();
 				}
-				foreach (DirectoryInfo subDir in directory.GetDirectories())
+				foreach (DirectoryInfo subDir in directoryInfo.GetDirectories())
 				{
 					subDir.Delete(true);
 				}
