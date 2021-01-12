@@ -74,6 +74,7 @@
     <Compile Include="Core\Model\CoverageLine.cs" />
     <Compile Include="Core\Model\CoverageProject.cs" />
     <Compile Include="Core\FCCEngine.cs" />
+    <Compile Include="Core\Utilities\FileUtil.cs" />
     <Compile Include="Core\Utilities\XElementUtil.cs" />
     <Compile Include="Impl\RunSettingsRetriever.cs" />
     <Compile Include="Impl\GlyphFactory.cs" />

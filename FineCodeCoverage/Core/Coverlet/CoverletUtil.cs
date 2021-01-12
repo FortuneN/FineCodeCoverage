@@ -154,17 +154,7 @@ namespace FineCodeCoverage.Engine.Coverlet
 		{
 			var title = $"Coverlet Run ({project.ProjectName})";
 
-			if (File.Exists(project.CoverageOutputFile))
-			{
-				File.Delete(project.CoverageOutputFile);
-			}
-
-			if (Directory.Exists(project.CoverageOutputFolder))
-			{
-				Directory.Delete(project.CoverageOutputFolder, true);
-			}
-
-			Directory.CreateDirectory(project.CoverageOutputFolder);
+			FineCodeCoverage.Engine.Utilities.FileUtil.EnsureEmptyDirectory(project.CoverageOutputFile);
 
 			var coverletSettings = new List<string>();
 

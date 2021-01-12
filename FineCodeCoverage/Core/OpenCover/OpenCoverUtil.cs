@@ -140,22 +140,14 @@ namespace FineCodeCoverage.Engine.OpenCover
 			}
 		}
 
+
+
 		[SuppressMessage("Usage", "VSTHRD002:Avoid problematic synchronous waits")]
 		public static bool RunOpenCover(CoverageProject project, bool throwError = false)
 		{
 			var title = $"OpenCover Run ({project.ProjectName})";
 
-			if (File.Exists(project.CoverageOutputFile))
-			{
-				File.Delete(project.CoverageOutputFile);
-			}
-
-			if (Directory.Exists(project.CoverageOutputFolder))
-			{
-				Directory.Delete(project.CoverageOutputFolder, true);
-			}
-
-			Directory.CreateDirectory(project.CoverageOutputFolder);
+			FileUtil.EnsureEmptyDirectory(project.CoverageOutputFolder);
 
 			var opencoverSettings = new List<string>();
 
