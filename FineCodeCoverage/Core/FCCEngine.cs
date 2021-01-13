@@ -407,10 +407,7 @@ namespace FineCodeCoverage.Engine
 				project.HasExcludeFromCodeCoverageAssemblyAttribute = HasExcludeFromCodeCoverageAssemblyAttribute(project.ProjectFileXElement);
 				project.AssemblyName = GetAssemblyName(project.ProjectFileXElement, Path.GetFileNameWithoutExtension(project.ProjectFile));
 
-				if (!Directory.Exists(project.CoverageOutputFolder))
-				{
-					Directory.CreateDirectory(project.CoverageOutputFolder);
-				}
+				project.EnsureEmptyOutputFolder();
 
 				try
 				{

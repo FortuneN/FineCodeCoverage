@@ -147,8 +147,6 @@ namespace FineCodeCoverage.Engine.OpenCover
 		{
 			var title = $"OpenCover Run ({project.ProjectName})";
 
-			FileUtil.EnsureEmptyDirectory(project.CoverageOutputFolder);
-
 			var opencoverSettings = new List<string>();
 
 			opencoverSettings.Add($@" -mergebyhash ");

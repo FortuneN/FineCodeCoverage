@@ -154,8 +154,6 @@ namespace FineCodeCoverage.Engine.Coverlet
 		{
 			var title = $"Coverlet Run ({project.ProjectName})";
 
-			FineCodeCoverage.Engine.Utilities.FileUtil.EnsureEmptyDirectory(project.CoverageOutputFile);
-
 			var coverletSettings = new List<string>();
 
 			coverletSettings.Add($@"""{project.TestDllFile}""");
