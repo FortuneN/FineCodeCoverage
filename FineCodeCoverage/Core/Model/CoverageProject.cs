@@ -56,5 +56,29 @@ namespace FineCodeCoverage.Engine.Model
 			
 			return this;
 		}
+
+		/// <summary>
+		/// Delete all files and sub-directories from the output folder if it exists, or creates the directory if it does not exist.
+		/// </summary>
+		public void EnsureEmptyOutputFolder()
+		{
+			DirectoryInfo directoryInfo = new DirectoryInfo(CoverageOutputFolder);
+			if (directoryInfo.Exists)
+			{
+				foreach (FileInfo file in directoryInfo.GetFiles())
+				{
+					file.Delete();
+				}
+				foreach (DirectoryInfo subDir in directoryInfo.GetDirectories())
+				{
+					subDir.Delete(true);
+				}
+			}
+			else
+			{
+				Directory.CreateDirectory(CoverageOutputFolder);
+			}
+		}
+
 	}
 }
