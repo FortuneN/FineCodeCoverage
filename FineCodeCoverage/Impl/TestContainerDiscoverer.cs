@@ -170,17 +170,6 @@ namespace FineCodeCoverage.Impl
 						project.ProjectFile = containerDataType.GetProperty("ProjectFilePath", BindingFlags.Instance | BindingFlags.FlattenHierarchy | BindingFlags.Public | BindingFlags.NonPublic).GetValue(containerData).ToString();
 						project.RunSettingsFile = ThreadHelper.JoinableTaskFactory.Run(() => runSettingsRetriever.GetRunSettingsFileAsync(userRunSettings, container));
 
-						try
-						{
-							var defaultOutputFolder = Path.GetDirectoryName(containerDataType.GetProperty("DefaultOutputPath", BindingFlags.Instance | BindingFlags.FlattenHierarchy | BindingFlags.Public | BindingFlags.NonPublic).GetValue(containerData).ToString());
-							var legacyWorkFolder = Path.Combine(Path.GetDirectoryName(defaultOutputFolder), "fine-code-coverage");
-							Directory.Delete(legacyWorkFolder, true);
-						}
-						catch
-						{
-							// ignore
-						}
-						
 						projects.Add(project);
 					}
 
