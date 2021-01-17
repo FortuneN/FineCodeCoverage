@@ -23,10 +23,7 @@ namespace FineCodeCoverage.Impl
 	[Export(typeof(ITestContainerDiscoverer))]
 	internal class TestContainerDiscoverer : ITestContainerDiscoverer
 	{
-		private EnvDTE.DTE _dte;
-		private EnvDTE.Events _dteEvents;
 		private Thread _reloadCoverageThread;
-		private EnvDTE.BuildEvents _dteBuildEvents;
 		public event EventHandler TestContainersUpdated;
 		private readonly IServiceProvider _serviceProvider;
 		public static event UpdateMarginTagsDelegate UpdateMarginTags;
@@ -75,15 +72,6 @@ namespace FineCodeCoverage.Impl
 			ThreadHelper.JoinableTaskFactory.Run(async () =>
 			{
 				await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-
-				_dte = (EnvDTE.DTE)serviceProvider.GetService(typeof(EnvDTE.DTE));
-				
-				if (_dte != null)
-				{
-					_dteEvents = _dte.Events;
-					_dteBuildEvents = _dteEvents.BuildEvents;
-					_dteBuildEvents.OnBuildBegin += (scope, action) => StopCoverageProcess();
-				}
 
 				if (serviceProvider.GetService(typeof(SVsShell)) is IVsShell shell)
 				{
@@ -173,7 +161,7 @@ namespace FineCodeCoverage.Impl
 
 					}catch(Exception exc)
                     {
-						throw new Exception("Error test container discoverer reflection", exc);
+						throw new Exception("Error test container discoverer reflection",exc);
                     }
 					
 
