@@ -20,7 +20,7 @@ namespace FineCodeCoverage.Core.Utilities
 	}
 	public abstract class ReflectObjectProperties
 	{
-		private const BindingFlags defaultBindingFlags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.Static;
+		private const BindingFlags defaultBindingFlags = BindingFlags.Instance | BindingFlags.Public;
 		public object ReflectedObject { get; }
 		public Type ReflectedType { get; }
 
