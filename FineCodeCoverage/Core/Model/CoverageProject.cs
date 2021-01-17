@@ -17,7 +17,6 @@ namespace FineCodeCoverage.Engine.Model
 		private string buildOutputPath;
 		private string coverageToolOutputFolderName = "coverage-tool-output";
 
-		public string ProjectGuid { get; set; }
 		public string ProjectFolder => Path.GetDirectoryName(ProjectFile);
 		public bool IsDotNetSdkStyle { get; set; }
 		public string TestDllFile { get; set; }
