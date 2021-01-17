@@ -399,25 +399,14 @@ namespace FineCodeCoverage.Engine
 					project.FailureDescription = $"Unsupported project type for DLL '{project.TestDllFile}'";
 					return project;
 				}
+				
 
-				project.CoverageOutputFolder = Path.Combine(project.ProjectOutputFolder, "fine-code-coverage");
-				project.CoverageOutputFile = Path.Combine(project.CoverageOutputFolder, "project.coverage.xml");
 				project.IsDotNetSdkStyle = IsDotNetSdkStyle(project);
 				project.ReferencedProjects = GetReferencedProjects(project);
 				project.HasExcludeFromCodeCoverageAssemblyAttribute = HasExcludeFromCodeCoverageAssemblyAttribute(project.ProjectFileXElement);
 				project.AssemblyName = GetAssemblyName(project.ProjectFileXElement, Path.GetFileNameWithoutExtension(project.ProjectFile));
-
-				project.EnsureEmptyOutputFolder();
-
-				try
-				{
-					var legacyOutputFolder = Path.Combine(project.ProjectOutputFolder, "_outputFolder");
-					Directory.Delete(legacyOutputFolder, true);
-				}
-				catch
-				{
-					// ignore
-				}
+				
+				project.PrepareForCoverage();
 
 				return project;
 			})
