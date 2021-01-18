@@ -8,25 +8,23 @@ using System.Threading.Tasks;
 
 namespace FineCodeCoverage.Core.Utilities
 {
-	[AttributeUsage(AttributeTargets.Property, AllowMultiple = false)]
-	public class ReflectFlagsAttribute : Attribute
-	{
-		public ReflectFlagsAttribute(BindingFlags bindingFlags)
-		{
-			BindingFlags = bindingFlags;
-		}
-
-		public BindingFlags BindingFlags { get; }
-	}
-	public abstract class ReflectObjectProperties
+    public abstract class ReflectObjectProperties
 	{
 		private static MethodInfo createEnumerableMethodInfo;
 		private const BindingFlags defaultBindingFlags = BindingFlags.Instance | BindingFlags.Public;
 		public object ReflectedObject { get; }
 		public Type ReflectedType { get; }
-		private Type listType = typeof(List<>);
-		private Type enumerableTTYpe = typeof(IEnumerable<>);
-
+		private static Type listType = typeof(List<>);
+		private static Type enumerableTTYpe = typeof(IEnumerable<>);
+		//Defined up to 8 parameters
+		private static List<Type> funcTypes = new List<Type>
+		{
+			typeof(Func<>),typeof(Func<,>),typeof(Func<,,>),typeof(Func<,,,>),typeof(Func<,,,,>),typeof(Func<,,,,,>),typeof(Func<,,,,,,>),typeof(Func<,,,,,,,>),typeof(Func<,,,,,,,,>)
+		};
+		private static List<Type> actionTypes = new List<Type>
+		{
+			typeof(Action),typeof(Action<>),typeof(Action<,>),typeof(Action<,,>),typeof(Action<,,,>),typeof(Action<,,,,>),typeof(Action<,,,,,>),typeof(Action<,,,,,,>),typeof(Action<,,,,,,,>)
+		};
 
 		static ReflectObjectProperties()
 		{
@@ -39,14 +37,60 @@ namespace FineCodeCoverage.Core.Utilities
 			ReflectedType = toReflect.GetType();
 			foreach (var ownProperty in GetOwnSettableProperties())
 			{
-				var value = ReflectedPropertyValue(ownProperty.Name, GetBindingFlags(ownProperty));
-				if (value != null)
+				var bindingFlags = GetBindingFlags(ownProperty);
+				var isAction = FuncActionPropertyCheck(ownProperty.PropertyType);
+				if (isAction.HasValue && !FuncActionPropertyIsProperty(ownProperty))
 				{
-					value = CoerceValue(value, ownProperty.PropertyType);
+					var value = WrapFuncOrAction(ownProperty, isAction.Value, bindingFlags);
 					ownProperty.SetValue(this, value);
+				}
+				else
+				{
+					var value = ReflectedPropertyValue(ownProperty.Name, bindingFlags);
+					if (value != null)
+					{
+						value = CoerceValue(value, ownProperty.PropertyType);
+						ownProperty.SetValue(this, value);
+					}
 				}
 
 			}
+		}
+
+		private Delegate WrapFuncOrAction(PropertyInfo ownProperty, bool isAction, BindingFlags bindingFlags)
+		{
+			var genericTypeArguments = ownProperty.PropertyType.GenericTypeArguments;
+			var parameterTypes = isAction ? genericTypeArguments : genericTypeArguments.Take(genericTypeArguments.Length - 1).ToArray();
+			var methodInfo = ReflectedType.GetMethod(ownProperty.Name, bindingFlags, null, parameterTypes, new ParameterModifier[] { });
+			return MethodWrapper.CreateDelegateWrapper(methodInfo, ReflectedObject, ownProperty.PropertyType, isAction);
+		}
+
+		private bool FuncActionPropertyIsProperty(PropertyInfo property)
+		{
+			return property.GetCustomAttribute<DelegatePropertyAttribute>() != null;
+		}
+
+		private bool? FuncActionPropertyCheck(Type propertyType)
+		{
+			if (propertyType == typeof(Action))
+			{
+				return true;
+			}
+			if (propertyType.IsGenericType)
+			{
+				var genericTypeDefinition = propertyType.GetGenericTypeDefinition();
+				var funcType = funcTypes.SingleOrDefault(func => func == genericTypeDefinition);
+				if (funcType != null)
+				{
+					return false;
+				}
+				var actionType = actionTypes.SingleOrDefault(action => action == genericTypeDefinition);
+				if (actionType != null)
+				{
+					return true;
+				}
+			}
+			return null;
 		}
 
 		private BindingFlags GetBindingFlags(PropertyInfo ownProperty)

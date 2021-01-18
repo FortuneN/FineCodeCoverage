@@ -155,7 +155,7 @@ namespace FineCodeCoverage.Impl
 
 							var containerData = container.ProjectData;
 							project.ProjectFile = container.ProjectData.ProjectFilePath;
-							project.RunSettingsFile = ThreadHelper.JoinableTaskFactory.Run(() => runSettingsRetriever.GetRunSettingsFileAsync(userRunSettings, containerData.ReflectedObject));
+							project.RunSettingsFile = ThreadHelper.JoinableTaskFactory.Run(() => runSettingsRetriever.GetRunSettingsFileAsync(userRunSettings, containerData));
 							return project;
 						}).ToArray();
 

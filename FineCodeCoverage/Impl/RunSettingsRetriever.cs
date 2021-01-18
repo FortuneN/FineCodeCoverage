@@ -7,12 +7,12 @@ namespace FineCodeCoverage.Impl
 	{
 		private object userSettings;
 		
-		public async Task<string> GetRunSettingsFileAsync(object userSettings, object projectData)
+		public async Task<string> GetRunSettingsFileAsync(object userSettings, ContainerData projectData)
 		{
 			this.userSettings = userSettings;
 			
 			var runSettingsFile = GetDefaultRunSettingsFilePath();
-			var projectRunSettingsFile = await GetProjectRunSettingFileAsync(projectData);
+			var projectRunSettingsFile = await projectData.GetBuildPropertyAsync("RunSettingsFilePath", (string)null);
 			
 			if (!string.IsNullOrEmpty(projectRunSettingsFile))
 			{
@@ -55,10 +55,10 @@ namespace FineCodeCoverage.Impl
 			return settingsFilePath;
 		}
 
-		private static async Task<string> GetProjectRunSettingFileAsync(object projectData)
-		{
-			var projectRunSettingsFile = await (projectData.GetType().GetMethod("GetBuildPropertyAsync", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(projectData, new object[] { "RunSettingsFilePath", (string)null }) as Task<string>);
-			return projectRunSettingsFile;
-		}
+		//private static async Task<string> GetProjectRunSettingFileAsync(object projectData)
+		//{
+		//	var projectRunSettingsFile = await (projectData.GetType().GetMethod("GetBuildPropertyAsync", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(projectData, new object[] { "RunSettingsFilePath", (string)null }) as Task<string>);
+		//	return projectRunSettingsFile;
+		//}
 	}
 }
