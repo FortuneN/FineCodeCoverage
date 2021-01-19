@@ -67,6 +67,7 @@
     <Compile Include="Core\Cobertura\Packages.cs" />
     <Compile Include="Core\Cobertura\Sources.cs" />
     <Compile Include="Core\Coverlet\CoverletUtil.cs" />
+    <Compile Include="Core\FileSynchronization\FileSynchronization.cs" />
     <Compile Include="Core\Model\ReferencedProject.cs" />
     <Compile Include="Core\MsTestPlatform\MsTestPlatformUtil.cs" />
     <Compile Include="Core\ReportGenerator\ReportGeneratorUtil.cs" />
@@ -74,16 +75,26 @@
     <Compile Include="Core\Model\CoverageLine.cs" />
     <Compile Include="Core\Model\CoverageProject.cs" />
     <Compile Include="Core\FCCEngine.cs" />
+    <Compile Include="Core\Utilities\ComparableFile.cs" />
+    <Compile Include="Core\Utilities\FileComparer.cs" />
+    <Compile Include="Core\Utilities\ReflectObject\DelegatePropertyAttribute.cs" />
+    <Compile Include="Core\Utilities\ReflectObject\MethodWrapper.cs" />
+    <Compile Include="Core\Utilities\ReflectObject\ReflectFlagsAttribute.cs" />
+    <Compile Include="Core\Utilities\ReflectObject\ReflectObjectProperties.cs" />
     <Compile Include="Core\Utilities\XElementUtil.cs" />
     <Compile Include="Impl\RunSettingsRetriever.cs" />
     <Compile Include="Impl\GlyphFactory.cs" />
     <Compile Include="Impl\GlyphFactoryProvider.cs" />
     <Compile Include="Impl\GlyphTag.cs" />
     <Compile Include="Impl\Logger.cs" />
+    <Compile Include="Impl\TestContainerDiscovery\Container.cs" />
+    <Compile Include="Impl\TestContainerDiscovery\ContainerData.cs" />
+    <Compile Include="Impl\TestContainerDiscovery\Operation.cs" />
+    <Compile Include="Impl\TestContainerDiscovery\TestConfiguration.cs" />
     <Compile Include="Impl\Vsix.cs" />
     <Compile Include="Impl\Tagger.cs" />
     <Compile Include="Impl\TaggerProvider.cs" />
-    <Compile Include="Impl\TestContainerDiscoverer.cs" />
+    <Compile Include="Impl\TestContainerDiscovery\TestContainerDiscoverer.cs" />
     <Compile Include="Core\OpenCover\OpenCoverUtil.cs" />
     <Compile Include="Options\AppOptions.cs">
       <SubType>Component</SubType>

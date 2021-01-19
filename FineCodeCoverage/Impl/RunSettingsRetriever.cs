@@ -7,12 +7,12 @@ namespace FineCodeCoverage.Impl
 	{
 		private object userSettings;
 		
-		public async Task<string> GetRunSettingsFileAsync(object userSettings, object testContainer)
+		public async Task<string> GetRunSettingsFileAsync(object userSettings, ContainerData projectData)
 		{
 			this.userSettings = userSettings;
 			
 			var runSettingsFile = GetDefaultRunSettingsFilePath();
-			var projectRunSettingsFile = await GetProjectRunSettingFileAsync(testContainer);
+			var projectRunSettingsFile = await projectData.GetBuildPropertyAsync("RunSettingsFilePath", (string)null);
 			
 			if (!string.IsNullOrEmpty(projectRunSettingsFile))
 			{
@@ -55,18 +55,10 @@ namespace FineCodeCoverage.Impl
 			return settingsFilePath;
 		}
 
-		private static async Task<string> GetProjectRunSettingFileAsync(object container)
-		{
-			var projectDataProperty = container.GetType().GetProperty("ProjectData");
-			
-			if (projectDataProperty != null)
-			{
-				var projectData = projectDataProperty.GetValue(container);
-				var projectRunSettingsFile = await (projectData.GetType().GetMethod("GetBuildPropertyAsync", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(projectData, new object[] { "RunSettingsFilePath", (string)null }) as Task<string>);
-				return projectRunSettingsFile;
-			}
-
-			return null;
-		}
+		//private static async Task<string> GetProjectRunSettingFileAsync(object projectData)
+		//{
+		//	var projectRunSettingsFile = await (projectData.GetType().GetMethod("GetBuildPropertyAsync", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(projectData, new object[] { "RunSettingsFilePath", (string)null }) as Task<string>);
+		//	return projectRunSettingsFile;
+		//}
 	}
 }

@@ -2,7 +2,6 @@
 using System.IO;
 using System.Linq;
 using System.Threading;
-using System.Reflection;
 using FineCodeCoverage.Output;
 using FineCodeCoverage.Engine;
 using FineCodeCoverage.Options;
@@ -15,19 +14,16 @@ using Microsoft.VisualStudio.Utilities;
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestWindow.Extensibility;
-using FineCodeCoverage.Engine.Utilities;
+using System.Reflection;
 
 namespace FineCodeCoverage.Impl
 {
-	[Name(Vsix.TestContainerDiscovererName)]
+    [Name(Vsix.TestContainerDiscovererName)]
 	[Export(typeof(TestContainerDiscoverer))]
 	[Export(typeof(ITestContainerDiscoverer))]
 	internal class TestContainerDiscoverer : ITestContainerDiscoverer
 	{
-		private EnvDTE.DTE _dte;
-		private EnvDTE.Events _dteEvents;
 		private Thread _reloadCoverageThread;
-		private EnvDTE.BuildEvents _dteBuildEvents;
 		public event EventHandler TestContainersUpdated;
 		private readonly IServiceProvider _serviceProvider;
 		public static event UpdateMarginTagsDelegate UpdateMarginTags;
@@ -76,15 +72,6 @@ namespace FineCodeCoverage.Impl
 			ThreadHelper.JoinableTaskFactory.Run(async () =>
 			{
 				await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-
-				_dte = (EnvDTE.DTE)serviceProvider.GetService(typeof(EnvDTE.DTE));
-				
-				if (_dte != null)
-				{
-					_dteEvents = _dte.Events;
-					_dteBuildEvents = _dteEvents.BuildEvents;
-					_dteBuildEvents.OnBuildBegin += (scope, action) => StopCoverageProcess();
-				}
 
 				if (serviceProvider.GetService(typeof(SVsShell)) is IVsShell shell)
 				{
@@ -148,41 +135,35 @@ namespace FineCodeCoverage.Impl
 
 					Logger.Log("================================== START ==================================");
 
-					var operationType = e.Operation.GetType();
 					var darkMode = CurrentTheme.Equals("Dark", StringComparison.OrdinalIgnoreCase);
-					var testConfiguration = (operationType.GetProperty("Configuration") ?? operationType.GetProperty("Configuration", BindingFlags.Instance | BindingFlags.NonPublic)).GetValue(e.Operation);
-					var userRunSettings = testConfiguration.GetType().GetProperty("UserRunSettings", BindingFlags.Instance | BindingFlags.Public).GetValue(testConfiguration);
-					var runSettingsRetriever = new RunSettingsRetriever();
-					var testContainers = ((IEnumerable<object>)testConfiguration.GetType().GetProperty("Containers").GetValue(testConfiguration)).ToArray();
-					var projects = new List<CoverageProject>();
 
-					foreach (var container in testContainers)
+					CoverageProject[] projects = null;
+					try
 					{
-						var project = new CoverageProject();
-						var containerType = container.GetType();
-						var containerData = containerType.GetProperty("ProjectData").GetValue(container);
-						var containerDataType = containerData.GetType();
+						var testConfiguration = new Operation(e.Operation).Configuration;
 
-						project.ProjectGuid = containerType.GetProperty("ProjectGuid").GetValue(container).ToString();
-						project.ProjectName = containerType.GetProperty("ProjectName").GetValue(container).ToString();
-						project.TestDllFile = containerType.GetProperty("Source").GetValue(container).ToString();
-						project.Is64Bit = containerType.GetProperty("TargetPlatform").GetValue(container).ToString().ToLower().Equals("x64");
-						project.ProjectFile = containerDataType.GetProperty("ProjectFilePath", BindingFlags.Instance | BindingFlags.FlattenHierarchy | BindingFlags.Public | BindingFlags.NonPublic).GetValue(containerData).ToString();
-						project.RunSettingsFile = ThreadHelper.JoinableTaskFactory.Run(() => runSettingsRetriever.GetRunSettingsFileAsync(userRunSettings, container));
+						var userRunSettings = testConfiguration.UserRunSettings;
+						var runSettingsRetriever = new RunSettingsRetriever();
+						var testContainers = testConfiguration.Containers;
 
-						try
+						projects = testConfiguration.Containers.Select(container =>
 						{
-							var defaultOutputFolder = Path.GetDirectoryName(containerDataType.GetProperty("DefaultOutputPath", BindingFlags.Instance | BindingFlags.FlattenHierarchy | BindingFlags.Public | BindingFlags.NonPublic).GetValue(containerData).ToString());
-							var legacyWorkFolder = Path.Combine(Path.GetDirectoryName(defaultOutputFolder), "fine-code-coverage");
-							Directory.Delete(legacyWorkFolder, true);
-						}
-						catch
-						{
-							// ignore
-						}
-						
-						projects.Add(project);
-					}
+							var project = new CoverageProject();
+							project.ProjectName = container.ProjectName;
+							project.TestDllFile = container.Source;
+							project.Is64Bit = container.TargetPlatform.ToString().ToLower().Equals("x64");
+
+							var containerData = container.ProjectData;
+							project.ProjectFile = container.ProjectData.ProjectFilePath;
+							project.RunSettingsFile = ThreadHelper.JoinableTaskFactory.Run(() => runSettingsRetriever.GetRunSettingsFileAsync(userRunSettings, containerData));
+							return project;
+						}).ToArray();
+
+					}catch(Exception exc)
+                    {
+						throw new Exception("Error test container discoverer reflection",exc);
+                    }
+					
 
 					_reloadCoverageThread = new Thread(() =>
 					{
@@ -190,7 +171,7 @@ namespace FineCodeCoverage.Impl
 						{
 							// compute coverage
 
-							FCCEngine.ReloadCoverage(projects.ToArray(), darkMode);
+							FCCEngine.ReloadCoverage(projects, darkMode);
 
 							// update margins
 
