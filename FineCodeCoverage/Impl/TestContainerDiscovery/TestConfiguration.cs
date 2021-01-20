@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using FineCodeCoverage.Core.Utilities;
+using ReflectObject;
 
 namespace FineCodeCoverage.Impl
 {

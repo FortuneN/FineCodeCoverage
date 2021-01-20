@@ -1,4 +1,4 @@
-﻿using FineCodeCoverage.Core.Utilities;
+﻿using ReflectObject;
 
 namespace FineCodeCoverage.Impl
 {

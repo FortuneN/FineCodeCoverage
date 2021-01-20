@@ -14,7 +14,6 @@ using Microsoft.VisualStudio.Utilities;
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestWindow.Extensibility;
-using System.Reflection;
 
 namespace FineCodeCoverage.Impl
 {

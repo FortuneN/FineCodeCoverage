@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Reflection;
 using System.Threading.Tasks;
-using FineCodeCoverage.Core.Utilities;
+using ReflectObject;
 
 namespace FineCodeCoverage.Impl
 {
