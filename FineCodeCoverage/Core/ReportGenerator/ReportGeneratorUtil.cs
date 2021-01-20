@@ -208,19 +208,24 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 				.GetAwaiter()
 				.GetResult();
 
-				if (result.ExitCode != 0)
-				{
-					if (throwError)
+				if(result != null)
+                {
+					if (result.ExitCode != 0)
 					{
-						throw new Exception(result.Output);
+						if (throwError)
+						{
+							throw new Exception(result.Output);
+						}
+
+						Logger.Log($"{title} [reporttype:{outputReportType}] Error", result.Output);
+						return false;
 					}
 
-					Logger.Log($"{title} [reporttype:{outputReportType}] Error", result.Output);
-					return false;
+					Logger.Log($"{title} [reporttype:{outputReportType}]", result.Output);
+					return true;
 				}
-
-				Logger.Log($"{title} [reporttype:{outputReportType}]", result.Output);
-				return true;
+				return false;
+				
 			}
 
 			if (!run("Cobertura", string.Join(";", coverOutputFiles)))

@@ -15,6 +15,7 @@ using FineCodeCoverage.Engine.ReportGenerator;
 using FineCodeCoverage.Core.Model;
 using FineCodeCoverage.Core.Utilities;
 using System.Xml.XPath;
+using System.Threading;
 
 namespace FineCodeCoverage.Engine
 {
@@ -364,17 +365,23 @@ namespace FineCodeCoverage.Engine
 		{
 			return (otherTypes ?? new Type[0]).Any(ot => type == ot);
 		}
-
+		private static CancellationTokenSource cancellationTokenSource;
 		public static void ClearProcesses()
 		{
-			ProcessUtil.ClearProcesses();
+			if(cancellationTokenSource != null)
+            {
+				cancellationTokenSource.Cancel();
+			}
 		}
 
 		public static void ReloadCoverage(IEnumerable<CoverageProject> projects, bool darkMode)
 		{
 			// reset
-
 			ClearProcesses();
+
+			cancellationTokenSource = new CancellationTokenSource();
+			ProcessUtil.CancellationToken = cancellationTokenSource.Token;
+			
 
 			HtmlFilePath = null;
 
@@ -399,22 +406,22 @@ namespace FineCodeCoverage.Engine
 					project.FailureDescription = $"Unsupported project type for DLL '{project.TestDllFile}'";
 					return project;
 				}
-				
+
 
 				project.IsDotNetSdkStyle = IsDotNetSdkStyle(project);
 				project.ReferencedProjects = GetReferencedProjects(project);
 				project.HasExcludeFromCodeCoverageAssemblyAttribute = HasExcludeFromCodeCoverageAssemblyAttribute(project.ProjectFileXElement);
 				project.AssemblyName = GetAssemblyName(project.ProjectFileXElement, Path.GetFileNameWithoutExtension(project.ProjectFile));
-				
+
 				project.PrepareForCoverage();
 
 				return project;
 			})
 			.Select(p => p.Step("Run Coverage Tool", project =>
 			{
-				// run the appropriate cover tool
+			// run the appropriate cover tool
 
-				if (project.IsDotNetSdkStyle)
+			if (project.IsDotNetSdkStyle)
 				{
 					CoverletUtil.RunCoverlet(project, true);
 				}
@@ -426,30 +433,39 @@ namespace FineCodeCoverage.Engine
 			.Where(x => !x.HasFailed)
 			.ToArray();
 
-			// project files
 
-			var coverOutputFiles = projects
-				.Select(x => x.CoverageOutputFile)
-				.ToArray();
+            if (!ProcessUtil.CancellationToken.IsCancellationRequested)
+            {
+				// project files
 
-			if (!coverOutputFiles.Any())
-			{
-				return;
+				var coverOutputFiles = projects
+					.Select(x => x.CoverageOutputFile)
+					.ToArray();
+
+				if (!coverOutputFiles.Any())
+				{
+					return;
+				}
+
+				// run reportGenerator process
+
+				var result = ReportGeneratorUtil.RunReportGenerator(coverOutputFiles, darkMode, out var unifiedHtmlFile, out var unifiedXmlFile, true);
+
+                if (result)
+                {
+					// update CoverageLines
+
+					CoverageReport = CoberturaUtil.ProcessCoberturaXmlFile(unifiedXmlFile, out var coverageLines);
+					CoverageLines = coverageLines;
+
+					// update HtmlFilePath
+
+					ReportGeneratorUtil.ProcessUnifiedHtmlFile(unifiedHtmlFile, darkMode, out var coverageHtml);
+					HtmlFilePath = coverageHtml;
+				}
+				
 			}
-
-			// run reportGenerator process
-
-			ReportGeneratorUtil.RunReportGenerator(coverOutputFiles, darkMode, out var unifiedHtmlFile, out var unifiedXmlFile, true);
-
-			// update CoverageLines
-
-			CoverageReport = CoberturaUtil.ProcessCoberturaXmlFile(unifiedXmlFile, out var coverageLines);
-			CoverageLines = coverageLines;
-
-			// update HtmlFilePath
-
-			ReportGeneratorUtil.ProcessUnifiedHtmlFile(unifiedHtmlFile, darkMode, out var coverageHtml);
-			HtmlFilePath = coverageHtml;
+			
 		}
 
 		private static List<ReferencedProject> GetReferencedProjects(CoverageProject project)
