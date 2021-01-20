@@ -149,8 +149,7 @@ namespace FineCodeCoverage.Engine.Model
         }
 		private void SynchronizeBuildOutput()
 		{
-			var logs = FileSynchronizationUtil.Synchronize(ProjectOutputFolder, buildOutputPath,fccFolderName);
-			logs.ForEach(l => Logger.Log(l));
+			FileSynchronizationUtil.Synchronize(ProjectOutputFolder, buildOutputPath,fccFolderName);
 			TestDllFile = Path.Combine(buildOutputPath, Path.GetFileName(TestDllFile));
 		}
 
