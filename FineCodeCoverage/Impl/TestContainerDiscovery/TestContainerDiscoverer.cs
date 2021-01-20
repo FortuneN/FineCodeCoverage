@@ -201,10 +201,12 @@ namespace FineCodeCoverage.Impl
 
 								try
 								{
-									updateOutputWindowEventArgs = new UpdateOutputWindowEventArgs
-									{
-										HtmlContent = File.ReadAllText(FCCEngine.HtmlFilePath)
-									};
+									if (!string.IsNullOrEmpty(FCCEngine.HtmlFilePath)) {
+										updateOutputWindowEventArgs = new UpdateOutputWindowEventArgs
+										{
+											HtmlContent = File.ReadAllText(FCCEngine.HtmlFilePath)
+										};
+									}
 								}
 								catch
 								{

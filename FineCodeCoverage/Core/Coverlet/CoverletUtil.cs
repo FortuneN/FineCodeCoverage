@@ -204,7 +204,7 @@ namespace FineCodeCoverage.Engine.Coverlet
 			coverletSettings.Add($@"--targetargs ""test  """"{project.TestDllFile}"""" --nologo --blame {runSettings} --results-directory """"{project.CoverageOutputFolder}"""" --diag """"{project.CoverageOutputFolder}/diagnostics.log""""  """);
 
 			Logger.Log($"{title} Arguments {Environment.NewLine}{string.Join($"{Environment.NewLine}", coverletSettings)}");
-			
+
 			var result = ProcessUtil
 			.ExecuteAsync(new ExecuteRequest
 			{
@@ -215,25 +215,30 @@ namespace FineCodeCoverage.Engine.Coverlet
 			.GetAwaiter()
 			.GetResult();
 
-			/*
-			0 - Success.
-			1 - If any test fails.
-			2 - Coverage percentage is below threshold.
-			3 - Test fails and also coverage percentage is below threshold.
+			if(result != null)
+            {
+				/*
+				0 - Success.
+				1 - If any test fails.
+				2 - Coverage percentage is below threshold.
+				3 - Test fails and also coverage percentage is below threshold.
 			*/
-			if (result.ExitCode > 3)
-			{
-				if (throwError)
+				if (result.ExitCode > 3)
 				{
-					throw new Exception(result.Output);
+					if (throwError)
+					{
+						throw new Exception(result.Output);
+					}
+
+					Logger.Log($"{title} Error", result.Output);
+					return false;
 				}
 
-				Logger.Log($"{title} Error", result.Output);
-				return false;
-			}
+				Logger.Log(title, result.Output);
 
-			Logger.Log(title, result.Output);
-			return true;
+				return true;
+			}
+			return false;
 		}
 	}
 }

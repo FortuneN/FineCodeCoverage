@@ -198,29 +198,41 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 
 				Logger.Log($"{title} Arguments [reporttype:{outputReportType}] {Environment.NewLine}{string.Join($"{Environment.NewLine}", reportTypeSettings)}");
 
-				var result = ProcessUtil
-				.ExecuteAsync(new ExecuteRequest
+				ExecuteResponse result = null;
+				try
 				{
-					FilePath = ReportGeneratorExePath,
-					Arguments = string.Join(" ", reportTypeSettings),
-					WorkingDirectory = outputFolder
-				})
-				.GetAwaiter()
-				.GetResult();
-
-				if (result.ExitCode != 0)
-				{
-					if (throwError)
+					result = ProcessUtil
+					.ExecuteAsync(new ExecuteRequest
 					{
-						throw new Exception(result.Output);
+						FilePath = ReportGeneratorExePath,
+						Arguments = string.Join(" ", reportTypeSettings),
+						WorkingDirectory = outputFolder
+					})
+					.GetAwaiter()
+					.GetResult();
+                }
+                catch (OperationCanceledException)
+                {
+
+                }
+				if(result != null)
+                {
+					if (result.ExitCode != 0)
+					{
+						if (throwError)
+						{
+							throw new Exception(result.Output);
+						}
+
+						Logger.Log($"{title} [reporttype:{outputReportType}] Error", result.Output);
+						return false;
 					}
 
-					Logger.Log($"{title} [reporttype:{outputReportType}] Error", result.Output);
-					return false;
+					Logger.Log($"{title} [reporttype:{outputReportType}]", result.Output);
+					return true;
 				}
-
-				Logger.Log($"{title} [reporttype:{outputReportType}]", result.Output);
-				return true;
+				return false;
+				
 			}
 
 			if (!run("Cobertura", string.Join(";", coverOutputFiles)))

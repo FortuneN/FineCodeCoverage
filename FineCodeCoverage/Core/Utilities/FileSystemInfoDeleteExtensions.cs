@@ -23,6 +23,13 @@ namespace FineCodeCoverage.Core.Utilities
 		{
 			directoryInfo.TryDelete(recursive, exc => LogDeletionError(directoryInfo, exc, header));
 		}
+		public static void TryDelete(string path)
+        {
+            if (File.Exists(path))
+            {
+				new FileInfo(path).TryDelete();
+            }
+        }
 		public static void TryDelete(this FileInfo fileInfo, Action<Exception> exceptionCallback = null)
 		{
 			try
