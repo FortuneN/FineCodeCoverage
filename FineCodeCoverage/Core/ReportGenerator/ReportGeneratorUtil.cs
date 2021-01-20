@@ -198,23 +198,16 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 
 				Logger.Log($"{title} Arguments [reporttype:{outputReportType}] {Environment.NewLine}{string.Join($"{Environment.NewLine}", reportTypeSettings)}");
 
-				ExecuteResponse result = null;
-				try
+				var result = ProcessUtil
+				.ExecuteAsync(new ExecuteRequest
 				{
-					result = ProcessUtil
-					.ExecuteAsync(new ExecuteRequest
-					{
-						FilePath = ReportGeneratorExePath,
-						Arguments = string.Join(" ", reportTypeSettings),
-						WorkingDirectory = outputFolder
-					})
-					.GetAwaiter()
-					.GetResult();
-                }
-                catch (OperationCanceledException)
-                {
+					FilePath = ReportGeneratorExePath,
+					Arguments = string.Join(" ", reportTypeSettings),
+					WorkingDirectory = outputFolder
+				})
+				.GetAwaiter()
+				.GetResult();
 
-                }
 				if(result != null)
                 {
 					if (result.ExitCode != 0)
