@@ -78,10 +78,6 @@
     <Compile Include="Core\Utilities\ComparableFile.cs" />
     <Compile Include="Core\Utilities\FileComparer.cs" />
     <Compile Include="Core\Utilities\FileSystemInfoDeleteExtensions.cs" />
-    <Compile Include="Core\Utilities\ReflectObject\DelegatePropertyAttribute.cs" />
-    <Compile Include="Core\Utilities\ReflectObject\MethodWrapper.cs" />
-    <Compile Include="Core\Utilities\ReflectObject\ReflectFlagsAttribute.cs" />
-    <Compile Include="Core\Utilities\ReflectObject\ReflectObjectProperties.cs" />
     <Compile Include="Core\Utilities\XElementUtil.cs" />
     <Compile Include="Impl\RunSettingsRetriever.cs" />
     <Compile Include="Impl\GlyphFactory.cs" />

@@ -31,7 +31,6 @@ namespace FineCodeCoverage.Engine.Utilities
 		
 		public static async Task<ExecuteResponse> ExecuteAsync(ExecuteRequest request)
 		{
-			//Process process = null;
 			string shellScriptFile = null;
 			string shellScriptOutputFile = null;
 
@@ -49,9 +48,8 @@ namespace FineCodeCoverage.Engine.Utilities
 			.WithWorkingDirectory(request.WorkingDirectory)
 			.ExecuteBufferedAsync(CancellationToken);
 
-                
-            BufferedCommandResult result = null; // result is null when cancelled
-													 
+			BufferedCommandResult result = null; // result is null when cancelled
+			ExecuteResponse executeResponse = null;
 			try
             {
 				result = await commandTask;
@@ -59,9 +57,6 @@ namespace FineCodeCoverage.Engine.Utilities
 			catch(OperationCanceledException)
             {
             }
-
-			FileSystemInfoDeleteExtensions.TryDelete(shellScriptFile);
-			FileSystemInfoDeleteExtensions.TryDelete(shellScriptOutputFile);
 
 			if (result != null)
             {
@@ -73,10 +68,10 @@ namespace FineCodeCoverage.Engine.Utilities
 
 				var directOutput = string.Join(Environment.NewLine, new[]
 				{
-				result.StandardOutput,
-				Environment.NewLine,
-				result.StandardError
-			}
+					result.StandardOutput,
+					Environment.NewLine,
+					result.StandardError
+				}
 				.Where(x => !string.IsNullOrWhiteSpace(x)))
 				.Trim('\r', '\n')
 				.Trim();
@@ -107,9 +102,7 @@ namespace FineCodeCoverage.Engine.Utilities
 				.Trim('\r', '\n')
 				.Trim();
 
-				// return
-
-				return new ExecuteResponse
+				executeResponse = new ExecuteResponse
 				{
 					ExitCode = exitCode,
 					ExitTime = result.ExitTime,
@@ -118,7 +111,11 @@ namespace FineCodeCoverage.Engine.Utilities
 					Output = output
 				};
 			}
-			return null;
+
+			FileSystemInfoDeleteExtensions.TryDelete(shellScriptFile);
+			FileSystemInfoDeleteExtensions.TryDelete(shellScriptOutputFile);
+
+			return executeResponse;
 		}
 		
 	}
