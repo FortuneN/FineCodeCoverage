@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Xml.Linq;
 using FineCodeCoverage.Core.Model;
+using FineCodeCoverage.Core.Utilities;
 using FineCodeCoverage.Engine.FileSynchronization;
 using FineCodeCoverage.Options;
 
@@ -109,11 +110,11 @@ namespace FineCodeCoverage.Engine.Model
 			{
 				foreach (FileInfo file in directoryInfo.GetFiles())
 				{
-					file.Delete();
+					file.TryDelete();
 				}
 				foreach (DirectoryInfo subDir in directoryInfo.GetDirectories())
 				{
-					subDir.Delete(true);
+					subDir.TryDelete(true);
 				}
 			}
 			else
