@@ -14,6 +14,7 @@ using Microsoft.VisualStudio.Utilities;
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestWindow.Extensibility;
+using ReflectObject;
 
 namespace FineCodeCoverage.Impl
 {
@@ -127,6 +128,7 @@ namespace FineCodeCoverage.Impl
                     }
 
 				}
+				
 
 				if (e.State == TestOperationStates.TestExecutionFinished && !runCoverageInParallel)
 				{
@@ -141,6 +143,11 @@ namespace FineCodeCoverage.Impl
 					RunCoverage(settings, operation, false);
 					
 				}
+			}
+			catch(PropertyDoesNotExistException propertyDoesNotExistException)
+            {
+				Logger.Log("Error test container discoverer reflection");
+				throw new Exception(propertyDoesNotExistException.Message);
 			}
 			catch (Exception exception)
 			{
@@ -159,59 +166,46 @@ namespace FineCodeCoverage.Impl
 				return;
 			}
 
-			
-
 			var darkMode = CurrentTheme.Equals("Dark", StringComparison.OrdinalIgnoreCase);
 
-			CoverageProject[] projects = null;
-			try
-			{
-				if(operation.TotalTests <= settings.RunWhenTestsExceed)
-                {
-					Logger.Log($"Skipping coverage as total tests ({operation.TotalTests}) <= {nameof(AppOptions.RunWhenTestsExceed)} ({settings.RunWhenTestsExceed})");
-					return;
-                }
+			if(operation.TotalTests <= settings.RunWhenTestsExceed)
+            {
+				Logger.Log($"Skipping coverage as total tests ({operation.TotalTests}) <= {nameof(AppOptions.RunWhenTestsExceed)} ({settings.RunWhenTestsExceed})");
+				return;
+            }
 
-				Logger.Log($"================================== START {(runningInParallel ? "(parallel) " : "")}==================================");
+			Logger.Log($"================================== START {(runningInParallel ? "(parallel) " : "")}==================================");
 				
-				var testConfiguration = operation.Configuration;
+			var testConfiguration = operation.Configuration;
 
-				var userRunSettings = testConfiguration.UserRunSettings;
-				var runSettingsRetriever = new RunSettingsRetriever();
-				var testContainers = testConfiguration.Containers;
-				//see if can find the number of tests to run ( am I going to sum over test project ? )
+			var userRunSettings = testConfiguration.UserRunSettings;
+			var runSettingsRetriever = new RunSettingsRetriever();
+			var testContainers = testConfiguration.Containers;
 
-				projects = testConfiguration.Containers.Select(container =>
-				{
-					var project = new CoverageProject();
-					project.ProjectName = container.ProjectName;
-					project.TestDllFile = container.Source;
-					project.Is64Bit = container.TargetPlatform.ToString().ToLower().Equals("x64");
-
-					var containerData = container.ProjectData;
-					project.ProjectFile = container.ProjectData.ProjectFilePath;
-					project.RunSettingsFile = ThreadHelper.JoinableTaskFactory.Run(() => runSettingsRetriever.GetRunSettingsFileAsync(userRunSettings, containerData));
-					return project;
-				}).ToArray();
-
-			}
-			catch (Exception exc)
+			var projects = testConfiguration.Containers.Select(container =>
 			{
-				throw new Exception("Error test container discoverer reflection", exc);
-			}
+				var project = new CoverageProject();
+				project.ProjectName = container.ProjectName;
+				project.TestDllFile = container.Source;
+				project.Is64Bit = container.TargetPlatform.ToString().ToLower().Equals("x64");
 
+				var containerData = container.ProjectData;
+				project.ProjectFile = container.ProjectData.ProjectFilePath;
+				project.RunSettingsFile = ThreadHelper.JoinableTaskFactory.Run(() => runSettingsRetriever.GetRunSettingsFileAsync(userRunSettings, containerData));
+				return project;
+			}).ToArray();
 
 			_reloadCoverageThread = new Thread(() =>
 			{
 				try
 				{
-				// compute coverage
+					// compute coverage
 
-				FCCEngine.ReloadCoverage(projects, darkMode);
+					FCCEngine.ReloadCoverage(projects, darkMode);
 
-				// update margins
+					// update margins
 
-				{
+					{
 						UpdateMarginTagsEventArgs updateMarginTagsEventArgs = null;
 
 						try
@@ -222,17 +216,17 @@ namespace FineCodeCoverage.Impl
 						}
 						catch
 						{
-						// ignore
-					}
+							// ignore
+						}
 						finally
 						{
 							UpdateMarginTags?.Invoke(this, updateMarginTagsEventArgs);
 						}
 					}
 
-				// update output window
+					// update output window
 
-				{
+					{
 						UpdateOutputWindowEventArgs updateOutputWindowEventArgs = null;
 
 						try
@@ -247,17 +241,17 @@ namespace FineCodeCoverage.Impl
 						}
 						catch
 						{
-						// ignore
-					}
+							// ignore
+						}
 						finally
 						{
 							UpdateOutputWindow?.Invoke(this, updateOutputWindowEventArgs);
 						}
 					}
 
-				// log
+					// log
 
-				Logger.Log("================================== DONE ===================================");
+					Logger.Log("================================== DONE ===================================");
 				}
 				catch (Exception exception)
 				{
