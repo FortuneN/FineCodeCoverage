@@ -116,6 +116,11 @@ namespace FineCodeCoverage.Impl
 		{
 			try
 			{
+				if (e.State == TestOperationStates.TestExecutionCanceling)
+				{
+					StopCoverageProcess();
+				}
+
 				var settings = AppOptions.Get();
 				var runCoverageInParallel = settings.RunInParallel;
 				
