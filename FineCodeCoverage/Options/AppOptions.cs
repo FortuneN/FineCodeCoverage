@@ -67,6 +67,9 @@ namespace FineCodeCoverage.Options
 		")]
 		public string[] ExcludeByAttribute { get; set; } = new[] { "GeneratedCode" };
 
+		[Description("Specify true to not wait for tests to finish before running coverage")]
+		public bool RunInParallel { get; set; }
+
 		[SuppressMessage("Usage", "VSTHRD010:Invoke single-threaded types on Main thread")]
 		public override void SaveSettingsToStorage()
 		{

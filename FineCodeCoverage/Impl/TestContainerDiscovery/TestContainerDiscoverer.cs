@@ -17,7 +17,7 @@ using Microsoft.VisualStudio.TestWindow.Extensibility;
 
 namespace FineCodeCoverage.Impl
 {
-    [Name(Vsix.TestContainerDiscovererName)]
+	[Name(Vsix.TestContainerDiscovererName)]
 	[Export(typeof(TestContainerDiscoverer))]
 	[Export(typeof(ITestContainerDiscoverer))]
 	internal class TestContainerDiscoverer : ITestContainerDiscoverer
@@ -48,7 +48,7 @@ namespace FineCodeCoverage.Impl
 			new Thread(() =>
 			{
 				try
-				{		
+				{
 					Logger.Initialize(_serviceProvider);
 
 					FCCEngine.Initialize();
@@ -115,123 +115,21 @@ namespace FineCodeCoverage.Impl
 		{
 			try
 			{
+				var settings = AppOptions.Get();
+				var runCoverageInParallel = settings.RunInParallel;
 				if (e.State == TestOperationStates.TestExecutionStarting)
 				{
 					StopCoverageProcess(); // just to be sure
+                    if (runCoverageInParallel)
+                    {
+						RunCoverage(settings,e.Operation,true);
+                    }
+
 				}
 
-				if (e.State == TestOperationStates.TestExecutionFinished)
+				if (e.State == TestOperationStates.TestExecutionFinished && !runCoverageInParallel)
 				{
-					var settings = AppOptions.Get();
-
-					if (!settings.Enabled)
-					{
-						FCCEngine.CoverageLines.Clear();
-						UpdateMarginTags?.Invoke(this, null);
-						UpdateOutputWindow?.Invoke(this, null);
-						return;
-					}
-
-					Logger.Log("================================== START ==================================");
-
-					var darkMode = CurrentTheme.Equals("Dark", StringComparison.OrdinalIgnoreCase);
-
-					CoverageProject[] projects = null;
-					try
-					{
-						var testConfiguration = new Operation(e.Operation).Configuration;
-
-						var userRunSettings = testConfiguration.UserRunSettings;
-						var runSettingsRetriever = new RunSettingsRetriever();
-						var testContainers = testConfiguration.Containers;
-
-						projects = testConfiguration.Containers.Select(container =>
-						{
-							var project = new CoverageProject();
-							project.ProjectName = container.ProjectName;
-							project.TestDllFile = container.Source;
-							project.Is64Bit = container.TargetPlatform.ToString().ToLower().Equals("x64");
-
-							var containerData = container.ProjectData;
-							project.ProjectFile = container.ProjectData.ProjectFilePath;
-							project.RunSettingsFile = ThreadHelper.JoinableTaskFactory.Run(() => runSettingsRetriever.GetRunSettingsFileAsync(userRunSettings, containerData));
-							return project;
-						}).ToArray();
-
-					}catch(Exception exc)
-                    {
-						throw new Exception("Error test container discoverer reflection",exc);
-                    }
-					
-
-					_reloadCoverageThread = new Thread(() =>
-					{
-						try
-						{
-							// compute coverage
-
-							FCCEngine.ReloadCoverage(projects, darkMode);
-
-							// update margins
-
-							{
-								UpdateMarginTagsEventArgs updateMarginTagsEventArgs = null;
-
-								try
-								{
-									updateMarginTagsEventArgs = new UpdateMarginTagsEventArgs
-									{
-									};
-								}
-								catch
-								{
-									// ignore
-								}
-								finally
-								{
-									UpdateMarginTags?.Invoke(this, updateMarginTagsEventArgs);
-								}
-							}
-
-							// update output window
-
-							{
-								UpdateOutputWindowEventArgs updateOutputWindowEventArgs = null;
-
-								try
-								{
-									if (!string.IsNullOrEmpty(FCCEngine.HtmlFilePath)) {
-										updateOutputWindowEventArgs = new UpdateOutputWindowEventArgs
-										{
-											HtmlContent = File.ReadAllText(FCCEngine.HtmlFilePath)
-										};
-									}
-								}
-								catch
-								{
-									// ignore
-								}
-								finally
-								{
-									UpdateOutputWindow?.Invoke(this, updateOutputWindowEventArgs);
-								}
-							}
-
-							// log
-
-							Logger.Log("================================== DONE ===================================");
-						}
-						catch (Exception exception)
-						{
-							if (!(exception is ThreadAbortException) && _reloadCoverageThread != null)
-							{
-								Logger.Log("Error", exception);
-								Logger.Log("================================== ERROR ==================================");
-							}
-						}
-					});
-
-					_reloadCoverageThread.Start();
+					RunCoverage(settings, e.Operation,false);
 				}
 			}
 			catch (Exception exception)
@@ -239,7 +137,123 @@ namespace FineCodeCoverage.Impl
 				Logger.Log("Error processing unit test events", exception);
 			}
 		}
+
+
+		private void RunCoverage(AppOptions settings,IOperation operation,bool runningInParallel)
+		{
+			if (!settings.Enabled)
+			{
+				FCCEngine.CoverageLines.Clear();
+				UpdateMarginTags?.Invoke(this, null);
+				UpdateOutputWindow?.Invoke(this, null);
+				return;
+			}
+
+			Logger.Log($"================================== START {(runningInParallel? "(parallel) ":"")}==================================");
+
+			var darkMode = CurrentTheme.Equals("Dark", StringComparison.OrdinalIgnoreCase);
+
+			CoverageProject[] projects = null;
+			try
+			{
+				var testConfiguration = new Operation(operation).Configuration;
+
+				var userRunSettings = testConfiguration.UserRunSettings;
+				var runSettingsRetriever = new RunSettingsRetriever();
+				var testContainers = testConfiguration.Containers;
+
+				projects = testConfiguration.Containers.Select(container =>
+				{
+					var project = new CoverageProject();
+					project.ProjectName = container.ProjectName;
+					project.TestDllFile = container.Source;
+					project.Is64Bit = container.TargetPlatform.ToString().ToLower().Equals("x64");
+
+					var containerData = container.ProjectData;
+					project.ProjectFile = container.ProjectData.ProjectFilePath;
+					project.RunSettingsFile = ThreadHelper.JoinableTaskFactory.Run(() => runSettingsRetriever.GetRunSettingsFileAsync(userRunSettings, containerData));
+					return project;
+				}).ToArray();
+
+			}
+			catch (Exception exc)
+			{
+				throw new Exception("Error test container discoverer reflection", exc);
+			}
+
+
+			_reloadCoverageThread = new Thread(() =>
+			{
+				try
+				{
+				// compute coverage
+
+				FCCEngine.ReloadCoverage(projects, darkMode);
+
+				// update margins
+
+				{
+						UpdateMarginTagsEventArgs updateMarginTagsEventArgs = null;
+
+						try
+						{
+							updateMarginTagsEventArgs = new UpdateMarginTagsEventArgs
+							{
+							};
+						}
+						catch
+						{
+						// ignore
+					}
+						finally
+						{
+							UpdateMarginTags?.Invoke(this, updateMarginTagsEventArgs);
+						}
+					}
+
+				// update output window
+
+				{
+						UpdateOutputWindowEventArgs updateOutputWindowEventArgs = null;
+
+						try
+						{
+							if (!string.IsNullOrEmpty(FCCEngine.HtmlFilePath))
+							{
+								updateOutputWindowEventArgs = new UpdateOutputWindowEventArgs
+								{
+									HtmlContent = File.ReadAllText(FCCEngine.HtmlFilePath)
+								};
+							}
+						}
+						catch
+						{
+						// ignore
+					}
+						finally
+						{
+							UpdateOutputWindow?.Invoke(this, updateOutputWindowEventArgs);
+						}
+					}
+
+				// log
+
+				Logger.Log("================================== DONE ===================================");
+				}
+				catch (Exception exception)
+				{
+					if (!(exception is ThreadAbortException) && _reloadCoverageThread != null)
+					{
+						Logger.Log("Error", exception);
+						Logger.Log("================================== ERROR ==================================");
+					}
+				}
+			});
+
+			_reloadCoverageThread.Start();
+		}
 	}
+    
 
 	[Guid("0D915B59-2ED7-472A-9DE8-9161737EA1C5")]
 	[SuppressMessage("Style", "IDE1006:Naming Styles")]
