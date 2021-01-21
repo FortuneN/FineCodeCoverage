@@ -117,19 +117,29 @@ namespace FineCodeCoverage.Impl
 			{
 				var settings = AppOptions.Get();
 				var runCoverageInParallel = settings.RunInParallel;
+				
 				if (e.State == TestOperationStates.TestExecutionStarting)
 				{
 					StopCoverageProcess(); // just to be sure
                     if (runCoverageInParallel)
                     {
-						RunCoverage(settings,e.Operation,true);
+						RunCoverage(settings,new Operation(e.Operation),true);
                     }
 
 				}
 
 				if (e.State == TestOperationStates.TestExecutionFinished && !runCoverageInParallel)
 				{
-					RunCoverage(settings, e.Operation,false);
+					var operation = new Operation(e.Operation);
+                    
+					if (!settings.RunWhenTestsFail && operation.Response.FailedTests>0)
+                    {
+						Logger.Log($"Skipping coverage due to failed tests.  Option {nameof(AppOptions.RunWhenTestsFail)} is true");
+						return;
+                    }
+                    
+					RunCoverage(settings, operation, false);
+					
 				}
 			}
 			catch (Exception exception)
@@ -139,7 +149,7 @@ namespace FineCodeCoverage.Impl
 		}
 
 
-		private void RunCoverage(AppOptions settings,IOperation operation,bool runningInParallel)
+		private void RunCoverage(AppOptions settings,Operation operation,bool runningInParallel)
 		{
 			if (!settings.Enabled)
 			{
@@ -149,18 +159,27 @@ namespace FineCodeCoverage.Impl
 				return;
 			}
 
-			Logger.Log($"================================== START {(runningInParallel? "(parallel) ":"")}==================================");
+			
 
 			var darkMode = CurrentTheme.Equals("Dark", StringComparison.OrdinalIgnoreCase);
 
 			CoverageProject[] projects = null;
 			try
 			{
-				var testConfiguration = new Operation(operation).Configuration;
+				if(operation.TotalTests <= settings.RunWhenTestsExceed)
+                {
+					Logger.Log($"Skipping coverage as total tests ({operation.TotalTests}) <= {nameof(AppOptions.RunWhenTestsExceed)} ({settings.RunWhenTestsExceed})");
+					return;
+                }
+
+				Logger.Log($"================================== START {(runningInParallel ? "(parallel) " : "")}==================================");
+				
+				var testConfiguration = operation.Configuration;
 
 				var userRunSettings = testConfiguration.UserRunSettings;
 				var runSettingsRetriever = new RunSettingsRetriever();
 				var testContainers = testConfiguration.Containers;
+				//see if can find the number of tests to run ( am I going to sum over test project ? )
 
 				projects = testConfiguration.Containers.Select(container =>
 				{

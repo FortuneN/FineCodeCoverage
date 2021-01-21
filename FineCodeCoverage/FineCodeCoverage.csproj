@@ -88,6 +88,7 @@
     <Compile Include="Impl\TestContainerDiscovery\ContainerData.cs" />
     <Compile Include="Impl\TestContainerDiscovery\Operation.cs" />
     <Compile Include="Impl\TestContainerDiscovery\TestConfiguration.cs" />
+    <Compile Include="Impl\TestContainerDiscovery\TestRunResponse.cs" />
     <Compile Include="Impl\Vsix.cs" />
     <Compile Include="Impl\Tagger.cs" />
     <Compile Include="Impl\TaggerProvider.cs" />

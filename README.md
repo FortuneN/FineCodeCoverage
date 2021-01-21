@@ -60,6 +60,8 @@ Run a(some) unit test(s) and ...
 ```
 Enabled                 Specifies whether or not coverage output is enabled
 RunInParallel           By default tests run and then coverage is performed.  Set to true to run coverage immediately
+RunWhenTestsFail        By default coverage runs when tests fail.  Set to false to prevent this.  **Cannot be used in conjunction with RunInParallel**
+RunWhenTestsExceed      Specify a value to only run coverage based upon the number of executing tests.
 Exclude                 Filter expressions to exclude specific modules and types (multiple values)
 Include                 Filter expressions to include specific modules and types (multiple values)
 ExcludeByFile           Glob patterns specifying source files to exclude e.g. **/Migrations/* (multiple values)
