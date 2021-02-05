@@ -1,14 +1,23 @@
-﻿using System.IO;
-using System.Xml.Linq;
+﻿using FineCodeCoverage.Core.Utilities;
+using FineCodeCoverage.Engine;
+using System.IO;
+using VSLangProj;
 
 namespace FineCodeCoverage.Core.Model
 {
 	internal class ReferencedProject
 	{
-		public string ProjectFile { get; set; }
-		public string AssemblyName { get; set; }
-		public XElement ProjectFileXElement { get; internal set; }
-		public string ProjectFolder => Path.GetDirectoryName(ProjectFile);
-		public bool HasExcludeFromCodeCoverageAssemblyAttribute { get; set; }
+        public ReferencedProject(Reference reference)
+        {
+            Microsoft.VisualStudio.Shell.ThreadHelper.ThrowIfNotOnUIThread();
+            var referenceProjectPath = reference.SourceProject.FullName;
+			var projectFileXElement = XElementUtil.Load(referenceProjectPath, true);
+
+			HasExcludeFromCodeCoverageAssemblyAttribute = FCCEngine.HasExcludeFromCodeCoverageAssemblyAttribute(projectFileXElement);
+			AssemblyName = Path.GetFileNameWithoutExtension(reference.Path);
+		}
+
+		public string AssemblyName { get; private set; }
+		public bool HasExcludeFromCodeCoverageAssemblyAttribute { get; private set; }
 	}
 }

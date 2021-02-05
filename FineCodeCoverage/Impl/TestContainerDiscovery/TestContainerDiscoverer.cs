@@ -51,7 +51,7 @@ namespace FineCodeCoverage.Impl
 				{		
 					Logger.Initialize(_serviceProvider);
 
-					FCCEngine.Initialize();
+					FCCEngine.Initialize(_serviceProvider);
 					Initialize(_serviceProvider);
 					TestContainersUpdated.ToString();
 					operationState.StateChanged += OperationState_StateChanged;
@@ -136,7 +136,7 @@ namespace FineCodeCoverage.Impl
 
 					var darkMode = CurrentTheme.Equals("Dark", StringComparison.OrdinalIgnoreCase);
 
-					CoverageProject[] projects = null;
+					List<CoverageProject> projects = null;
 					try
 					{
 						var testConfiguration = new Operation(e.Operation).Configuration;
@@ -144,7 +144,7 @@ namespace FineCodeCoverage.Impl
 						var userRunSettings = testConfiguration.UserRunSettings;
 						var runSettingsRetriever = new RunSettingsRetriever();
 						var testContainers = testConfiguration.Containers;
-
+						
 						projects = testConfiguration.Containers.Select(container =>
 						{
 							var project = new CoverageProject();
@@ -156,13 +156,12 @@ namespace FineCodeCoverage.Impl
 							project.ProjectFile = container.ProjectData.ProjectFilePath;
 							project.RunSettingsFile = ThreadHelper.JoinableTaskFactory.Run(() => runSettingsRetriever.GetRunSettingsFileAsync(userRunSettings, containerData));
 							return project;
-						}).ToArray();
+						}).ToList();
 
 					}catch(Exception exc)
                     {
 						throw new Exception("Error test container discoverer reflection",exc);
                     }
-					
 
 					_reloadCoverageThread = new Thread(() =>
 					{

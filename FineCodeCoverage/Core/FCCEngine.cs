@@ -16,6 +16,9 @@ using FineCodeCoverage.Core.Model;
 using FineCodeCoverage.Core.Utilities;
 using System.Xml.XPath;
 using System.Threading;
+using EnvDTE;
+using Microsoft;
+using Microsoft.VisualStudio.Shell;
 
 namespace FineCodeCoverage.Engine
 {
@@ -27,10 +30,18 @@ namespace FineCodeCoverage.Engine
 		public static string[] ProjectExtensions { get; } = new string[] { ".csproj", ".vbproj" };
 		public static List<CoverageLine> CoverageLines { get; private set; } = new List<CoverageLine>();
 		public static ConcurrentDictionary<string, string> ProjectFoldersCache { get; } = new ConcurrentDictionary<string, string>();
-		
-		public static void Initialize()
+		public static DTE dte { get; private set; }
+		public static void Initialize(IServiceProvider _serviceProvider)
 		{
-			AppDataFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), Vsix.Code);
+			ThreadHelper.JoinableTaskFactory.Run(async () =>
+			{
+				await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+				dte = (DTE)_serviceProvider.GetService(typeof(DTE));
+				Assumes.Present(dte);
+			});
+
+			
+            AppDataFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), Vsix.Code);
 			Directory.CreateDirectory(AppDataFolder);
 			
 			CleanupLegacyFolders();
@@ -373,8 +384,8 @@ namespace FineCodeCoverage.Engine
 				cancellationTokenSource.Cancel();
 			}
 		}
-
-		public static void ReloadCoverage(IEnumerable<CoverageProject> projects, bool darkMode)
+		
+		public static void ReloadCoverage(List<CoverageProject> projects, bool darkMode)
 		{
 			// reset
 			ClearProcesses();
@@ -388,9 +399,10 @@ namespace FineCodeCoverage.Engine
 			CoverageLines.Clear();
 
 			// process pipeline
+			List<CoverageProject> projectsToPrepareOnUIThread = new List<CoverageProject>();
 
-			projects = projects
-			.Select(project =>
+			projects
+			.ForEach(project =>
 			{
 				project.ProjectFileXElement = XElementUtil.Load(project.ProjectFile, true);
 				project.Settings = GetSettings(project);
@@ -398,39 +410,40 @@ namespace FineCodeCoverage.Engine
 				if (!project.Settings.Enabled)
 				{
 					project.FailureDescription = $"Disabled";
-					return project;
+					return;
 				}
 
 				if (string.IsNullOrWhiteSpace(project.ProjectFile))
 				{
 					project.FailureDescription = $"Unsupported project type for DLL '{project.TestDllFile}'";
-					return project;
+					return;
 				}
-
-
+				
 				project.IsDotNetSdkStyle = IsDotNetSdkStyle(project);
-				project.ReferencedProjects = GetReferencedProjects(project);
 				project.HasExcludeFromCodeCoverageAssemblyAttribute = HasExcludeFromCodeCoverageAssemblyAttribute(project.ProjectFileXElement);
-				project.AssemblyName = GetAssemblyName(project.ProjectFileXElement, Path.GetFileNameWithoutExtension(project.ProjectFile));
-
 				project.PrepareForCoverage();
 
-				return project;
-			})
-			.Select(p => p.Step("Run Coverage Tool", project =>
-			{
-			// run the appropriate cover tool
+				projectsToPrepareOnUIThread.Add(project);
+			});
 
-			if (project.IsDotNetSdkStyle)
+			PrepareProjectsOnUIThread(projectsToPrepareOnUIThread);
+
+			projects.ForEach(p => p.Step("Run Coverage Tool", project =>
 				{
-					CoverletUtil.RunCoverlet(project, true);
-				}
-				else
-				{
-					OpenCoverUtil.RunOpenCover(project, true);
-				}
-			}))
-			.Where(x => !x.HasFailed)
+					// run the appropriate cover tool
+
+					if (project.IsDotNetSdkStyle)
+					{
+						CoverletUtil.RunCoverlet(project, true);
+					}
+					else
+					{
+						OpenCoverUtil.RunOpenCover(project, true);
+					}
+				})
+			);
+
+			var passedProjects = projects.Where(x => !x.HasFailed)
 			.ToArray();
 
 
@@ -438,7 +451,7 @@ namespace FineCodeCoverage.Engine
             {
 				// project files
 
-				var coverOutputFiles = projects
+				var coverOutputFiles = passedProjects
 					.Select(x => x.CoverageOutputFile)
 					.ToArray();
 
@@ -467,54 +480,35 @@ namespace FineCodeCoverage.Engine
 			}
 			
 		}
-
-		private static List<ReferencedProject> GetReferencedProjects(CoverageProject project)
-		{
-			/*
-			<ItemGroup>
-				<ProjectReference Include="..\BranchCoverage\Branch_Coverage.csproj" />
-				<ProjectReference Include="..\FxClassLibrary1\FxClassLibrary1.csproj"></ProjectReference>
-			</ItemGroup>
-			 */
-
-			var referencedProjects = new List<ReferencedProject>();
-
-			var xprojectReferences = project.ProjectFileXElement.XPathSelectElements($"/ItemGroup/ProjectReference[@Include]");
-			
-			foreach (var xprojectReference in xprojectReferences)
+		private static void PrepareProjectsOnUIThread(List<CoverageProject> coverageProjects)
+        {
+			ThreadHelper.JoinableTaskFactory.Run(async () =>
 			{
-				var referencedProject = new ReferencedProject();
-
-				// ProjectFile
-
-				referencedProject.ProjectFile = xprojectReference.Attribute("Include").Value;
-
-				if (!Path.IsPathRooted(referencedProject.ProjectFile))
+				await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+				coverageProjects.ForEach(coverageProject =>
 				{
-					referencedProject.ProjectFile = Path.GetFullPath(Path.Combine(project.ProjectFolder, referencedProject.ProjectFile));
-				}
+					var (assemblyName, referencedProjects) = GetAssemblyNameAndReferencedProjects(coverageProject.ProjectFile);
+					coverageProject.AssemblyName = assemblyName;
+					coverageProject.ReferencedProjects = referencedProjects;
+				});
+			});
 
-				// ProjectFileXElement
-
-				referencedProject.ProjectFileXElement = XElementUtil.Load(referencedProject.ProjectFile, true);
-
-				// HasExcludeFromCodeCoverageAssemblyAttribute
-				
-				referencedProject.HasExcludeFromCodeCoverageAssemblyAttribute = HasExcludeFromCodeCoverageAssemblyAttribute(referencedProject.ProjectFileXElement);
-
-				// AssemblyName
-
-				referencedProject.AssemblyName = GetAssemblyName(referencedProject.ProjectFileXElement, Path.GetFileNameWithoutExtension(referencedProject.ProjectFile));
-
-				// add
-
-				referencedProjects.Add(referencedProject);
-			}
-			
-			return referencedProjects;
+		}
+		private static (string assemblyName,List<ReferencedProject> referencedProjects) GetAssemblyNameAndReferencedProjects(string projectFilePath)
+		{
+            ThreadHelper.ThrowIfNotOnUIThread();
+            var project = dte.Solution.Projects.Cast<Project>().First(p =>
+			{
+				ThreadHelper.ThrowIfNotOnUIThread();
+				return p.FullName == projectFilePath;
+			});
+			var assemblyName = (string)project.Properties.Item("AssemblyName").Value;
+			var vsproject = project.Object as VSLangProj.VSProject;
+			var references = vsproject.References.Cast<VSLangProj.Reference>().Where(r => r.SourceProject != null);
+			return (assemblyName,references.Select(reference => new ReferencedProject(reference)).ToList());
 		}
 
-		private static bool HasExcludeFromCodeCoverageAssemblyAttribute(XElement projectFileXElement)
+		public static bool HasExcludeFromCodeCoverageAssemblyAttribute(XElement projectFileXElement)
 		{
 			/*
 			 ...
@@ -528,28 +522,6 @@ namespace FineCodeCoverage.Engine
 			
 			return xassemblyAttribute != null;
 		}
-
-		private static string GetAssemblyName(XElement projectFileXElement, string fallbackName = null)
-		{
-			/*
-			<PropertyGroup>
-				...
-				<AssemblyName>Branch_Coverage.Tests</AssemblyName>
-				...
-			</PropertyGroup>
-			 */
-
-			var xassemblyName = projectFileXElement.XPathSelectElement("/PropertyGroup/AssemblyName");
-
-			var result = xassemblyName?.Value?.Trim();
-
-			if (string.IsNullOrWhiteSpace(result))
-			{
-				result = fallbackName;
-			}
-
-			return result;
-		}
-
+		
 	}
 }
