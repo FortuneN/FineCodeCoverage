@@ -1,15 +1,15 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Diagnostics;
-using System.Collections.Generic;
+using System.Threading.Tasks;
 using FineCodeCoverage.Engine.Model;
-using System.Diagnostics.CodeAnalysis;
 using FineCodeCoverage.Engine.Utilities;
 
 namespace FineCodeCoverage.Engine.Coverlet
 {
-	internal class CoverletUtil
+    internal class CoverletUtil
 	{
 		public const string CoverletName = "coverlet.console";
 		public static string CoverletExePath { get; private set; }
@@ -149,8 +149,7 @@ namespace FineCodeCoverage.Engine.Coverlet
 			Logger.Log(title, processOutput);
 		}
 
-		[SuppressMessage("Usage", "VSTHRD002:Avoid problematic synchronous waits")]
-		public static bool RunCoverlet(CoverageProject project, bool throwError = false)
+		public static async Task<bool> RunCoverletAsync(CoverageProject project, bool throwError = false)
 		{
 			var title = $"Coverlet Run ({project.ProjectName})";
 
@@ -205,15 +204,14 @@ namespace FineCodeCoverage.Engine.Coverlet
 
 			Logger.Log($"{title} Arguments {Environment.NewLine}{string.Join($"{Environment.NewLine}", coverletSettings)}");
 
-			var result = ProcessUtil
+			var result = await ProcessUtil
 			.ExecuteAsync(new ExecuteRequest
 			{
 				FilePath = CoverletExePath,
 				Arguments = string.Join(" ", coverletSettings),
 				WorkingDirectory = project.ProjectOutputFolder
-			})
-			.GetAwaiter()
-			.GetResult();
+			});
+			
 
 			if(result != null)
             {

@@ -8,6 +8,7 @@ using Microsoft.VisualStudio.Shell;
 using System.Runtime.InteropServices;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using Microsoft;
 
 namespace FineCodeCoverage.Output
 {
@@ -33,7 +34,7 @@ namespace FineCodeCoverage.Output
 			{
 				await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 				Dte = (DTE)await OutputToolWindowCommand.Instance.ServiceProvider.GetServiceAsync(typeof(DTE));
-
+				Assumes.Present(Dte);
 				Events = Dte.Events;
 				SolutionEvents = Events.SolutionEvents;
 				SolutionEvents.Opened += () => Clear();
@@ -43,7 +44,7 @@ namespace FineCodeCoverage.Output
 			ScriptManager = new ScriptManager(Dte);
 			FCCOutputBrowser.ObjectForScripting = ScriptManager;
 			
-			TestContainerDiscoverer.UpdateOutputWindow += (sender, args) =>
+			FCCEngine.UpdateOutputWindow += (args) =>
 			{
 				ThreadHelper.JoinableTaskFactory.Run(async () =>
 				{

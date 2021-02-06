@@ -4,11 +4,9 @@ using System.Linq;
 using System.Threading;
 using FineCodeCoverage.Output;
 using FineCodeCoverage.Engine;
-using FineCodeCoverage.Options;
 using System.Collections.Generic;
 using Microsoft.VisualStudio.Shell;
 using FineCodeCoverage.Engine.Model;
-using System.Runtime.InteropServices;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.VisualStudio.Utilities;
 using System.ComponentModel.Composition;
@@ -22,16 +20,13 @@ namespace FineCodeCoverage.Impl
 	[Export(typeof(ITestContainerDiscoverer))]
 	internal class TestContainerDiscoverer : ITestContainerDiscoverer
 	{
-		private Thread _reloadCoverageThread;
+#pragma warning disable 67
 		public event EventHandler TestContainersUpdated;
+#pragma warning restore 67
 		private readonly IServiceProvider _serviceProvider;
-		public static event UpdateMarginTagsDelegate UpdateMarginTags;
-		public static event UpdateOutputWindowDelegate UpdateOutputWindow;
 		public Uri ExecutorUri => new Uri($"executor://{Vsix.Code}.Executor/v1");
 		public IEnumerable<ITestContainer> TestContainers => Enumerable.Empty<ITestContainer>();
-		public delegate void UpdateMarginTagsDelegate(object sender, UpdateMarginTagsEventArgs e);
-		public delegate void UpdateOutputWindowDelegate(object sender, UpdateOutputWindowEventArgs e);
-		private string CurrentTheme => $"{((dynamic)_serviceProvider.GetService(typeof(SVsColorThemeService)))?.CurrentTheme?.Name}".Trim();
+		
 
 		[ImportingConstructor]
 		internal TestContainerDiscoverer
@@ -53,7 +48,6 @@ namespace FineCodeCoverage.Impl
 
 					FCCEngine.Initialize(_serviceProvider);
 					Initialize(_serviceProvider);
-					TestContainersUpdated.ToString();
 					operationState.StateChanged += OperationState_StateChanged;
 
 					Logger.Log($"Initialized");
@@ -93,48 +87,21 @@ namespace FineCodeCoverage.Impl
 			});
 		}
 
-		private void StopCoverageProcess()
-		{
-			try
-			{
-				_reloadCoverageThread?.Abort();
-			}
-			catch
-			{
-				// ignore
-			}
-			finally
-			{
-				_reloadCoverageThread = null;
-				FCCEngine.ClearProcesses();
-			}
-		}
-
-		[SuppressMessage("Usage", "VSTHRD102:Implement internal logic asynchronously")]
 		private void OperationState_StateChanged(object sender, OperationStateChangedEventArgs e)
 		{
 			try
 			{
 				if (e.State == TestOperationStates.TestExecutionStarting)
 				{
-					StopCoverageProcess(); // just to be sure
+					FCCEngine.StopCoverage();
 				}
 
 				if (e.State == TestOperationStates.TestExecutionFinished)
 				{
-					var settings = AppOptions.Get();
-
-					if (!settings.Enabled)
-					{
-						FCCEngine.CoverageLines.Clear();
-						UpdateMarginTags?.Invoke(this, null);
-						UpdateOutputWindow?.Invoke(this, null);
+                    if (!FCCEngine.CanRunCoverage())
+                    {
 						return;
-					}
-
-					Logger.Log("================================== START ==================================");
-
-					var darkMode = CurrentTheme.Equals("Dark", StringComparison.OrdinalIgnoreCase);
+                    }
 
 					List<CoverageProject> projects = null;
 					try
@@ -163,74 +130,7 @@ namespace FineCodeCoverage.Impl
 						throw new Exception("Error test container discoverer reflection",exc);
                     }
 
-					_reloadCoverageThread = new Thread(() =>
-					{
-						try
-						{
-							// compute coverage
-
-							FCCEngine.ReloadCoverage(projects, darkMode);
-
-							// update margins
-
-							{
-								UpdateMarginTagsEventArgs updateMarginTagsEventArgs = null;
-
-								try
-								{
-									updateMarginTagsEventArgs = new UpdateMarginTagsEventArgs
-									{
-									};
-								}
-								catch
-								{
-									// ignore
-								}
-								finally
-								{
-									UpdateMarginTags?.Invoke(this, updateMarginTagsEventArgs);
-								}
-							}
-
-							// update output window
-
-							{
-								UpdateOutputWindowEventArgs updateOutputWindowEventArgs = null;
-
-								try
-								{
-									if (!string.IsNullOrEmpty(FCCEngine.HtmlFilePath)) {
-										updateOutputWindowEventArgs = new UpdateOutputWindowEventArgs
-										{
-											HtmlContent = File.ReadAllText(FCCEngine.HtmlFilePath)
-										};
-									}
-								}
-								catch
-								{
-									// ignore
-								}
-								finally
-								{
-									UpdateOutputWindow?.Invoke(this, updateOutputWindowEventArgs);
-								}
-							}
-
-							// log
-
-							Logger.Log("================================== DONE ===================================");
-						}
-						catch (Exception exception)
-						{
-							if (!(exception is ThreadAbortException) && _reloadCoverageThread != null)
-							{
-								Logger.Log("Error", exception);
-								Logger.Log("================================== ERROR ==================================");
-							}
-						}
-					});
-
-					_reloadCoverageThread.Start();
+					FCCEngine.ReloadCoverage(projects);
 				}
 			}
 			catch (Exception exception)
@@ -240,18 +140,6 @@ namespace FineCodeCoverage.Impl
 		}
 	}
 
-	[Guid("0D915B59-2ED7-472A-9DE8-9161737EA1C5")]
-	[SuppressMessage("Style", "IDE1006:Naming Styles")]
-	public interface SVsColorThemeService
-	{
-	}
-
-	public class UpdateMarginTagsEventArgs : EventArgs
-	{
-	}
-
-	public class UpdateOutputWindowEventArgs : EventArgs
-	{
-		public string HtmlContent { get; set; }
-	}
+	
+	
 }

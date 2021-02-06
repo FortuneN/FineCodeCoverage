@@ -1,19 +1,25 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
+using FineCodeCoverage.Engine.Utilities;
+using Fizzler.Systems.HtmlAgilityPack;
 using HtmlAgilityPack;
 using Newtonsoft.Json;
-using System.Diagnostics;
 using Newtonsoft.Json.Linq;
 using ReportGeneratorPlugins;
-using System.Collections.Generic;
-using Fizzler.Systems.HtmlAgilityPack;
-using System.Diagnostics.CodeAnalysis;
-using FineCodeCoverage.Engine.Utilities;
 
 namespace FineCodeCoverage.Engine.ReportGenerator
 {
+    internal class ReportGeneratorResult
+	{
+		public string UnifiedHtmlFile { get; set; }
+		public string UnifiedXmlFile { get; set; }
+		public bool Success { get; set; }
+	}
 	internal partial class ReportGeneratorUtil
 	{
 		public const string ReportGeneratorName = "dotnet-reportgenerator-globaltool";
@@ -161,22 +167,21 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 			Logger.Log(title, processOutput);
 		}
 
-		[SuppressMessage("Usage", "VSTHRD002:Avoid problematic synchronous waits")]
-		public static bool RunReportGenerator(IEnumerable<string> coverOutputFiles, bool darkMode, out string unifiedHtmlFile, out string unifiedXmlFile, bool throwError = false)
+		public static async Task<ReportGeneratorResult> RunReportGeneratorAsync(IEnumerable<string> coverOutputFiles, bool darkMode, bool throwError = false)
 		{
 			var title = "ReportGenerator Run";
 			var outputFolder = Path.GetDirectoryName(coverOutputFiles.OrderBy(x => x).First()); // use location of first file to output reports
 
 			Directory.GetFiles(outputFolder, "*.htm*").ToList().ForEach(File.Delete); // delete html files if they exist
 
-			unifiedHtmlFile = Path.Combine(outputFolder, "index.html");
-			unifiedXmlFile = Path.Combine(outputFolder, "Cobertura.xml");
+			var unifiedHtmlFile = Path.Combine(outputFolder, "index.html");
+			var unifiedXmlFile = Path.Combine(outputFolder, "Cobertura.xml");
 
 			var reportGeneratorSettings = new List<string>();
 
 			reportGeneratorSettings.Add($@"""-targetdir:{outputFolder}""");
 			
-			bool run(string outputReportType, string inputReports)
+			async Task<bool> run(string outputReportType, string inputReports)
 			{
 				var reportTypeSettings = reportGeneratorSettings.ToArray().ToList();
 
@@ -198,15 +203,14 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 
 				Logger.Log($"{title} Arguments [reporttype:{outputReportType}] {Environment.NewLine}{string.Join($"{Environment.NewLine}", reportTypeSettings)}");
 
-				var result = ProcessUtil
-				.ExecuteAsync(new ExecuteRequest
-				{
-					FilePath = ReportGeneratorExePath,
-					Arguments = string.Join(" ", reportTypeSettings),
-					WorkingDirectory = outputFolder
-				})
-				.GetAwaiter()
-				.GetResult();
+				var result = await ProcessUtil
+					.ExecuteAsync(new ExecuteRequest
+					{
+						FilePath = ReportGeneratorExePath,
+						Arguments = string.Join(" ", reportTypeSettings),
+						WorkingDirectory = outputFolder
+					});
+				
 
 				if(result != null)
                 {
@@ -227,18 +231,17 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 				return false;
 				
 			}
+			var reportGeneratorResult = new ReportGeneratorResult { Success = false, UnifiedHtmlFile = unifiedHtmlFile, UnifiedXmlFile = unifiedXmlFile };
+			var coberturaResult = await run("Cobertura", string.Join(";", coverOutputFiles));
 
-			if (!run("Cobertura", string.Join(";", coverOutputFiles)))
+			if (!coberturaResult)
 			{
-				return false;
+				return reportGeneratorResult;
 			}
 
-			if (!run("HtmlInline_AzurePipelines", unifiedXmlFile))
-			{
-				return false;
-			}
-
-			return true;
+			reportGeneratorResult.Success =  await run("HtmlInline_AzurePipelines", unifiedXmlFile);
+			return reportGeneratorResult;
+			
 		}
 
 		public static void ProcessUnifiedHtmlFile(string htmlFile, bool darkMode, out string coverageHtml)
