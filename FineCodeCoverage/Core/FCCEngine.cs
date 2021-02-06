@@ -18,285 +18,285 @@ using Microsoft.VisualStudio.Shell;
 namespace FineCodeCoverage.Engine
 {
     internal static class FCCEngine
-	{
-		private static object colorThemeService;
-		private static string CurrentTheme => $"{((dynamic)colorThemeService)?.CurrentTheme?.Name}".Trim();
-		private static DTE dte;
-		private static CancellationTokenSource cancellationTokenSource;
-		private static CancellationToken cancellationToken;
-		public static event UpdateMarginTagsDelegate UpdateMarginTags;
-		public static event UpdateOutputWindowDelegate UpdateOutputWindow;
-		
-		public static string HtmlFilePath { get; private set; }
-		public static string AppDataFolder { get; private set; }
-		public static CoverageReport CoverageReport { get; private set; }
-		public static List<CoverageLine> CoverageLines { get; private set; } = new List<CoverageLine>();
-		
-		public static void Initialize(IServiceProvider serviceProvider)
-		{
-			colorThemeService = serviceProvider.GetService(typeof(SVsColorThemeService));
-			ThreadHelper.JoinableTaskFactory.Run(async () =>
-			{
-				await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-				dte = (DTE)serviceProvider.GetService(typeof(DTE));
-				Assumes.Present(dte);
-			});
+    {
+        private static object colorThemeService;
+        private static string CurrentTheme => $"{((dynamic)colorThemeService)?.CurrentTheme?.Name}".Trim();
+        private static DTE dte;
+        private static CancellationTokenSource cancellationTokenSource;
+        private static CancellationToken cancellationToken;
+        public static event UpdateMarginTagsDelegate UpdateMarginTags;
+        public static event UpdateOutputWindowDelegate UpdateOutputWindow;
 
-			CreateAppDataFolder();
-			
-			CleanupLegacyFolders();
+        public static string HtmlFilePath { get; private set; }
+        public static string AppDataFolder { get; private set; }
+        public static CoverageReport CoverageReport { get; private set; }
+        public static List<CoverageLine> CoverageLines { get; private set; } = new List<CoverageLine>();
 
-			CoverletUtil.Initialize(AppDataFolder);
-			ReportGeneratorUtil.Initialize(AppDataFolder);
-			MsTestPlatformUtil.Initialize(AppDataFolder);
-			OpenCoverUtil.Initialize(AppDataFolder);
-		}
-
-		private static void CreateAppDataFolder()
+        public static void Initialize(IServiceProvider serviceProvider)
         {
-			AppDataFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), Vsix.Code);
-			Directory.CreateDirectory(AppDataFolder);
-		}
-
-		private static void CleanupLegacyFolders()
-		{
-			Directory
-			.GetDirectories(AppDataFolder, "*", SearchOption.TopDirectoryOnly)
-			.Where(path =>
-			{
-				var name = Path.GetFileName(path);
-
-				if (name.Contains("__"))
-				{
-					return true;
-				}
-
-				if (Guid.TryParse(name, out var _))
-				{
-					return true;
-				}
-
-				return false;
-			})
-			.ToList()
-			.ForEach(path =>
-			{
-				try
-				{
-					Directory.Delete(path, true);
-				}
-				catch
-				{
-					// ignore
-				}
-			});
-		}
-
-		public static IEnumerable<CoverageLine> GetLines(string filePath, int startLineNumber, int endLineNumber)
-		{
-			return CoverageLines
-			.AsParallel()
-			.Where(x => x.Class.Filename.Equals(filePath, StringComparison.OrdinalIgnoreCase))
-			.Where(x => x.Line.Number >= startLineNumber && x.Line.Number <= endLineNumber)
-			.ToArray();
-		}
-
-		public static string[] GetSourceFiles(string assemblyName, string qualifiedClassName)
-		{
-			// Note : There may be more than one file; e.g. in the case of partial classes
-
-			var package = CoverageReport
-				.Packages.Package
-				.SingleOrDefault(x => x.Name.Equals(assemblyName));
-
-			if (package == null)
-			{
-				return new string[0];
-			}
-
-			var classFiles = package
-				.Classes.Class
-				.Where(x => x.Name.Equals(qualifiedClassName))
-				.Select(x => x.Filename)
-				.ToArray();
-
-			return classFiles;
-		}
-		
-		public static void StopCoverage()
-		{
-			if(cancellationTokenSource != null)
+            colorThemeService = serviceProvider.GetService(typeof(SVsColorThemeService));
+            ThreadHelper.JoinableTaskFactory.Run(async () =>
             {
-				cancellationTokenSource.Cancel();
-			}
-		}
-		
-		public static bool CanRunCoverage()
+                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                dte = (DTE)serviceProvider.GetService(typeof(DTE));
+                Assumes.Present(dte);
+            });
+
+            CreateAppDataFolder();
+
+            CleanupLegacyFolders();
+
+            CoverletUtil.Initialize(AppDataFolder);
+            ReportGeneratorUtil.Initialize(AppDataFolder);
+            MsTestPlatformUtil.Initialize(AppDataFolder);
+            OpenCoverUtil.Initialize(AppDataFolder);
+        }
+
+        private static void CreateAppDataFolder()
         {
-			var canRun = AppOptions.Get().Enabled;
+            AppDataFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), Vsix.Code);
+            Directory.CreateDirectory(AppDataFolder);
+        }
 
-			if (!canRun)
-			{
-				CoverageLines.Clear();
-				UpdateMarginTags?.Invoke(null);
-				UpdateOutputWindow?.Invoke(null);
-				
-			}
-			return canRun;
-		}
-		
-		private static void SetCancellationToken()
+        private static void CleanupLegacyFolders()
         {
-			cancellationTokenSource = new CancellationTokenSource();
-			cancellationToken = cancellationTokenSource.Token;
-			ProcessUtil.CancellationToken = cancellationToken;
-		}
-		private static void Reset()
+            Directory
+            .GetDirectories(AppDataFolder, "*", SearchOption.TopDirectoryOnly)
+            .Where(path =>
+            {
+                var name = Path.GetFileName(path);
+
+                if (name.Contains("__"))
+                {
+                    return true;
+                }
+
+                if (Guid.TryParse(name, out var _))
+                {
+                    return true;
+                }
+
+                return false;
+            })
+            .ToList()
+            .ForEach(path =>
+            {
+                try
+                {
+                    Directory.Delete(path, true);
+                }
+                catch
+                {
+                    // ignore
+                }
+            });
+        }
+
+        public static IEnumerable<CoverageLine> GetLines(string filePath, int startLineNumber, int endLineNumber)
         {
-			StopCoverage();
-			SetCancellationToken();
-			HtmlFilePath = null;
-			CoverageLines.Clear();
-		}
+            return CoverageLines
+            .AsParallel()
+            .Where(x => x.Class.Filename.Equals(filePath, StringComparison.OrdinalIgnoreCase))
+            .Where(x => x.Line.Number >= startLineNumber && x.Line.Number <= endLineNumber)
+            .ToArray();
+        }
 
-		private static async System.Threading.Tasks.Task RunCoverToolAsync(CoverageProject project)
-		{
-			if (project.IsDotNetSdkStyle())
-			{
-				await CoverletUtil.RunCoverletAsync(project, true);
-			}
-			else
-			{
-				await OpenCoverUtil.RunOpenCoverAsync(project, true);
-			}
-		}
-
-		private static async System.Threading.Tasks.Task PrepareCoverageProjectsAsync(List<CoverageProject> coverageProjects)
+        public static string[] GetSourceFiles(string assemblyName, string qualifiedClassName)
         {
-			foreach (var project in coverageProjects)
-			{
-				cancellationToken.ThrowIfCancellationRequested();
-				if (string.IsNullOrWhiteSpace(project.ProjectFile))
-				{
-					project.FailureDescription = $"Unsupported project type for DLL '{project.TestDllFile}'";
-					continue;
-				}
+            // Note : There may be more than one file; e.g. in the case of partial classes
 
-				if (!project.Settings.Enabled)
-				{
-					project.FailureDescription = $"Disabled";
-					continue;
-				}
+            var package = CoverageReport
+                .Packages.Package
+                .SingleOrDefault(x => x.Name.Equals(assemblyName));
 
-				await project.PrepareForCoverageAsync(dte);
-			}
-		}
+            if (package == null)
+            {
+                return new string[0];
+            }
 
-		public static void ReloadCoverage(List<CoverageProject> projects)
-		{
-			Logger.Log("================================== START ==================================");
-			
-			Reset();
-			
-			var coverageTask = System.Threading.Tasks.Task.Run(async () =>
+            var classFiles = package
+                .Classes.Class
+                .Where(x => x.Name.Equals(qualifiedClassName))
+                .Select(x => x.Filename)
+                .ToArray();
+
+            return classFiles;
+        }
+
+        public static void StopCoverage()
+        {
+            if (cancellationTokenSource != null)
+            {
+                cancellationTokenSource.Cancel();
+            }
+        }
+
+        public static bool CanRunCoverage()
+        {
+            var canRun = AppOptions.Get().Enabled;
+
+            if (!canRun)
+            {
+                CoverageLines.Clear();
+                UpdateMarginTags?.Invoke(null);
+                UpdateOutputWindow?.Invoke(null);
+
+            }
+            return canRun;
+        }
+
+        private static void SetCancellationToken()
+        {
+            cancellationTokenSource = new CancellationTokenSource();
+            cancellationToken = cancellationTokenSource.Token;
+            ProcessUtil.CancellationToken = cancellationToken;
+        }
+        private static void Reset()
+        {
+            StopCoverage();
+            SetCancellationToken();
+            HtmlFilePath = null;
+            CoverageLines.Clear();
+        }
+
+        private static async System.Threading.Tasks.Task RunCoverToolAsync(CoverageProject project)
+        {
+            if (project.IsDotNetSdkStyle())
+            {
+                await CoverletUtil.RunCoverletAsync(project, true);
+            }
+            else
+            {
+                await OpenCoverUtil.RunOpenCoverAsync(project, true);
+            }
+        }
+
+        private static async System.Threading.Tasks.Task PrepareCoverageProjectsAsync(List<CoverageProject> coverageProjects)
+        {
+            foreach (var project in coverageProjects)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                if (string.IsNullOrWhiteSpace(project.ProjectFile))
+                {
+                    project.FailureDescription = $"Unsupported project type for DLL '{project.TestDllFile}'";
+                    continue;
+                }
+
+                if (!project.Settings.Enabled)
+                {
+                    project.FailureDescription = $"Disabled";
+                    continue;
+                }
+
+                await project.PrepareForCoverageAsync(dte);
+            }
+        }
+
+        public static void ReloadCoverage(List<CoverageProject> projects)
+        {
+            Logger.Log("================================== START ==================================");
+
+            Reset();
+
+            var coverageTask = System.Threading.Tasks.Task.Run(async () =>
               {
 
-				// process pipeline
+                  // process pipeline
 
-				await PrepareCoverageProjectsAsync(projects);
+                  await PrepareCoverageProjectsAsync(projects);
 
-				foreach (var project in projects)
-				{
-					cancellationToken.ThrowIfCancellationRequested();
-					await project.StepAsync("Run Coverage Tool", RunCoverToolAsync);
-				}
+                  foreach (var project in projects)
+                  {
+                      cancellationToken.ThrowIfCancellationRequested();
+                      await project.StepAsync("Run Coverage Tool", RunCoverToolAsync);
+                  }
 
-				var passedProjects = projects.Where(x => !x.HasFailed);
+                  var passedProjects = projects.Where(x => !x.HasFailed);
 
-				var coverOutputFiles = passedProjects
-						.Select(x => x.CoverageOutputFile)
-						.ToArray();
+                  var coverOutputFiles = passedProjects
+                          .Select(x => x.CoverageOutputFile)
+                          .ToArray();
 
-				if (coverOutputFiles.Any())
-				{
-					cancellationToken.ThrowIfCancellationRequested();
-					  // run reportGenerator process
+                  if (coverOutputFiles.Any())
+                  {
+                      cancellationToken.ThrowIfCancellationRequested();
+                      // run reportGenerator process
 
-					var darkMode = CurrentTheme.Equals("Dark", StringComparison.OrdinalIgnoreCase);
+                      var darkMode = CurrentTheme.Equals("Dark", StringComparison.OrdinalIgnoreCase);
 
-					var result = await ReportGeneratorUtil.RunReportGeneratorAsync(coverOutputFiles, darkMode, true);
+                      var result = await ReportGeneratorUtil.RunReportGeneratorAsync(coverOutputFiles, darkMode, true);
 
-					if (result.Success)
-					{
-						// update CoverageLines
+                      if (result.Success)
+                      {
+                          // update CoverageLines
 
-						CoverageReport = CoberturaUtil.ProcessCoberturaXmlFile(result.UnifiedXmlFile, out var coverageLines);
-						  CoverageLines = coverageLines;
-						// update HtmlFilePath
+                          CoverageReport = CoberturaUtil.ProcessCoberturaXmlFile(result.UnifiedXmlFile, out var coverageLines);
+                          CoverageLines = coverageLines;
+                          // update HtmlFilePath
 
-						ReportGeneratorUtil.ProcessUnifiedHtmlFile(result.UnifiedHtmlFile, darkMode, out var htmlFilePath);
-						  HtmlFilePath = htmlFilePath;
-					}
+                          ReportGeneratorUtil.ProcessUnifiedHtmlFile(result.UnifiedHtmlFile, darkMode, out var htmlFilePath);
+                          HtmlFilePath = htmlFilePath;
+                      }
 
-					// update margins
+                      // update margins
 
-					{
-						UpdateMarginTagsEventArgs updateMarginTagsEventArgs = null;
+                      {
+                          UpdateMarginTagsEventArgs updateMarginTagsEventArgs = null;
 
-						try
-						{
-							updateMarginTagsEventArgs = new UpdateMarginTagsEventArgs
-							{
-							};
-						}
-						catch
-						{
-							// ignore
-						}
-						finally
-						{
-							UpdateMarginTags?.Invoke(updateMarginTagsEventArgs);
-						}
-					}
+                          try
+                          {
+                              updateMarginTagsEventArgs = new UpdateMarginTagsEventArgs
+                              {
+                              };
+                          }
+                          catch
+                          {
+                              // ignore
+                          }
+                          finally
+                          {
+                              UpdateMarginTags?.Invoke(updateMarginTagsEventArgs);
+                          }
+                      }
 
-					// update output window
+                      // update output window
 
-					{
-						UpdateOutputWindowEventArgs updateOutputWindowEventArgs = null;
+                      {
+                          UpdateOutputWindowEventArgs updateOutputWindowEventArgs = null;
 
-						try
-						{
-							if (!string.IsNullOrEmpty(HtmlFilePath))
-							{
-								updateOutputWindowEventArgs = new UpdateOutputWindowEventArgs
-								{
-									HtmlContent = File.ReadAllText(HtmlFilePath)
-								};
-							}
-						}
-						catch
-						{
-							// ignore
-						}
-						finally
-						{
-							UpdateOutputWindow?.Invoke(updateOutputWindowEventArgs);
-						}
-					}
+                          try
+                          {
+                              if (!string.IsNullOrEmpty(HtmlFilePath))
+                              {
+                                  updateOutputWindowEventArgs = new UpdateOutputWindowEventArgs
+                                  {
+                                      HtmlContent = File.ReadAllText(HtmlFilePath)
+                                  };
+                              }
+                          }
+                          catch
+                          {
+                              // ignore
+                          }
+                          finally
+                          {
+                              UpdateOutputWindow?.Invoke(updateOutputWindowEventArgs);
+                          }
+                      }
 
-				}
+                  }
 
 
-				// log
+                  // log
 
-				Logger.Log("================================== DONE ===================================");
+                  Logger.Log("================================== DONE ===================================");
 
-				cancellationTokenSource.Dispose();
-				cancellationTokenSource = null;
-			  },cancellationToken);
-			
-		}
-		
-	}
-	
+                  cancellationTokenSource.Dispose();
+                  cancellationTokenSource = null;
+              }, cancellationToken);
+
+        }
+
+    }
+
 }
