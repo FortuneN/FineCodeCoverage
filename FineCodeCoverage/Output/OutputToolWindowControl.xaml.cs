@@ -9,6 +9,7 @@ using System.Runtime.InteropServices;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft;
+using System;
 
 namespace FineCodeCoverage.Output
 {
@@ -26,7 +27,7 @@ namespace FineCodeCoverage.Output
 		/// Initializes a new instance of the <see cref="OutputToolWindowControl"/> class.
 		/// </summary>
 		[SuppressMessage("Usage", "VSTHRD104:Offer async methods")]
-		public OutputToolWindowControl()
+		public OutputToolWindowControl(Action focusedCallback)
 		{
 			InitializeComponent();
 
@@ -41,7 +42,7 @@ namespace FineCodeCoverage.Output
 				SolutionEvents.AfterClosing += () => Clear();
 			});
 
-			ScriptManager = new ScriptManager(Dte);
+			ScriptManager = new ScriptManager(Dte, focusedCallback);
 			FCCOutputBrowser.ObjectForScripting = ScriptManager;
 			
 			FCCEngine.UpdateOutputWindow += (args) =>
@@ -72,11 +73,13 @@ namespace FineCodeCoverage.Output
 	public class ScriptManager
 	{
 		private readonly DTE _dte;
+        private readonly Action focusedCallback;
 
-		public ScriptManager(DTE dte)
+        public ScriptManager(DTE dte,Action focusedCallback)
 		{
 			_dte = dte;
-		}
+            this.focusedCallback = focusedCallback;
+        }
 
 		[SuppressMessage("Usage", "VSTHRD104:Offer async methods")]
 		[SuppressMessage("Style", "IDE0060:Remove unused parameter")]
@@ -126,5 +129,10 @@ namespace FineCodeCoverage.Output
 		{
 			System.Diagnostics.Process.Start("https://marketplace.visualstudio.com/items?itemName=FortuneNgwenya.FineCodeCoverage&ssr=false#review-details");
 		}
+	
+		public void DocumentFocused()
+        {
+			focusedCallback();
+        }
 	}
 }

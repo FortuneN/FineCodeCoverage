@@ -5,6 +5,7 @@ using System.Reflection;
 using FineCodeCoverage.Engine;
 using Microsoft.VisualStudio.Shell;
 using System.Runtime.InteropServices;
+using Microsoft.VisualStudio.Shell.Interop;
 
 namespace FineCodeCoverage.Output
 {
@@ -36,7 +37,14 @@ namespace FineCodeCoverage.Output
 			try
 			{
 				AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
-				Content = new OutputToolWindowControl();
+				Content = new OutputToolWindowControl(() =>
+				{
+					ThreadHelper.JoinableTaskFactory.Run(async () =>
+					{
+						await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+						(this.Frame as IVsWindowFrame).Show();
+					});
+				});
 			}
 			finally
 			{
