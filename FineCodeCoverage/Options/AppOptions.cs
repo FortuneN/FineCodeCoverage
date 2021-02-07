@@ -11,9 +11,14 @@ namespace FineCodeCoverage.Options
 {
 	public class AppOptions : DialogPage
 	{
+		private const string runCategory = "Run";
+		private const string excludeIncludeCategory = "Exclude / Include";
+
+		[Category(runCategory)]
 		[Description("Specifies whether or not coverage output is enabled")]
 		public bool Enabled { get; set; } = true;
 
+		[Category(excludeIncludeCategory)]
 		[Description(
 		@"Filter expressions to exclude specific modules and types (multiple)
 		
@@ -30,6 +35,7 @@ namespace FineCodeCoverage.Options
 		")]
 		public string[] Exclude { get; set; }
 
+		[Category(excludeIncludeCategory)]
 		[Description(
 		@"Filter expressions to include specific modules and types (multiple)
 		
@@ -46,17 +52,20 @@ namespace FineCodeCoverage.Options
 		")]
 		public string[] Include { get; set; }
 
+		[Category(excludeIncludeCategory)]
 		[Description(
 		@"Glob patterns specifying source files to exclude (multiple)
 		Use file path or directory path with globbing (e.g. **/Migrations/*)
 		")]
 		public string[] ExcludeByFile { get; set; } = new[] { "**/Migrations/*" };
 
+		[Category(excludeIncludeCategory)]
 		[Description(
 		@"Specifies whether to report code coverage of the test assembly
 		")]
 		public bool IncludeTestAssembly { get; set; } = true;
 
+		[Category(excludeIncludeCategory)]
 		[Description(
 		@"Attributes to exclude from code coverage (multiple)
 
@@ -66,6 +75,18 @@ namespace FineCodeCoverage.Options
 		[MyCustomExcludeFromCodeCoverage] => Any custom attribute that you may define
 		")]
 		public string[] ExcludeByAttribute { get; set; } = new[] { "GeneratedCode" };
+
+		[Description("Specify true to not wait for tests to finish before running coverage")]
+		[Category(runCategory)]
+		public bool RunInParallel { get; set; }
+
+		[Description("Specify false to prevent coverage when tests fail.  Cannot be used in conjunction with RunInParallel")]
+		[Category(runCategory)]
+		public bool RunWhenTestsFail { get; set; } = true;
+
+		[Description("Specify a value to only run coverage based upon the number of executing tests.  Cannot be used in conjunction with RunInParallel")]
+		[Category(runCategory)]
+		public int RunWhenTestsExceed { get; set; }
 
 		[SuppressMessage("Usage", "VSTHRD010:Invoke single-threaded types on Main thread")]
 		public override void SaveSettingsToStorage()

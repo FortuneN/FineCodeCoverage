@@ -7,11 +7,13 @@ using System.Linq;
 using System.Threading;
 using FineCodeCoverage.Engine;
 using FineCodeCoverage.Engine.Model;
+using FineCodeCoverage.Options;
 using FineCodeCoverage.Output;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestWindow.Extensibility;
 using Microsoft.VisualStudio.Utilities;
+using ReflectObject;
 
 namespace FineCodeCoverage.Impl
 {
@@ -87,6 +89,27 @@ namespace FineCodeCoverage.Impl
             });
         }
 
+        private List<CoverageProject> GetCoverageProjects(TestConfiguration testConfiguration)
+        {
+            var userRunSettings = testConfiguration.UserRunSettings;
+            var runSettingsRetriever = new RunSettingsRetriever();
+            var testContainers = testConfiguration.Containers;
+
+            return testConfiguration.Containers.Select(container =>
+            {
+                var project = new CoverageProject();
+                project.ProjectName = container.ProjectName;
+                project.TestDllFile = container.Source;
+                project.Is64Bit = container.TargetPlatform.ToString().ToLower().Equals("x64");
+
+                var containerData = container.ProjectData;
+                project.ProjectFile = container.ProjectData.ProjectFilePath;
+                project.RunSettingsFile = ThreadHelper.JoinableTaskFactory.Run(() => runSettingsRetriever.GetRunSettingsFileAsync(userRunSettings, containerData));
+                return project;
+            }).ToList();
+
+        }
+
         private void OperationState_StateChanged(object sender, OperationStateChangedEventArgs e)
         {
             try
@@ -99,43 +122,51 @@ namespace FineCodeCoverage.Impl
                 if (e.State == TestOperationStates.TestExecutionStarting)
                 {
                     FCCEngine.StopCoverage();
+                    FCCEngine.TryReloadCoverage(settings =>
+                    {
+                        if (!settings.RunInParallel)
+                        {
+                            return null;
+                        }
+                        return GetCoverageProjects(new Operation(e.Operation).Configuration);
+                    });
                 }
 
                 if (e.State == TestOperationStates.TestExecutionFinished)
                 {
-                    FCCEngine.TryReloadCoverage(appOptions =>
+                    FCCEngine.TryReloadCoverage(settings =>
                     {
-                        List<CoverageProject> projects = null;
-                        try
+                        if (settings.RunInParallel)
                         {
-                            var testConfiguration = new Operation(e.Operation).Configuration;
+                            return null;
+                        }
 
-                            var userRunSettings = testConfiguration.UserRunSettings;
-                            var runSettingsRetriever = new RunSettingsRetriever();
-                            var testContainers = testConfiguration.Containers;
+                        var operation = new Operation(e.Operation);
+                        if (!settings.RunWhenTestsFail && operation.Response.FailedTests > 0)
+                        {
+                            Logger.Log($"Skipping coverage due to failed tests.  Option {nameof(AppOptions.RunWhenTestsFail)} is false");
+                            return null;
+                        }
 
-                            projects = testConfiguration.Containers.Select(container =>
+                        var totalTests = operation.TotalTests;
+                        var runWhenTestsExceed = settings.RunWhenTestsExceed;
+                        if (totalTests > 0) // in case this changes to not reporting total tests
+                        {
+                            if (totalTests <= runWhenTestsExceed)
                             {
-                                var project = new CoverageProject();
-                                project.ProjectName = container.ProjectName;
-                                project.TestDllFile = container.Source;
-                                project.Is64Bit = container.TargetPlatform.ToString().ToLower().Equals("x64");
-
-                                var containerData = container.ProjectData;
-                                project.ProjectFile = container.ProjectData.ProjectFilePath;
-                                project.RunSettingsFile = ThreadHelper.JoinableTaskFactory.Run(() => runSettingsRetriever.GetRunSettingsFileAsync(userRunSettings, containerData));
-                                return project;
-                            }).ToList();
-
-                        }
-                        catch (Exception exc)
-                        {
-                            throw new Exception("Error test container discoverer reflection", exc);
+                                Logger.Log($"Skipping coverage as total tests ({totalTests}) <= {nameof(AppOptions.RunWhenTestsExceed)} ({runWhenTestsExceed})");
+                                return null;
+                            }
                         }
 
-                        return projects;
+                        return GetCoverageProjects(operation.Configuration);
                     });
                 }
+            }
+            catch (PropertyDoesNotExistException propertyDoesNotExistException)
+            {
+                Logger.Log("Error test container discoverer reflection");
+                throw new Exception(propertyDoesNotExistException.Message);
             }
             catch (Exception exception)
             {
