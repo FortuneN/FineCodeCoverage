@@ -130,21 +130,6 @@ namespace FineCodeCoverage.Engine
                 cancellationTokenSource.Cancel();
             }
         }
-
-        public static bool CanRunCoverage()
-        {
-            var canRun = AppOptions.Get().Enabled;
-
-            if (!canRun)
-            {
-                CoverageLines.Clear();
-                UpdateMarginTags?.Invoke(null);
-                UpdateOutputWindow?.Invoke(null);
-
-            }
-            return canRun;
-        }
-
         private static void SetCancellationToken()
         {
             cancellationTokenSource = new CancellationTokenSource();
@@ -192,7 +177,30 @@ namespace FineCodeCoverage.Engine
             }
         }
 
-        public static void ReloadCoverage(List<CoverageProject> projects)
+        public static void TryReloadCoverage(Func<AppOptions,List<CoverageProject>> coverageProjectFactory)
+        {
+            var settings = AppOptions.Get();
+            var canReload = settings.Enabled;
+
+            if (!canReload)
+            {
+                CoverageLines.Clear();
+                UpdateMarginTags?.Invoke(null);
+                UpdateOutputWindow?.Invoke(null);
+
+            }
+
+            if (canReload)
+            {
+                var coverageProjects = coverageProjectFactory(settings);
+                if(coverageProjects != null)
+                {
+                    ReloadCoverage(coverageProjects);
+                }
+            }
+        }
+
+        private static void ReloadCoverage(List<CoverageProject> projects)
         {
             Logger.Log("================================== START ==================================");
 
