@@ -91,6 +91,11 @@ namespace FineCodeCoverage.Impl
         {
             try
             {
+                if(e.State == TestOperationStates.TestExecutionCanceling)
+                {
+                    FCCEngine.StopCoverage();
+                }
+
                 if (e.State == TestOperationStates.TestExecutionStarting)
                 {
                     FCCEngine.StopCoverage();
