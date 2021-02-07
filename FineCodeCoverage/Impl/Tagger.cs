@@ -14,10 +14,10 @@ namespace FineCodeCoverage.Impl
 		public Tagger(ITextBuffer textBuffer)
 		{
 			_textBuffer = textBuffer;
-			TestContainerDiscoverer.UpdateMarginTags += TestContainerDiscoverer_UpdateMarginTags;
+			FCCEngine.UpdateMarginTags += TestContainerDiscoverer_UpdateMarginTags;
 		}
 
-		private void TestContainerDiscoverer_UpdateMarginTags(object sender, UpdateMarginTagsEventArgs e)
+		private void TestContainerDiscoverer_UpdateMarginTags(UpdateMarginTagsEventArgs e)
 		{
 			var span = new SnapshotSpan(_textBuffer.CurrentSnapshot, 0, _textBuffer.CurrentSnapshot.Length);
 			var spanEventArgs = new SnapshotSpanEventArgs(span);

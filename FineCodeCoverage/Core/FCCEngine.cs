@@ -1,555 +1,302 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Xml.Linq;
-using FineCodeCoverage.Options;
-using System.Collections.Generic;
-using FineCodeCoverage.Engine.Model;
-using System.Collections.Concurrent;
-using FineCodeCoverage.Engine.Coverlet;
-using FineCodeCoverage.Engine.Cobertura;
-using FineCodeCoverage.Engine.OpenCover;
-using FineCodeCoverage.Engine.Utilities;
-using FineCodeCoverage.Engine.MsTestPlatform;
-using FineCodeCoverage.Engine.ReportGenerator;
-using FineCodeCoverage.Core.Model;
-using FineCodeCoverage.Core.Utilities;
-using System.Xml.XPath;
 using System.Threading;
+using EnvDTE;
+using FineCodeCoverage.Engine.Cobertura;
+using FineCodeCoverage.Engine.Coverlet;
+using FineCodeCoverage.Engine.Model;
+using FineCodeCoverage.Engine.MsTestPlatform;
+using FineCodeCoverage.Engine.OpenCover;
+using FineCodeCoverage.Engine.ReportGenerator;
+using FineCodeCoverage.Engine.Utilities;
+using FineCodeCoverage.Options;
+using Microsoft;
+using Microsoft.VisualStudio.Shell;
 
 namespace FineCodeCoverage.Engine
 {
-	internal static class FCCEngine
-	{
-		public static string HtmlFilePath { get; private set; }
-		public static string AppDataFolder { get; private set; }
-		public static CoverageReport CoverageReport { get; private set; }
-		public static string[] ProjectExtensions { get; } = new string[] { ".csproj", ".vbproj" };
-		public static List<CoverageLine> CoverageLines { get; private set; } = new List<CoverageLine>();
-		public static ConcurrentDictionary<string, string> ProjectFoldersCache { get; } = new ConcurrentDictionary<string, string>();
-		
-		public static void Initialize()
-		{
-			AppDataFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), Vsix.Code);
-			Directory.CreateDirectory(AppDataFolder);
-			
-			CleanupLegacyFolders();
+    internal static class FCCEngine
+    {
+        private static object colorThemeService;
+        private static string CurrentTheme => $"{((dynamic)colorThemeService)?.CurrentTheme?.Name}".Trim();
+        private static DTE dte;
+        private static CancellationTokenSource cancellationTokenSource;
+        private static CancellationToken cancellationToken;
+        public static event UpdateMarginTagsDelegate UpdateMarginTags;
+        public static event UpdateOutputWindowDelegate UpdateOutputWindow;
 
-			CoverletUtil.Initialize(AppDataFolder);
-			ReportGeneratorUtil.Initialize(AppDataFolder);
-			MsTestPlatformUtil.Initialize(AppDataFolder);
-			OpenCoverUtil.Initialize(AppDataFolder);
-		}
+        public static string HtmlFilePath { get; private set; }
+        public static string AppDataFolder { get; private set; }
+        public static CoverageReport CoverageReport { get; private set; }
+        public static List<CoverageLine> CoverageLines { get; private set; } = new List<CoverageLine>();
 
-		private static void CleanupLegacyFolders()
-		{
-			Directory
-			.GetDirectories(AppDataFolder, "*", SearchOption.TopDirectoryOnly)
-			.Where(path =>
-			{
-				var name = Path.GetFileName(path);
-
-				if (name.Contains("__"))
-				{
-					return true;
-				}
-
-				if (Guid.TryParse(name, out var _))
-				{
-					return true;
-				}
-
-				return false;
-			})
-			.ToList()
-			.ForEach(path =>
-			{
-				try
-				{
-					Directory.Delete(path, true);
-				}
-				catch
-				{
-					// ignore
-				}
-			});
-		}
-
-		public static IEnumerable<CoverageLine> GetLines(string filePath, int startLineNumber, int endLineNumber)
-		{
-			return CoverageLines
-			.AsParallel()
-			.Where(x => x.Class.Filename.Equals(filePath, StringComparison.OrdinalIgnoreCase))
-			.Where(x => x.Line.Number >= startLineNumber && x.Line.Number <= endLineNumber)
-			.ToArray();
-		}
-
-		private static AppOptions GetSettings(CoverageProject project)
-		{
-			// get global settings
-
-			var settings = AppOptions.Get();
-
-			/*
-			========================================
-			Process PropertyGroup settings
-			========================================
-			<PropertyGroup Label="FineCodeCoverage">
-				...
-			</PropertyGroup>
-			*/
-
-			var settingsPropertyGroup = project.ProjectFileXElement.XPathSelectElement($"/PropertyGroup[@Label='{Vsix.Code}']");
-			
-			if (settingsPropertyGroup != null)
-			{
-				foreach (var property in settings.GetType().GetProperties())
-				{
-					try
-					{
-						var xproperty = settingsPropertyGroup.Descendants().FirstOrDefault(x => x.Name.LocalName.Equals(property.Name, StringComparison.OrdinalIgnoreCase));
-
-						if (xproperty == null)
-						{
-							continue;
-						}
-
-						var strValue = xproperty.Value;
-
-						if (string.IsNullOrWhiteSpace(strValue))
-						{
-							continue;
-						}
-
-						var strValueArr = strValue.Split('\n', '\r').Where(x => !string.IsNullOrWhiteSpace(x)).Select(x => x.Trim()).ToArray();
-
-						if (!strValue.Any())
-						{
-							continue;
-						}
-
-						if (TypeMatch(property.PropertyType, typeof(string)))
-						{
-							property.SetValue(settings, strValueArr.FirstOrDefault());
-						}
-						else if (TypeMatch(property.PropertyType, typeof(string[])))
-						{
-							property.SetValue(settings, strValueArr);
-						}
-
-						else if (TypeMatch(property.PropertyType, typeof(bool), typeof(bool?)))
-						{
-							if (bool.TryParse(strValueArr.FirstOrDefault(), out bool value))
-							{
-								property.SetValue(settings, value);
-							}
-						}
-						else if (TypeMatch(property.PropertyType, typeof(bool[]), typeof(bool?[])))
-						{
-							var arr = strValueArr.Where(x => bool.TryParse(x, out var _)).Select(x => bool.Parse(x));
-							if (arr.Any()) property.SetValue(settings, arr);
-						}
-
-						else if (TypeMatch(property.PropertyType, typeof(int), typeof(int?)))
-						{
-							if (int.TryParse(strValueArr.FirstOrDefault(), out var value))
-							{
-								property.SetValue(settings, value);
-							}
-						}
-						else if (TypeMatch(property.PropertyType, typeof(int[]), typeof(int?[])))
-						{
-							var arr = strValueArr.Where(x => int.TryParse(x, out var _)).Select(x => int.Parse(x));
-							if (arr.Any()) property.SetValue(settings, arr);
-						}
-
-						else if (TypeMatch(property.PropertyType, typeof(short), typeof(short?)))
-						{
-							if (short.TryParse(strValueArr.FirstOrDefault(), out var vaue))
-							{
-								property.SetValue(settings, vaue);
-							}
-						}
-						else if (TypeMatch(property.PropertyType, typeof(short[]), typeof(short?[])))
-						{
-							var arr = strValueArr.Where(x => short.TryParse(x, out var _)).Select(x => short.Parse(x));
-							if (arr.Any()) property.SetValue(settings, arr);
-						}
-
-						else if (TypeMatch(property.PropertyType, typeof(long), typeof(long?)))
-						{
-							if (long.TryParse(strValueArr.FirstOrDefault(), out var value))
-							{
-								property.SetValue(settings, value);
-							}
-						}
-						else if (TypeMatch(property.PropertyType, typeof(long[]), typeof(long?[])))
-						{
-							var arr = strValueArr.Where(x => long.TryParse(x, out var _)).Select(x => long.Parse(x));
-							if (arr.Any()) property.SetValue(settings, arr);
-						}
-
-						else if (TypeMatch(property.PropertyType, typeof(decimal), typeof(decimal?)))
-						{
-							if (decimal.TryParse(strValueArr.FirstOrDefault(), out var value))
-							{
-								property.SetValue(settings, value);
-							}
-						}
-						else if (TypeMatch(property.PropertyType, typeof(decimal[]), typeof(decimal?[])))
-						{
-							var arr = strValueArr.Where(x => decimal.TryParse(x, out var _)).Select(x => decimal.Parse(x));
-							if (arr.Any()) property.SetValue(settings, arr);
-						}
-
-						else if (TypeMatch(property.PropertyType, typeof(double), typeof(double?)))
-						{
-							if (double.TryParse(strValueArr.FirstOrDefault(), out var value))
-							{
-								property.SetValue(settings, value);
-							}
-						}
-						else if (TypeMatch(property.PropertyType, typeof(double[]), typeof(double?[])))
-						{
-							var arr = strValueArr.Where(x => double.TryParse(x, out var _)).Select(x => double.Parse(x));
-							if (arr.Any()) property.SetValue(settings, arr);
-						}
-
-						else if (TypeMatch(property.PropertyType, typeof(float), typeof(float?)))
-						{
-							if (float.TryParse(strValueArr.FirstOrDefault(), out var value))
-							{
-								property.SetValue(settings, value);
-							}
-						}
-						else if (TypeMatch(property.PropertyType, typeof(float[]), typeof(float?[])))
-						{
-							var arr = strValueArr.Where(x => float.TryParse(x, out var _)).Select(x => float.Parse(x));
-							if (arr.Any()) property.SetValue(settings, arr);
-						}
-
-						else if (TypeMatch(property.PropertyType, typeof(char), typeof(char?)))
-						{
-							if (char.TryParse(strValueArr.FirstOrDefault(), out var value))
-							{
-								property.SetValue(settings, value);
-							}
-						}
-						else if (TypeMatch(property.PropertyType, typeof(char[]), typeof(char?[])))
-						{
-							var arr = strValueArr.Where(x => char.TryParse(x, out var _)).Select(x => char.Parse(x));
-							if (arr.Any()) property.SetValue(settings, arr);
-						}
-
-						else
-						{
-							throw new Exception($"Cannot handle '{property.PropertyType.Name}' yet");
-						}
-					}
-					catch (Exception exception)
-					{
-						Logger.Log($"Failed to override '{property.Name}' setting", exception);
-					}
-				}
-			}
-
-			// return
-
-			return settings;
-		}
-
-		public static string[] GetSourceFiles(string assemblyName, string qualifiedClassName)
-		{
-			// Note : There may be more than one file; e.g. in the case of partial classes
-
-			var package = CoverageReport
-				.Packages.Package
-				.SingleOrDefault(x => x.Name.Equals(assemblyName));
-
-			if (package == null)
-			{
-				return new string[0];
-			}
-
-			var classFiles = package
-				.Classes.Class
-				.Where(x => x.Name.Equals(qualifiedClassName))
-				.Select(x => x.Filename)
-				.ToArray();
-
-			return classFiles;
-		}
-
-		private static bool IsDotNetSdkStyle(CoverageProject project)
-		{
-			return project.ProjectFileXElement
-			.DescendantsAndSelf()
-			.Where(x =>
-			{
-				//https://docs.microsoft.com/en-us/visualstudio/msbuild/how-to-use-project-sdk?view=vs-2019
-
-				/*
-				<Project Sdk="My.Custom.Sdk">
-					...
-				</Project>
-				<Project Sdk="My.Custom.Sdk/1.2.3">
-					...
-				</Project>
-				*/
-				if
-				(
-					x?.Name?.LocalName?.Equals("Project", StringComparison.OrdinalIgnoreCase) == true &&
-					x?.Parent == null
-				)
-				{
-					var sdkAttr = x?.Attributes()?.FirstOrDefault(attr => attr?.Name?.LocalName?.Equals("Sdk", StringComparison.OrdinalIgnoreCase) == true);
-
-					if (sdkAttr?.Value?.Trim()?.StartsWith("Microsoft.NET.Sdk", StringComparison.OrdinalIgnoreCase) == true)
-					{
-						return true;
-					}
-				}
-
-				/*
-				<Project>
-					<Sdk Name="My.Custom.Sdk" Version="1.2.3" />
-					...
-				</Project>
-				*/
-				if
-				(
-					x?.Name?.LocalName?.Equals("Sdk", StringComparison.OrdinalIgnoreCase) == true &&
-					x?.Parent?.Name?.LocalName?.Equals("Project", StringComparison.OrdinalIgnoreCase) == true &&
-					x?.Parent?.Parent == null
-				)
-				{
-					var nameAttr = x?.Attributes()?.FirstOrDefault(attr => attr?.Name?.LocalName?.Equals("Name", StringComparison.OrdinalIgnoreCase) == true);
-
-					if (nameAttr?.Value?.Trim()?.StartsWith("Microsoft.NET.Sdk", StringComparison.OrdinalIgnoreCase) == true)
-					{
-						return true;
-					}
-				}
-
-				/*
-				<Project>
-					<PropertyGroup>
-						<MyProperty>Value</MyProperty>
-					</PropertyGroup>
-					<Import Project="Sdk.props" Sdk="My.Custom.Sdk" />
-						...
-					<Import Project="Sdk.targets" Sdk="My.Custom.Sdk" />
-				</Project>
-				*/
-				if
-				(
-					x?.Name?.LocalName?.Equals("Import", StringComparison.OrdinalIgnoreCase) == true &&
-					x?.Parent?.Name?.LocalName?.Equals("Project", StringComparison.OrdinalIgnoreCase) == true &&
-					x?.Parent?.Parent == null
-				)
-				{
-					var sdkAttr = x?.Attributes()?.FirstOrDefault(attr => attr?.Name?.LocalName?.Equals("Sdk", StringComparison.OrdinalIgnoreCase) == true);
-
-					if (sdkAttr?.Value?.Trim()?.StartsWith("Microsoft.NET.Sdk", StringComparison.OrdinalIgnoreCase) == true)
-					{
-						return true;
-					}
-				}
-
-				return false;
-			})
-			.Any();
-		}
-		
-		private static bool TypeMatch(Type type, params Type[] otherTypes)
-		{
-			return (otherTypes ?? new Type[0]).Any(ot => type == ot);
-		}
-		private static CancellationTokenSource cancellationTokenSource;
-		public static void ClearProcesses()
-		{
-			if(cancellationTokenSource != null)
+        public static void Initialize(IServiceProvider serviceProvider)
+        {
+            colorThemeService = serviceProvider.GetService(typeof(SVsColorThemeService));
+            ThreadHelper.JoinableTaskFactory.Run(async () =>
             {
-				cancellationTokenSource.Cancel();
-			}
-		}
+                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                dte = (DTE)serviceProvider.GetService(typeof(DTE));
+                Assumes.Present(dte);
+            });
 
-		public static void ReloadCoverage(IEnumerable<CoverageProject> projects, bool darkMode)
-		{
-			// reset
-			ClearProcesses();
+            CreateAppDataFolder();
 
-			cancellationTokenSource = new CancellationTokenSource();
-			ProcessUtil.CancellationToken = cancellationTokenSource.Token;
-			
+            CleanupLegacyFolders();
 
-			HtmlFilePath = null;
+            CoverletUtil.Initialize(AppDataFolder);
+            ReportGeneratorUtil.Initialize(AppDataFolder);
+            MsTestPlatformUtil.Initialize(AppDataFolder);
+            OpenCoverUtil.Initialize(AppDataFolder);
+        }
 
-			CoverageLines.Clear();
+        private static void CreateAppDataFolder()
+        {
+            AppDataFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), Vsix.Code);
+            Directory.CreateDirectory(AppDataFolder);
+        }
 
-			// process pipeline
-
-			projects = projects
-			.Select(project =>
-			{
-				project.ProjectFileXElement = XElementUtil.Load(project.ProjectFile, true);
-				project.Settings = GetSettings(project);
-
-				if (!project.Settings.Enabled)
-				{
-					project.FailureDescription = $"Disabled";
-					return project;
-				}
-
-				if (string.IsNullOrWhiteSpace(project.ProjectFile))
-				{
-					project.FailureDescription = $"Unsupported project type for DLL '{project.TestDllFile}'";
-					return project;
-				}
-
-
-				project.IsDotNetSdkStyle = IsDotNetSdkStyle(project);
-				project.ReferencedProjects = GetReferencedProjects(project);
-				project.HasExcludeFromCodeCoverageAssemblyAttribute = HasExcludeFromCodeCoverageAssemblyAttribute(project.ProjectFileXElement);
-				project.AssemblyName = GetAssemblyName(project.ProjectFileXElement, Path.GetFileNameWithoutExtension(project.ProjectFile));
-
-				project.PrepareForCoverage();
-
-				return project;
-			})
-			.Select(p => p.Step("Run Coverage Tool", project =>
-			{
-			// run the appropriate cover tool
-
-			if (project.IsDotNetSdkStyle)
-				{
-					CoverletUtil.RunCoverlet(project, true);
-				}
-				else
-				{
-					OpenCoverUtil.RunOpenCover(project, true);
-				}
-			}))
-			.Where(x => !x.HasFailed)
-			.ToArray();
-
-
-            if (!ProcessUtil.CancellationToken.IsCancellationRequested)
+        private static void CleanupLegacyFolders()
+        {
+            Directory
+            .GetDirectories(AppDataFolder, "*", SearchOption.TopDirectoryOnly)
+            .Where(path =>
             {
-				// project files
+                var name = Path.GetFileName(path);
 
-				var coverOutputFiles = projects
-					.Select(x => x.CoverageOutputFile)
-					.ToArray();
-
-				if (!coverOutputFiles.Any())
-				{
-					return;
-				}
-
-				// run reportGenerator process
-
-				var result = ReportGeneratorUtil.RunReportGenerator(coverOutputFiles, darkMode, out var unifiedHtmlFile, out var unifiedXmlFile, true);
-
-                if (result)
+                if (name.Contains("__"))
                 {
-					// update CoverageLines
+                    return true;
+                }
 
-					CoverageReport = CoberturaUtil.ProcessCoberturaXmlFile(unifiedXmlFile, out var coverageLines);
-					CoverageLines = coverageLines;
+                if (Guid.TryParse(name, out var _))
+                {
+                    return true;
+                }
 
-					// update HtmlFilePath
+                return false;
+            })
+            .ToList()
+            .ForEach(path =>
+            {
+                try
+                {
+                    Directory.Delete(path, true);
+                }
+                catch
+                {
+                    // ignore
+                }
+            });
+        }
 
-					ReportGeneratorUtil.ProcessUnifiedHtmlFile(unifiedHtmlFile, darkMode, out var coverageHtml);
-					HtmlFilePath = coverageHtml;
-				}
-				
-			}
-			
-		}
+        public static IEnumerable<CoverageLine> GetLines(string filePath, int startLineNumber, int endLineNumber)
+        {
+            return CoverageLines
+            .AsParallel()
+            .Where(x => x.Class.Filename.Equals(filePath, StringComparison.OrdinalIgnoreCase))
+            .Where(x => x.Line.Number >= startLineNumber && x.Line.Number <= endLineNumber)
+            .ToArray();
+        }
 
-		private static List<ReferencedProject> GetReferencedProjects(CoverageProject project)
-		{
-			/*
-			<ItemGroup>
-				<ProjectReference Include="..\BranchCoverage\Branch_Coverage.csproj" />
-				<ProjectReference Include="..\FxClassLibrary1\FxClassLibrary1.csproj"></ProjectReference>
-			</ItemGroup>
-			 */
+        public static string[] GetSourceFiles(string assemblyName, string qualifiedClassName)
+        {
+            // Note : There may be more than one file; e.g. in the case of partial classes
 
-			var referencedProjects = new List<ReferencedProject>();
+            var package = CoverageReport
+                .Packages.Package
+                .SingleOrDefault(x => x.Name.Equals(assemblyName));
 
-			var xprojectReferences = project.ProjectFileXElement.XPathSelectElements($"/ItemGroup/ProjectReference[@Include]");
-			
-			foreach (var xprojectReference in xprojectReferences)
-			{
-				var referencedProject = new ReferencedProject();
+            if (package == null)
+            {
+                return new string[0];
+            }
 
-				// ProjectFile
+            var classFiles = package
+                .Classes.Class
+                .Where(x => x.Name.Equals(qualifiedClassName))
+                .Select(x => x.Filename)
+                .ToArray();
 
-				referencedProject.ProjectFile = xprojectReference.Attribute("Include").Value;
+            return classFiles;
+        }
 
-				if (!Path.IsPathRooted(referencedProject.ProjectFile))
-				{
-					referencedProject.ProjectFile = Path.GetFullPath(Path.Combine(project.ProjectFolder, referencedProject.ProjectFile));
-				}
+        public static void StopCoverage()
+        {
+            if (cancellationTokenSource != null)
+            {
+                cancellationTokenSource.Cancel();
+            }
+        }
 
-				// ProjectFileXElement
+        public static bool CanRunCoverage()
+        {
+            var canRun = AppOptions.Get().Enabled;
 
-				referencedProject.ProjectFileXElement = XElementUtil.Load(referencedProject.ProjectFile, true);
+            if (!canRun)
+            {
+                CoverageLines.Clear();
+                UpdateMarginTags?.Invoke(null);
+                UpdateOutputWindow?.Invoke(null);
 
-				// HasExcludeFromCodeCoverageAssemblyAttribute
-				
-				referencedProject.HasExcludeFromCodeCoverageAssemblyAttribute = HasExcludeFromCodeCoverageAssemblyAttribute(referencedProject.ProjectFileXElement);
+            }
+            return canRun;
+        }
 
-				// AssemblyName
+        private static void SetCancellationToken()
+        {
+            cancellationTokenSource = new CancellationTokenSource();
+            cancellationToken = cancellationTokenSource.Token;
+            ProcessUtil.CancellationToken = cancellationToken;
+        }
+        private static void Reset()
+        {
+            StopCoverage();
+            SetCancellationToken();
+            HtmlFilePath = null;
+            CoverageLines.Clear();
+        }
 
-				referencedProject.AssemblyName = GetAssemblyName(referencedProject.ProjectFileXElement, Path.GetFileNameWithoutExtension(referencedProject.ProjectFile));
+        private static async System.Threading.Tasks.Task RunCoverToolAsync(CoverageProject project)
+        {
+            if (project.IsDotNetSdkStyle())
+            {
+                await CoverletUtil.RunCoverletAsync(project, true);
+            }
+            else
+            {
+                await OpenCoverUtil.RunOpenCoverAsync(project, true);
+            }
+        }
 
-				// add
+        private static async System.Threading.Tasks.Task PrepareCoverageProjectsAsync(List<CoverageProject> coverageProjects)
+        {
+            foreach (var project in coverageProjects)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                if (string.IsNullOrWhiteSpace(project.ProjectFile))
+                {
+                    project.FailureDescription = $"Unsupported project type for DLL '{project.TestDllFile}'";
+                    continue;
+                }
 
-				referencedProjects.Add(referencedProject);
-			}
-			
-			return referencedProjects;
-		}
+                if (!project.Settings.Enabled)
+                {
+                    project.FailureDescription = $"Disabled";
+                    continue;
+                }
 
-		private static bool HasExcludeFromCodeCoverageAssemblyAttribute(XElement projectFileXElement)
-		{
-			/*
-			 ...
-			<ItemGroup>
-				<AssemblyAttribute Include="System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute" />
-			</ItemGroup>
-			...
-			 */
+                await project.PrepareForCoverageAsync(dte);
+            }
+        }
 
-			var xassemblyAttribute = projectFileXElement.XPathSelectElement($"/ItemGroup/AssemblyAttribute[@Include='System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute']");
-			
-			return xassemblyAttribute != null;
-		}
+        public static void ReloadCoverage(List<CoverageProject> projects)
+        {
+            Logger.Log("================================== START ==================================");
 
-		private static string GetAssemblyName(XElement projectFileXElement, string fallbackName = null)
-		{
-			/*
-			<PropertyGroup>
-				...
-				<AssemblyName>Branch_Coverage.Tests</AssemblyName>
-				...
-			</PropertyGroup>
-			 */
+            Reset();
 
-			var xassemblyName = projectFileXElement.XPathSelectElement("/PropertyGroup/AssemblyName");
+            var coverageTask = System.Threading.Tasks.Task.Run(async () =>
+              {
 
-			var result = xassemblyName?.Value?.Trim();
+                  // process pipeline
 
-			if (string.IsNullOrWhiteSpace(result))
-			{
-				result = fallbackName;
-			}
+                  await PrepareCoverageProjectsAsync(projects);
 
-			return result;
-		}
+                  foreach (var project in projects)
+                  {
+                      cancellationToken.ThrowIfCancellationRequested();
+                      await project.StepAsync("Run Coverage Tool", RunCoverToolAsync);
+                  }
 
-	}
+                  var passedProjects = projects.Where(x => !x.HasFailed);
+
+                  var coverOutputFiles = passedProjects
+                          .Select(x => x.CoverageOutputFile)
+                          .ToArray();
+
+                  if (coverOutputFiles.Any())
+                  {
+                      cancellationToken.ThrowIfCancellationRequested();
+                      // run reportGenerator process
+
+                      var darkMode = CurrentTheme.Equals("Dark", StringComparison.OrdinalIgnoreCase);
+
+                      var result = await ReportGeneratorUtil.RunReportGeneratorAsync(coverOutputFiles, darkMode, true);
+
+                      if (result.Success)
+                      {
+                          // update CoverageLines
+
+                          CoverageReport = CoberturaUtil.ProcessCoberturaXmlFile(result.UnifiedXmlFile, out var coverageLines);
+                          CoverageLines = coverageLines;
+                          // update HtmlFilePath
+
+                          ReportGeneratorUtil.ProcessUnifiedHtmlFile(result.UnifiedHtmlFile, darkMode, out var htmlFilePath);
+                          HtmlFilePath = htmlFilePath;
+                      }
+
+                      // update margins
+
+                      {
+                          UpdateMarginTagsEventArgs updateMarginTagsEventArgs = null;
+
+                          try
+                          {
+                              updateMarginTagsEventArgs = new UpdateMarginTagsEventArgs
+                              {
+                              };
+                          }
+                          catch
+                          {
+                              // ignore
+                          }
+                          finally
+                          {
+                              UpdateMarginTags?.Invoke(updateMarginTagsEventArgs);
+                          }
+                      }
+
+                      // update output window
+
+                      {
+                          UpdateOutputWindowEventArgs updateOutputWindowEventArgs = null;
+
+                          try
+                          {
+                              if (!string.IsNullOrEmpty(HtmlFilePath))
+                              {
+                                  updateOutputWindowEventArgs = new UpdateOutputWindowEventArgs
+                                  {
+                                      HtmlContent = File.ReadAllText(HtmlFilePath)
+                                  };
+                              }
+                          }
+                          catch
+                          {
+                              // ignore
+                          }
+                          finally
+                          {
+                              UpdateOutputWindow?.Invoke(updateOutputWindowEventArgs);
+                          }
+                      }
+
+                  }
+
+
+                  // log
+
+                  Logger.Log("================================== DONE ===================================");
+
+                  cancellationTokenSource.Dispose();
+                  cancellationTokenSource = null;
+              }, cancellationToken);
+
+        }
+
+    }
+
 }

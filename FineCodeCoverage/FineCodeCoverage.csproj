@@ -66,11 +66,13 @@
     <Compile Include="Core\Cobertura\Package.cs" />
     <Compile Include="Core\Cobertura\Packages.cs" />
     <Compile Include="Core\Cobertura\Sources.cs" />
+    <Compile Include="Core\CoverageUIEvents.cs" />
     <Compile Include="Core\Coverlet\CoverletUtil.cs" />
     <Compile Include="Core\FileSynchronization\FileSynchronization.cs" />
     <Compile Include="Core\Model\ReferencedProject.cs" />
     <Compile Include="Core\MsTestPlatform\MsTestPlatformUtil.cs" />
     <Compile Include="Core\ReportGenerator\ReportGeneratorUtil.cs" />
+    <Compile Include="Core\SVsColorThemeService.cs" />
     <Compile Include="Core\Utilities\AssemblyUtil.cs" />
     <Compile Include="Core\Model\CoverageLine.cs" />
     <Compile Include="Core\Model\CoverageProject.cs" />
@@ -177,7 +179,9 @@
     <PackageReference Include="Microsoft.TestPlatform.TestHost">
       <Version>16.7.0</Version>
     </PackageReference>
-    <PackageReference Include="Microsoft.VisualStudio.SDK" Version="16.0.205" ExcludeAssets="runtime" />
+    <PackageReference Include="Microsoft.VisualStudio.SDK" Version="16.0.206" ExcludeAssets="runtime">
+      <IncludeAssets>compile; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.TestWindow.Interfaces">
       <Version>11.0.61030</Version>
     </PackageReference>

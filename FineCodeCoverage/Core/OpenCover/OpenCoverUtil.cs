@@ -9,6 +9,7 @@ using FineCodeCoverage.Engine.Model;
 using System.Diagnostics.CodeAnalysis;
 using FineCodeCoverage.Engine.Utilities;
 using FineCodeCoverage.Engine.MsTestPlatform;
+using System.Threading.Tasks;
 
 namespace FineCodeCoverage.Engine.OpenCover
 {
@@ -142,8 +143,7 @@ namespace FineCodeCoverage.Engine.OpenCover
 
 
 
-		[SuppressMessage("Usage", "VSTHRD002:Avoid problematic synchronous waits")]
-		public static bool RunOpenCover(CoverageProject project, bool throwError = false)
+		public static async Task<bool> RunOpenCoverAsync(CoverageProject project, bool throwError = false)
 		{
 			var title = $"OpenCover Run ({project.ProjectName})";
 
@@ -281,15 +281,14 @@ namespace FineCodeCoverage.Engine.OpenCover
 
 			Logger.Log($"{title} Arguments {Environment.NewLine}{string.Join($"{Environment.NewLine}", opencoverSettings)}");
 
-			var result = ProcessUtil
+			var result = await ProcessUtil
 			.ExecuteAsync(new ExecuteRequest
 			{
 				FilePath = OpenCoverExePath,
 				Arguments = string.Join(" ", opencoverSettings),
 				WorkingDirectory = project.ProjectOutputFolder
-			})
-			.GetAwaiter()
-			.GetResult();
+			});
+			
 			if(result != null)
             {
 				if (result.ExitCode != 0)
