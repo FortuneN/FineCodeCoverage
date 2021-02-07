@@ -189,9 +189,14 @@ namespace FineCodeCoverage.Engine
                 UpdateOutputWindow?.Invoke(null);
 
             }
+
             if (canReload)
             {
-                ReloadCoverage(coverageProjectFactory(settings));
+                var coverageProjects = coverageProjectFactory(settings);
+                if(coverageProjects != null)
+                {
+                    ReloadCoverage(coverageProjects);
+                }
             }
         }
 
