@@ -103,40 +103,38 @@ namespace FineCodeCoverage.Impl
 
                 if (e.State == TestOperationStates.TestExecutionFinished)
                 {
-                    if (!FCCEngine.CanRunCoverage())
+                    FCCEngine.TryReloadCoverage(appOptions =>
                     {
-                        return;
-                    }
-
-                    List<CoverageProject> projects = null;
-                    try
-                    {
-                        var testConfiguration = new Operation(e.Operation).Configuration;
-
-                        var userRunSettings = testConfiguration.UserRunSettings;
-                        var runSettingsRetriever = new RunSettingsRetriever();
-                        var testContainers = testConfiguration.Containers;
-
-                        projects = testConfiguration.Containers.Select(container =>
+                        List<CoverageProject> projects = null;
+                        try
                         {
-                            var project = new CoverageProject();
-                            project.ProjectName = container.ProjectName;
-                            project.TestDllFile = container.Source;
-                            project.Is64Bit = container.TargetPlatform.ToString().ToLower().Equals("x64");
+                            var testConfiguration = new Operation(e.Operation).Configuration;
 
-                            var containerData = container.ProjectData;
-                            project.ProjectFile = container.ProjectData.ProjectFilePath;
-                            project.RunSettingsFile = ThreadHelper.JoinableTaskFactory.Run(() => runSettingsRetriever.GetRunSettingsFileAsync(userRunSettings, containerData));
-                            return project;
-                        }).ToList();
+                            var userRunSettings = testConfiguration.UserRunSettings;
+                            var runSettingsRetriever = new RunSettingsRetriever();
+                            var testContainers = testConfiguration.Containers;
 
-                    }
-                    catch (Exception exc)
-                    {
-                        throw new Exception("Error test container discoverer reflection", exc);
-                    }
+                            projects = testConfiguration.Containers.Select(container =>
+                            {
+                                var project = new CoverageProject();
+                                project.ProjectName = container.ProjectName;
+                                project.TestDllFile = container.Source;
+                                project.Is64Bit = container.TargetPlatform.ToString().ToLower().Equals("x64");
 
-                    FCCEngine.ReloadCoverage(projects);
+                                var containerData = container.ProjectData;
+                                project.ProjectFile = container.ProjectData.ProjectFilePath;
+                                project.RunSettingsFile = ThreadHelper.JoinableTaskFactory.Run(() => runSettingsRetriever.GetRunSettingsFileAsync(userRunSettings, containerData));
+                                return project;
+                            }).ToList();
+
+                        }
+                        catch (Exception exc)
+                        {
+                            throw new Exception("Error test container discoverer reflection", exc);
+                        }
+
+                        return projects;
+                    });
                 }
             }
             catch (Exception exception)
