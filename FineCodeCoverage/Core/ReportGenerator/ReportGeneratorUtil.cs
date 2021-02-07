@@ -378,6 +378,8 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 								element['on' + event] = func;
 						}};
 
+						eventListener(window,'focus',function(){{window.external.DocumentFocused()}});
+
 						var classes = {{}};
 						
 						Array.prototype.forEach.call(assemblies, function (assembly) {{
