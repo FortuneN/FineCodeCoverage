@@ -164,7 +164,7 @@ namespace FineCodeCoverage.Engine.Coverlet
 				coverletSettings.Add($@"--exclude ""{value.Replace("\"", "\\\"").Trim(' ', '\'')}""");
 			}
 
-			foreach (var referenceProjectWithExcludeAttribute in project.ReferencedProjects.Where(x => x.HasExcludeFromCodeCoverageAssemblyAttribute))
+			foreach (var referenceProjectWithExcludeAttribute in project.ReferencedProjects.Where(x => x.ExcludeFromCodeCoverage))
 			{
 				coverletSettings.Add($@"--exclude ""[{referenceProjectWithExcludeAttribute.AssemblyName}]*""");
 			}

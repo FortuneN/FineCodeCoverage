@@ -30,7 +30,7 @@ Run a(some) unit test(s) and ...
 #### Global (Shared) options
 ![Global Options](Art/Options-Global.png)
 
-#### Local (Project) options (override globals in your csproj/vbproj : OPTIONAL)
+#### Local (Test Project) options (override globals in your csproj/vbproj : OPTIONAL)
 ```
 <PropertyGroup Label="FineCodeCoverage">
   <Enabled>
@@ -54,6 +54,13 @@ Run a(some) unit test(s) and ...
 	True
   </IncludeTestAssembly>
 </PropertyGroup>
+```
+
+#### Exclude Referenced Project in referenced project ( csproj/vbproj : OPTIONAL )
+```
+<PropertyGroup>
+	<FCCExcludeFromCodeCoverage/>
+</PropertyGroup>			
 ```
 
 #### Options

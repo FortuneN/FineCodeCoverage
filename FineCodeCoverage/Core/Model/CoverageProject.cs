@@ -358,7 +358,11 @@ namespace FineCodeCoverage.Engine.Model
 			});
 			AssemblyName = (string)project.Properties.Item("AssemblyName").Value;
 			var vsproject = project.Object as VSLangProj.VSProject;
-			ReferencedProjects = vsproject.References.Cast<VSLangProj.Reference>().Where(r => r.SourceProject != null).Select(r=>new ReferencedProject(r)).ToList();
+			ReferencedProjects = vsproject.References.Cast<VSLangProj.Reference>().Where(r => r.SourceProject != null).Select(r=>
+			{
+				ThreadHelper.ThrowIfNotOnUIThread();
+				return new ReferencedProject(r.SourceProject.FullName, r.Path);
+			}).ToList();
 		}
 		
 
