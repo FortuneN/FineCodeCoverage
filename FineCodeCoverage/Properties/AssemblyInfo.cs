@@ -34,7 +34,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyVersion(Vsix.Version)]
 [assembly: AssemblyFileVersion(Vsix.Version)]
 
-//[assembly: InternalsVisibleTo("FineCodeCoverage.UnitTests")]
+[assembly: InternalsVisibleTo("Test")]
 
 [ProvideBindingPath]
 public class X { }

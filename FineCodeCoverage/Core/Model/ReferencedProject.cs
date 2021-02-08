@@ -1,39 +1,36 @@
 ﻿using System.IO;
-using System.Xml.Linq;
 using System.Xml.XPath;
 using FineCodeCoverage.Core.Utilities;
-using VSLangProj;
 
 namespace FineCodeCoverage.Core.Model
 {
     internal class ReferencedProject
 	{
-        private readonly XElement projectFileXElement;
+		internal const string excludeFromCodeCoveragePropertyName = "FCCExcludeFromCodeCoverage";
+        private readonly string projectPath;
 
-        public ReferencedProject(Reference reference)
+        public ReferencedProject(string projectPath,string assemblyPath)
         {
-            Microsoft.VisualStudio.Shell.ThreadHelper.ThrowIfNotOnUIThread();
-            var referenceProjectPath = reference.SourceProject.FullName;
-			projectFileXElement = XElementUtil.Load(referenceProjectPath, true);
-			AssemblyName = Path.GetFileNameWithoutExtension(reference.Path);
-		}
+			AssemblyName = Path.GetFileNameWithoutExtension(assemblyPath);
+            this.projectPath = projectPath;
+        }
 
 		public string AssemblyName { get; private set; }
-		public bool HasExcludeFromCodeCoverageAssemblyAttribute
+		public bool ExcludeFromCodeCoverage
 		{
 			get
 			{
-					/*
-				 ...
-				<ItemGroup>
-					<AssemblyAttribute Include="System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute" />
-				</ItemGroup>
-				...
+				/*
+					 ...
+					<PropertyGroup>
+						<FCCExcludeFromCodeCoverage />
+					</PropertyGroup>
+					...
 				 */
+				var projectFileXElement = XElementUtil.Load(projectPath, true);
+				var excludeFromCodeCoverageProperty = projectFileXElement.XPathSelectElement($"/PropertyGroup/{excludeFromCodeCoveragePropertyName}");
 
-				var xassemblyAttribute = projectFileXElement.XPathSelectElement($"/ItemGroup/AssemblyAttribute[@Include='System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute']");
-
-				return xassemblyAttribute != null;
+				return excludeFromCodeCoverageProperty != null;
 			}
 		}
 	}

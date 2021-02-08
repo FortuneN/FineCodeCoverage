@@ -193,7 +193,7 @@ namespace FineCodeCoverage.Engine.OpenCover
 					filters.Add($@"-{value.Replace("\"", "\\\"").Trim(' ', '\'')}");
 				}
 
-				foreach (var referenceProjectWithExcludeAttribute in project.ReferencedProjects.Where(x => x.HasExcludeFromCodeCoverageAssemblyAttribute))
+				foreach (var referenceProjectWithExcludeAttribute in project.ReferencedProjects.Where(x => x.ExcludeFromCodeCoverage))
 				{
 					filters.Add($@"-[{referenceProjectWithExcludeAttribute.AssemblyName}]*");
 				}
