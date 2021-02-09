@@ -210,9 +210,9 @@ namespace FineCodeCoverage.Engine.OpenCover
 					filters.Add($@"-{value.Replace("\"", "\\\"").Trim(' ', '\'')}");
 				}
 
-				foreach (var referenceProjectWithExcludeAttribute in project.ReferencedProjects.Where(x => x.ExcludeFromCodeCoverage))
+				foreach (var referencedProjectExcludedFromCodeCoverage in project.ReferencedProjects.Where(x => x.ExcludeFromCodeCoverage))
 				{
-					filters.Add($@"-[{referenceProjectWithExcludeAttribute.AssemblyName}]*");
+					filters.Add($@"-[{referencedProjectExcludedFromCodeCoverage.AssemblyName}]*");
 				}
 
 				if (filters.Any(x => !x.Equals(defaultFilter)))
