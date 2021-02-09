@@ -232,19 +232,19 @@ namespace FineCodeCoverage.Engine
         private void ReloadCoverage(IAppOptions settings,Func<IAppOptions, System.Threading.Tasks.Task<ReloadCoverageRequest>> coverageRequestCallback)
         {
             Reset();
-            
+
             var coverageTask = System.Threading.Tasks.Task.Run(async () =>
               {
 
                   var coverageRequest = await coverageRequestCallback(settings);
-                  if(!coverageRequest.Proceed)
+                  if (!coverageRequest.Proceed)
                   {
                       return;
                   }
 
                   logger.Log("================================== START ==================================");
                   var coverageProjects = coverageRequest.CoverageProjects;
-                  
+
 
                   // process pipeline
 
@@ -338,8 +338,14 @@ namespace FineCodeCoverage.Engine
 
                   cancellationTokenSource.Dispose();
                   cancellationTokenSource = null;
-              }, cancellationToken);
-
+              }, cancellationToken).ContinueWith(t =>
+              {
+                  if (t.Status == System.Threading.Tasks.TaskStatus.Faulted)
+                  {
+                      logger.Log("Error processing unit test events", t.Exception);
+                  }
+              }, System.Threading.Tasks.TaskScheduler.Default);
+            
         }
 
     }
