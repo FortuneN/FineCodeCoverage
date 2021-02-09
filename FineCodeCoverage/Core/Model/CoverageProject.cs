@@ -390,7 +390,8 @@ namespace FineCodeCoverage.Engine.Model
 		private async System.Threading.Tasks.Task SetAssemblyNameAndReferencedProjectsAsync(DTE dte)
 		{
 			await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-
+			logger.Log("ProjectFile " + ProjectFile);
+			logger.Log("Projects in solution:");
 			var project = dte.Solution.Projects.Cast<Project>().First(p =>
 			{
 				ThreadHelper.ThrowIfNotOnUIThread();
@@ -399,6 +400,7 @@ namespace FineCodeCoverage.Engine.Model
 				try
 				{
 					projectFullName = p.FullName;
+					logger.Log(projectFullName);
 				}
 				catch { }
 				return projectFullName == ProjectFile;
