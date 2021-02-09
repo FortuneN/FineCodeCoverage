@@ -10,51 +10,68 @@ using System.Diagnostics.CodeAnalysis;
 using FineCodeCoverage.Engine.Utilities;
 using FineCodeCoverage.Engine.MsTestPlatform;
 using System.Threading.Tasks;
+using System.ComponentModel.Composition;
 
 namespace FineCodeCoverage.Engine.OpenCover
 {
-	internal class OpenCoverUtil
-	{
-		public const string OpenCoverName = "OpenCover";
-		public static string OpenCoverExePath { get; private set; }
-		private static HttpClient HttpClient { get; } = new HttpClient();
-		public static string AppDataOpenCoverFolder { get; private set; }
-		public static Version CurrentOpenCoverVersion { get; private set; }
-		public static Version MimimumOpenCoverVersion { get; } = Version.Parse("4.7.922");
+	internal interface IOpenCoverUtil
+    {
+		Task<bool> RunOpenCoverAsync(CoverageProject project, bool throwError = false);
+		void Initialize(string appDataFolder);
+	}
 
-		public static void Initialize(string appDataFolder)
+	[Export(typeof(IOpenCoverUtil))]
+	internal class OpenCoverUtil:IOpenCoverUtil
+	{
+		private string openCoverExePath;
+		private HttpClient HttpClient { get; } = new HttpClient();
+		private string appDataOpenCoverFolder;
+		private Version currentOpenCoverVersion;
+        private readonly IMsTestPlatformUtil msTestPlatformUtil;
+        private readonly IProcessUtil processUtil;
+
+        private Version MimimumOpenCoverVersion { get; } = Version.Parse("4.7.922");
+
+		[ImportingConstructor]
+		public OpenCoverUtil(IMsTestPlatformUtil msTestPlatformUtil,IProcessUtil processUtil)
+        {
+            this.msTestPlatformUtil = msTestPlatformUtil;
+            this.processUtil = processUtil;
+        }
+
+		public void Initialize(string appDataFolder)
 		{
-			AppDataOpenCoverFolder = Path.Combine(appDataFolder, "openCover");
-			Directory.CreateDirectory(AppDataOpenCoverFolder);
+			appDataOpenCoverFolder = Path.Combine(appDataFolder, "openCover");
+			Directory.CreateDirectory(appDataOpenCoverFolder);
 			GetOpenCoverVersion();
 
-			if (CurrentOpenCoverVersion == null)
+			if (currentOpenCoverVersion == null)
 			{
 				InstallOpenCover();
 			}
-			else if (CurrentOpenCoverVersion < MimimumOpenCoverVersion)
+			else if (currentOpenCoverVersion < MimimumOpenCoverVersion)
 			{
 				UpdateOpenCover();
 			}
 		}
 
-		public static Version GetOpenCoverVersion()
+		private Version GetOpenCoverVersion()
 		{
 			var title = "OpenCover Get Info";
 
-			OpenCoverExePath = Directory
-				.GetFiles(AppDataOpenCoverFolder, "OpenCover.Console.exe", SearchOption.AllDirectories)
+			openCoverExePath = Directory
+				.GetFiles(appDataOpenCoverFolder, "OpenCover.Console.exe", SearchOption.AllDirectories)
 				.FirstOrDefault();
 
-			if (string.IsNullOrWhiteSpace(OpenCoverExePath))
+			if (string.IsNullOrWhiteSpace(openCoverExePath))
 			{
 				Logger.Log($"{title} Not Installed");
 				return null;
 			}
 
-			var nuspecFile = Directory.GetFiles(AppDataOpenCoverFolder, "OpenCover.nuspec", SearchOption.TopDirectoryOnly).FirstOrDefault();
+			var nuspecFile = Directory.GetFiles(appDataOpenCoverFolder, "OpenCover.nuspec", SearchOption.TopDirectoryOnly).FirstOrDefault();
 
-			if (string.IsNullOrWhiteSpace(OpenCoverExePath))
+			if (string.IsNullOrWhiteSpace(openCoverExePath))
 			{
 				Logger.Log($"{title} Nuspec Not Found");
 				return null;
@@ -78,20 +95,20 @@ namespace FineCodeCoverage.Engine.OpenCover
 				return null;
 			}
 
-			CurrentOpenCoverVersion = version;
+			currentOpenCoverVersion = version;
 
-			return CurrentOpenCoverVersion;
+			return currentOpenCoverVersion;
 		}
 
-		public static void UpdateOpenCover()
+		private void UpdateOpenCover()
 		{
 			var title = "OpenCover Update";
 
 			try
 			{
-				if (Directory.Exists(AppDataOpenCoverFolder))
+				if (Directory.Exists(appDataOpenCoverFolder))
 				{
-					Directory.Delete(AppDataOpenCoverFolder);
+					Directory.Delete(appDataOpenCoverFolder);
 				}
 
 				InstallOpenCover();
@@ -103,17 +120,17 @@ namespace FineCodeCoverage.Engine.OpenCover
 		}
 
 		[SuppressMessage("Usage", "VSTHRD002:Avoid problematic synchronous waits")]
-		public static void InstallOpenCover()
+		private void InstallOpenCover()
 		{
 			var title = "OpenCover Install";
 
 			try
 			{
-				Directory.CreateDirectory(AppDataOpenCoverFolder);
+				Directory.CreateDirectory(appDataOpenCoverFolder);
 
 				// download
 
-				var zipFile = Path.Combine(AppDataOpenCoverFolder, "bundle.zip");
+				var zipFile = Path.Combine(appDataOpenCoverFolder, "bundle.zip");
 				var url = $"https://www.nuget.org/api/v2/package/OpenCover/{MimimumOpenCoverVersion}";
 				
 				using (var remoteStream = HttpClient.GetStreamAsync(url).GetAwaiter().GetResult())
@@ -124,7 +141,7 @@ namespace FineCodeCoverage.Engine.OpenCover
 
 				// extract and cleanup
 
-				ZipFile.ExtractToDirectory(zipFile, AppDataOpenCoverFolder);
+				ZipFile.ExtractToDirectory(zipFile, appDataOpenCoverFolder);
 				File.Delete(zipFile);
 
 				// process
@@ -133,7 +150,7 @@ namespace FineCodeCoverage.Engine.OpenCover
 
 				// report
 
-				Logger.Log(title, $"Installed version {CurrentOpenCoverVersion}");
+				Logger.Log(title, $"Installed version {currentOpenCoverVersion}");
 			}
 			catch (Exception exception)
 			{
@@ -141,9 +158,7 @@ namespace FineCodeCoverage.Engine.OpenCover
 			}
 		}
 
-
-
-		public static async Task<bool> RunOpenCoverAsync(CoverageProject project, bool throwError = false)
+		public async Task<bool> RunOpenCoverAsync(CoverageProject project, bool throwError = false)
 		{
 			var title = $"OpenCover Run ({project.ProjectName})";
 
@@ -169,7 +184,7 @@ namespace FineCodeCoverage.Engine.OpenCover
 			{
 				// -target:
 
-				opencoverSettings.Add($@" ""-target:{MsTestPlatformUtil.MsTestPlatformExePath}"" ");
+				opencoverSettings.Add($@" ""-target:{msTestPlatformUtil.MsTestPlatformExePath}"" ");
 			}
 
 			{
@@ -281,10 +296,10 @@ namespace FineCodeCoverage.Engine.OpenCover
 
 			Logger.Log($"{title} Arguments {Environment.NewLine}{string.Join($"{Environment.NewLine}", opencoverSettings)}");
 
-			var result = await ProcessUtil
+			var result = await processUtil
 			.ExecuteAsync(new ExecuteRequest
 			{
-				FilePath = OpenCoverExePath,
+				FilePath = openCoverExePath,
 				Arguments = string.Join(" ", opencoverSettings),
 				WorkingDirectory = project.ProjectOutputFolder
 			});

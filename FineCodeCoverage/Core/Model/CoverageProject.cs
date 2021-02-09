@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.Composition;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -14,13 +15,47 @@ using Microsoft.VisualStudio.Shell;
 
 namespace FineCodeCoverage.Engine.Model
 {
+	internal interface ICoverageProjectFactory
+    {
+		CoverageProject Create();
+    }
+
+	[Export(typeof(ICoverageProjectFactory))]
+    internal class CoverageProjectFactory : ICoverageProjectFactory
+    {
+        private readonly IAppOptionsProvider appOptionsProvider;
+        private readonly IFileSynchronizationUtil fileSynchronizationUtil;
+
+        [ImportingConstructor]
+		public CoverageProjectFactory(IAppOptionsProvider appOptionsProvider,IFileSynchronizationUtil fileSynchronizationUtil)
+        {
+            this.appOptionsProvider = appOptionsProvider;
+            this.fileSynchronizationUtil = fileSynchronizationUtil;
+        }
+        public CoverageProject Create()
+        {
+			return new CoverageProject(appOptionsProvider,fileSynchronizationUtil);
+        }
+    }
+
+
     internal class CoverageProject
 	{
+		private readonly IAppOptionsProvider appOptionsProvider;
+		private readonly IFileSynchronizationUtil fileSynchronizationUtil;
+		private XElement projectFileXElement;
+		private AppOptions settings;
 		private string fccPath;
 		private string fccFolderName = "fine-code-coverage";
 		private string buildOutputFolderName = "build-output";
 		private string buildOutputPath;
 		private string coverageToolOutputFolderName = "coverage-tool-output";
+
+		public CoverageProject(IAppOptionsProvider appOptionsProvider,IFileSynchronizationUtil fileSynchronizationUtil)
+        {
+            this.appOptionsProvider = appOptionsProvider;
+            this.fileSynchronizationUtil = fileSynchronizationUtil;
+        }
 
 		public bool IsDotNetSdkStyle(){
 			return ProjectFileXElement
@@ -115,7 +150,7 @@ namespace FineCodeCoverage.Engine.Model
 			return (otherTypes ?? new Type[0]).Any(ot => type == ot);
 		}
 		
-		private AppOptions settings;
+		
 		public AppOptions Settings
 		{
 			get
@@ -124,7 +159,7 @@ namespace FineCodeCoverage.Engine.Model
                 {
 					// get global settings
 
-					settings = AppOptions.Get();
+					settings = appOptionsProvider.Get();
 
 					/*
 					========================================
@@ -293,8 +328,9 @@ namespace FineCodeCoverage.Engine.Model
 			}
 		}
 		public string CoverageOutputFolder { get; set; }
-		private XElement projectFileXElement;
-		public XElement ProjectFileXElement
+		
+
+        public XElement ProjectFileXElement
 		{
 			get
 			{
@@ -354,7 +390,14 @@ namespace FineCodeCoverage.Engine.Model
 			var project = dte.Solution.Projects.Cast<Project>().First(p =>
 			{
 				ThreadHelper.ThrowIfNotOnUIThread();
-				return p.FullName == ProjectFile;
+				//have to try here as unloaded projects will throw
+				var projectFullName = "";
+				try
+				{
+					projectFullName = p.FullName;
+				}
+				catch { }
+				return projectFullName == ProjectFile;
 			});
 			AssemblyName = (string)project.Properties.Item("AssemblyName").Value;
 			var vsproject = project.Object as VSLangProj.VSProject;
@@ -444,7 +487,7 @@ namespace FineCodeCoverage.Engine.Model
         }
 		private void SynchronizeBuildOutput()
 		{
-			FileSynchronizationUtil.Synchronize(ProjectOutputFolder, buildOutputPath,fccFolderName);
+			fileSynchronizationUtil.Synchronize(ProjectOutputFolder, buildOutputPath,fccFolderName);
 			TestDllFile = Path.Combine(buildOutputPath, Path.GetFileName(TestDllFile));
 		}
 

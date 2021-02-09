@@ -14,7 +14,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyProduct(Vsix.Name)]
 [assembly: AssemblyCopyright(Vsix.Copyright)]
 [assembly: AssemblyTrademark(Vsix.Name)]
-[assembly: AssemblyCulture(Vsix.Language)]
+//[assembly: AssemblyCulture(Vsix.Language)]
 
 // Setting ComVisible to false makes the types in this assembly not visible 
 // to COM components.  If you need to access a type in this assembly from 
@@ -34,7 +34,8 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyVersion(Vsix.Version)]
 [assembly: AssemblyFileVersion(Vsix.Version)]
 
-[assembly: InternalsVisibleTo("Test")]
+[assembly: InternalsVisibleTo("FineCodeCoverageTests")]
+[assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]
 
 [ProvideBindingPath]
 public class X { }

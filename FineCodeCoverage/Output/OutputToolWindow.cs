@@ -9,6 +9,11 @@ using Microsoft.VisualStudio.Shell.Interop;
 
 namespace FineCodeCoverage.Output
 {
+	internal class OutputToolWindowContext
+    {
+		public ScriptManager ScriptManager { get; set; }
+		public IFCCEngine FccEngine { get; set; }
+	}
 	/// <summary>
 	/// This class implements the tool window exposed by this package and hosts a user control.
 	/// </summary>
@@ -21,30 +26,32 @@ namespace FineCodeCoverage.Output
 	/// </para>
 	/// </remarks>
 	[Guid("320fd13f-632f-4b16-9527-a1adfe555f6c")]
-	public class OutputToolWindow : ToolWindowPane
+	internal class OutputToolWindow : ToolWindowPane
 	{
 		/// <summary>
 		/// Initializes a new instance of the <see cref="OutputToolWindow"/> class.
 		/// </summary>
-		public OutputToolWindow() : base(null)
+		public OutputToolWindow(OutputToolWindowContext context) : base(null)
 		{
+			//to see if OutputToolWindow can be internal ( and thus IScriptManager )
 			Caption = Vsix.Name;
+			context.ScriptManager.FocusCallback = () =>
+			{
+				ThreadHelper.JoinableTaskFactory.Run(async () =>
+				{
+					await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+					(this.Frame as IVsWindowFrame).Show();
+				});
+			};
 
 			// This is the user control hosted by the tool window; Note that, even if this class implements IDisposable,
 			// we are not calling Dispose on this object. This is because ToolWindowPane calls Dispose on
 			// the object returned by the Content property.
-			
+
 			try
 			{
 				AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
-				Content = new OutputToolWindowControl(() =>
-				{
-					ThreadHelper.JoinableTaskFactory.Run(async () =>
-					{
-						await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-						(this.Frame as IVsWindowFrame).Show();
-					});
-				});
+				Content = new OutputToolWindowControl(context.ScriptManager,context.FccEngine);
 			}
 			finally
 			{

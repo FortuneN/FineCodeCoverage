@@ -7,6 +7,9 @@ using System.Diagnostics.CodeAnalysis;
 using System.ComponentModel.Composition;
 using Task = System.Threading.Tasks.Task;
 using Microsoft.VisualStudio.Shell.Interop;
+using EnvDTE80;
+using Microsoft;
+using FineCodeCoverage.Engine;
 
 namespace FineCodeCoverage.Output
 {
@@ -39,6 +42,7 @@ namespace FineCodeCoverage.Output
 	[SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1650:ElementDocumentationMustBeSpelledCorrectly", Justification = "pkgdef, VS and vsixmanifest are valid VS terms")]
 	public sealed class OutputToolWindowPackage : AsyncPackage
 	{
+		private Microsoft.VisualStudio.ComponentModelHost.IComponentModel componentModel;
 		/// <summary>
 		/// OutputToolWindowPackage GUID string.
 		/// </summary>
@@ -67,18 +71,26 @@ namespace FineCodeCoverage.Output
 			// When initialized asynchronously, the current thread may be a background thread at this point.
 			// Do any initialization that requires the UI thread after switching to the UI thread.
 			await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-			await OutputToolWindowCommand.InitializeAsync(this);
+
+			var _dte2 = (DTE2)GetGlobalService(typeof(SDTE));
+			var sp = new ServiceProvider(_dte2 as Microsoft.VisualStudio.OLE.Interop.IServiceProvider);
+			componentModel = sp.GetService(typeof(Microsoft.VisualStudio.ComponentModelHost.SComponentModel)) as Microsoft.VisualStudio.ComponentModelHost.IComponentModel;
+            Assumes.Present(componentModel);
+            await OutputToolWindowCommand.InitializeAsync(this);
 		}
 
-		public override IVsAsyncToolWindowFactory GetAsyncToolWindowFactory(Guid toolWindowType)
-		{
-			ThreadHelper.ThrowIfNotOnUIThread();
-			if (toolWindowType == typeof(OutputToolWindow).GUID)
+        protected override System.Threading.Tasks.Task<object> InitializeToolWindowAsync(Type toolWindowType, int id, CancellationToken cancellationToken)
+        {
+			var context = new OutputToolWindowContext
 			{
-				return this;
-			}
-
-			return GetAsyncToolWindowFactory(toolWindowType);
+				FccEngine = componentModel.GetService<IFCCEngine>(),
+				ScriptManager = componentModel.GetService<ScriptManager>()
+			};
+			return System.Threading.Tasks.Task.FromResult<object>(context);
+		}
+        public override IVsAsyncToolWindowFactory GetAsyncToolWindowFactory(Guid toolWindowType)
+		{
+			return (toolWindowType == typeof(OutputToolWindow).GUID) ? this : null;
 		}
 
 		protected override string GetToolWindowTitle(Type toolWindowType, int id)
@@ -88,7 +100,7 @@ namespace FineCodeCoverage.Output
 				return $"{Vsix.Name} loading";
 			}
 
-			return GetToolWindowTitle(toolWindowType, id);
+			return base.GetToolWindowTitle(toolWindowType, id);
 		}
 	}
 }

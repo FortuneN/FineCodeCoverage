@@ -9,15 +9,18 @@ namespace FineCodeCoverage.Impl
 	internal class Tagger<T> : ITagger<T> where T : ITag
 	{
 		private readonly ITextBuffer _textBuffer;
-		public event EventHandler<SnapshotSpanEventArgs> TagsChanged;
+        private readonly IFCCEngine fccEngine;
 
-		public Tagger(ITextBuffer textBuffer)
+        public event EventHandler<SnapshotSpanEventArgs> TagsChanged;
+
+		public Tagger(ITextBuffer textBuffer,IFCCEngine fccEngine)
 		{
 			_textBuffer = textBuffer;
-			FCCEngine.UpdateMarginTags += TestContainerDiscoverer_UpdateMarginTags;
+            this.fccEngine = fccEngine;
+            fccEngine.UpdateMarginTags += FCCEngine_UpdateMarginTags;
 		}
 
-		private void TestContainerDiscoverer_UpdateMarginTags(UpdateMarginTagsEventArgs e)
+		private void FCCEngine_UpdateMarginTags(UpdateMarginTagsEventArgs e)
 		{
 			var span = new SnapshotSpan(_textBuffer.CurrentSnapshot, 0, _textBuffer.CurrentSnapshot.Length);
 			var spanEventArgs = new SnapshotSpanEventArgs(span);
@@ -42,7 +45,7 @@ namespace FineCodeCoverage.Impl
 
 				var startLineNumber = span.Start.GetContainingLine().LineNumber + 1;
 				var endLineNumber = span.End.GetContainingLine().LineNumber + 1;
-				var coverageLines = FCCEngine.GetLines(document.FilePath, startLineNumber, endLineNumber);
+				var coverageLines = fccEngine.GetLines(document.FilePath, startLineNumber, endLineNumber);
 
 				foreach (var coverageLine in coverageLines)
 				{

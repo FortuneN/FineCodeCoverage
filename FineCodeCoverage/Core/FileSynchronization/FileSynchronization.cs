@@ -1,15 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.Composition;
 using System.IO;
 using System.Linq;
 using FineCodeCoverage.Engine.Utilities;
 
 namespace FineCodeCoverage.Engine.FileSynchronization
 {
-    
-    internal static partial class FileSynchronizationUtil
+    internal interface IFileSynchronizationUtil
+    {
+		List<string> Synchronize(string sourceFolder, string destinationFolder, string fineCodeCoverageFolderName);
+	}
+
+	[Export(typeof(IFileSynchronizationUtil))]
+	internal class FileSynchronizationUtil: IFileSynchronizationUtil
 	{
-		public static List<string> Synchronize(string sourceFolder, string destinationFolder,string fineCodeCoverageFolderName)
+		public List<string> Synchronize(string sourceFolder, string destinationFolder,string fineCodeCoverageFolderName)
 		{
 			var logs = new List<string>();
 			var srceDir = new DirectoryInfo(Path.GetFullPath(sourceFolder) + '\\');

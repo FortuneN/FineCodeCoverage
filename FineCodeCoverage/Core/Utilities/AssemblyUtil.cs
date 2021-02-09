@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel.Composition;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -6,9 +7,16 @@ using System.Runtime.InteropServices;
 
 namespace FineCodeCoverage.Engine.Utilities
 {
-	internal static class AssemblyUtil
+	internal interface IAssemblyUtil
+    {
+		T RunInAssemblyResolvingContext<T>(Func<T> func);
+
+	}
+
+	[Export(typeof(IAssemblyUtil))]
+	internal class AssemblyUtil:IAssemblyUtil
 	{
-		public static void RunInAssemblyResolvingContext(Action action)
+		public void RunInAssemblyResolvingContext(Action action)
 		{
 			try
 			{
@@ -22,7 +30,7 @@ namespace FineCodeCoverage.Engine.Utilities
 			}
 		}
 
-		public static T RunInAssemblyResolvingContext<T>(Func<T> func)
+		public T RunInAssemblyResolvingContext<T>(Func<T> func)
 		{
 			try
 			{
@@ -36,7 +44,7 @@ namespace FineCodeCoverage.Engine.Utilities
 			}
 		}
 
-		public static Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
+		public Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
 		{
 			var assemblyName = new AssemblyName(args.Name);
 
