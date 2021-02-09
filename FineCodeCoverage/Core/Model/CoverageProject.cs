@@ -25,16 +25,18 @@ namespace FineCodeCoverage.Engine.Model
     {
         private readonly IAppOptionsProvider appOptionsProvider;
         private readonly IFileSynchronizationUtil fileSynchronizationUtil;
+        private readonly ILogger logger;
 
         [ImportingConstructor]
-		public CoverageProjectFactory(IAppOptionsProvider appOptionsProvider,IFileSynchronizationUtil fileSynchronizationUtil)
+		public CoverageProjectFactory(IAppOptionsProvider appOptionsProvider,IFileSynchronizationUtil fileSynchronizationUtil, ILogger logger)
         {
             this.appOptionsProvider = appOptionsProvider;
             this.fileSynchronizationUtil = fileSynchronizationUtil;
+            this.logger = logger;
         }
         public CoverageProject Create()
         {
-			return new CoverageProject(appOptionsProvider,fileSynchronizationUtil);
+			return new CoverageProject(appOptionsProvider,fileSynchronizationUtil, logger);
         }
     }
 
@@ -43,18 +45,20 @@ namespace FineCodeCoverage.Engine.Model
 	{
 		private readonly IAppOptionsProvider appOptionsProvider;
 		private readonly IFileSynchronizationUtil fileSynchronizationUtil;
-		private XElement projectFileXElement;
-		private AppOptions settings;
+        private readonly ILogger logger;
+        private XElement projectFileXElement;
+		private IAppOptions settings;
 		private string fccPath;
 		private string fccFolderName = "fine-code-coverage";
 		private string buildOutputFolderName = "build-output";
 		private string buildOutputPath;
 		private string coverageToolOutputFolderName = "coverage-tool-output";
 
-		public CoverageProject(IAppOptionsProvider appOptionsProvider,IFileSynchronizationUtil fileSynchronizationUtil)
+		public CoverageProject(IAppOptionsProvider appOptionsProvider,IFileSynchronizationUtil fileSynchronizationUtil,ILogger logger)
         {
             this.appOptionsProvider = appOptionsProvider;
             this.fileSynchronizationUtil = fileSynchronizationUtil;
+            this.logger = logger;
         }
 
 		public bool IsDotNetSdkStyle(){
@@ -151,7 +155,7 @@ namespace FineCodeCoverage.Engine.Model
 		}
 		
 		
-		public AppOptions Settings
+		public IAppOptions Settings
 		{
 			get
 			{
@@ -319,7 +323,7 @@ namespace FineCodeCoverage.Engine.Model
 							}
 							catch (Exception exception)
 							{
-								Logger.Log($"Failed to override '{property.Name}' setting", exception);
+								logger.Log($"Failed to override '{property.Name}' setting", exception);
 							}
 						}
 					}
@@ -354,7 +358,7 @@ namespace FineCodeCoverage.Engine.Model
 				return this;
 			}
 
-			Logger.Log($"{stepName} ({ProjectName})");
+			logger.Log($"{stepName} ({ProjectName})");
 
 			try
 			{
@@ -368,7 +372,7 @@ namespace FineCodeCoverage.Engine.Model
 
 			if (HasFailed)
 			{
-				Logger.Log($"{stepName} ({ProjectName}) Failed", FailureDescription);
+				logger.Log($"{stepName} ({ProjectName}) Failed", FailureDescription);
 			}
 			
 			return this;

@@ -13,26 +13,28 @@ namespace FineCodeCoverage.Impl
     internal class Initializer : IInitializer
     {
         private readonly IFCCEngine fccEngine;
+        private readonly ILogger logger;
 
         [ImportingConstructor]
-        public Initializer(IFCCEngine fccEngine)
+        public Initializer(IFCCEngine fccEngine, ILogger logger)
         {
             this.fccEngine = fccEngine;
+            this.logger = logger;
         }
         public void Initialize(IServiceProvider _serviceProvider)
         {
             try
             {
-                Logger.Initialize(_serviceProvider);
+                logger.Initialize(_serviceProvider);
 
                 fccEngine.Initialize(_serviceProvider);
                 InitializePackageAndToolWindow(_serviceProvider);
 
-                Logger.Log($"Initialized");
+                logger.Log($"Initialized");
             }
             catch (Exception exception)
             {
-                Logger.Log($"Failed Initialization", exception);
+                logger.Log($"Failed Initialization", exception);
             }
         }
         [SuppressMessage("Usage", "VSTHRD102:Implement internal logic asynchronously")]

@@ -83,6 +83,7 @@
     <Compile Include="Core\Utilities\FileComparer.cs" />
     <Compile Include="Core\Utilities\FileSystemInfoDeleteExtensions.cs" />
     <Compile Include="Core\Utilities\XElementUtil.cs" />
+    <Compile Include="Impl\ILogger.cs" />
     <Compile Include="Impl\RunSettingsRetriever.cs" />
     <Compile Include="Impl\GlyphFactory.cs" />
     <Compile Include="Impl\GlyphFactoryProvider.cs" />
@@ -107,6 +108,9 @@
     <Compile Include="Options\AppOptions.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="Options\AppOptionsProvider.cs" />
+    <Compile Include="Options\IAppOptions.cs" />
+    <Compile Include="Options\IAppOptionsProvider.cs" />
     <Compile Include="Output\IScriptManager.cs" />
     <Compile Include="Output\OutputToolWindow.cs" />
     <Compile Include="Output\OutputToolWindowCommand.cs" />

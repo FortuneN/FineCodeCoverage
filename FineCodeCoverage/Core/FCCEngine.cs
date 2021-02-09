@@ -40,6 +40,7 @@ namespace FineCodeCoverage.Engine
         private readonly IReportGeneratorUtil reportGeneratorUtil;
         private readonly IProcessUtil processUtil;
         private readonly IAppOptionsProvider appOptionsProvider;
+        private readonly ILogger logger;
 
         public List<CoverageLine> CoverageLines { get; private set; } = new List<CoverageLine>();
 
@@ -51,7 +52,8 @@ namespace FineCodeCoverage.Engine
             IMsTestPlatformUtil msTestPlatformUtil,
             IReportGeneratorUtil reportGeneratorUtil,
             IProcessUtil processUtil,
-            IAppOptionsProvider appOptionsProvider
+            IAppOptionsProvider appOptionsProvider,
+            ILogger logger
             )
         {
             this.coverletUtil = coverletUtil;
@@ -61,6 +63,7 @@ namespace FineCodeCoverage.Engine
             this.reportGeneratorUtil = reportGeneratorUtil;
             this.processUtil = processUtil;
             this.appOptionsProvider = appOptionsProvider;
+            this.logger = logger;
         }
         public void Initialize(IServiceProvider serviceProvider)
         {
@@ -206,7 +209,7 @@ namespace FineCodeCoverage.Engine
             }
         }
 
-        public void TryReloadCoverage(Func<AppOptions, System.Threading.Tasks.Task<ReloadCoverageRequest>> coverageRequestCallback)
+        public void TryReloadCoverage(Func<IAppOptions, System.Threading.Tasks.Task<ReloadCoverageRequest>> coverageRequestCallback)
         {
             StopCoverage();
             var settings = appOptionsProvider.Get();
@@ -226,7 +229,7 @@ namespace FineCodeCoverage.Engine
             }
         }
         
-        private void ReloadCoverage(AppOptions settings,Func<AppOptions, System.Threading.Tasks.Task<ReloadCoverageRequest>> coverageRequestCallback)
+        private void ReloadCoverage(IAppOptions settings,Func<IAppOptions, System.Threading.Tasks.Task<ReloadCoverageRequest>> coverageRequestCallback)
         {
             Reset();
             
@@ -239,7 +242,7 @@ namespace FineCodeCoverage.Engine
                       return;
                   }
 
-                  Logger.Log("================================== START ==================================");
+                  logger.Log("================================== START ==================================");
                   var coverageProjects = coverageRequest.CoverageProjects;
                   
 
@@ -331,7 +334,7 @@ namespace FineCodeCoverage.Engine
 
                   // log
 
-                  Logger.Log("================================== DONE ===================================");
+                  logger.Log("================================== DONE ===================================");
 
                   cancellationTokenSource.Dispose();
                   cancellationTokenSource = null;
