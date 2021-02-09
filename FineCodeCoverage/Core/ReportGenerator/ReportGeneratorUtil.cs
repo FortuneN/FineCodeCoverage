@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -14,28 +15,44 @@ using ReportGeneratorPlugins;
 
 namespace FineCodeCoverage.Engine.ReportGenerator
 {
-    internal class ReportGeneratorResult
+	interface IReportGeneratorUtil
+    {
+		void Initialize(string appDataFolder);
+		void ProcessUnifiedHtmlFile(string htmlFile, bool darkMode, out string coverageHtml);
+		Task<ReportGeneratorResult> RunReportGeneratorAsync(IEnumerable<string> coverOutputFiles, bool darkMode, bool throwError = false);
+
+	}
+
+	internal class ReportGeneratorResult
 	{
 		public string UnifiedHtmlFile { get; set; }
 		public string UnifiedXmlFile { get; set; }
 		public bool Success { get; set; }
 	}
-	internal partial class ReportGeneratorUtil
+
+	[Export(typeof(IReportGeneratorUtil))]
+	internal partial class ReportGeneratorUtil: IReportGeneratorUtil
 	{
 		public const string ReportGeneratorName = "dotnet-reportgenerator-globaltool";
-		public static string ReportGeneratorExePath { get; private set; }
-		public static string AppDataReportGeneratorFolder { get; private set; }
-		public static Version CurrentReportGeneratorVersion { get; private set; }
-		public static Version MimimumReportGeneratorVersion { get; private set; }
+        private readonly IAssemblyUtil assemblyUtil;
+        private readonly IProcessUtil processUtil;
 
-		static ReportGeneratorUtil()
+        public string ReportGeneratorExePath { get; private set; }
+		public string AppDataReportGeneratorFolder { get; private set; }
+		public Version CurrentReportGeneratorVersion { get; private set; }
+		public Version MimimumReportGeneratorVersion { get; private set; }
+
+		[ImportingConstructor]
+		public ReportGeneratorUtil(IAssemblyUtil assemblyUtil,IProcessUtil processUtil)
 		{
 			// version of report generator from class inherited by our custom plugins
 			var reportGeneratorLibVersion = typeof(FccLightReportBuilder).BaseType.Assembly.GetName().Version.ToString().Split('.').Take(3);
 			MimimumReportGeneratorVersion = Version.Parse(string.Join(".", reportGeneratorLibVersion));
-		}
+            this.assemblyUtil = assemblyUtil;
+            this.processUtil = processUtil;
+        }
 
-		public static void Initialize(string appDataFolder)
+		public void Initialize(string appDataFolder)
 		{
 			AppDataReportGeneratorFolder = Path.Combine(appDataFolder, "reportGenerator");
 			Directory.CreateDirectory(AppDataReportGeneratorFolder);
@@ -51,7 +68,7 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 			}
 		}
 
-		public static Version GetReportGeneratorVersion()
+		private Version GetReportGeneratorVersion()
 		{
 			var title = "ReportGenerator Get Info";
 
@@ -101,7 +118,7 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 			return CurrentReportGeneratorVersion;
 		}
 
-		public static void UpdateReportGenerator()
+		private void UpdateReportGenerator()
 		{
 			var title = "ReportGenerator Update";
 
@@ -134,7 +151,7 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 			Logger.Log(title, processOutput);
 		}
 
-		public static void InstallReportGenerator()
+		private void InstallReportGenerator()
 		{
 			var title = "ReportGenerator Install";
 
@@ -167,7 +184,7 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 			Logger.Log(title, processOutput);
 		}
 
-		public static async Task<ReportGeneratorResult> RunReportGeneratorAsync(IEnumerable<string> coverOutputFiles, bool darkMode, bool throwError = false)
+		public async Task<ReportGeneratorResult> RunReportGeneratorAsync(IEnumerable<string> coverOutputFiles, bool darkMode, bool throwError = false)
 		{
 			var title = "ReportGenerator Run";
 			var outputFolder = Path.GetDirectoryName(coverOutputFiles.OrderBy(x => x).First()); // use location of first file to output reports
@@ -203,7 +220,7 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 
 				Logger.Log($"{title} Arguments [reporttype:{outputReportType}] {Environment.NewLine}{string.Join($"{Environment.NewLine}", reportTypeSettings)}");
 
-				var result = await ProcessUtil
+				var result = await processUtil
 					.ExecuteAsync(new ExecuteRequest
 					{
 						FilePath = ReportGeneratorExePath,
@@ -244,9 +261,9 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 			
 		}
 
-		public static void ProcessUnifiedHtmlFile(string htmlFile, bool darkMode, out string coverageHtml)
+		public void ProcessUnifiedHtmlFile(string htmlFile, bool darkMode, out string coverageHtml)
 		{
-			coverageHtml = AssemblyUtil.RunInAssemblyResolvingContext(() =>
+			coverageHtml = assemblyUtil.RunInAssemblyResolvingContext(() =>
 			{
 				// read [htmlFile] into memory
 

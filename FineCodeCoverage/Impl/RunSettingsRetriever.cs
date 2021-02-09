@@ -1,9 +1,17 @@
-﻿using System.Reflection;
+﻿using System.ComponentModel.Composition;
+using System.Reflection;
 using System.Threading.Tasks;
 
 namespace FineCodeCoverage.Impl
 {
-	internal class RunSettingsRetriever
+	internal interface IRunSettingsRetriever
+    {
+		Task<string> GetRunSettingsFileAsync(object userSettings, ContainerData projectData);
+
+	}
+
+	[Export(typeof(IRunSettingsRetriever))]
+	internal class RunSettingsRetriever: IRunSettingsRetriever
 	{
 		private object userSettings;
 		
@@ -55,10 +63,5 @@ namespace FineCodeCoverage.Impl
 			return settingsFilePath;
 		}
 
-		//private static async Task<string> GetProjectRunSettingFileAsync(object projectData)
-		//{
-		//	var projectRunSettingsFile = await (projectData.GetType().GetMethod("GetBuildPropertyAsync", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(projectData, new object[] { "RunSettingsFilePath", (string)null }) as Task<string>);
-		//	return projectRunSettingsFile;
-		//}
 	}
 }

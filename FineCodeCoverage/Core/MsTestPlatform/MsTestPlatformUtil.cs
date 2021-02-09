@@ -5,39 +5,47 @@ using System.Net.Http;
 using System.Xml.Linq;
 using System.IO.Compression;
 using System.Diagnostics.CodeAnalysis;
+using System.ComponentModel.Composition;
 
 namespace FineCodeCoverage.Engine.MsTestPlatform
 {
-	internal class MsTestPlatformUtil
-	{
-		public static string MsTestPlatformExePath { get; private set; }
-		private static HttpClient HttpClient { get; } = new HttpClient();
-		public static string AppDataMsTestPlatformFolder { get; private set; }
-		public static Version CurrentMsTestPlatformVersion { get; private set; }
-		public static Version MimimumMsTestPlatformVersion { get; } = Version.Parse("16.7.1");
+	interface IMsTestPlatformUtil
+    {
+		string MsTestPlatformExePath { get; }
+		void Initialize(string appDataFolder);
+	}
 
-		public static void Initialize(string appDataFolder)
+	[Export(typeof(IMsTestPlatformUtil))]
+	internal class MsTestPlatformUtil:IMsTestPlatformUtil
+	{
+		public string MsTestPlatformExePath { get; private set; }
+		private HttpClient HttpClient { get; } = new HttpClient();
+		private string appDataMsTestPlatformFolder;
+		private Version currentMsTestPlatformVersion;
+		private Version MimimumMsTestPlatformVersion { get; } = Version.Parse("16.7.1");
+
+		public void Initialize(string appDataFolder)
 		{
-			AppDataMsTestPlatformFolder = Path.Combine(appDataFolder, "msTestPlatform");
-			Directory.CreateDirectory(AppDataMsTestPlatformFolder);
+			appDataMsTestPlatformFolder = Path.Combine(appDataFolder, "msTestPlatform");
+			Directory.CreateDirectory(appDataMsTestPlatformFolder);
 			GetMsTestPlatformVersion();
 
-			if (CurrentMsTestPlatformVersion == null)
+			if (currentMsTestPlatformVersion == null)
 			{
 				InstallMsTestPlatform();
 			}
-			else if (CurrentMsTestPlatformVersion < MimimumMsTestPlatformVersion)
+			else if (currentMsTestPlatformVersion < MimimumMsTestPlatformVersion)
 			{
 				UpdateMsTestPlatform();
 			}
 		}
 
-		public static Version GetMsTestPlatformVersion()
+		private Version GetMsTestPlatformVersion()
 		{
 			var title = "MsTestPlatform Get Info";
 
 			MsTestPlatformExePath = Directory
-				.GetFiles(AppDataMsTestPlatformFolder, "vstest.console.exe", SearchOption.AllDirectories)
+				.GetFiles(appDataMsTestPlatformFolder, "vstest.console.exe", SearchOption.AllDirectories)
 				.FirstOrDefault();
 
 			if (string.IsNullOrWhiteSpace(MsTestPlatformExePath))
@@ -46,7 +54,7 @@ namespace FineCodeCoverage.Engine.MsTestPlatform
 				return null;
 			}
 
-			var nuspecFile = Directory.GetFiles(AppDataMsTestPlatformFolder, "Microsoft.TestPlatform.nuspec", SearchOption.TopDirectoryOnly).FirstOrDefault();
+			var nuspecFile = Directory.GetFiles(appDataMsTestPlatformFolder, "Microsoft.TestPlatform.nuspec", SearchOption.TopDirectoryOnly).FirstOrDefault();
 
 			if (string.IsNullOrWhiteSpace(MsTestPlatformExePath))
 			{
@@ -72,20 +80,20 @@ namespace FineCodeCoverage.Engine.MsTestPlatform
 				return null;
 			}
 
-			CurrentMsTestPlatformVersion = version;
+			currentMsTestPlatformVersion = version;
 
-			return CurrentMsTestPlatformVersion;
+			return currentMsTestPlatformVersion;
 		}
 
-		public static void UpdateMsTestPlatform()
+		public void UpdateMsTestPlatform()
 		{
 			var title = "MsTestPlatform Update";
 
 			try
 			{
-				if (Directory.Exists(AppDataMsTestPlatformFolder))
+				if (Directory.Exists(appDataMsTestPlatformFolder))
 				{
-					Directory.Delete(AppDataMsTestPlatformFolder);
+					Directory.Delete(appDataMsTestPlatformFolder);
 				}
 
 				InstallMsTestPlatform();
@@ -97,17 +105,17 @@ namespace FineCodeCoverage.Engine.MsTestPlatform
 		}
 
 		[SuppressMessage("Usage", "VSTHRD002:Avoid problematic synchronous waits")]
-		public static void InstallMsTestPlatform()
+		private void InstallMsTestPlatform()
 		{
 			var title = "MsTestPlatform Install";
 
 			try
 			{
-				Directory.CreateDirectory(AppDataMsTestPlatformFolder);
+				Directory.CreateDirectory(appDataMsTestPlatformFolder);
 
 				// download
 
-				var zipFile = Path.Combine(AppDataMsTestPlatformFolder, "bundle.zip");
+				var zipFile = Path.Combine(appDataMsTestPlatformFolder, "bundle.zip");
 				var url = $"https://www.nuget.org/api/v2/package/Microsoft.TestPlatform/{MimimumMsTestPlatformVersion}";
 				
 				using (var remoteStream = HttpClient.GetStreamAsync(url).GetAwaiter().GetResult())
@@ -118,7 +126,7 @@ namespace FineCodeCoverage.Engine.MsTestPlatform
 
 				// extract and cleanup
 
-				ZipFile.ExtractToDirectory(zipFile, AppDataMsTestPlatformFolder);
+				ZipFile.ExtractToDirectory(zipFile, appDataMsTestPlatformFolder);
 				File.Delete(zipFile);
 
 				// process
@@ -127,7 +135,7 @@ namespace FineCodeCoverage.Engine.MsTestPlatform
 
 				// report
 
-				Logger.Log(title, $"Installed version {CurrentMsTestPlatformVersion}");
+				Logger.Log(title, $"Installed version {currentMsTestPlatformVersion}");
 			}
 			catch (Exception exception)
 			{

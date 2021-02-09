@@ -8,28 +8,25 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Threading;
 using FineCodeCoverage.Core.Utilities;
+using System.ComponentModel.Composition;
 
 namespace FineCodeCoverage.Engine.Utilities
 {
-	internal static class ProcessUtil
+	interface IProcessUtil
+    {
+		Task<ExecuteResponse> ExecuteAsync(ExecuteRequest request);
+		CancellationToken CancellationToken { get; set; }
+
+	}
+
+	[Export(typeof(IProcessUtil))]
+	internal class ProcessUtil : IProcessUtil
 	{
 		public const int FAILED_TO_PRODUCE_OUTPUT_FILE_CODE = 999;
 
-		public static string GetOutput(this Process process)
-		{
-			return string.Join(
-				Environment.NewLine,
-				new[]
-				{
-					process.StandardOutput?.ReadToEnd(),
-					process.StandardError?.ReadToEnd()
-				}
-				.Where(x => !string.IsNullOrWhiteSpace(x))
-			);
-		}
-		public static CancellationToken CancellationToken { get; set; }
+		public CancellationToken CancellationToken { get; set; }
 		
-		public static async Task<ExecuteResponse> ExecuteAsync(ExecuteRequest request)
+		public async Task<ExecuteResponse> ExecuteAsync(ExecuteRequest request)
 		{
 			string shellScriptFile = null;
 			string shellScriptOutputFile = null;
@@ -118,6 +115,23 @@ namespace FineCodeCoverage.Engine.Utilities
 			return executeResponse;
 		}
 		
+	}
+
+	internal static class ProcessExtensions
+    {
+		public static string GetOutput(this Process process)
+		{
+			return string.Join(
+				Environment.NewLine,
+				new[]
+				{
+					process.StandardOutput?.ReadToEnd(),
+					process.StandardError?.ReadToEnd()
+				}
+				.Where(x => !string.IsNullOrWhiteSpace(x))
+			);
+		}
+
 	}
 
 	internal class ExecuteRequest

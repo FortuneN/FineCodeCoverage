@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.Composition;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -17,22 +18,51 @@ using Microsoft.VisualStudio.Shell;
 
 namespace FineCodeCoverage.Engine
 {
-    internal static class FCCEngine
+
+    [Export(typeof(IFCCEngine))]
+    internal class FCCEngine : IFCCEngine
     {
-        private static object colorThemeService;
-        private static string CurrentTheme => $"{((dynamic)colorThemeService)?.CurrentTheme?.Name}".Trim();
-        private static DTE dte;
-        private static CancellationTokenSource cancellationTokenSource;
-        private static CancellationToken cancellationToken;
-        public static event UpdateMarginTagsDelegate UpdateMarginTags;
-        public static event UpdateOutputWindowDelegate UpdateOutputWindow;
+        private object colorThemeService;
+        private string CurrentTheme => $"{((dynamic)colorThemeService)?.CurrentTheme?.Name}".Trim();
+        private DTE dte;
+        private CancellationTokenSource cancellationTokenSource;
+        private CancellationToken cancellationToken;
+        public event UpdateMarginTagsDelegate UpdateMarginTags;
+        public event UpdateOutputWindowDelegate UpdateOutputWindow;
 
-        public static string HtmlFilePath { get; private set; }
-        public static string AppDataFolder { get; private set; }
-        public static CoverageReport CoverageReport { get; private set; }
-        public static List<CoverageLine> CoverageLines { get; private set; } = new List<CoverageLine>();
+        private string HtmlFilePath;
+        public string AppDataFolder { get; private set; }
+        private CoverageReport coverageReport;
+        private readonly ICoverletUtil coverletUtil;
+        private readonly IOpenCoverUtil openCoverUtil;
+        private readonly ICoberturaUtil coberturaUtil;
+        private readonly IMsTestPlatformUtil msTestPlatformUtil;
+        private readonly IReportGeneratorUtil reportGeneratorUtil;
+        private readonly IProcessUtil processUtil;
+        private readonly IAppOptionsProvider appOptionsProvider;
 
-        public static void Initialize(IServiceProvider serviceProvider)
+        public List<CoverageLine> CoverageLines { get; private set; } = new List<CoverageLine>();
+
+        [ImportingConstructor]
+        public FCCEngine(
+            ICoverletUtil coverletUtil,
+            IOpenCoverUtil openCoverUtil,
+            ICoberturaUtil coberturaUtil,
+            IMsTestPlatformUtil msTestPlatformUtil,
+            IReportGeneratorUtil reportGeneratorUtil,
+            IProcessUtil processUtil,
+            IAppOptionsProvider appOptionsProvider
+            )
+        {
+            this.coverletUtil = coverletUtil;
+            this.openCoverUtil = openCoverUtil;
+            this.coberturaUtil = coberturaUtil;
+            this.msTestPlatformUtil = msTestPlatformUtil;
+            this.reportGeneratorUtil = reportGeneratorUtil;
+            this.processUtil = processUtil;
+            this.appOptionsProvider = appOptionsProvider;
+        }
+        public void Initialize(IServiceProvider serviceProvider)
         {
             colorThemeService = serviceProvider.GetService(typeof(SVsColorThemeService));
             ThreadHelper.JoinableTaskFactory.Run(async () =>
@@ -46,19 +76,19 @@ namespace FineCodeCoverage.Engine
 
             CleanupLegacyFolders();
 
-            CoverletUtil.Initialize(AppDataFolder);
-            ReportGeneratorUtil.Initialize(AppDataFolder);
-            MsTestPlatformUtil.Initialize(AppDataFolder);
-            OpenCoverUtil.Initialize(AppDataFolder);
+            coverletUtil.Initialize(AppDataFolder);
+            reportGeneratorUtil.Initialize(AppDataFolder);
+            msTestPlatformUtil.Initialize(AppDataFolder);
+            openCoverUtil.Initialize(AppDataFolder);
         }
 
-        private static void CreateAppDataFolder()
+        private void CreateAppDataFolder()
         {
             AppDataFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), Vsix.Code);
             Directory.CreateDirectory(AppDataFolder);
         }
 
-        private static void CleanupLegacyFolders()
+        private void CleanupLegacyFolders()
         {
             Directory
             .GetDirectories(AppDataFolder, "*", SearchOption.TopDirectoryOnly)
@@ -92,7 +122,7 @@ namespace FineCodeCoverage.Engine
             });
         }
 
-        public static IEnumerable<CoverageLine> GetLines(string filePath, int startLineNumber, int endLineNumber)
+        public IEnumerable<CoverageLine> GetLines(string filePath, int startLineNumber, int endLineNumber)
         {
             return CoverageLines
             .AsParallel()
@@ -101,11 +131,11 @@ namespace FineCodeCoverage.Engine
             .ToArray();
         }
 
-        public static string[] GetSourceFiles(string assemblyName, string qualifiedClassName)
+        public string[] GetSourceFiles(string assemblyName, string qualifiedClassName)
         {
             // Note : There may be more than one file; e.g. in the case of partial classes
 
-            var package = CoverageReport
+            var package = coverageReport
                 .Packages.Package
                 .SingleOrDefault(x => x.Name.Equals(assemblyName));
 
@@ -123,40 +153,39 @@ namespace FineCodeCoverage.Engine
             return classFiles;
         }
 
-        public static void StopCoverage()
+        public void StopCoverage()
         {
             if (cancellationTokenSource != null)
             {
                 cancellationTokenSource.Cancel();
             }
         }
-        private static void SetCancellationToken()
+        private void SetCancellationToken()
         {
             cancellationTokenSource = new CancellationTokenSource();
             cancellationToken = cancellationTokenSource.Token;
-            ProcessUtil.CancellationToken = cancellationToken;
+            processUtil.CancellationToken = cancellationToken;
         }
-        private static void Reset()
+        private void Reset()
         {
-            StopCoverage();
             SetCancellationToken();
             HtmlFilePath = null;
             CoverageLines.Clear();
         }
 
-        private static async System.Threading.Tasks.Task RunCoverToolAsync(CoverageProject project)
+        private async System.Threading.Tasks.Task RunCoverToolAsync(CoverageProject project)
         {
             if (project.IsDotNetSdkStyle())
             {
-                await CoverletUtil.RunCoverletAsync(project, true);
+                await coverletUtil.RunCoverletAsync(project, true);
             }
             else
             {
-                await OpenCoverUtil.RunOpenCoverAsync(project, true);
+                await openCoverUtil.RunOpenCoverAsync(project, true);
             }
         }
 
-        private static async System.Threading.Tasks.Task PrepareCoverageProjectsAsync(List<CoverageProject> coverageProjects)
+        private async System.Threading.Tasks.Task PrepareCoverageProjectsAsync(List<CoverageProject> coverageProjects)
         {
             foreach (var project in coverageProjects)
             {
@@ -177,9 +206,10 @@ namespace FineCodeCoverage.Engine
             }
         }
 
-        public static void TryReloadCoverage(Func<AppOptions,List<CoverageProject>> coverageProjectFactory)
+        public void TryReloadCoverage(Func<AppOptions, System.Threading.Tasks.Task<ReloadCoverageRequest>> coverageRequestCallback)
         {
-            var settings = AppOptions.Get();
+            StopCoverage();
+            var settings = appOptionsProvider.Get();
             var canReload = settings.Enabled;
 
             if (!canReload)
@@ -192,34 +222,38 @@ namespace FineCodeCoverage.Engine
 
             if (canReload)
             {
-                var coverageProjects = coverageProjectFactory(settings);
-                if(coverageProjects != null)
-                {
-                    ReloadCoverage(coverageProjects);
-                }
+                ReloadCoverage(settings,coverageRequestCallback);
             }
         }
-
-        private static void ReloadCoverage(List<CoverageProject> projects)
+        
+        private void ReloadCoverage(AppOptions settings,Func<AppOptions, System.Threading.Tasks.Task<ReloadCoverageRequest>> coverageRequestCallback)
         {
-            Logger.Log("================================== START ==================================");
-
             Reset();
-
+            
             var coverageTask = System.Threading.Tasks.Task.Run(async () =>
               {
 
-                  // process pipeline
-
-                  await PrepareCoverageProjectsAsync(projects);
-
-                  foreach (var project in projects)
+                  var coverageRequest = await coverageRequestCallback(settings);
+                  if(!coverageRequest.Proceed)
                   {
-                      cancellationToken.ThrowIfCancellationRequested();
-                      await project.StepAsync("Run Coverage Tool", RunCoverToolAsync);
+                      return;
                   }
 
-                  var passedProjects = projects.Where(x => !x.HasFailed);
+                  Logger.Log("================================== START ==================================");
+                  var coverageProjects = coverageRequest.CoverageProjects;
+                  
+
+                  // process pipeline
+
+                  await PrepareCoverageProjectsAsync(coverageProjects);
+
+                  foreach (var coverageProject in coverageProjects)
+                  {
+                      cancellationToken.ThrowIfCancellationRequested();
+                      await coverageProject.StepAsync("Run Coverage Tool", RunCoverToolAsync);
+                  }
+
+                  var passedProjects = coverageProjects.Where(x => !x.HasFailed);
 
                   var coverOutputFiles = passedProjects
                           .Select(x => x.CoverageOutputFile)
@@ -232,17 +266,17 @@ namespace FineCodeCoverage.Engine
 
                       var darkMode = CurrentTheme.Equals("Dark", StringComparison.OrdinalIgnoreCase);
 
-                      var result = await ReportGeneratorUtil.RunReportGeneratorAsync(coverOutputFiles, darkMode, true);
+                      var result = await reportGeneratorUtil.RunReportGeneratorAsync(coverOutputFiles, darkMode, true);
 
                       if (result.Success)
                       {
                           // update CoverageLines
 
-                          CoverageReport = CoberturaUtil.ProcessCoberturaXmlFile(result.UnifiedXmlFile, out var coverageLines);
+                          coverageReport = coberturaUtil.ProcessCoberturaXmlFile(result.UnifiedXmlFile, out var coverageLines);
                           CoverageLines = coverageLines;
                           // update HtmlFilePath
 
-                          ReportGeneratorUtil.ProcessUnifiedHtmlFile(result.UnifiedHtmlFile, darkMode, out var htmlFilePath);
+                          reportGeneratorUtil.ProcessUnifiedHtmlFile(result.UnifiedHtmlFile, darkMode, out var htmlFilePath);
                           HtmlFilePath = htmlFilePath;
                       }
 

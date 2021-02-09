@@ -6,6 +6,7 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Settings;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.VisualStudio.Shell.Settings;
+using System.ComponentModel.Composition;
 
 namespace FineCodeCoverage.Options
 {
@@ -116,7 +117,7 @@ namespace FineCodeCoverage.Options
 		}
 
 		[SuppressMessage("Usage", "VSTHRD010:Invoke single-threaded types on Main thread")]
-		private static void LoadSettingsInto(AppOptions instance)
+		private static void LoadSettingsFromStorage(AppOptions instance)
 		{
 			var settingsManager = new ShellSettingsManager(ServiceProvider.GlobalProvider);
 			var settingsStore = settingsManager.GetWritableSettingsStore(SettingsScope.UserSettings);
@@ -153,16 +154,28 @@ namespace FineCodeCoverage.Options
 			}
 		}
 
-		public override void LoadSettingsFromStorage()
-		{
-			LoadSettingsInto(this);
-		}
-
 		public static AppOptions Get()
 		{
 			var options = new AppOptions();
-			LoadSettingsInto(options);
+			LoadSettingsFromStorage(options);
 			return options;
 		}
 	}
+
+	internal interface IAppOptionsProvider
+    {
+		AppOptions Get();
+
+	}
+
+	[Export(typeof(IAppOptionsProvider))]
+    internal class AppOptionsProvider : IAppOptionsProvider
+    {
+        public AppOptions Get()
+        {
+			return AppOptions.Get();
+		}
+    }
+
+
 }

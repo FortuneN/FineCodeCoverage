@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -9,31 +10,43 @@ using FineCodeCoverage.Engine.Utilities;
 
 namespace FineCodeCoverage.Engine.Coverlet
 {
-    internal class CoverletUtil
-	{
-		public const string CoverletName = "coverlet.console";
-		public static string CoverletExePath { get; private set; }
-		public static string AppDataCoverletFolder { get; private set; }
-		public static Version CurrentCoverletVersion { get; private set; }
-		public static Version MimimumCoverletVersion { get; } = Version.Parse("1.7.2");
+    internal interface ICoverletUtil {
+		void Initialize(string appDataFolder);
+		Task<bool> RunCoverletAsync(CoverageProject project, bool throwError = false);
+	}
 
-		public static void Initialize(string appDataFolder)
+	[Export(typeof(ICoverletUtil))]
+    internal class CoverletUtil:ICoverletUtil
+	{
+		private const string CoverletName = "coverlet.console";
+        private readonly IProcessUtil processUtil;
+        private string coverletExePath;
+		private string appDataCoverletFolder;
+		private Version currentCoverletVersion;
+		private Version MimimumCoverletVersion { get; } = Version.Parse("1.7.2");
+
+		[ImportingConstructor]
+		public CoverletUtil(IProcessUtil processUtil)
+        {
+            this.processUtil = processUtil;
+        }
+		public void Initialize(string appDataFolder)
 		{
-			AppDataCoverletFolder = Path.Combine(appDataFolder, "coverlet");
-			Directory.CreateDirectory(AppDataCoverletFolder);
+			appDataCoverletFolder = Path.Combine(appDataFolder, "coverlet");
+			Directory.CreateDirectory(appDataCoverletFolder);
 			GetCoverletVersion();
 
-			if (CurrentCoverletVersion == null)
+			if (currentCoverletVersion == null)
 			{
 				InstallCoverlet();
 			}
-			else if (CurrentCoverletVersion < MimimumCoverletVersion)
+			else if (currentCoverletVersion < MimimumCoverletVersion)
 			{
 				UpdateCoverlet();
 			}
 		}
 
-		public static Version GetCoverletVersion()
+		private Version GetCoverletVersion()
 		{
 			var title = "Coverlet Get Info";
 
@@ -45,8 +58,8 @@ namespace FineCodeCoverage.Engine.Coverlet
 				RedirectStandardError = true,
 				RedirectStandardOutput = true,
 				WindowStyle = ProcessWindowStyle.Hidden,
-				WorkingDirectory = AppDataCoverletFolder,
-				Arguments = $"tool list --tool-path \"{AppDataCoverletFolder}\"",
+				WorkingDirectory = appDataCoverletFolder,
+				Arguments = $"tool list --tool-path \"{appDataCoverletFolder}\"",
 			};
 
 			var process = Process.Start(processStartInfo);
@@ -67,23 +80,23 @@ namespace FineCodeCoverage.Engine.Coverlet
 			if (string.IsNullOrWhiteSpace(coverletLine))
 			{
 				// coverlet is not installed
-				CoverletExePath = null;
-				CurrentCoverletVersion = null;
+				coverletExePath = null;
+				currentCoverletVersion = null;
 				return null;
 			}
 
 			var coverletLineTokens = coverletLine.Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
 			var coverletVersion = coverletLineTokens[1].Trim();
 
-			CurrentCoverletVersion = Version.Parse(coverletVersion);
+			currentCoverletVersion = Version.Parse(coverletVersion);
 
-			CoverletExePath = Directory.GetFiles(AppDataCoverletFolder, "coverlet.exe", SearchOption.AllDirectories).FirstOrDefault()
-						   ?? Directory.GetFiles(AppDataCoverletFolder, "*coverlet*.exe", SearchOption.AllDirectories).FirstOrDefault();
+			coverletExePath = Directory.GetFiles(appDataCoverletFolder, "coverlet.exe", SearchOption.AllDirectories).FirstOrDefault()
+						   ?? Directory.GetFiles(appDataCoverletFolder, "*coverlet*.exe", SearchOption.AllDirectories).FirstOrDefault();
 
-			return CurrentCoverletVersion;
+			return currentCoverletVersion;
 		}
 
-		public static void UpdateCoverlet()
+		private void UpdateCoverlet()
 		{
 			var title = "Coverlet Update";
 
@@ -95,8 +108,8 @@ namespace FineCodeCoverage.Engine.Coverlet
 				RedirectStandardError = true,
 				RedirectStandardOutput = true,
 				WindowStyle = ProcessWindowStyle.Hidden,
-				WorkingDirectory = AppDataCoverletFolder,
-				Arguments = $"tool update {CoverletName} --verbosity normal --version {MimimumCoverletVersion} --tool-path \"{AppDataCoverletFolder}\"",
+				WorkingDirectory = appDataCoverletFolder,
+				Arguments = $"tool update {CoverletName} --verbosity normal --version {MimimumCoverletVersion} --tool-path \"{appDataCoverletFolder}\"",
 			};
 
 			var process = Process.Start(processStartInfo);
@@ -116,7 +129,7 @@ namespace FineCodeCoverage.Engine.Coverlet
 			Logger.Log(title, processOutput);
 		}
 
-		public static void InstallCoverlet()
+		private void InstallCoverlet()
 		{
 			var title = "Coverlet Install";
 
@@ -128,8 +141,8 @@ namespace FineCodeCoverage.Engine.Coverlet
 				RedirectStandardError = true,
 				RedirectStandardOutput = true,
 				WindowStyle = ProcessWindowStyle.Hidden,
-				WorkingDirectory = AppDataCoverletFolder,
-				Arguments = $"tool install {CoverletName} --verbosity normal --version {MimimumCoverletVersion} --tool-path \"{AppDataCoverletFolder}\"",
+				WorkingDirectory = appDataCoverletFolder,
+				Arguments = $"tool install {CoverletName} --verbosity normal --version {MimimumCoverletVersion} --tool-path \"{appDataCoverletFolder}\"",
 			};
 
 			var process = Process.Start(processStartInfo);
@@ -149,7 +162,7 @@ namespace FineCodeCoverage.Engine.Coverlet
 			Logger.Log(title, processOutput);
 		}
 
-		public static async Task<bool> RunCoverletAsync(CoverageProject project, bool throwError = false)
+		public async Task<bool> RunCoverletAsync(CoverageProject project, bool throwError = false)
 		{
 			var title = $"Coverlet Run ({project.ProjectName})";
 
@@ -204,10 +217,10 @@ namespace FineCodeCoverage.Engine.Coverlet
 
 			Logger.Log($"{title} Arguments {Environment.NewLine}{string.Join($"{Environment.NewLine}", coverletSettings)}");
 
-			var result = await ProcessUtil
+			var result = await processUtil
 			.ExecuteAsync(new ExecuteRequest
 			{
-				FilePath = CoverletExePath,
+				FilePath = coverletExePath,
 				Arguments = string.Join(" ", coverletSettings),
 				WorkingDirectory = project.ProjectOutputFolder
 			});
