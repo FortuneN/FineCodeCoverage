@@ -71,6 +71,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="FCCEngine_Tests.cs" />
     <Compile Include="ReferencedProject_Tests.cs" />
     <Compile Include="TestContainerDiscovery_Tests.cs" />
   </ItemGroup>

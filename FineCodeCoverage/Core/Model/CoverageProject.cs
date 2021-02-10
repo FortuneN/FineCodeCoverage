@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.Composition;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -12,46 +11,10 @@ using FineCodeCoverage.Core.Utilities;
 using FineCodeCoverage.Engine.FileSynchronization;
 using FineCodeCoverage.Options;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.CodeAnalysis.MSBuild;
 
 namespace FineCodeCoverage.Engine.Model
 {
-	internal interface ICoverageProjectFactory
-    {
-		CoverageProject Create();
-    }
-
-	[Export(typeof(ICoverageProjectFactory))]
-    internal class CoverageProjectFactory : ICoverageProjectFactory
-    {
-        private readonly IAppOptionsProvider appOptionsProvider;
-        private readonly IFileSynchronizationUtil fileSynchronizationUtil;
-        private readonly ILogger logger;
-		private DTE dte;
-
-        [ImportingConstructor]
-		public CoverageProjectFactory(
-			IAppOptionsProvider appOptionsProvider,
-			IFileSynchronizationUtil fileSynchronizationUtil, 
-			ILogger logger,
-			[Import(typeof(SVsServiceProvider))]
-			IServiceProvider serviceProvider)
-        {
-            this.appOptionsProvider = appOptionsProvider;
-            this.fileSynchronizationUtil = fileSynchronizationUtil;
-            this.logger = logger;
-			ThreadHelper.JoinableTaskFactory.Run(async () =>
-			{
-				await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-				dte = (DTE)serviceProvider.GetService(typeof(DTE));
-			});
-		}
-        public CoverageProject Create()
-        {
-			return new CoverageProject(appOptionsProvider,fileSynchronizationUtil, logger, dte);
-        }
-    }
-
-
     internal class CoverageProject
 	{
 		private readonly IAppOptionsProvider appOptionsProvider;
@@ -405,7 +368,7 @@ namespace FineCodeCoverage.Engine.Model
 
 			if(referencedProjects == null)
             {
-				referencedProjects = GetReferencedProjectsFromProjectFile();
+				referencedProjects = await GetReferencedProjectsFromProjectFileAsync();
 			}
 			foreach (var referencedProject in referencedProjects)
             {
@@ -455,7 +418,31 @@ namespace FineCodeCoverage.Engine.Model
 			
 		}
 
-		private List<ReferencedProject> GetReferencedProjectsFromProjectFile()
+        private async Task<List<ReferencedProject>> SafeGetReferencedProjectsWithDesignTimeBuildAsync()
+        {
+            try
+            {
+				return await GetReferencedProjectsWithDesignTimeBuildWorkerAsync();
+			}
+			catch(Exception exception)
+            {
+				logger.Log("Unable to get referenced projects with design time build", exception);
+            }
+			return new List<ReferencedProject>();
+		}
+		private async Task<List<ReferencedProject>> GetReferencedProjectsWithDesignTimeBuildWorkerAsync()
+        {
+			var msBuildWorkspace = MSBuildWorkspace.Create();
+			var project = await msBuildWorkspace.OpenProjectAsync(ProjectFile);
+			var solution = msBuildWorkspace.CurrentSolution;
+			return project.ProjectReferences.Select(
+				pr => solution.Projects.First(p => p.Id == pr.ProjectId).FilePath)
+					.Where(path => path != null)
+					.Select(path => new ReferencedProject(path)).ToList();
+		}
+
+
+		private async Task<List<ReferencedProject>> GetReferencedProjectsFromProjectFileAsync()
 		{
 			/*
 			<ItemGroup>
@@ -466,19 +453,36 @@ namespace FineCodeCoverage.Engine.Model
 
 
 			var xprojectReferences = ProjectFileXElement.XPathSelectElements($"/ItemGroup/ProjectReference[@Include]");
-			return xprojectReferences.Select(xprojectReference =>
-			{
+			var requiresDesignTimeBuild = false;
+			List<string> referencedProjectFiles = new List<string>();
+			foreach(var xprojectReference in xprojectReferences)
+            {
 				var referencedProjectProjectFile = xprojectReference.Attribute("Include").Value;
-
-				if (!Path.IsPathRooted(referencedProjectProjectFile))
+				if (referencedProjectProjectFile.Contains("$("))
 				{
-					//todo The variable $(MSBuildThisFileDirectory) is not expanded #73
-					referencedProjectProjectFile = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(ProjectFile), referencedProjectProjectFile));
+					requiresDesignTimeBuild = true;
+					break;
+				}
+				else
+				{
+					if (!Path.IsPathRooted(referencedProjectProjectFile))
+					{
+
+						referencedProjectProjectFile = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(ProjectFile), referencedProjectProjectFile));
+					}
+					referencedProjectFiles.Add(referencedProjectProjectFile);
 				}
 
-				return new ReferencedProject(referencedProjectProjectFile);
-			}).ToList();
-		
+			}
+
+            if (requiresDesignTimeBuild)
+            {
+				var referencedProjects = await SafeGetReferencedProjectsWithDesignTimeBuildAsync();
+				return referencedProjects;
+
+			}
+
+			return referencedProjectFiles.Select(referencedProjectProjectFile => new ReferencedProject(referencedProjectProjectFile)).ToList();
 		}
 
 		private void SetPaths()

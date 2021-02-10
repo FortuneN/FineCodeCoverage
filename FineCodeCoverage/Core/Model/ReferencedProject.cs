@@ -33,7 +33,7 @@ namespace FineCodeCoverage.Core.Model
 
 			var xassemblyName = projectFileXElement.XPathSelectElement("/PropertyGroup/AssemblyName");
 
-			var result = xassemblyName?.Value?.Trim();
+			var result = xassemblyName?.Value.Trim();
 
 			if (string.IsNullOrWhiteSpace(result))
 			{

@@ -3,6 +3,7 @@ using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using FineCodeCoverage.Engine;
+using FineCodeCoverage.Engine.Model;
 using FineCodeCoverage.Output;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -14,19 +15,29 @@ namespace FineCodeCoverage.Impl
     {
         private readonly IFCCEngine fccEngine;
         private readonly ILogger logger;
+        private readonly ICoverageProjectFactory coverageProjectFactory;
+        private readonly IServiceProvider serviceProvider;
 
         [ImportingConstructor]
-        public Initializer(IFCCEngine fccEngine, ILogger logger)
+        public Initializer(
+            IFCCEngine fccEngine, 
+            ILogger logger, 
+            ICoverageProjectFactory coverageProjectFactory,
+            [Import(typeof(SVsServiceProvider))]
+            IServiceProvider serviceProvider)
         {
             this.fccEngine = fccEngine;
             this.logger = logger;
+            this.coverageProjectFactory = coverageProjectFactory;
+            this.serviceProvider = serviceProvider;
         }
-        public void Initialize(IServiceProvider _serviceProvider)
+        public void Initialize()
         {
             try
             {
-                fccEngine.Initialize(_serviceProvider);
-                InitializePackageAndToolWindow(_serviceProvider);
+                coverageProjectFactory.Initialize();
+                fccEngine.Initialize();
+                InitializePackageAndToolWindow();
 
                 logger.Log($"Initialized");
             }
@@ -36,7 +47,7 @@ namespace FineCodeCoverage.Impl
             }
         }
         [SuppressMessage("Usage", "VSTHRD102:Implement internal logic asynchronously")]
-        private void InitializePackageAndToolWindow(IServiceProvider serviceProvider)
+        private void InitializePackageAndToolWindow()
         {
             ThreadHelper.JoinableTaskFactory.Run(async () =>
             {
