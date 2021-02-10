@@ -18,13 +18,6 @@ namespace Test
             }
         }
 
-        [Test]
-        public void AssemblyName_Should_Be_The_Name_Of_The_Dll()
-        {
-            var referencedProject = new ReferencedProject("", @"C:\Users\tonyh\Source\Repos\RefProject\RefProject\bin\Debug\RefProject.dll");
-            Assert.AreEqual("RefProject", referencedProject.AssemblyName);
-        }
-
         [TestCase(true)]
         [TestCase(false)]
         public void Should_ExcludeFromCodeCoverage_If_Has_Project_Property_FCCExcludeFromCodeCoverage(bool addProperty)
