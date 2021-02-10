@@ -179,9 +179,9 @@ namespace FineCodeCoverage.Engine.Coverlet
 				coverletSettings.Add($@"--exclude ""{value.Replace("\"", "\\\"").Trim(' ', '\'')}""");
 			}
 
-			foreach (var referencedProjectExcludedFromCodeCoverage in project.ReferencedProjects.Where(x => x.ExcludeFromCodeCoverage))
+			foreach (var referencedProjectExcludedFromCodeCoverage in project.ExcludedReferencedProjects)
 			{
-				coverletSettings.Add($@"--exclude ""[{referencedProjectExcludedFromCodeCoverage.AssemblyName}]*""");
+				coverletSettings.Add($@"--exclude ""[{referencedProjectExcludedFromCodeCoverage}]*""");
 			}
 
 			foreach (var value in (project.Settings.Include ?? new string[0]).Where(x => !string.IsNullOrWhiteSpace(x)))

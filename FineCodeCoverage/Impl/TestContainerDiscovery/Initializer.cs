@@ -25,8 +25,6 @@ namespace FineCodeCoverage.Impl
         {
             try
             {
-                logger.Initialize(_serviceProvider);
-
                 fccEngine.Initialize(_serviceProvider);
                 InitializePackageAndToolWindow(_serviceProvider);
 

@@ -17,9 +17,11 @@ public class Logger : ILogger
     private IServiceProvider _serviceProvider;
     private Guid _paneGuid = VSConstants.GUID_BuildOutputWindowPane;
 
-    public void Initialize(IServiceProvider serviceProvider)
+    [ImportingConstructor]
+    public Logger([Import(typeof(SVsServiceProvider))]
+            IServiceProvider serviceProvider)
     {
-        _serviceProvider = serviceProvider;
+        this._serviceProvider = serviceProvider;
         staticLogger = this;
     }
 

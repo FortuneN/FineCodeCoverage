@@ -3,7 +3,6 @@ using System.Collections.Generic;
 
 public interface ILogger
 {
-    void Initialize(IServiceProvider serviceProvider);
     void Log(IEnumerable<object> message);
     void Log(IEnumerable<string> message);
     void Log(params object[] message);

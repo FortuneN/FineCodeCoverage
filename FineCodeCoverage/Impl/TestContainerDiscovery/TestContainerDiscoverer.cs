@@ -9,7 +9,6 @@ using FineCodeCoverage.Options;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.TestWindow.Extensibility;
 using Microsoft.VisualStudio.Utilities;
-using ReflectObject;
 
 namespace FineCodeCoverage.Impl
 {

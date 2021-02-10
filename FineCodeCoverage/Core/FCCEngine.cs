@@ -24,7 +24,6 @@ namespace FineCodeCoverage.Engine
     {
         private object colorThemeService;
         private string CurrentTheme => $"{((dynamic)colorThemeService)?.CurrentTheme?.Name}".Trim();
-        private DTE dte;
         private CancellationTokenSource cancellationTokenSource;
         private CancellationToken cancellationToken;
         public event UpdateMarginTagsDelegate UpdateMarginTags;
@@ -53,7 +52,9 @@ namespace FineCodeCoverage.Engine
             IReportGeneratorUtil reportGeneratorUtil,
             IProcessUtil processUtil,
             IAppOptionsProvider appOptionsProvider,
-            ILogger logger
+            ILogger logger,
+            [Import(typeof(SVsServiceProvider))]
+            IServiceProvider serviceProvider
             )
         {
             this.coverletUtil = coverletUtil;
@@ -64,17 +65,11 @@ namespace FineCodeCoverage.Engine
             this.processUtil = processUtil;
             this.appOptionsProvider = appOptionsProvider;
             this.logger = logger;
+            colorThemeService = serviceProvider.GetService(typeof(SVsColorThemeService));
+
         }
         public void Initialize(IServiceProvider serviceProvider)
         {
-            colorThemeService = serviceProvider.GetService(typeof(SVsColorThemeService));
-            ThreadHelper.JoinableTaskFactory.Run(async () =>
-            {
-                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-                dte = (DTE)serviceProvider.GetService(typeof(DTE));
-                Assumes.Present(dte);
-            });
-
             CreateAppDataFolder();
 
             CleanupLegacyFolders();
@@ -205,7 +200,7 @@ namespace FineCodeCoverage.Engine
                     continue;
                 }
 
-                await project.PrepareForCoverageAsync(dte);
+                await project.PrepareForCoverageAsync();
             }
         }
 

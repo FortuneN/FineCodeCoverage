@@ -111,9 +111,9 @@
     <Compile Include="Options\AppOptionsProvider.cs" />
     <Compile Include="Options\IAppOptions.cs" />
     <Compile Include="Options\IAppOptionsProvider.cs" />
-    <Compile Include="Output\IScriptManager.cs" />
     <Compile Include="Output\OutputToolWindow.cs" />
     <Compile Include="Output\OutputToolWindowCommand.cs" />
+    <Compile Include="Output\OutputToolWindowContext.cs" />
     <Compile Include="Output\OutputToolWindowControl.xaml.cs">
       <DependentUpon>OutputToolWindowControl.xaml</DependentUpon>
     </Compile>
