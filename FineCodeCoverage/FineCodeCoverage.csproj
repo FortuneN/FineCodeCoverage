@@ -72,7 +72,6 @@
     <Compile Include="Core\IFCCEngine.cs" />
     <Compile Include="Core\Model\ReferencedProject.cs" />
     <Compile Include="Core\MsTestPlatform\MsTestPlatformUtil.cs" />
-    <Compile Include="Core\ReloadCoverageRequest.cs" />
     <Compile Include="Core\ReportGenerator\ReportGeneratorUtil.cs" />
     <Compile Include="Core\SVsColorThemeService.cs" />
     <Compile Include="Core\Utilities\AssemblyUtil.cs" />
@@ -111,6 +110,7 @@
     <Compile Include="Options\AppOptionsProvider.cs" />
     <Compile Include="Options\IAppOptions.cs" />
     <Compile Include="Options\IAppOptionsProvider.cs" />
+    <Compile Include="Options\IAppOptionsStorageProvider.cs" />
     <Compile Include="Output\OutputToolWindow.cs" />
     <Compile Include="Output\OutputToolWindowCommand.cs" />
     <Compile Include="Output\OutputToolWindowContext.cs" />

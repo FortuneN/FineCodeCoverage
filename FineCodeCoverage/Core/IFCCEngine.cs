@@ -12,9 +12,10 @@ namespace FineCodeCoverage.Engine
         string AppDataFolder { get; }
         void Initialize(IServiceProvider serviceProvider);
         void StopCoverage();
-        void TryReloadCoverage(Func<IAppOptions, System.Threading.Tasks.Task<ReloadCoverageRequest>> coverageRequestCallback);
+        void ReloadCoverage(Func<System.Threading.Tasks.Task<List<CoverageProject>>> coverageRequestCallback);
         string[] GetSourceFiles(string assemblyName, string qualifiedClassName);
         IEnumerable<CoverageLine> GetLines(string filePath, int startLineNumber, int endLineNumber);
+        void ClearUI();
     }
 
 }

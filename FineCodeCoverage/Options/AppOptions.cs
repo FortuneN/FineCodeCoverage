@@ -1,18 +1,36 @@
-﻿using System;
-using Newtonsoft.Json;
-using System.Reflection;
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Settings;
 using System.Diagnostics.CodeAnalysis;
-using Microsoft.VisualStudio.Shell.Settings;
+using EnvDTE;
+using Microsoft;
 
 namespace FineCodeCoverage.Options
 {
-    public class AppOptions : DialogPage, IAppOptions
+    internal class AppOptions : DialogPage, IAppOptions
     {
         private const string runCategory = "Run";
         private const string excludeIncludeCategory = "Exclude / Include";
+
+        public AppOptions():this(false)
+        {
+            
+        }
+        internal AppOptions(bool isReadOnly)
+        {
+            if (!isReadOnly)
+            {
+                ThreadHelper.JoinableTaskFactory.Run(async () =>
+                {
+                    await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                    var dte = (DTE)ServiceProvider.GlobalProvider.GetService(typeof(DTE));
+                    var sp = new ServiceProvider(dte as Microsoft.VisualStudio.OLE.Interop.IServiceProvider);
+                    var componentModel = sp.GetService(typeof(Microsoft.VisualStudio.ComponentModelHost.SComponentModel)) as Microsoft.VisualStudio.ComponentModelHost.IComponentModel;
+                    Assumes.Present(componentModel);
+                    AppOptionsStorageProvider = componentModel.GetService<IAppOptionsStorageProvider>();
+                });
+            }
+        }
+        internal IAppOptionsStorageProvider AppOptionsStorageProvider { get; set; }
 
         [Category(runCategory)]
         [Description("Specifies whether or not coverage output is enabled")]
@@ -91,75 +109,9 @@ namespace FineCodeCoverage.Options
         [SuppressMessage("Usage", "VSTHRD010:Invoke single-threaded types on Main thread")]
         public override void SaveSettingsToStorage()
         {
-            var settingsManager = new ShellSettingsManager(ServiceProvider.GlobalProvider);
-            var settingsStore = settingsManager.GetWritableSettingsStore(SettingsScope.UserSettings);
-
-            if (!settingsStore.CollectionExists(Vsix.Code))
-            {
-                settingsStore.CreateCollection(Vsix.Code);
-            }
-
-            foreach (var property in GetType().GetProperties(BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.Instance))
-            {
-                try
-                {
-                    var objValue = property.GetValue(this);
-                    var strValue = JsonConvert.SerializeObject(objValue);
-
-                    settingsStore.SetString(Vsix.Code, property.Name, strValue);
-                }
-                catch (Exception exception)
-                {
-                    Logger.Log($"Failed to save '{property.Name}' setting", exception);
-                }
-            }
+            AppOptionsStorageProvider.SaveSettingsToStorage(this);
         }
 
-        [SuppressMessage("Usage", "VSTHRD010:Invoke single-threaded types on Main thread")]
-        private static void LoadSettingsFromStorage(AppOptions instance)
-        {
-            var settingsManager = new ShellSettingsManager(ServiceProvider.GlobalProvider);
-            var settingsStore = settingsManager.GetWritableSettingsStore(SettingsScope.UserSettings);
-
-            if (!settingsStore.CollectionExists(Vsix.Code))
-            {
-                settingsStore.CreateCollection(Vsix.Code);
-            }
-
-            foreach (var property in instance.GetType().GetProperties(BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.Instance))
-            {
-                try
-                {
-                    if (!settingsStore.PropertyExists(Vsix.Code, property.Name))
-                    {
-                        continue;
-                    }
-
-                    var strValue = settingsStore.GetString(Vsix.Code, property.Name);
-
-                    if (string.IsNullOrWhiteSpace(strValue))
-                    {
-                        continue;
-                    }
-
-                    var objValue = JsonConvert.DeserializeObject(strValue, property.PropertyType);
-
-                    property.SetValue(instance, objValue);
-                }
-                catch (Exception exception)
-                {
-                    Logger.Log($"Failed to load '{property.Name}' setting", exception);
-                }
-            }
-        }
-
-        public static AppOptions Get()
-        {
-            var options = new AppOptions();
-            LoadSettingsFromStorage(options);
-            return options;
-        }
     }
-
 
 }

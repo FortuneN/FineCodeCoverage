@@ -1,10 +1,12 @@
-﻿namespace FineCodeCoverage.Options
+﻿using System;
+
+namespace FineCodeCoverage.Options
 {
     internal interface IAppOptionsProvider
     {
-		IAppOptions Get();
-
-	}
+        event Action<IAppOptions> OptionsChanged;
+        IAppOptions Get();
+    }
 
 
 }

@@ -4,7 +4,6 @@ using System.ComponentModel.Composition;
 using System.IO;
 using System.Linq;
 using System.Threading;
-using EnvDTE;
 using FineCodeCoverage.Engine.Cobertura;
 using FineCodeCoverage.Engine.Coverlet;
 using FineCodeCoverage.Engine.Model;
@@ -13,7 +12,6 @@ using FineCodeCoverage.Engine.OpenCover;
 using FineCodeCoverage.Engine.ReportGenerator;
 using FineCodeCoverage.Engine.Utilities;
 using FineCodeCoverage.Options;
-using Microsoft;
 using Microsoft.VisualStudio.Shell;
 
 namespace FineCodeCoverage.Engine
@@ -151,6 +149,13 @@ namespace FineCodeCoverage.Engine
             return classFiles;
         }
 
+        public void ClearUI()
+        {
+            CoverageLines.Clear();
+            UpdateMarginTags?.Invoke(null);
+            UpdateOutputWindow?.Invoke(null);
+        }
+
         public void StopCoverage()
         {
             if (cancellationTokenSource != null)
@@ -166,6 +171,7 @@ namespace FineCodeCoverage.Engine
         }
         private void Reset()
         {
+            StopCoverage();
             SetCancellationToken();
             HtmlFilePath = null;
             CoverageLines.Clear();
@@ -204,42 +210,16 @@ namespace FineCodeCoverage.Engine
             }
         }
 
-        public void TryReloadCoverage(Func<IAppOptions, System.Threading.Tasks.Task<ReloadCoverageRequest>> coverageRequestCallback)
-        {
-            StopCoverage();
-            var settings = appOptionsProvider.Get();
-            var canReload = settings.Enabled;
-
-            if (!canReload)
-            {
-                CoverageLines.Clear();
-                UpdateMarginTags?.Invoke(null);
-                UpdateOutputWindow?.Invoke(null);
-
-            }
-
-            if (canReload)
-            {
-                ReloadCoverage(settings,coverageRequestCallback);
-            }
-        }
-        
-        private void ReloadCoverage(IAppOptions settings,Func<IAppOptions, System.Threading.Tasks.Task<ReloadCoverageRequest>> coverageRequestCallback)
+        public void ReloadCoverage(Func<System.Threading.Tasks.Task<List<CoverageProject>>> coverageRequestCallback)
         {
             Reset();
 
             var coverageTask = System.Threading.Tasks.Task.Run(async () =>
               {
 
-                  var coverageRequest = await coverageRequestCallback(settings);
-                  if (!coverageRequest.Proceed)
-                  {
-                      return;
-                  }
-
                   logger.Log("================================== START ==================================");
-                  var coverageProjects = coverageRequest.CoverageProjects;
 
+                  var coverageProjects = await coverageRequestCallback();
 
                   // process pipeline
 
