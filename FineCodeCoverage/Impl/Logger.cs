@@ -7,105 +7,121 @@ using System.Collections.Generic;
 using Microsoft.VisualStudio.Shell;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.VisualStudio.Shell.Interop;
+using System.ComponentModel.Composition;
 
-public static class Logger
+[Export(typeof(ILogger))]
+public class Logger : ILogger
 {
-	private static IVsOutputWindowPane _pane;
-	private static IVsOutputWindow _outputWindow;
-	private static IServiceProvider _serviceProvider;
-	private static Guid _paneGuid = VSConstants.GUID_BuildOutputWindowPane;
+    private IVsOutputWindowPane _pane;
+    private IVsOutputWindow _outputWindow;
+    private IServiceProvider _serviceProvider;
+    private Guid _paneGuid = VSConstants.GUID_BuildOutputWindowPane;
 
-	public static void Initialize(IServiceProvider serviceProvider)
-	{
-		_serviceProvider = serviceProvider;
-	}
+    [ImportingConstructor]
+    public Logger([Import(typeof(SVsServiceProvider))]
+            IServiceProvider serviceProvider)
+    {
+        this._serviceProvider = serviceProvider;
+        staticLogger = this;
+    }
 
-	[SuppressMessage("Usage", "VSTHRD102:Implement internal logic asynchronously")]
-	private static void LogImpl(object[] message, bool withTitle)
-	{
-		try
-		{
-			var messageList = new List<string>(message?.Select(x => x?.ToString()?.Trim(' ', '\r', '\n')).Where(x => !string.IsNullOrWhiteSpace(x)));
+    [SuppressMessage("Usage", "VSTHRD102:Implement internal logic asynchronously")]
+    private void LogImpl(object[] message, bool withTitle)
+    {
+        try
+        {
+            var messageList = new List<string>(message?.Select(x => x?.ToString()?.Trim(' ', '\r', '\n')).Where(x => !string.IsNullOrWhiteSpace(x)));
 
-			if (!messageList.Any())
-			{
-				return;
-			}
+            if (!messageList.Any())
+            {
+                return;
+            }
 
-			if (_pane == null)
-			{
-				ThreadHelper.JoinableTaskFactory.Run(async () =>
-				{
-					await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-					_outputWindow = (IVsOutputWindow)_serviceProvider.GetService(typeof(SVsOutputWindow));
-					_outputWindow?.GetPane(ref _paneGuid, out _pane);
-				});
-			}
+            if (_pane == null)
+            {
+                ThreadHelper.JoinableTaskFactory.Run(async () =>
+                {
+                    await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                    _outputWindow = (IVsOutputWindow)_serviceProvider.GetService(typeof(SVsOutputWindow));
+                    _outputWindow?.GetPane(ref _paneGuid, out _pane);
+                });
+            }
 
-			if (_pane == null)
-			{
-				return;
-			}
+            if (_pane == null)
+            {
+                return;
+            }
 
-			ThreadHelper.JoinableTaskFactory.Run(async () =>
-			{
-				await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+            ThreadHelper.JoinableTaskFactory.Run(async () =>
+            {
+                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 
-				var logs = string.Join(Environment.NewLine, messageList);
+                var logs = string.Join(Environment.NewLine, messageList);
 
-				if (withTitle)
-				{
-					_pane.OutputStringThreadSafe($"{Environment.NewLine}{Vsix.Name} : {logs}{Environment.NewLine}");
-				}
-				else
-				{
-					_pane.OutputStringThreadSafe($"{logs}{Environment.NewLine}");
-				}
-			});
-		}
-		catch (Exception ex)
-		{
-			Debug.Write(ex);
-		}
-	}
+                if (withTitle)
+                {
+                    _pane.OutputStringThreadSafe($"{Environment.NewLine}{Vsix.Name} : {logs}{Environment.NewLine}");
+                }
+                else
+                {
+                    _pane.OutputStringThreadSafe($"{logs}{Environment.NewLine}");
+                }
+            });
+        }
+        catch (Exception ex)
+        {
+            Debug.Write(ex);
+        }
+    }
 
-	public static void Log(params object[] message)
-	{
-		LogImpl(message, true);
-	}
+    private static Logger staticLogger;
+    public static void Log(params string[] message)
+    {
+        (staticLogger as ILogger).Log(message);
+    }
 
-	public static void Log(params string[] message)
-	{
-		LogImpl(message, true);
-	}
+    public static void Log(params object[] message)
+    {
+        (staticLogger as ILogger).Log(message);
+    }
 
-	public static void Log(IEnumerable<object> message)
-	{
-		LogImpl(message.ToArray(), true);
-	}
+    void ILogger.Log(params object[] message)
+    {
+        LogImpl(message, true);
+    }
 
-	public static void Log(IEnumerable<string> message)
-	{
-		LogImpl(message.ToArray(), true);
-	}
+    void ILogger.Log(params string[] message)
+    {
+        LogImpl(message, true);
+    }
 
-	public static void LogWithoutTitle(params object[] message)
-	{
-		LogImpl(message, false);
-	}
+    public void Log(IEnumerable<object> message)
+    {
+        LogImpl(message.ToArray(), true);
+    }
 
-	public static void LogWithoutTitle(params string[] message)
-	{
-		LogImpl(message, false);
-	}
+    public void Log(IEnumerable<string> message)
+    {
+        LogImpl(message.ToArray(), true);
+    }
 
-	public static void LogWithoutTitle(IEnumerable<object> message)
-	{
-		LogImpl(message.ToArray(), false);
-	}
+    public void LogWithoutTitle(params object[] message)
+    {
+        LogImpl(message, false);
+    }
 
-	public static void LogWithoutTitle(IEnumerable<string> message)
-	{
-		LogImpl(message.ToArray(), false);
-	}
+    public void LogWithoutTitle(params string[] message)
+    {
+        LogImpl(message, false);
+    }
+
+    public void LogWithoutTitle(IEnumerable<object> message)
+    {
+        LogImpl(message.ToArray(), false);
+    }
+
+    public void LogWithoutTitle(IEnumerable<string> message)
+    {
+        LogImpl(message.ToArray(), false);
+    }
 }

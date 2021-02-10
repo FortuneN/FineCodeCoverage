@@ -25,16 +25,29 @@ namespace FineCodeCoverage.Engine.Model
     {
         private readonly IAppOptionsProvider appOptionsProvider;
         private readonly IFileSynchronizationUtil fileSynchronizationUtil;
+        private readonly ILogger logger;
+		private DTE dte;
 
         [ImportingConstructor]
-		public CoverageProjectFactory(IAppOptionsProvider appOptionsProvider,IFileSynchronizationUtil fileSynchronizationUtil)
+		public CoverageProjectFactory(
+			IAppOptionsProvider appOptionsProvider,
+			IFileSynchronizationUtil fileSynchronizationUtil, 
+			ILogger logger,
+			[Import(typeof(SVsServiceProvider))]
+			IServiceProvider serviceProvider)
         {
             this.appOptionsProvider = appOptionsProvider;
             this.fileSynchronizationUtil = fileSynchronizationUtil;
-        }
+            this.logger = logger;
+			ThreadHelper.JoinableTaskFactory.Run(async () =>
+			{
+				await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+				dte = (DTE)serviceProvider.GetService(typeof(DTE));
+			});
+		}
         public CoverageProject Create()
         {
-			return new CoverageProject(appOptionsProvider,fileSynchronizationUtil);
+			return new CoverageProject(appOptionsProvider,fileSynchronizationUtil, logger, dte);
         }
     }
 
@@ -43,18 +56,22 @@ namespace FineCodeCoverage.Engine.Model
 	{
 		private readonly IAppOptionsProvider appOptionsProvider;
 		private readonly IFileSynchronizationUtil fileSynchronizationUtil;
-		private XElement projectFileXElement;
-		private AppOptions settings;
+        private readonly ILogger logger;
+        private readonly DTE dte;
+        private XElement projectFileXElement;
+		private IAppOptions settings;
 		private string fccPath;
 		private string fccFolderName = "fine-code-coverage";
 		private string buildOutputFolderName = "build-output";
 		private string buildOutputPath;
 		private string coverageToolOutputFolderName = "coverage-tool-output";
 
-		public CoverageProject(IAppOptionsProvider appOptionsProvider,IFileSynchronizationUtil fileSynchronizationUtil)
+		public CoverageProject(IAppOptionsProvider appOptionsProvider,IFileSynchronizationUtil fileSynchronizationUtil,ILogger logger, DTE dte)
         {
             this.appOptionsProvider = appOptionsProvider;
             this.fileSynchronizationUtil = fileSynchronizationUtil;
+            this.logger = logger;
+            this.dte = dte;
         }
 
 		public bool IsDotNetSdkStyle(){
@@ -151,7 +168,7 @@ namespace FineCodeCoverage.Engine.Model
 		}
 		
 		
-		public AppOptions Settings
+		public IAppOptions Settings
 		{
 			get
 			{
@@ -319,7 +336,7 @@ namespace FineCodeCoverage.Engine.Model
 							}
 							catch (Exception exception)
 							{
-								Logger.Log($"Failed to override '{property.Name}' setting", exception);
+								logger.Log($"Failed to override '{property.Name}' setting", exception);
 							}
 						}
 					}
@@ -342,8 +359,7 @@ namespace FineCodeCoverage.Engine.Model
 
 			}
 		}
-		public List<ReferencedProject> ReferencedProjects { get; set; }
-		public string AssemblyName { get; set; }
+		public List<string> ExcludedReferencedProjects { get; } = new List<string>();
 		public bool Is64Bit { get; set; }
 		public string RunSettingsFile { get; set; }
 
@@ -354,7 +370,7 @@ namespace FineCodeCoverage.Engine.Model
 				return this;
 			}
 
-			Logger.Log($"{stepName} ({ProjectName})");
+			logger.Log($"{stepName} ({ProjectName})");
 
 			try
 			{
@@ -368,26 +384,50 @@ namespace FineCodeCoverage.Engine.Model
 
 			if (HasFailed)
 			{
-				Logger.Log($"{stepName} ({ProjectName}) Failed", FailureDescription);
+				logger.Log($"{stepName} ({ProjectName}) Failed", FailureDescription);
 			}
 			
 			return this;
 		}
 
-		internal async System.Threading.Tasks.Task PrepareForCoverageAsync(DTE dte)
+		internal async System.Threading.Tasks.Task PrepareForCoverageAsync()
         {
 			SetPaths();
 			EnsureDirectories();
 			CleanDirectory();
 			SynchronizeBuildOutput();
-			await SetAssemblyNameAndReferencedProjectsAsync(dte);
+			await SetExcludedReferencedProjectsAsync();
         }
 
-		private async System.Threading.Tasks.Task SetAssemblyNameAndReferencedProjectsAsync(DTE dte)
+		private async System.Threading.Tasks.Task SetExcludedReferencedProjectsAsync()
 		{
-			await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+			List<ReferencedProject> referencedProjects = await SafeGetReferencedProjectsFromDteAsync();
 
-			var project = dte.Solution.Projects.Cast<Project>().First(p =>
+			if(referencedProjects == null)
+            {
+				referencedProjects = GetReferencedProjectsFromProjectFile();
+			}
+			foreach (var referencedProject in referencedProjects)
+            {
+                if (referencedProject.ExcludeFromCodeCoverage)
+                {
+					ExcludedReferencedProjects.Add(referencedProject.AssemblyName);
+                }
+            }
+		}
+		private async Task<List<ReferencedProject>> SafeGetReferencedProjectsFromDteAsync()
+        {
+			try
+			{
+				return await GetReferencedProjectsFromDteAsync();
+			}
+			catch (Exception) { }
+			return null;
+        }
+		private async Task<List<ReferencedProject>> GetReferencedProjectsFromDteAsync()
+        {
+			await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+			var project = dte.Solution.Projects.Cast<Project>().FirstOrDefault(p =>
 			{
 				ThreadHelper.ThrowIfNotOnUIThread();
 				//have to try here as unloaded projects will throw
@@ -399,16 +439,47 @@ namespace FineCodeCoverage.Engine.Model
 				catch { }
 				return projectFullName == ProjectFile;
 			});
-			AssemblyName = (string)project.Properties.Item("AssemblyName").Value;
+
+			if (project == null)
+			{
+				return null;
+			}
+
 			var vsproject = project.Object as VSLangProj.VSProject;
-			ReferencedProjects = vsproject.References.Cast<VSLangProj.Reference>().Where(r => r.SourceProject != null).Select(r=>
+			return vsproject.References.Cast<VSLangProj.Reference>().Where(r => r.SourceProject != null).Select(r =>
 			{
 				ThreadHelper.ThrowIfNotOnUIThread();
-				return new ReferencedProject(r.SourceProject.FullName, r.Path);
+				var assemblyName = Path.GetFileNameWithoutExtension(r.Path);
+				return new ReferencedProject(r.SourceProject.FullName, assemblyName);
 			}).ToList();
+			
 		}
-		
 
+		private List<ReferencedProject> GetReferencedProjectsFromProjectFile()
+		{
+			/*
+			<ItemGroup>
+				<ProjectReference Include="..\BranchCoverage\Branch_Coverage.csproj" />
+				<ProjectReference Include="..\FxClassLibrary1\FxClassLibrary1.csproj"></ProjectReference>
+			</ItemGroup>
+			 */
+
+
+			var xprojectReferences = ProjectFileXElement.XPathSelectElements($"/ItemGroup/ProjectReference[@Include]");
+			return xprojectReferences.Select(xprojectReference =>
+			{
+				var referencedProjectProjectFile = xprojectReference.Attribute("Include").Value;
+
+				if (!Path.IsPathRooted(referencedProjectProjectFile))
+				{
+					//todo The variable $(MSBuildThisFileDirectory) is not expanded #73
+					referencedProjectProjectFile = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(ProjectFile), referencedProjectProjectFile));
+				}
+
+				return new ReferencedProject(referencedProjectProjectFile);
+			}).ToList();
+		
+		}
 
 		private void SetPaths()
         {

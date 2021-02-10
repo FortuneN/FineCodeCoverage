@@ -36,6 +36,7 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 		public const string ReportGeneratorName = "dotnet-reportgenerator-globaltool";
         private readonly IAssemblyUtil assemblyUtil;
         private readonly IProcessUtil processUtil;
+        private readonly ILogger logger;
 
         public string ReportGeneratorExePath { get; private set; }
 		public string AppDataReportGeneratorFolder { get; private set; }
@@ -43,13 +44,14 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 		public Version MimimumReportGeneratorVersion { get; private set; }
 
 		[ImportingConstructor]
-		public ReportGeneratorUtil(IAssemblyUtil assemblyUtil,IProcessUtil processUtil)
+		public ReportGeneratorUtil(IAssemblyUtil assemblyUtil,IProcessUtil processUtil, ILogger logger)
 		{
 			// version of report generator from class inherited by our custom plugins
 			var reportGeneratorLibVersion = typeof(FccLightReportBuilder).BaseType.Assembly.GetName().Version.ToString().Split('.').Take(3);
 			MimimumReportGeneratorVersion = Version.Parse(string.Join(".", reportGeneratorLibVersion));
             this.assemblyUtil = assemblyUtil;
             this.processUtil = processUtil;
+            this.logger = logger;
         }
 
 		public void Initialize(string appDataFolder)
@@ -92,7 +94,7 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 
 			if (process.ExitCode != 0)
 			{
-				Logger.Log($"{title} Error", processOutput);
+				logger.Log($"{title} Error", processOutput);
 				return null;
 			}
 
@@ -142,13 +144,13 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 
 			if (process.ExitCode != 0)
 			{
-				Logger.Log($"{title} Error", processOutput);
+				logger.Log($"{title} Error", processOutput);
 				return;
 			}
 
 			GetReportGeneratorVersion();
 
-			Logger.Log(title, processOutput);
+			logger.Log(title, processOutput);
 		}
 
 		private void InstallReportGenerator()
@@ -175,13 +177,13 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 
 			if (process.ExitCode != 0)
 			{
-				Logger.Log($"{title} Error", processOutput);
+				logger.Log($"{title} Error", processOutput);
 				return;
 			}
 
 			GetReportGeneratorVersion();
 
-			Logger.Log(title, processOutput);
+			logger.Log(title, processOutput);
 		}
 
 		public async Task<ReportGeneratorResult> RunReportGeneratorAsync(IEnumerable<string> coverOutputFiles, bool darkMode, bool throwError = false)
@@ -218,7 +220,7 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 					throw new Exception($"Unknown reporttype '{outputReportType}'");
 				}
 
-				Logger.Log($"{title} Arguments [reporttype:{outputReportType}] {Environment.NewLine}{string.Join($"{Environment.NewLine}", reportTypeSettings)}");
+				logger.Log($"{title} Arguments [reporttype:{outputReportType}] {Environment.NewLine}{string.Join($"{Environment.NewLine}", reportTypeSettings)}");
 
 				var result = await processUtil
 					.ExecuteAsync(new ExecuteRequest
@@ -238,11 +240,11 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 							throw new Exception(result.Output);
 						}
 
-						Logger.Log($"{title} [reporttype:{outputReportType}] Error", result.Output);
+						logger.Log($"{title} [reporttype:{outputReportType}] Error", result.Output);
 						return false;
 					}
 
-					Logger.Log($"{title} [reporttype:{outputReportType}]", result.Output);
+					logger.Log($"{title} [reporttype:{outputReportType}]", result.Output);
 					return true;
 				}
 				return false;

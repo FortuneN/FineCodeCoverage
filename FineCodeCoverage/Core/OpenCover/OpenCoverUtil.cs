@@ -29,14 +29,16 @@ namespace FineCodeCoverage.Engine.OpenCover
 		private Version currentOpenCoverVersion;
         private readonly IMsTestPlatformUtil msTestPlatformUtil;
         private readonly IProcessUtil processUtil;
+        private readonly ILogger logger;
 
         private Version MimimumOpenCoverVersion { get; } = Version.Parse("4.7.922");
 
 		[ImportingConstructor]
-		public OpenCoverUtil(IMsTestPlatformUtil msTestPlatformUtil,IProcessUtil processUtil)
+		public OpenCoverUtil(IMsTestPlatformUtil msTestPlatformUtil,IProcessUtil processUtil, ILogger logger)
         {
             this.msTestPlatformUtil = msTestPlatformUtil;
             this.processUtil = processUtil;
+            this.logger = logger;
         }
 
 		public void Initialize(string appDataFolder)
@@ -65,7 +67,7 @@ namespace FineCodeCoverage.Engine.OpenCover
 
 			if (string.IsNullOrWhiteSpace(openCoverExePath))
 			{
-				Logger.Log($"{title} Not Installed");
+				logger.Log($"{title} Not Installed");
 				return null;
 			}
 
@@ -73,7 +75,7 @@ namespace FineCodeCoverage.Engine.OpenCover
 
 			if (string.IsNullOrWhiteSpace(openCoverExePath))
 			{
-				Logger.Log($"{title} Nuspec Not Found");
+				logger.Log($"{title} Nuspec Not Found");
 				return null;
 			}
 
@@ -91,7 +93,7 @@ namespace FineCodeCoverage.Engine.OpenCover
 
 			if (!versionParsed)
 			{
-				Logger.Log($"{title} Failed to parse nuspec", nuspecXmlText);
+				logger.Log($"{title} Failed to parse nuspec", nuspecXmlText);
 				return null;
 			}
 
@@ -115,7 +117,7 @@ namespace FineCodeCoverage.Engine.OpenCover
 			}
 			catch (Exception exception)
 			{
-				Logger.Log(title, $"Error {exception}");
+				logger.Log(title, $"Error {exception}");
 			}
 		}
 
@@ -150,11 +152,11 @@ namespace FineCodeCoverage.Engine.OpenCover
 
 				// report
 
-				Logger.Log(title, $"Installed version {currentOpenCoverVersion}");
+				logger.Log(title, $"Installed version {currentOpenCoverVersion}");
 			}
 			catch (Exception exception)
 			{
-				Logger.Log(title, $"Error {exception}");
+				logger.Log(title, $"Error {exception}");
 			}
 		}
 
@@ -208,9 +210,9 @@ namespace FineCodeCoverage.Engine.OpenCover
 					filters.Add($@"-{value.Replace("\"", "\\\"").Trim(' ', '\'')}");
 				}
 
-				foreach (var referenceProjectWithExcludeAttribute in project.ReferencedProjects.Where(x => x.ExcludeFromCodeCoverage))
+				foreach (var referencedProjectExcludedFromCodeCoverage in project.ExcludedReferencedProjects)
 				{
-					filters.Add($@"-[{referenceProjectWithExcludeAttribute.AssemblyName}]*");
+					filters.Add($@"-[{referencedProjectExcludedFromCodeCoverage}]*");
 				}
 
 				if (filters.Any(x => !x.Equals(defaultFilter)))
@@ -294,7 +296,7 @@ namespace FineCodeCoverage.Engine.OpenCover
 
 			opencoverSettings.Add($@" ""-output:{ project.CoverageOutputFile }"" ");
 
-			Logger.Log($"{title} Arguments {Environment.NewLine}{string.Join($"{Environment.NewLine}", opencoverSettings)}");
+			logger.Log($"{title} Arguments {Environment.NewLine}{string.Join($"{Environment.NewLine}", opencoverSettings)}");
 
 			var result = await processUtil
 			.ExecuteAsync(new ExecuteRequest
@@ -313,11 +315,11 @@ namespace FineCodeCoverage.Engine.OpenCover
 						throw new Exception(result.Output);
 					}
 
-					Logger.Log($"{title} Error", result.Output);
+					logger.Log($"{title} Error", result.Output);
 					return false;
 				}
 
-				Logger.Log(title, result.Output);
+				logger.Log(title, result.Output);
 				return true;
 			}
 			return false;

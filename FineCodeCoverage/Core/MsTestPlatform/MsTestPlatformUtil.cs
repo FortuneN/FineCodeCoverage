@@ -22,8 +22,15 @@ namespace FineCodeCoverage.Engine.MsTestPlatform
 		private HttpClient HttpClient { get; } = new HttpClient();
 		private string appDataMsTestPlatformFolder;
 		private Version currentMsTestPlatformVersion;
-		private Version MimimumMsTestPlatformVersion { get; } = Version.Parse("16.7.1");
+        private readonly ILogger logger;
 
+        private Version MimimumMsTestPlatformVersion { get; } = Version.Parse("16.7.1");
+
+		[ImportingConstructor]
+		public MsTestPlatformUtil(ILogger logger)
+        {
+            this.logger = logger;
+        }
 		public void Initialize(string appDataFolder)
 		{
 			appDataMsTestPlatformFolder = Path.Combine(appDataFolder, "msTestPlatform");
@@ -50,7 +57,7 @@ namespace FineCodeCoverage.Engine.MsTestPlatform
 
 			if (string.IsNullOrWhiteSpace(MsTestPlatformExePath))
 			{
-				Logger.Log($"{title} Not Installed");
+				logger.Log($"{title} Not Installed");
 				return null;
 			}
 
@@ -58,7 +65,7 @@ namespace FineCodeCoverage.Engine.MsTestPlatform
 
 			if (string.IsNullOrWhiteSpace(MsTestPlatformExePath))
 			{
-				Logger.Log($"{title} Nuspec Not Found");
+				logger.Log($"{title} Nuspec Not Found");
 				return null;
 			}
 
@@ -76,7 +83,7 @@ namespace FineCodeCoverage.Engine.MsTestPlatform
 
 			if (!versionParsed)
 			{
-				Logger.Log($"{title} Failed to parse nuspec", nuspecXmlText);
+				logger.Log($"{title} Failed to parse nuspec", nuspecXmlText);
 				return null;
 			}
 
@@ -100,7 +107,7 @@ namespace FineCodeCoverage.Engine.MsTestPlatform
 			}
 			catch (Exception exception)
 			{
-				Logger.Log(title, $"Error {exception}");
+				logger.Log(title, $"Error {exception}");
 			}
 		}
 
@@ -135,11 +142,11 @@ namespace FineCodeCoverage.Engine.MsTestPlatform
 
 				// report
 
-				Logger.Log(title, $"Installed version {currentMsTestPlatformVersion}");
+				logger.Log(title, $"Installed version {currentMsTestPlatformVersion}");
 			}
 			catch (Exception exception)
 			{
-				Logger.Log(title, $"Error {exception}");
+				logger.Log(title, $"Error {exception}");
 			}
 		}
 	}

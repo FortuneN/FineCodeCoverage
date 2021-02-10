@@ -19,7 +19,7 @@ namespace FineCodeCoverage.Output
 	/// </summary>
 	internal partial class OutputToolWindowControl : UserControl
 	{
-		private DTE Dte;
+        private DTE Dte;
 		private Events Events;
 		private SolutionEvents SolutionEvents;
 
@@ -60,7 +60,7 @@ namespace FineCodeCoverage.Output
 					FCCOutputBrowser.Visibility = Visibility.Visible;
 				});
 			};
-		}
+        }
 
 		private void Clear()
 		{
@@ -75,14 +75,16 @@ namespace FineCodeCoverage.Output
         private DTE _dte;
         private readonly SVsServiceProvider serviceProvider;
         private readonly IFCCEngine fccEngine;
+        private readonly ILogger logger;
 
         public Action FocusCallback { get; set; }
 
         [ImportingConstructor]
-        internal ScriptManager(SVsServiceProvider serviceProvider,IFCCEngine fccEngine)
+        internal ScriptManager(SVsServiceProvider serviceProvider,IFCCEngine fccEngine, ILogger logger)
         {
             this.serviceProvider = serviceProvider;
             this.fccEngine = fccEngine;
+            this.logger = logger;
         }
         private DTE Dte {
             get
@@ -110,7 +112,7 @@ namespace FineCodeCoverage.Output
             if (!sourceFiles.Any())
             {
                 var message = $"Source File(s) Not Found : [{ assemblyName }]{ qualifiedClassName }";
-                Logger.Log(message);
+                logger.Log(message);
                 MessageBox.Show(message);
                 return;
             }

@@ -24,7 +24,6 @@ namespace FineCodeCoverage.Engine
     {
         private object colorThemeService;
         private string CurrentTheme => $"{((dynamic)colorThemeService)?.CurrentTheme?.Name}".Trim();
-        private DTE dte;
         private CancellationTokenSource cancellationTokenSource;
         private CancellationToken cancellationToken;
         public event UpdateMarginTagsDelegate UpdateMarginTags;
@@ -40,6 +39,7 @@ namespace FineCodeCoverage.Engine
         private readonly IReportGeneratorUtil reportGeneratorUtil;
         private readonly IProcessUtil processUtil;
         private readonly IAppOptionsProvider appOptionsProvider;
+        private readonly ILogger logger;
 
         public List<CoverageLine> CoverageLines { get; private set; } = new List<CoverageLine>();
 
@@ -51,7 +51,10 @@ namespace FineCodeCoverage.Engine
             IMsTestPlatformUtil msTestPlatformUtil,
             IReportGeneratorUtil reportGeneratorUtil,
             IProcessUtil processUtil,
-            IAppOptionsProvider appOptionsProvider
+            IAppOptionsProvider appOptionsProvider,
+            ILogger logger,
+            [Import(typeof(SVsServiceProvider))]
+            IServiceProvider serviceProvider
             )
         {
             this.coverletUtil = coverletUtil;
@@ -61,17 +64,12 @@ namespace FineCodeCoverage.Engine
             this.reportGeneratorUtil = reportGeneratorUtil;
             this.processUtil = processUtil;
             this.appOptionsProvider = appOptionsProvider;
+            this.logger = logger;
+            colorThemeService = serviceProvider.GetService(typeof(SVsColorThemeService));
+
         }
         public void Initialize(IServiceProvider serviceProvider)
         {
-            colorThemeService = serviceProvider.GetService(typeof(SVsColorThemeService));
-            ThreadHelper.JoinableTaskFactory.Run(async () =>
-            {
-                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-                dte = (DTE)serviceProvider.GetService(typeof(DTE));
-                Assumes.Present(dte);
-            });
-
             CreateAppDataFolder();
 
             CleanupLegacyFolders();
@@ -202,11 +200,11 @@ namespace FineCodeCoverage.Engine
                     continue;
                 }
 
-                await project.PrepareForCoverageAsync(dte);
+                await project.PrepareForCoverageAsync();
             }
         }
 
-        public void TryReloadCoverage(Func<AppOptions, System.Threading.Tasks.Task<ReloadCoverageRequest>> coverageRequestCallback)
+        public void TryReloadCoverage(Func<IAppOptions, System.Threading.Tasks.Task<ReloadCoverageRequest>> coverageRequestCallback)
         {
             StopCoverage();
             var settings = appOptionsProvider.Get();
@@ -226,22 +224,22 @@ namespace FineCodeCoverage.Engine
             }
         }
         
-        private void ReloadCoverage(AppOptions settings,Func<AppOptions, System.Threading.Tasks.Task<ReloadCoverageRequest>> coverageRequestCallback)
+        private void ReloadCoverage(IAppOptions settings,Func<IAppOptions, System.Threading.Tasks.Task<ReloadCoverageRequest>> coverageRequestCallback)
         {
             Reset();
-            
+
             var coverageTask = System.Threading.Tasks.Task.Run(async () =>
               {
 
                   var coverageRequest = await coverageRequestCallback(settings);
-                  if(!coverageRequest.Proceed)
+                  if (!coverageRequest.Proceed)
                   {
                       return;
                   }
 
-                  Logger.Log("================================== START ==================================");
+                  logger.Log("================================== START ==================================");
                   var coverageProjects = coverageRequest.CoverageProjects;
-                  
+
 
                   // process pipeline
 
@@ -331,12 +329,18 @@ namespace FineCodeCoverage.Engine
 
                   // log
 
-                  Logger.Log("================================== DONE ===================================");
+                  logger.Log("================================== DONE ===================================");
 
                   cancellationTokenSource.Dispose();
                   cancellationTokenSource = null;
-              }, cancellationToken);
-
+              }, cancellationToken).ContinueWith(t =>
+              {
+                  if (t.Status == System.Threading.Tasks.TaskStatus.Faulted)
+                  {
+                      logger.Log("Error processing unit test events", t.Exception);
+                  }
+              }, System.Threading.Tasks.TaskScheduler.Default);
+            
         }
 
     }

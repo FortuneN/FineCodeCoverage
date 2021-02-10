@@ -20,15 +20,17 @@ namespace FineCodeCoverage.Engine.Coverlet
 	{
 		private const string CoverletName = "coverlet.console";
         private readonly IProcessUtil processUtil;
+        private readonly ILogger logger;
         private string coverletExePath;
 		private string appDataCoverletFolder;
 		private Version currentCoverletVersion;
 		private Version MimimumCoverletVersion { get; } = Version.Parse("1.7.2");
 
 		[ImportingConstructor]
-		public CoverletUtil(IProcessUtil processUtil)
+		public CoverletUtil(IProcessUtil processUtil, ILogger logger)
         {
             this.processUtil = processUtil;
+            this.logger = logger;
         }
 		public void Initialize(string appDataFolder)
 		{
@@ -70,7 +72,7 @@ namespace FineCodeCoverage.Engine.Coverlet
 
 			if (process.ExitCode != 0)
 			{
-				Logger.Log($"{title} Error", processOutput);
+				logger.Log($"{title} Error", processOutput);
 				return null;
 			}
 
@@ -120,13 +122,13 @@ namespace FineCodeCoverage.Engine.Coverlet
 
 			if (process.ExitCode != 0)
 			{
-				Logger.Log($"{title} Error", processOutput);
+				logger.Log($"{title} Error", processOutput);
 				return;
 			}
 
 			GetCoverletVersion();
 
-			Logger.Log(title, processOutput);
+			logger.Log(title, processOutput);
 		}
 
 		private void InstallCoverlet()
@@ -153,13 +155,13 @@ namespace FineCodeCoverage.Engine.Coverlet
 
 			if (process.ExitCode != 0)
 			{
-				Logger.Log($"{title} Error", processOutput);
+				logger.Log($"{title} Error", processOutput);
 				return;
 			}
 
 			GetCoverletVersion();
 
-			Logger.Log(title, processOutput);
+			logger.Log(title, processOutput);
 		}
 
 		public async Task<bool> RunCoverletAsync(CoverageProject project, bool throwError = false)
@@ -177,9 +179,9 @@ namespace FineCodeCoverage.Engine.Coverlet
 				coverletSettings.Add($@"--exclude ""{value.Replace("\"", "\\\"").Trim(' ', '\'')}""");
 			}
 
-			foreach (var referenceProjectWithExcludeAttribute in project.ReferencedProjects.Where(x => x.ExcludeFromCodeCoverage))
+			foreach (var referencedProjectExcludedFromCodeCoverage in project.ExcludedReferencedProjects)
 			{
-				coverletSettings.Add($@"--exclude ""[{referenceProjectWithExcludeAttribute.AssemblyName}]*""");
+				coverletSettings.Add($@"--exclude ""[{referencedProjectExcludedFromCodeCoverage}]*""");
 			}
 
 			foreach (var value in (project.Settings.Include ?? new string[0]).Where(x => !string.IsNullOrWhiteSpace(x)))
@@ -215,7 +217,7 @@ namespace FineCodeCoverage.Engine.Coverlet
 			var runSettings = !string.IsNullOrWhiteSpace(project.RunSettingsFile) ? $@"--settings """"{project.RunSettingsFile}""""" : default;
 			coverletSettings.Add($@"--targetargs ""test  """"{project.TestDllFile}"""" --nologo --blame {runSettings} --results-directory """"{project.CoverageOutputFolder}"""" --diag """"{project.CoverageOutputFolder}/diagnostics.log""""  """);
 
-			Logger.Log($"{title} Arguments {Environment.NewLine}{string.Join($"{Environment.NewLine}", coverletSettings)}");
+			logger.Log($"{title} Arguments {Environment.NewLine}{string.Join($"{Environment.NewLine}", coverletSettings)}");
 
 			var result = await processUtil
 			.ExecuteAsync(new ExecuteRequest
@@ -241,11 +243,11 @@ namespace FineCodeCoverage.Engine.Coverlet
 						throw new Exception(result.Output);
 					}
 
-					Logger.Log($"{title} Error", result.Output);
+					logger.Log($"{title} Error", result.Output);
 					return false;
 				}
 
-				Logger.Log(title, result.Output);
+				logger.Log(title, result.Output);
 
 				return true;
 			}
