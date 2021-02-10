@@ -80,12 +80,7 @@ public class Logger : ILogger
         (staticLogger as ILogger).Log(message);
     }
 
-    public static void Log(params object[] message)
-    {
-        (staticLogger as ILogger).Log(message);
-    }
-
-    void ILogger.Log(params object[] message)
+    public void Log(params object[] message)
     {
         LogImpl(message, true);
     }

@@ -16,7 +16,6 @@ using Microsoft.VisualStudio.Shell;
 
 namespace FineCodeCoverage.Engine
 {
-
     [Export(typeof(IFCCEngine))]
     internal class FCCEngine : IFCCEngine
     {
@@ -38,6 +37,7 @@ namespace FineCodeCoverage.Engine
         private readonly IProcessUtil processUtil;
         private readonly IAppOptionsProvider appOptionsProvider;
         private readonly ILogger logger;
+        private readonly IAppDataFolder appDataFolder;
 
         public List<CoverageLine> CoverageLines { get; private set; } = new List<CoverageLine>();
 
@@ -51,6 +51,7 @@ namespace FineCodeCoverage.Engine
             IProcessUtil processUtil,
             IAppOptionsProvider appOptionsProvider,
             ILogger logger,
+            IAppDataFolder appDataFolder,
             [Import(typeof(SVsServiceProvider))]
             IServiceProvider serviceProvider
             )
@@ -63,61 +64,23 @@ namespace FineCodeCoverage.Engine
             this.processUtil = processUtil;
             this.appOptionsProvider = appOptionsProvider;
             this.logger = logger;
+            this.appDataFolder = appDataFolder;
             colorThemeService = serviceProvider.GetService(typeof(SVsColorThemeService));
 
         }
-        public void Initialize(IServiceProvider serviceProvider)
+        public void Initialize()
         {
-            CreateAppDataFolder();
+            appDataFolder.Initialize();
+            var appDataFolderPath = appDataFolder.DirectoryPath;
+            
+            reportGeneratorUtil.Initialize(appDataFolderPath);
+            msTestPlatformUtil.Initialize(appDataFolderPath);
+            openCoverUtil.Initialize(appDataFolderPath);
 
-            CleanupLegacyFolders();
-
-            coverletUtil.Initialize(AppDataFolder);
-            reportGeneratorUtil.Initialize(AppDataFolder);
-            msTestPlatformUtil.Initialize(AppDataFolder);
-            openCoverUtil.Initialize(AppDataFolder);
+            coverletUtil.Initialize(appDataFolderPath);
         }
 
-        private void CreateAppDataFolder()
-        {
-            AppDataFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), Vsix.Code);
-            Directory.CreateDirectory(AppDataFolder);
-        }
-
-        private void CleanupLegacyFolders()
-        {
-            Directory
-            .GetDirectories(AppDataFolder, "*", SearchOption.TopDirectoryOnly)
-            .Where(path =>
-            {
-                var name = Path.GetFileName(path);
-
-                if (name.Contains("__"))
-                {
-                    return true;
-                }
-
-                if (Guid.TryParse(name, out var _))
-                {
-                    return true;
-                }
-
-                return false;
-            })
-            .ToList()
-            .ForEach(path =>
-            {
-                try
-                {
-                    Directory.Delete(path, true);
-                }
-                catch
-                {
-                    // ignore
-                }
-            });
-        }
-
+        
         public IEnumerable<CoverageLine> GetLines(string filePath, int startLineNumber, int endLineNumber)
         {
             return CoverageLines

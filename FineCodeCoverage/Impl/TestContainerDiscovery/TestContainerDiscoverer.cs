@@ -57,7 +57,7 @@ namespace FineCodeCoverage.Impl
             
             initializeThread = new Thread(() =>
             {
-                initializer.Initialize(serviceProvider);
+                initializer.Initialize();
                 // important this comes last - ensures when reload coverage everything in place
                 operationState.StateChanged += OperationState_StateChanged;
 
@@ -76,7 +76,12 @@ namespace FineCodeCoverage.Impl
         private void TestExecutionStarting(IOperation operation)
         {
             fccEngine.StopCoverage();
+
             var settings = appOptionsProvider.Get();
+            if (!settings.Enabled)
+            {
+                return;
+            }
             if (settings.RunInParallel)
             {
                 fccEngine.ReloadCoverage(() =>
@@ -91,6 +96,10 @@ namespace FineCodeCoverage.Impl
         private void TestExecutionFinished(IOperation operation)
         {
             var settings = appOptionsProvider.Get();
+            if (!settings.Enabled)
+            {
+                return;
+            }
             if (settings.RunInParallel)
             {
                 return;

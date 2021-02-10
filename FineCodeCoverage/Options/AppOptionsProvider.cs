@@ -14,8 +14,15 @@ namespace FineCodeCoverage.Options
     internal class AppOptionsProvider : IAppOptionsProvider, IAppOptionsStorageProvider
     {
         private Type AppOptionsType = typeof(AppOptions);
+        private readonly ILogger logger;
 
         public event Action<IAppOptions> OptionsChanged;
+
+        [ImportingConstructor]
+        public AppOptionsProvider(ILogger logger)
+        {
+            this.logger = logger;
+        }
 
         public void RaiseOptionsChanged(IAppOptions appOptions)
         {
@@ -28,7 +35,7 @@ namespace FineCodeCoverage.Options
             return options;
         }
         [SuppressMessage("Usage", "VSTHRD010:Invoke single-threaded types on Main thread")]
-        private void LoadSettingsFromStorage(AppOptions instance)
+        public void LoadSettingsFromStorage(AppOptions instance)
         {
             var settingsManager = new ShellSettingsManager(ServiceProvider.GlobalProvider);
             var settingsStore = settingsManager.GetWritableSettingsStore(SettingsScope.UserSettings);
@@ -60,7 +67,7 @@ namespace FineCodeCoverage.Options
                 }
                 catch (Exception exception)
                 {
-                    Logger.Log($"Failed to load '{property.Name}' setting", exception);
+                    logger.Log($"Failed to load '{property.Name}' setting", exception);
                 }
             }
         }
@@ -79,14 +86,14 @@ namespace FineCodeCoverage.Options
             {
                 try
                 {
-                    var objValue = property.GetValue(this);
+                    var objValue = property.GetValue(appOptions);
                     var strValue = JsonConvert.SerializeObject(objValue);
 
                     settingsStore.SetString(Vsix.Code, property.Name, strValue);
                 }
                 catch (Exception exception)
                 {
-                    Logger.Log($"Failed to save '{property.Name}' setting", exception);
+                    logger.Log($"Failed to save '{property.Name}' setting", exception);
                 }
             }
             RaiseOptionsChanged(appOptions);

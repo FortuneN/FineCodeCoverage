@@ -112,6 +112,11 @@ namespace FineCodeCoverage.Options
             AppOptionsStorageProvider.SaveSettingsToStorage(this);
         }
 
+        public override void LoadSettingsFromStorage()
+        {
+            AppOptionsStorageProvider.LoadSettingsFromStorage(this);
+        }
+
     }
 
 }

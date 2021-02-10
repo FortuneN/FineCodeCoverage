@@ -73,8 +73,7 @@ namespace Test
         [Test]
         public void It_Should_Initialize_As_Is_The_Entrance()
         {
-            var serviceProvider = mocker.GetMock<IServiceProvider>();
-            mocker.Verify<IInitializer>(i => i.Initialize(serviceProvider.Object));
+            mocker.Verify<IInitializer>(i => i.Initialize());
         }
 
         [Test]
@@ -94,7 +93,11 @@ namespace Test
         [Test]
         public void Should_Not_ReloadCoverage_When_TestExecutionStarting_And_Settings_RunInParallel_Is_False()
         {
-            SetUpRunInParallel(false);
+            SetUpOptions(mockAppOptions =>
+            {
+                mockAppOptions.Setup(o => o.Enabled).Returns(true);
+                mockAppOptions.Setup(o => o.RunInParallel).Returns(false);
+            });
             RaiseTestExecutionStarting();
 
             AssertShouldNotReloadCoverage();
@@ -103,7 +106,11 @@ namespace Test
         [Test]
         public void Should_Not_ReloadCoverage_When_TestExecutionFinished_And_Reloading_When_Tests_Start()
         {
-            SetUpRunInParallel(true);
+            SetUpOptions(mockAppOptions =>
+            {
+                mockAppOptions.Setup(o => o.Enabled).Returns(true);
+                mockAppOptions.Setup(o => o.RunInParallel).Returns(true);
+            });
             RaiseTestExecutionFinished();
 
             AssertShouldNotReloadCoverage();
@@ -112,7 +119,11 @@ namespace Test
         [Test]
         public async Task Should_ReloadCoverage_When_TestExecutionStarting_And_Settings_RunInParallel_Is_True()
         {
-            SetUpRunInParallel(true);
+            SetUpOptions(mockAppOptions =>
+            {
+                mockAppOptions.Setup(o => o.Enabled).Returns(true);
+                mockAppOptions.Setup(o => o.RunInParallel).Returns(true);
+            });
             var setup = SetUpForProceedPath();
             Task<List<CoverageProject>> reloadCoverageTask = null;
             mocker.GetMock<IFCCEngine>().Setup(engine => engine.ReloadCoverage(It.IsAny<Func<Task<List<CoverageProject>>>>())).
@@ -122,6 +133,19 @@ namespace Test
                 });
             RaiseTestExecutionStarting(setup.operation);
             Assert.AreSame(setup.coverageProjects, await reloadCoverageTask);
+        }
+
+        [Test]
+        public void Should_Not_ReloadCoverage_When_TestExecutionStarting_And_Settings_RunInParallel_Is_True_When_Enabled_is_False()
+        {
+            SetUpOptions(mockAppOptions =>
+            {
+                mockAppOptions.Setup(o => o.Enabled).Returns(false);
+                mockAppOptions.Setup(o => o.RunInParallel).Returns(true);
+            });
+            
+            RaiseTestExecutionStarting();
+            AssertShouldNotReloadCoverage();
         }
 
         [TestCase(true, 10, 1, 0, true, Description = "Should run when tests fail if settings RunWhenTestsFail is true")]
@@ -135,6 +159,7 @@ namespace Test
             mockTestOperation.Setup(o => o.TotalTests).Returns(totalTests);
             SetUpOptions(mockAppOptions =>
             {
+                mockAppOptions.Setup(o => o.Enabled).Returns(true);
                 mockAppOptions.Setup(o => o.RunInParallel).Returns(false);
                 mockAppOptions.Setup(o => o.RunWhenTestsFail).Returns(runWhenTestsFail);
                 mockAppOptions.Setup(o => o.RunWhenTestsExceed).Returns(runWhenTestsExceed);
@@ -156,6 +181,27 @@ namespace Test
                 AssertShouldNotReloadCoverage();
             }
             
+        }
+
+        [Test]
+        public void Should_Not_Run_Coverage_When_TestExecutionFinished_If_Enabled_Is_False()
+        {
+            var operation = new Mock<IOperation>().Object;
+            var mockTestOperation = new Mock<ITestOperation>();
+            mockTestOperation.Setup(t => t.TotalTests).Returns(1);
+            mocker.GetMock<ITestOperationFactory>().Setup(f => f.Create(operation)).Returns(mockTestOperation.Object);
+
+            SetUpOptions(mockAppOptions =>
+            {
+                mockAppOptions.Setup(o => o.Enabled).Returns(false);
+
+                mockAppOptions.Setup(o => o.RunWhenTestsFail).Returns(true);
+                mockAppOptions.Setup(o => o.RunWhenTestsExceed).Returns(0);
+                mockAppOptions.Setup(o => o.RunInParallel).Returns(false);
+            });
+            RaiseTestExecutionFinished();
+
+            AssertShouldNotReloadCoverage();
         }
 
         [Test]

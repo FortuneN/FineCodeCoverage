@@ -10,7 +10,7 @@ namespace FineCodeCoverage.Engine
         event UpdateMarginTagsDelegate UpdateMarginTags;
         event UpdateOutputWindowDelegate UpdateOutputWindow;
         string AppDataFolder { get; }
-        void Initialize(IServiceProvider serviceProvider);
+        void Initialize();
         void StopCoverage();
         void ReloadCoverage(Func<System.Threading.Tasks.Task<List<CoverageProject>>> coverageRequestCallback);
         string[] GetSourceFiles(string assemblyName, string qualifiedClassName);
