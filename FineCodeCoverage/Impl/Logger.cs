@@ -14,7 +14,7 @@ public class Logger : ILogger
 {
     private IVsOutputWindowPane _pane;
     private IVsOutputWindow _outputWindow;
-    private IServiceProvider _serviceProvider;
+    private readonly IServiceProvider _serviceProvider;
     private Guid _paneGuid = VSConstants.GUID_BuildOutputWindowPane;
 
     [ImportingConstructor]

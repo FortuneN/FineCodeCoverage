@@ -3,25 +3,27 @@ using FineCodeCoverage.Engine;
 using System.Collections.Generic;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
+using FineCodeCoverage.Engine.Model;
+using System.Linq;
 
 namespace FineCodeCoverage.Impl
 {
 	internal class Tagger<T> : ITagger<T> where T : ITag
 	{
 		private readonly ITextBuffer _textBuffer;
-        private readonly IFCCEngine fccEngine;
+		private List<CoverageLine> coverageLines;
 
         public event EventHandler<SnapshotSpanEventArgs> TagsChanged;
 
 		public Tagger(ITextBuffer textBuffer,IFCCEngine fccEngine)
 		{
 			_textBuffer = textBuffer;
-            this.fccEngine = fccEngine;
             fccEngine.UpdateMarginTags += FCCEngine_UpdateMarginTags;
 		}
 
 		private void FCCEngine_UpdateMarginTags(UpdateMarginTagsEventArgs e)
 		{
+			coverageLines = e.CoverageLines;
 			var span = new SnapshotSpan(_textBuffer.CurrentSnapshot, 0, _textBuffer.CurrentSnapshot.Length);
 			var spanEventArgs = new SnapshotSpanEventArgs(span);
 			TagsChanged?.Invoke(this, spanEventArgs);
@@ -31,7 +33,7 @@ namespace FineCodeCoverage.Impl
 		{
 			var result = new List<ITagSpan<T>>();
 
-			if (spans == null)
+			if (spans == null || coverageLines == null)
 			{
 				return result;
 			}
@@ -45,7 +47,7 @@ namespace FineCodeCoverage.Impl
 
 				var startLineNumber = span.Start.GetContainingLine().LineNumber + 1;
 				var endLineNumber = span.End.GetContainingLine().LineNumber + 1;
-				var coverageLines = fccEngine.GetLines(document.FilePath, startLineNumber, endLineNumber);
+				var coverageLines = GetLines(document.FilePath, startLineNumber, endLineNumber);
 
 				foreach (var coverageLine in coverageLines)
 				{
@@ -57,6 +59,15 @@ namespace FineCodeCoverage.Impl
 			}
 
 			return result;
+		}
+
+		private IEnumerable<CoverageLine> GetLines(string filePath, int startLineNumber, int endLineNumber)
+		{
+			return coverageLines
+			.AsParallel()
+			.Where(x => x.Class.Filename.Equals(filePath, StringComparison.OrdinalIgnoreCase))
+			.Where(x => x.Line.Number >= startLineNumber && x.Line.Number <= endLineNumber)
+			.ToArray();
 		}
 	}
 }

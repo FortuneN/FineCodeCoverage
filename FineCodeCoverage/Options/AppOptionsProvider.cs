@@ -13,7 +13,7 @@ namespace FineCodeCoverage.Options
     [Export(typeof(IAppOptionsStorageProvider))]
     internal class AppOptionsProvider : IAppOptionsProvider, IAppOptionsStorageProvider
     {
-        private Type AppOptionsType = typeof(AppOptions);
+        private readonly Type AppOptionsType = typeof(AppOptions);
         private readonly ILogger logger;
 
         public event Action<IAppOptions> OptionsChanged;
@@ -34,8 +34,9 @@ namespace FineCodeCoverage.Options
             LoadSettingsFromStorage(options);
             return options;
         }
+
         [SuppressMessage("Usage", "VSTHRD010:Invoke single-threaded types on Main thread")]
-        public void LoadSettingsFromStorage(AppOptions instance)
+        private WritableSettingsStore EnsureStore()
         {
             var settingsManager = new ShellSettingsManager(ServiceProvider.GlobalProvider);
             var settingsStore = settingsManager.GetWritableSettingsStore(SettingsScope.UserSettings);
@@ -44,8 +45,21 @@ namespace FineCodeCoverage.Options
             {
                 settingsStore.CreateCollection(Vsix.Code);
             }
+            return settingsStore;
+        }
 
-            foreach (var property in AppOptionsType.GetProperties(BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.Instance))
+        private PropertyInfo[] ReflectProperties()
+        {
+            return AppOptionsType.GetProperties(BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.Instance);
+        }
+
+        [SuppressMessage("Usage", "VSTHRD010:Invoke single-threaded types on Main thread")]
+        public void LoadSettingsFromStorage(AppOptions instance)
+        {
+            var settingsStore = EnsureStore();
+
+
+            foreach (var property in ReflectProperties())
             {
                 try
                 {
@@ -74,15 +88,9 @@ namespace FineCodeCoverage.Options
         [SuppressMessage("Usage", "VSTHRD010:Invoke single-threaded types on Main thread")]
         public void SaveSettingsToStorage(AppOptions appOptions)
         {
-            var settingsManager = new ShellSettingsManager(ServiceProvider.GlobalProvider);
-            var settingsStore = settingsManager.GetWritableSettingsStore(SettingsScope.UserSettings);
+            var settingsStore = EnsureStore();
 
-            if (!settingsStore.CollectionExists(Vsix.Code))
-            {
-                settingsStore.CreateCollection(Vsix.Code);
-            }
-
-            foreach (var property in AppOptionsType.GetProperties(BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.Instance))
+            foreach (var property in ReflectProperties())
             {
                 try
                 {

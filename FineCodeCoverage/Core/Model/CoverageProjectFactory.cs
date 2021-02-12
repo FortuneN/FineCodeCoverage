@@ -27,7 +27,9 @@ namespace FineCodeCoverage.Engine.Model
             this.appOptionsProvider = appOptionsProvider;
             this.fileSynchronizationUtil = fileSynchronizationUtil;
             this.logger = logger;
-			ThreadHelper.JoinableTaskFactory.Run(async () =>
+            // todo - when debugging we are on the main thread - to determine does vs satisfy imports on the main thread ?
+            // if so could change the code below
+            ThreadHelper.JoinableTaskFactory.Run(async () =>
 			{
 				await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 				dte = (DTE)serviceProvider.GetService(typeof(DTE));
@@ -38,7 +40,7 @@ namespace FineCodeCoverage.Engine.Model
         {
             MSBuildLocator.RegisterDefaults();
         }
-        public CoverageProject Create()
+        public ICoverageProject Create()
         {
 			return new CoverageProject(appOptionsProvider,fileSynchronizationUtil, logger, dte);
         }

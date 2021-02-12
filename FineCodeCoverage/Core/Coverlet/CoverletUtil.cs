@@ -12,7 +12,7 @@ namespace FineCodeCoverage.Engine.Coverlet
 {
     internal interface ICoverletUtil {
 		void Initialize(string appDataFolder);
-		Task<bool> RunCoverletAsync(CoverageProject project, bool throwError = false);
+		Task<bool> RunCoverletAsync(ICoverageProject project, bool throwError = false);
 	}
 
 	[Export(typeof(ICoverletUtil))]
@@ -164,7 +164,7 @@ namespace FineCodeCoverage.Engine.Coverlet
 			logger.Log(title, processOutput);
 		}
 
-		public async Task<bool> RunCoverletAsync(CoverageProject project, bool throwError = false)
+		public async Task<bool> RunCoverletAsync(ICoverageProject project, bool throwError = false)
 		{
 			var title = $"Coverlet Run ({project.ProjectName})";
 

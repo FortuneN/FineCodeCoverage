@@ -38,9 +38,6 @@ namespace FineCodeCoverage.Impl
             [Import(typeof(IOperationState))]
             IOperationState operationState,
 
-            [Import(typeof(SVsServiceProvider))]
-            IServiceProvider serviceProvider,
-
             IFCCEngine fccEngine,
             IInitializer initializer,
             ITestOperationFactory testOperationFactory,
