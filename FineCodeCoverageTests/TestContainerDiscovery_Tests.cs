@@ -37,7 +37,7 @@ namespace Test
 
         private void AssertShouldNotReloadCoverage()
         {
-            mocker.Verify<IFCCEngine>(engine => engine.ReloadCoverage(It.IsAny<Func<Task<List<CoverageProject>>>>()), Times.Never());
+            mocker.Verify<IFCCEngine>(engine => engine.ReloadCoverage(It.IsAny<Func<Task<List<ICoverageProject>>>>()), Times.Never());
         }
         private void SetUpOptions(Action<Mock<IAppOptions>> setupAppOptions)
         {
@@ -46,16 +46,11 @@ namespace Test
             mocker.GetMock<IAppOptionsProvider>().Setup(appOptionsProvider => appOptionsProvider.Get()).Returns(mockAppOptions.Object);
         }
 
-        private void SetUpRunInParallel(bool runInParallel)
-        {
-            SetUpOptions(mockAppOptions => mockAppOptions.Setup(o => o.RunInParallel).Returns(runInParallel));
-        }
-
-        private (IOperation operation, List<CoverageProject> coverageProjects, Mock<ITestOperation> mockTestOperation) SetUpForProceedPath()
+        private (IOperation operation, List<ICoverageProject> coverageProjects, Mock<ITestOperation> mockTestOperation) SetUpForProceedPath()
         {
             var operation = new Mock<IOperation>().Object;
             var mockTestOperation = new Mock<ITestOperation>();
-            var coverageProjects = new List<CoverageProject>();
+            var coverageProjects = new List<ICoverageProject>();
             mockTestOperation.Setup(t => t.GetCoverageProjectsAsync()).Returns(Task.FromResult(coverageProjects));
             mocker.GetMock<ITestOperationFactory>().Setup(f => f.Create(operation)).Returns(mockTestOperation.Object);
             return (operation, coverageProjects, mockTestOperation);
@@ -124,15 +119,15 @@ namespace Test
                 mockAppOptions.Setup(o => o.Enabled).Returns(true);
                 mockAppOptions.Setup(o => o.RunInParallel).Returns(true);
             });
-            var setup = SetUpForProceedPath();
-            Task<List<CoverageProject>> reloadCoverageTask = null;
-            mocker.GetMock<IFCCEngine>().Setup(engine => engine.ReloadCoverage(It.IsAny<Func<Task<List<CoverageProject>>>>())).
-                Callback<Func<Task<List<CoverageProject>>>>(callback =>
+            var (operation, coverageProjects, mockTestOperation) = SetUpForProceedPath();
+            Task<List<ICoverageProject>> reloadCoverageTask = null;
+            mocker.GetMock<IFCCEngine>().Setup(engine => engine.ReloadCoverage(It.IsAny<Func<Task<List<ICoverageProject>>>>())).
+                Callback<Func<Task<List<ICoverageProject>>>>(callback =>
                 {
                     reloadCoverageTask = callback();
                 });
-            RaiseTestExecutionStarting(setup.operation);
-            Assert.AreSame(setup.coverageProjects, await reloadCoverageTask);
+            RaiseTestExecutionStarting(operation);
+            Assert.AreSame(coverageProjects, await reloadCoverageTask);
         }
 
         [Test]
@@ -164,9 +159,9 @@ namespace Test
                 mockAppOptions.Setup(o => o.RunWhenTestsFail).Returns(runWhenTestsFail);
                 mockAppOptions.Setup(o => o.RunWhenTestsExceed).Returns(runWhenTestsExceed);
             });
-            Task<List<CoverageProject>> reloadCoverageTask = null;
-            mocker.GetMock<IFCCEngine>().Setup(engine => engine.ReloadCoverage(It.IsAny<Func<Task<List<CoverageProject>>>>())).
-                Callback<Func<Task<List<CoverageProject>>>>(callback =>
+            Task<List<ICoverageProject>> reloadCoverageTask = null;
+            mocker.GetMock<IFCCEngine>().Setup(engine => engine.ReloadCoverage(It.IsAny<Func<Task<List<ICoverageProject>>>>())).
+                Callback<Func<Task<List<ICoverageProject>>>>(callback =>
                 {
                     reloadCoverageTask = callback();
                 });

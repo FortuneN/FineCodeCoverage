@@ -58,7 +58,7 @@ namespace FineCodeCoverage.Impl
                     var packageToBeLoadedGuid = new Guid(OutputToolWindowPackage.PackageGuidString);
                     shell.LoadPackage(ref packageToBeLoadedGuid, out var package);
 
-                    var outputWindowInitializedFile = Path.Combine(fccEngine.AppDataFolder, "outputWindowInitialized");
+                    var outputWindowInitializedFile = Path.Combine(fccEngine.AppDataFolderPath, "outputWindowInitialized");
 
                     if (File.Exists(outputWindowInitializedFile))
                     {

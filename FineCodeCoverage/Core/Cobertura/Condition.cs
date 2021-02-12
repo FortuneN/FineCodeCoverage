@@ -1,11 +1,12 @@
-﻿using System.Xml.Serialization;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Xml.Serialization;
 
 // Generated from cobertura XML schema
-#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
 
 namespace FineCodeCoverage.Engine.Cobertura
 {
     [XmlRoot(ElementName = "condition")]
+    [ExcludeFromCodeCoverage]
     public class Condition
     {
         [XmlAttribute(AttributeName = "number")]

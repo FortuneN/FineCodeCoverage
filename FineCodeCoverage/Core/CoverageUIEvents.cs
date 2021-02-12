@@ -1,16 +1,18 @@
 ﻿using System;
+using System.Collections.Generic;
+using FineCodeCoverage.Engine.Model;
 
 namespace FineCodeCoverage.Engine
 {
-	public class UpdateMarginTagsEventArgs : EventArgs
-	{
+    internal class UpdateMarginTagsEventArgs : EventArgs { 
+		public List<CoverageLine> CoverageLines { get; set; }
 	}
 
-	public class UpdateOutputWindowEventArgs : EventArgs
+	internal class UpdateOutputWindowEventArgs : EventArgs
 	{
 		public string HtmlContent { get; set; }
 	}
 
-	public delegate void UpdateMarginTagsDelegate(UpdateMarginTagsEventArgs e);
-	public delegate void UpdateOutputWindowDelegate(UpdateOutputWindowEventArgs e);
+	internal delegate void UpdateMarginTagsDelegate(UpdateMarginTagsEventArgs e);
+	internal delegate void UpdateOutputWindowDelegate(UpdateOutputWindowEventArgs e);
 }

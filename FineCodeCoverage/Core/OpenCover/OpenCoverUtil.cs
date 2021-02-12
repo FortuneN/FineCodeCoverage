@@ -16,7 +16,7 @@ namespace FineCodeCoverage.Engine.OpenCover
 {
 	internal interface IOpenCoverUtil
     {
-		Task<bool> RunOpenCoverAsync(CoverageProject project, bool throwError = false);
+		Task<bool> RunOpenCoverAsync(ICoverageProject project, bool throwError = false);
 		void Initialize(string appDataFolder);
 	}
 
@@ -160,7 +160,7 @@ namespace FineCodeCoverage.Engine.OpenCover
 			}
 		}
 
-		public async Task<bool> RunOpenCoverAsync(CoverageProject project, bool throwError = false)
+		public async Task<bool> RunOpenCoverAsync(ICoverageProject project, bool throwError = false)
 		{
 			var title = $"OpenCover Run ({project.ProjectName})";
 

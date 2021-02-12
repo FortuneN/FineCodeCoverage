@@ -21,15 +21,15 @@ namespace FineCodeCoverage.Impl
 
         public long TotalTests => operation.TotalTests;
 
-        public Task<List<CoverageProject>> GetCoverageProjectsAsync()
+        public Task<List<ICoverageProject>> GetCoverageProjectsAsync()
         {
             return GetCoverageProjectsAsync(operation.Configuration);
         }
-        private async System.Threading.Tasks.Task<List<CoverageProject>> GetCoverageProjectsAsync(TestConfiguration testConfiguration)
+        private async System.Threading.Tasks.Task<List<ICoverageProject>> GetCoverageProjectsAsync(TestConfiguration testConfiguration)
         {
             var userRunSettings = testConfiguration.UserRunSettings;
             var testContainers = testConfiguration.Containers;
-            List<CoverageProject> coverageProjects = new List<CoverageProject>();
+            List<ICoverageProject> coverageProjects = new List<ICoverageProject>();
             foreach (var container in testContainers)
             {
                 var project = coverageProjectFactory.Create();

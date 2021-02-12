@@ -2,7 +2,7 @@
 {
     internal interface ICoverageProjectFactory
     {
-		CoverageProject Create();
+		ICoverageProject Create();
         void Initialize();
     }
 }

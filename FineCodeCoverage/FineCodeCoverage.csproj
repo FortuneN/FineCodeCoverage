@@ -60,6 +60,7 @@
     <Compile Include="Core\Cobertura\Conditions.cs" />
     <Compile Include="Core\Cobertura\CoverageReport.cs" />
     <Compile Include="Core\Cobertura\CoberturaUtil.cs" />
+    <Compile Include="Core\Cobertura\ICoberturaUtil.cs" />
     <Compile Include="Core\Cobertura\Line.cs" />
     <Compile Include="Core\Cobertura\Lines.cs" />
     <Compile Include="Core\Cobertura\Method.cs" />
@@ -72,11 +73,16 @@
     <Compile Include="Core\FileSynchronization\FileSynchronization.cs" />
     <Compile Include="Core\IAppDataFolder.cs" />
     <Compile Include="Core\IFCCEngine.cs" />
+    <Compile Include="Core\IMessageBox.cs" />
+    <Compile Include="Core\ISourceFileOpener.cs" />
+    <Compile Include="Core\MessageBoxWrapper.cs" />
     <Compile Include="Core\Model\CoverageProjectFactory.cs" />
+    <Compile Include="Core\Model\ICoverageProject.cs" />
     <Compile Include="Core\Model\ICoverageProjectFactory.cs" />
     <Compile Include="Core\Model\ReferencedProject.cs" />
     <Compile Include="Core\MsTestPlatform\MsTestPlatformUtil.cs" />
     <Compile Include="Core\ReportGenerator\ReportGeneratorUtil.cs" />
+    <Compile Include="Core\SourceFileOpener.cs" />
     <Compile Include="Core\SVsColorThemeService.cs" />
     <Compile Include="Core\Utilities\AssemblyUtil.cs" />
     <Compile Include="Core\Model\CoverageLine.cs" />
@@ -115,6 +121,7 @@
     <Compile Include="Options\IAppOptions.cs" />
     <Compile Include="Options\IAppOptionsProvider.cs" />
     <Compile Include="Options\IAppOptionsStorageProvider.cs" />
+    <Compile Include="Output\IProcess.cs" />
     <Compile Include="Output\OutputToolWindow.cs" />
     <Compile Include="Output\OutputToolWindowCommand.cs" />
     <Compile Include="Output\OutputToolWindowContext.cs" />
@@ -128,6 +135,8 @@
       <DependentUpon>OutputToolWindowPackage.vsct</DependentUpon>
     </Compile>
     <Compile Include="Core\Utilities\ProcessUtil.cs" />
+    <Compile Include="Output\ProcessWrapper.cs" />
+    <Compile Include="Output\ScriptManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="source.extension.cs">
       <AutoGen>True</AutoGen>
