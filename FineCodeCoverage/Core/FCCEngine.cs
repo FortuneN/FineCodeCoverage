@@ -17,11 +17,15 @@ using Microsoft.VisualStudio.Shell;
 
 namespace FineCodeCoverage.Engine
 {
-    internal enum ReloadCoverageStatus { Start, Done, Cancelled, Error };
+    internal enum ReloadCoverageStatus { Start, Done, Cancelled, Error, Initializing };
+    internal enum InitializeStatus { Initializing, Initialized, Error};
 
     [Export(typeof(IFCCEngine))]
     internal class FCCEngine : IFCCEngine
     {
+        internal int InitializeWait { get; set; } = 5000;
+        internal InitializeStatus InitializeStatus { get; set; } = InitializeStatus.Initializing;
+        internal string InitializeExceptionMessage { get; set; }
         internal const string errorReadingReportGeneratorOutputMessage = "error reading report generator output";
         private readonly object colorThemeService;
         private string CurrentTheme => $"{((dynamic)colorThemeService)?.CurrentTheme?.Name}".Trim();
@@ -84,13 +88,24 @@ namespace FineCodeCoverage.Engine
 
         public void Initialize()
         {
-            appDataFolder.Initialize();
-            AppDataFolderPath = appDataFolder.DirectoryPath;
+            try
+            {
+                appDataFolder.Initialize();
+                AppDataFolderPath = appDataFolder.DirectoryPath;
 
-            reportGeneratorUtil.Initialize(AppDataFolderPath);
-            msTestPlatformUtil.Initialize(AppDataFolderPath);
-            openCoverUtil.Initialize(AppDataFolderPath);
-            coverletUtil.Initialize(AppDataFolderPath);
+                reportGeneratorUtil.Initialize(AppDataFolderPath);
+                msTestPlatformUtil.Initialize(AppDataFolderPath);
+                openCoverUtil.Initialize(AppDataFolderPath);
+                coverletUtil.Initialize(AppDataFolderPath);
+            }
+            catch(Exception exc)
+            {
+                InitializeStatus = InitializeStatus.Error;
+                InitializeExceptionMessage = exc.Message;
+                throw exc;
+            }
+
+            InitializeStatus = InitializeStatus.Initialized;
         }
 
         public void ClearUI()
@@ -243,6 +258,26 @@ namespace FineCodeCoverage.Engine
 
         }
 
+        private async System.Threading.Tasks.Task PollInitializedStatusAsync(CancellationToken cancellationToken)
+        {
+            while (true)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                switch (InitializeStatus)
+                {
+                    case InitializeStatus.Initialized:
+                        return;
+                    
+                    case InitializeStatus.Initializing:
+                        LogReloadCoverageStatus(ReloadCoverageStatus.Initializing);
+                        await System.Threading.Tasks.Task.Delay(InitializeWait);
+                        break;
+                    case InitializeStatus.Error:
+                        throw new Exception(InitializeExceptionMessage);
+                }
+            }
+        }
+
         public void ReloadCoverage(Func<System.Threading.Tasks.Task<List<ICoverageProject>>> coverageRequestCallback)
         {
             var cancellationToken = Reset();
@@ -251,6 +286,8 @@ namespace FineCodeCoverage.Engine
             {
                 List<CoverageLine> coverageLines = null;
                 string reportFilePath = null;
+
+                await PollInitializedStatusAsync(cancellationToken);
 
                 LogReloadCoverageStatus(ReloadCoverageStatus.Start);
 

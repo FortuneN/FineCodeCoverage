@@ -41,6 +41,13 @@ namespace Test
                 htmlContent = e.HtmlContent;
             };
         }
+
+        [Test]
+        public void Should_Have_Initial_InitializeStatus_As_Initializing()
+        {
+            Assert.AreEqual(fccEngine.InitializeStatus, InitializeStatus.Initializing);
+        }
+
         [Test]
         public void Should_Initialize_AppFolder_Then_Utils()
         {
@@ -65,6 +72,52 @@ namespace Test
             Assert.AreEqual(1, callOrder[0]);
         }
 
+        private void InitializeWithException(Action<(Exception caughtException,Exception initializeException)> callback = null)
+        {
+            Exception caughtException = null;
+            var initializeException = new Exception("initialize exception");
+            mocker.Setup<IAppDataFolder>(a => a.Initialize()).Throws(initializeException);
+            try
+            {
+                fccEngine.Initialize();
+            }
+            catch (Exception exc)
+            {
+                caughtException = exc;
+            }
+            callback?.Invoke((caughtException, initializeException));
+
+        }
+        [Test]
+        public void Should_Set_InitializeStatus_To_Error_If_Exception_When_Initialize()
+        {
+            InitializeWithException();
+            Assert.AreEqual(InitializeStatus.Error, fccEngine.InitializeStatus);
+        }
+
+        [Test]
+        public void Should_Set_InitializeExceptionMessage_If_Exception_When_Initialize()
+        {
+            InitializeWithException();
+            Assert.AreEqual("initialize exception", fccEngine.InitializeExceptionMessage);
+        }
+
+        [Test]
+        public void Should_Rethrow_Exception_If_Exception_Whwn_Initialize()
+        {
+            InitializeWithException(exceptions =>
+            {
+                Assert.NotNull(exceptions.caughtException);
+                Assert.AreSame(exceptions.initializeException, exceptions.caughtException);
+            });
+        }
+
+        [Test]
+        public void Should_Set_InitializeStatus_To_Initialized_When_Successfully_Completed()
+        {
+            fccEngine.Initialize();
+            Assert.AreEqual(InitializeStatus.Initialized, fccEngine.InitializeStatus);
+        }
         [Test]
         public void Should_Set_AppDataFolderPath_From_Initialized_AppDataFolder_DirectoryPath()
         {
@@ -127,9 +180,10 @@ namespace Test
                 .Returns(new ReportGeneratorResult { Success = true });
         }
 
-        private async Task ReloadCoverage(params ICoverageProject[] coverageProjects)
+        private async Task ReloadInitializedCoverage(params ICoverageProject[] coverageProjects)
         {
             var projectsFromTask = Task.FromResult(coverageProjects.ToList());
+            fccEngine.InitializeStatus = InitializeStatus.Initialized;
             fccEngine.ReloadCoverage(() => projectsFromTask);
             await fccEngine.reloadCoverageTask;
         }
@@ -147,7 +201,7 @@ namespace Test
             var mockSuitableCoverageProject = CreateSuitableProject();
             setUp?.Invoke(mockSuitableCoverageProject);
             SetUpSuccessfulRunReportGenerator();
-            await ReloadCoverage(mockSuitableCoverageProject.Object);
+            await ReloadInitializedCoverage(mockSuitableCoverageProject.Object);
             return mockSuitableCoverageProject;
         }
 
@@ -186,16 +240,43 @@ namespace Test
         }
 
         [Test]
-        public async Task Should_Log_Starting()
+        public async Task Should_Log_Starting_When_Initialized()
         {
-            await ReloadCoverage();
+            await ReloadInitializedCoverage();
             VerifyLogsReloadCoverageStatus(ReloadCoverageStatus.Start);
+        }
+
+        [Test]
+        public async Task Should_Poll_For_Initialized()
+        {
+            var times = 5;
+            var initializeWait = 1000;
+            fccEngine.InitializeWait = initializeWait;
+
+            fccEngine.ReloadCoverage(() => Task.FromResult(new List<ICoverageProject>()));
+            await Task.Delay(times * initializeWait).ContinueWith(_ =>
+            {
+                fccEngine.InitializeStatus = InitializeStatus.Initialized;
+            });
+            await fccEngine.reloadCoverageTask;
+            mocker.Verify<ILogger>(l => l.Log(fccEngine.GetLogReloadCoverageStatusMessage(ReloadCoverageStatus.Initializing)), Times.Exactly(times));
+        }
+
+        [Test]
+        public async Task Should_Throw_With_InitializeExceptionMessage_When_Initialize_Has_Failed()
+        {
+            fccEngine.InitializeStatus = InitializeStatus.Error;
+            fccEngine.InitializeExceptionMessage = "An exception was thrown";
+            fccEngine.ReloadCoverage(() => Task.FromResult(new List<ICoverageProject>()));
+            await fccEngine.reloadCoverageTask;
+            mocker.Verify<ILogger>(l => l.Log(It.Is<Exception>(exc => exc.Message == fccEngine.InitializeExceptionMessage)));
+            
         }
 
         [Test]
         public async Task Should_Enlist_The_ProcessUtil_In_The_Same_Cancellable_Run()
         {
-            await ReloadCoverage();
+            await ReloadInitializedCoverage();
             var mockProcessUtil = mocker.GetMock<IProcessUtil>();
             mockProcessUtil.VerifySet(p => p.CancellationToken = It.IsAny<CancellationToken>());
         }
@@ -221,7 +302,7 @@ namespace Test
             mockDisabledProject.Setup(p => p.ProjectFile).Returns("proj.csproj");
             mockDisabledProject.Setup(p => p.Settings.Enabled).Returns(false);
             
-            await ReloadCoverage(mockNullProjectFileProject.Object, mockWhitespaceProjectFileProject.Object, mockDisabledProject.Object);
+            await ReloadInitializedCoverage(mockNullProjectFileProject.Object, mockWhitespaceProjectFileProject.Object, mockDisabledProject.Object);
             
             mockDisabledProject.VerifySet(p => p.FailureDescription = "Disabled");
             mockWhitespaceProjectFileProject.VerifySet(p => p.FailureDescription = "Unsupported project type for DLL 'Whitespace_Project_File.dll'");
@@ -278,7 +359,7 @@ namespace Test
                     It.IsAny<bool>(),
                     true).Result).Returns(new ReportGeneratorResult { Success = true });
 
-            await ReloadCoverage(failedProject.Object, passedProject.Object);
+            await ReloadInitializedCoverage(failedProject.Object, passedProject.Object);
 
             mocker.GetMock<IReportGeneratorUtil>().VerifyAll();
             
@@ -287,7 +368,7 @@ namespace Test
         [Test]
         public async Task Should_Not_Run_ReportGenerator_If_No_Successful_Projects()
         {
-            await ReloadCoverage();
+            await ReloadInitializedCoverage();
             mocker.Verify<IReportGeneratorUtil>(rg => rg.RunReportGeneratorAsync(It.IsAny<IEnumerable<string>>(), It.IsAny<bool>(), It.IsAny<bool>()), Times.Never());
         }
 
@@ -317,7 +398,7 @@ namespace Test
             var _ = "";
             mockReportGenerator.Setup(rg => rg.ProcessUnifiedHtmlFile(unifiedHtmlFile, It.IsAny<bool>(), out _));
 
-            await ReloadCoverage(passedProject.Object);
+            await ReloadInitializedCoverage(passedProject.Object);
             mocker.Verify<ICoberturaUtil>(coberturaUtil => coberturaUtil.ProcessCoberturaXmlFile(unifiedXmlFile));
             mockReportGenerator.VerifyAll();
         }
@@ -340,7 +421,7 @@ namespace Test
                     }
                 );
 
-            await ReloadCoverage(passedProject.Object);
+            await ReloadInitializedCoverage(passedProject.Object);
             mocker.Verify<ICoberturaUtil>(coberturaUtil => coberturaUtil.ProcessCoberturaXmlFile(It.IsAny<string>()), Times.Never());
             
         }
@@ -371,11 +452,11 @@ namespace Test
             mocker.GetMock<ICoberturaUtil>().Setup(coberturaUtil => coberturaUtil.CoverageLines).Returns(coverageLines);
             if (early)
             {
-                await ReloadCoverage();
+                await ReloadInitializedCoverage();
             }
             else
             {
-                await ReloadCoverage(passedProject.Object);
+                await ReloadInitializedCoverage(passedProject.Object);
             }
             
             return (reportGeneratedHtmlContent, coverageLines);
@@ -423,7 +504,7 @@ namespace Test
             List<CoverageLine> coverageLines = new List<CoverageLine>() { new CoverageLine() };
             mocker.GetMock<ICoberturaUtil>().Setup(coberturaUtil => coberturaUtil.CoverageLines).Returns(coverageLines);
             
-            await ReloadCoverage(passedProject.Object);
+            await ReloadInitializedCoverage(passedProject.Object);
 
         }
 
@@ -456,6 +537,7 @@ namespace Test
             var exception = new Exception("an exception");
             exceptionCallback?.Invoke(exception);
             Task<List<ICoverageProject>> thrower() => Task.FromException<List<ICoverageProject>>(exception);
+            fccEngine.InitializeStatus = InitializeStatus.Initialized;
             fccEngine.ReloadCoverage(thrower);
             await fccEngine.reloadCoverageTask;
         }
@@ -489,7 +571,7 @@ namespace Test
 
             }).Returns(Task.CompletedTask);
 
-            await ReloadCoverage(mockSuitableCoverageProject.Object);
+            await ReloadInitializedCoverage(mockSuitableCoverageProject.Object);
         }
 
         [Test]
@@ -547,7 +629,7 @@ namespace Test
 
             }).Returns(Task.CompletedTask);
 
-            await ReloadCoverage(mockSuitableCoverageProject.Object);
+            await ReloadInitializedCoverage(mockSuitableCoverageProject.Object);
             VerifyLogsReloadCoverageStatus(ReloadCoverageStatus.Cancelled);
 
 

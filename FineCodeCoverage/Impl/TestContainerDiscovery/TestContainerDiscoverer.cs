@@ -6,7 +6,6 @@ using System.Linq;
 using System.Threading;
 using FineCodeCoverage.Engine;
 using FineCodeCoverage.Options;
-using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.TestWindow.Extensibility;
 using Microsoft.VisualStudio.Utilities;
 
@@ -54,10 +53,8 @@ namespace FineCodeCoverage.Impl
             
             initializeThread = new Thread(() =>
             {
-                initializer.Initialize();
-                // important this comes last - ensures when reload coverage everything in place
                 operationState.StateChanged += OperationState_StateChanged;
-
+                initializer.Initialize();
             });
             initializeThread.Start();
             

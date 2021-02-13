@@ -35,6 +35,8 @@ namespace FineCodeCoverage.Impl
         {
             try
             {
+                logger.Log($"Initializing");
+
                 coverageProjectFactory.Initialize();
                 fccEngine.Initialize();
                 InitializePackageAndToolWindow();
