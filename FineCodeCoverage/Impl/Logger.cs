@@ -8,6 +8,7 @@ using Microsoft.VisualStudio.Shell;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.VisualStudio.Shell.Interop;
 using System.ComponentModel.Composition;
+using Microsoft;
 
 [Export(typeof(ILogger))]
 public class Logger : ILogger
@@ -16,13 +17,44 @@ public class Logger : ILogger
     private IVsOutputWindow _outputWindow;
     private readonly IServiceProvider _serviceProvider;
     private Guid _paneGuid = VSConstants.GUID_BuildOutputWindowPane;
+    private Guid fccPaneGuid = Guid.Parse("3B3C775A-0050-445D-9022-0230957805B2");
 
     [ImportingConstructor]
-    public Logger([Import(typeof(SVsServiceProvider))]
-            IServiceProvider serviceProvider)
+    public Logger(
+        [Import(typeof(SVsServiceProvider))]
+        IServiceProvider serviceProvider
+    )
     {
         this._serviceProvider = serviceProvider;
         staticLogger = this;
+    }
+
+    IVsOutputWindowPane CreatePane(Guid paneGuid, string title,
+        bool visible, bool clearWithSolution)
+    {
+        
+        ThreadHelper.ThrowIfNotOnUIThread();
+        _outputWindow = (IVsOutputWindow)_serviceProvider.GetService(typeof(SVsOutputWindow));
+        Assumes.Present(_outputWindow);
+        IVsOutputWindowPane pane;
+
+        // Create a new pane.
+        _outputWindow.CreatePane(
+            ref paneGuid,
+            title,
+            Convert.ToInt32(visible),
+            Convert.ToInt32(clearWithSolution));
+
+        // Retrieve the new pane.
+        _outputWindow.GetPane(ref paneGuid, out pane);
+        return pane;
+    }
+
+    private void SetPane()
+    {
+        ThreadHelper.ThrowIfNotOnUIThread();
+        // do not clear with solution otherwise will not get initialize methods
+        _pane = CreatePane(fccPaneGuid, "FCC", true, false);
     }
 
     [SuppressMessage("Usage", "VSTHRD102:Implement internal logic asynchronously")]
@@ -37,24 +69,19 @@ public class Logger : ILogger
                 return;
             }
 
-            if (_pane == null)
-            {
-                ThreadHelper.JoinableTaskFactory.Run(async () =>
-                {
-                    await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-                    _outputWindow = (IVsOutputWindow)_serviceProvider.GetService(typeof(SVsOutputWindow));
-                    _outputWindow?.GetPane(ref _paneGuid, out _pane);
-                });
-            }
-
-            if (_pane == null)
-            {
-                return;
-            }
-
             ThreadHelper.JoinableTaskFactory.Run(async () =>
             {
                 await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+
+                if(_pane == null)
+                {
+                    SetPane();
+                }
+
+                if(_pane == null)
+                {
+                    return;
+                }
 
                 var logs = string.Join(Environment.NewLine, messageList);
 

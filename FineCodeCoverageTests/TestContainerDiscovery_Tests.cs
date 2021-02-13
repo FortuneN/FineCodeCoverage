@@ -72,6 +72,26 @@ namespace Test
         }
 
         [Test]
+        public void It_Should_Watch_For_Operation_State_Change_Before_Initialize()
+        {
+            List<int> order = new List<int>();
+            mocker = new AutoMoqer();
+            var mockOperationState = mocker.GetMock<IOperationState>();
+            mockOperationState.SetupAdd(o => o.StateChanged += It.IsAny<EventHandler<OperationStateChangedEventArgs>>()).Callback(() =>
+            {
+                order.Add(1);
+            });
+            var mockInitializer = mocker.GetMock<IInitializer>();
+            mockInitializer.Setup(i => i.Initialize()).Callback(() =>
+            {
+                order.Add(2);
+            });
+            var testContainerDiscoverer = mocker.Create<TestContainerDiscoverer>();
+            testContainerDiscoverer.initializeThread.Join();
+            Assert.AreEqual(new List<int> { 1, 2 }, order);
+        }
+
+        [Test]
         public void Should_Stop_Coverage_When_Tests_Are_Cancelled()
         {
             RaiseTestExecutionCancelling();

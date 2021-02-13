@@ -5,9 +5,20 @@ using System.Linq;
 
 namespace FineCodeCoverage.Engine
 {
+
     [Export(typeof(IAppDataFolder))]
     internal class AppDataFolder : IAppDataFolder
     {
+        private readonly ILogger logger;
+        private readonly IEnvironmentVariable environmentVariable;
+        internal const string fccDebugCleanInstallEnvironmentVariable = "FCCDebugCleanInstall";
+
+        [ImportingConstructor]
+        public AppDataFolder(ILogger logger,IEnvironmentVariable environmentVariable)
+        {
+            this.logger = logger;
+            this.environmentVariable = environmentVariable;
+        }
         public string DirectoryPath { get; private set; }
 
         public void Initialize()
@@ -21,6 +32,26 @@ namespace FineCodeCoverage.Engine
         private void CreateAppDataFolder()
         {
             DirectoryPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), Vsix.Code);
+            if (environmentVariable.Get(fccDebugCleanInstallEnvironmentVariable) != null)
+            {
+                logger.Log("FCCDebugCleanInstall");
+                if (Directory.Exists(DirectoryPath))
+                {
+                    try
+                    {
+                        Directory.Delete(DirectoryPath, true);
+                        logger.Log("Deleted app data folder");
+                    }
+                    catch (Exception exc)
+                    {
+                        logger.Log("Error deleting app data folder", exc);
+                    }
+                }
+                else
+                {
+                    logger.Log("App data folder does not exist");
+                }
+            }
             Directory.CreateDirectory(DirectoryPath);
         }
 
