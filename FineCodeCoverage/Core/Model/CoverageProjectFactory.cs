@@ -15,6 +15,7 @@ namespace FineCodeCoverage.Engine.Model
         private readonly IFileSynchronizationUtil fileSynchronizationUtil;
         private readonly ILogger logger;
 		private DTE dte;
+        private bool canUseMsBuildWorkspace = true;
 
         [ImportingConstructor]
 		public CoverageProjectFactory(
@@ -38,11 +39,18 @@ namespace FineCodeCoverage.Engine.Model
 
         public void Initialize()
         {
-            MSBuildLocator.RegisterDefaults();
+            try
+            {
+                MSBuildLocator.RegisterDefaults();
+            }
+            catch
+            {
+                canUseMsBuildWorkspace = false;
+            }
         }
         public ICoverageProject Create()
         {
-			return new CoverageProject(appOptionsProvider,fileSynchronizationUtil, logger, dte);
+			return new CoverageProject(appOptionsProvider,fileSynchronizationUtil, logger, dte, canUseMsBuildWorkspace);
         }
     }
 }
