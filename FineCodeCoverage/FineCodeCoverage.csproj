@@ -103,10 +103,14 @@
     <Compile Include="Impl\TestContainerDiscovery\Container.cs" />
     <Compile Include="Impl\TestContainerDiscovery\ContainerData.cs" />
     <Compile Include="Impl\TestContainerDiscovery\IInitializer.cs" />
+    <Compile Include="Impl\TestContainerDiscovery\IInitializeStatusProvider.cs" />
     <Compile Include="Impl\TestContainerDiscovery\Initializer.cs" />
+    <Compile Include="Impl\TestContainerDiscovery\InitializeStatus.cs" />
+    <Compile Include="Impl\TestContainerDiscovery\IPackageInitializer.cs" />
     <Compile Include="Impl\TestContainerDiscovery\ITestOperation.cs" />
     <Compile Include="Impl\TestContainerDiscovery\ITestOperationFactory.cs" />
     <Compile Include="Impl\TestContainerDiscovery\Operation.cs" />
+    <Compile Include="Impl\TestContainerDiscovery\PackageInitializer.cs" />
     <Compile Include="Impl\TestContainerDiscovery\TestConfiguration.cs" />
     <Compile Include="Impl\TestContainerDiscovery\TestOperation.cs" />
     <Compile Include="Impl\TestContainerDiscovery\TestOperationFactory.cs" />

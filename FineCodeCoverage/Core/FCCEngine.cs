@@ -12,20 +12,19 @@ using FineCodeCoverage.Engine.MsTestPlatform;
 using FineCodeCoverage.Engine.OpenCover;
 using FineCodeCoverage.Engine.ReportGenerator;
 using FineCodeCoverage.Engine.Utilities;
+using FineCodeCoverage.Impl;
 using FineCodeCoverage.Options;
 using Microsoft.VisualStudio.Shell;
 
 namespace FineCodeCoverage.Engine
 {
     internal enum ReloadCoverageStatus { Start, Done, Cancelled, Error, Initializing };
-    internal enum InitializeStatus { Initializing, Initialized, Error};
 
     [Export(typeof(IFCCEngine))]
     internal class FCCEngine : IFCCEngine
     {
         internal int InitializeWait { get; set; } = 5000;
-        internal InitializeStatus InitializeStatus { get; set; } = InitializeStatus.Initializing;
-        internal string InitializeExceptionMessage { get; set; }
+        internal const string initializationFailedMessagePrefix = "Initialization failed.  Please check the following error which may be resolved by reopening visual studio which will start the initialization process again.";
         internal const string errorReadingReportGeneratorOutputMessage = "error reading report generator output";
         private readonly object colorThemeService;
         private string CurrentTheme => $"{((dynamic)colorThemeService)?.CurrentTheme?.Name}".Trim();
@@ -46,6 +45,7 @@ namespace FineCodeCoverage.Engine
         private readonly ILogger logger;
         private readonly IAppDataFolder appDataFolder;
         private readonly IServiceProvider serviceProvider;
+        private IInitializeStatusProvider initializeStatusProvider;
         internal System.Threading.Tasks.Task reloadCoverageTask;
 
         [ImportingConstructor]
@@ -86,26 +86,17 @@ namespace FineCodeCoverage.Engine
             logger.Log(GetLogReloadCoverageStatusMessage(reloadCoverageStatus));
         }
 
-        public void Initialize()
+        public void Initialize(IInitializeStatusProvider initializeStatusProvider)
         {
-            try
-            {
-                appDataFolder.Initialize();
-                AppDataFolderPath = appDataFolder.DirectoryPath;
+            this.initializeStatusProvider = initializeStatusProvider;
 
-                reportGeneratorUtil.Initialize(AppDataFolderPath);
-                msTestPlatformUtil.Initialize(AppDataFolderPath);
-                openCoverUtil.Initialize(AppDataFolderPath);
-                coverletUtil.Initialize(AppDataFolderPath);
-            }
-            catch(Exception exc)
-            {
-                InitializeStatus = InitializeStatus.Error;
-                InitializeExceptionMessage = exc.Message;
-                throw exc;
-            }
+            appDataFolder.Initialize();
+            AppDataFolderPath = appDataFolder.DirectoryPath;
 
-            InitializeStatus = InitializeStatus.Initialized;
+            reportGeneratorUtil.Initialize(AppDataFolderPath);
+            msTestPlatformUtil.Initialize(AppDataFolderPath);
+            openCoverUtil.Initialize(AppDataFolderPath);
+            coverletUtil.Initialize(AppDataFolderPath);
         }
 
         public void ClearUI()
@@ -263,6 +254,7 @@ namespace FineCodeCoverage.Engine
             while (true)
             {
                 cancellationToken.ThrowIfCancellationRequested();
+                var InitializeStatus = initializeStatusProvider.InitializeStatus;
                 switch (InitializeStatus)
                 {
                     case InitializeStatus.Initialized:
@@ -273,7 +265,7 @@ namespace FineCodeCoverage.Engine
                         await System.Threading.Tasks.Task.Delay(InitializeWait);
                         break;
                     case InitializeStatus.Error:
-                        throw new Exception(InitializeExceptionMessage);
+                        throw new Exception(initializationFailedMessagePrefix + Environment.NewLine + initializeStatusProvider.InitializeExceptionMessage);
                 }
             }
         }

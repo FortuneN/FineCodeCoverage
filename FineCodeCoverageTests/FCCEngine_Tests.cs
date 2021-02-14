@@ -13,6 +13,7 @@ using FineCodeCoverage.Engine.MsTestPlatform;
 using FineCodeCoverage.Engine.OpenCover;
 using FineCodeCoverage.Engine.ReportGenerator;
 using FineCodeCoverage.Engine.Utilities;
+using FineCodeCoverage.Impl;
 using Moq;
 using NUnit.Framework;
 
@@ -43,12 +44,6 @@ namespace Test
         }
 
         [Test]
-        public void Should_Have_Initial_InitializeStatus_As_Initializing()
-        {
-            Assert.AreEqual(fccEngine.InitializeStatus, InitializeStatus.Initializing);
-        }
-
-        [Test]
         public void Should_Initialize_AppFolder_Then_Utils()
         {
             List<int> callOrder = new List<int>();
@@ -66,65 +61,20 @@ namespace Test
 
             var openCoverMock = mocker.GetMock<IOpenCoverUtil>().Setup(openCover => openCover.Initialize(appDataFolderPath)).Callback(() => callOrder.Add(5));
 
-            fccEngine.Initialize();
+            fccEngine.Initialize(null);
 
             Assert.AreEqual(5, callOrder.Count);
             Assert.AreEqual(1, callOrder[0]);
         }
 
-        private void InitializeWithException(Action<(Exception caughtException,Exception initializeException)> callback = null)
-        {
-            Exception caughtException = null;
-            var initializeException = new Exception("initialize exception");
-            mocker.Setup<IAppDataFolder>(a => a.Initialize()).Throws(initializeException);
-            try
-            {
-                fccEngine.Initialize();
-            }
-            catch (Exception exc)
-            {
-                caughtException = exc;
-            }
-            callback?.Invoke((caughtException, initializeException));
-
-        }
-        [Test]
-        public void Should_Set_InitializeStatus_To_Error_If_Exception_When_Initialize()
-        {
-            InitializeWithException();
-            Assert.AreEqual(InitializeStatus.Error, fccEngine.InitializeStatus);
-        }
-
-        [Test]
-        public void Should_Set_InitializeExceptionMessage_If_Exception_When_Initialize()
-        {
-            InitializeWithException();
-            Assert.AreEqual("initialize exception", fccEngine.InitializeExceptionMessage);
-        }
-
-        [Test]
-        public void Should_Rethrow_Exception_If_Exception_Whwn_Initialize()
-        {
-            InitializeWithException(exceptions =>
-            {
-                Assert.NotNull(exceptions.caughtException);
-                Assert.AreSame(exceptions.initializeException, exceptions.caughtException);
-            });
-        }
-
-        [Test]
-        public void Should_Set_InitializeStatus_To_Initialized_When_Successfully_Completed()
-        {
-            fccEngine.Initialize();
-            Assert.AreEqual(InitializeStatus.Initialized, fccEngine.InitializeStatus);
-        }
+        
         [Test]
         public void Should_Set_AppDataFolderPath_From_Initialized_AppDataFolder_DirectoryPath()
         {
             var appDataFolderPath = "some path";
             var mockAppDataFolder = mocker.GetMock<IAppDataFolder>();
             mockAppDataFolder.Setup(appDataFolder => appDataFolder.DirectoryPath).Returns(appDataFolderPath);
-            fccEngine.Initialize();
+            fccEngine.Initialize(null);
             Assert.AreEqual("some path", fccEngine.AppDataFolderPath);
         }
     
@@ -183,7 +133,9 @@ namespace Test
         private async Task ReloadInitializedCoverage(params ICoverageProject[] coverageProjects)
         {
             var projectsFromTask = Task.FromResult(coverageProjects.ToList());
-            fccEngine.InitializeStatus = InitializeStatus.Initialized;
+            var mockInitializeStatusProvider = new Mock<IInitializeStatusProvider>();
+            mockInitializeStatusProvider.Setup(i => i.InitializeStatus).Returns(InitializeStatus.Initialized);
+            fccEngine.Initialize(mockInitializeStatusProvider.Object);
             fccEngine.ReloadCoverage(() => projectsFromTask);
             await fccEngine.reloadCoverageTask;
         }
@@ -253,23 +205,34 @@ namespace Test
             var initializeWait = 1000;
             fccEngine.InitializeWait = initializeWait;
 
+            var mockInitializeStatusProvider = new Mock<IInitializeStatusProvider>();
+            mockInitializeStatusProvider.SetupProperty(i => i.InitializeStatus);
+            var initializeStatusProvider = mockInitializeStatusProvider.Object;
+
+            fccEngine.Initialize(initializeStatusProvider);
+
             fccEngine.ReloadCoverage(() => Task.FromResult(new List<ICoverageProject>()));
             await Task.Delay(times * initializeWait).ContinueWith(_ =>
             {
-                fccEngine.InitializeStatus = InitializeStatus.Initialized;
+                initializeStatusProvider.InitializeStatus = InitializeStatus.Initialized;
             });
             await fccEngine.reloadCoverageTask;
             mocker.Verify<ILogger>(l => l.Log(fccEngine.GetLogReloadCoverageStatusMessage(ReloadCoverageStatus.Initializing)), Times.Exactly(times));
         }
 
         [Test]
-        public async Task Should_Throw_With_InitializeExceptionMessage_When_Initialize_Has_Failed()
+        public async Task Should_Throw_With_initializationFailedMessagePrefix_When_Initialize_Has_Failed()
         {
-            fccEngine.InitializeStatus = InitializeStatus.Error;
-            fccEngine.InitializeExceptionMessage = "An exception was thrown";
+            var mockInitializerStatusProvider = new Mock<IInitializeStatusProvider>();
+            mockInitializerStatusProvider.Setup(i => i.InitializeStatus).Returns(InitializeStatus.Error);
+            var initializeExceptionMessage = "An exception was thrown";
+            mockInitializerStatusProvider.Setup(i => i.InitializeExceptionMessage).Returns(initializeExceptionMessage);
+            fccEngine.Initialize(mockInitializerStatusProvider.Object);
+
             fccEngine.ReloadCoverage(() => Task.FromResult(new List<ICoverageProject>()));
+            
             await fccEngine.reloadCoverageTask;
-            mocker.Verify<ILogger>(l => l.Log(It.Is<Exception>(exc => exc.Message == fccEngine.InitializeExceptionMessage)));
+            mocker.Verify<ILogger>(l => l.Log(It.Is<Exception>(exc => (FCCEngine.initializationFailedMessagePrefix + Environment.NewLine + initializeExceptionMessage) == exc.Message)));
             
         }
 
@@ -537,8 +500,13 @@ namespace Test
             var exception = new Exception("an exception");
             exceptionCallback?.Invoke(exception);
             Task<List<ICoverageProject>> thrower() => Task.FromException<List<ICoverageProject>>(exception);
-            fccEngine.InitializeStatus = InitializeStatus.Initialized;
+
+            var mockInitializeStatusProvider  = new Mock<IInitializeStatusProvider>();
+            mockInitializeStatusProvider.Setup(i => i.InitializeStatus).Returns(InitializeStatus.Initialized);
+            fccEngine.Initialize(mockInitializeStatusProvider.Object);
+
             fccEngine.ReloadCoverage(thrower);
+            
             await fccEngine.reloadCoverageTask;
         }
 

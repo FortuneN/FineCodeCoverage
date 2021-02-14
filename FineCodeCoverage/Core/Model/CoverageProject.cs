@@ -21,6 +21,7 @@ namespace FineCodeCoverage.Engine.Model
         private readonly IFileSynchronizationUtil fileSynchronizationUtil;
         private readonly ILogger logger;
         private readonly DTE dte;
+        private readonly bool canUseMsBuildWorkspace;
         private XElement projectFileXElement;
         private IAppOptions settings;
         private string fccPath;
@@ -29,12 +30,13 @@ namespace FineCodeCoverage.Engine.Model
         private string buildOutputPath;
         private readonly string coverageToolOutputFolderName = "coverage-tool-output";
 
-        public CoverageProject(IAppOptionsProvider appOptionsProvider, IFileSynchronizationUtil fileSynchronizationUtil, ILogger logger, DTE dte)
+        public CoverageProject(IAppOptionsProvider appOptionsProvider, IFileSynchronizationUtil fileSynchronizationUtil, ILogger logger, DTE dte, bool canUseMsBuildWorkspace)
         {
             this.appOptionsProvider = appOptionsProvider;
             this.fileSynchronizationUtil = fileSynchronizationUtil;
             this.logger = logger;
             this.dte = dte;
+            this.canUseMsBuildWorkspace = canUseMsBuildWorkspace;
         }
 
         public bool IsDotNetSdkStyle()
@@ -459,14 +461,21 @@ namespace FineCodeCoverage.Engine.Model
                 var referencedProjectProjectFile = xprojectReference.Attribute("Include").Value;
                 if (referencedProjectProjectFile.Contains("$("))
                 {
-                    requiresDesignTimeBuild = true;
-                    break;
+                    if (canUseMsBuildWorkspace)
+                    {
+                        requiresDesignTimeBuild = true;
+                        break;
+                    }
+                    else
+                    {
+                        logger.Log($"Cannot exclude referenced project {referencedProjectProjectFile} of {ProjectFile} with {ReferencedProject.excludeFromCodeCoveragePropertyName}.  Cannot use MSBuildWorkspace");
+                    }
+                    
                 }
                 else
                 {
                     if (!Path.IsPathRooted(referencedProjectProjectFile))
                     {
-
                         referencedProjectProjectFile = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(ProjectFile), referencedProjectProjectFile));
                     }
                     referencedProjectFiles.Add(referencedProjectProjectFile);
