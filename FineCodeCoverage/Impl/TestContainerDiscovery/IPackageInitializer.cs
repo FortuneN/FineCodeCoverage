@@ -1,6 +1,6 @@
 ﻿namespace FineCodeCoverage.Impl
 {
-    internal interface IInitializer : IInitializeStatusProvider
+    internal interface IPackageInitializer
     {
         void Initialize();
     }
