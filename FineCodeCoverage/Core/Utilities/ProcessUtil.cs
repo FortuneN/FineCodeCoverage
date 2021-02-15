@@ -22,25 +22,13 @@ namespace FineCodeCoverage.Engine.Utilities
 	[Export(typeof(IProcessUtil))]
 	internal class ProcessUtil : IProcessUtil
 	{
-		public const int FAILED_TO_PRODUCE_OUTPUT_FILE_CODE = 999;
-
 		public CancellationToken CancellationToken { get; set; }
 		
 		public async Task<ExecuteResponse> ExecuteAsync(ExecuteRequest request)
 		{
-			string shellScriptFile = null;
-			string shellScriptOutputFile = null;
-
-			// create script file
-
-			shellScriptFile = Path.Combine(request.WorkingDirectory, $"{Guid.NewGuid().ToString().Split('-').First()}.bat");
-			shellScriptOutputFile = $"{shellScriptFile}.output";
-			File.WriteAllText(shellScriptFile, $@"""{request.FilePath}"" {request.Arguments} > ""{shellScriptOutputFile}""");
-
-			// run script file
-
 			var commandTask = Cli
-			.Wrap(shellScriptFile)
+			.Wrap(request.FilePath)
+			.WithArguments(request.Arguments)
 			.WithValidation(CommandResultValidation.None)
 			.WithWorkingDirectory(request.WorkingDirectory)
 			.ExecuteBufferedAsync(CancellationToken);
@@ -59,8 +47,6 @@ namespace FineCodeCoverage.Engine.Utilities
             {
 				var exitCode = result.ExitCode;
 
-				// get script output
-
 				var outputList = new List<string>();
 
 				var directOutput = string.Join(Environment.NewLine, new[]
@@ -78,22 +64,7 @@ namespace FineCodeCoverage.Engine.Utilities
 					outputList.Add(directOutput);
 				}
 
-				if (File.Exists(shellScriptOutputFile))
-				{
-					var redirectOutput = File.ReadAllText(shellScriptOutputFile)
-					.Trim('\r', '\n')
-					.Trim();
-
-					if (!string.IsNullOrWhiteSpace(redirectOutput))
-					{
-						outputList.Add(redirectOutput);
-					}
-				}
-				else
-				{
-					// There is a problem if the shellScriptOutputFile is not produced
-					exitCode = FAILED_TO_PRODUCE_OUTPUT_FILE_CODE;
-				}
+				
 
 				var output = string.Join(Environment.NewLine, outputList)
 				.Trim('\r', '\n')
@@ -109,8 +80,6 @@ namespace FineCodeCoverage.Engine.Utilities
 				};
 			}
 
-			FileSystemInfoDeleteExtensions.TryDelete(shellScriptFile);
-			FileSystemInfoDeleteExtensions.TryDelete(shellScriptOutputFile);
 
 			return executeResponse;
 		}
