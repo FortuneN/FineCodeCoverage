@@ -70,6 +70,7 @@
     <Compile Include="Core\Cobertura\Sources.cs" />
     <Compile Include="Core\CoverageUIEvents.cs" />
     <Compile Include="Core\Coverlet\CoverletUtil.cs" />
+    <Compile Include="Core\Coverlet\RunSettingsCoverletConfiguration.cs" />
     <Compile Include="Core\EnvironmentVariable.cs" />
     <Compile Include="Core\FileSynchronization\FileSynchronization.cs" />
     <Compile Include="Core\IAppDataFolder.cs" />
