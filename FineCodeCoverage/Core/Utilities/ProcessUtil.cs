@@ -42,7 +42,7 @@ namespace FineCodeCoverage.Engine.Utilities
 
 			shellScriptFile = Path.Combine(request.WorkingDirectory, $"{Guid.NewGuid().ToString().Split('-').First()}.bat");
 			shellScriptOutputFile = $"{shellScriptFile}.output";
-			File.WriteAllText(shellScriptFile, $@"""{request.FilePath}"" {request.Arguments} > ""{shellScriptOutputFile}""");
+			File.WriteAllText(shellScriptFile, $@"""{request.FilePath}"" {request.Arguments} > ""{shellScriptOutputFile}"" EXIT /B %ERRORLEVEL%");
 
 			// run script file
 
