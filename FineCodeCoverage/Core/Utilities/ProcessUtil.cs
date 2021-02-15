@@ -66,7 +66,10 @@ namespace FineCodeCoverage.Engine.Utilities
             {
 				var exitCode = result.ExitCode;
 				logger.Log("Exit code: " + exitCode);
-
+				var standardErrorLog = result.StandardError ?? "";
+				var standardOutputLog = result.StandardOutput ?? "";
+				logger.Log("Standard error: " + standardErrorLog);
+				logger.Log("Standard output: " + standardOutputLog);
 				// get script output
 
 				var outputList = new List<string>();
