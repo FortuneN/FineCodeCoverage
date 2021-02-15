@@ -23,6 +23,13 @@ namespace FineCodeCoverage.Engine.Utilities
 	internal class ProcessUtil : IProcessUtil
 	{
 		public const int FAILED_TO_PRODUCE_OUTPUT_FILE_CODE = 999;
+        private readonly ILogger logger;
+
+        [ImportingConstructor]
+		public ProcessUtil(ILogger logger)
+        {
+            this.logger = logger;
+        }
 
 		public CancellationToken CancellationToken { get; set; }
 		
@@ -58,6 +65,7 @@ namespace FineCodeCoverage.Engine.Utilities
 			if (result != null)
             {
 				var exitCode = result.ExitCode;
+				logger.Log("Exit code: " + exitCode);
 
 				// get script output
 
@@ -93,6 +101,7 @@ namespace FineCodeCoverage.Engine.Utilities
 				{
 					// There is a problem if the shellScriptOutputFile is not produced
 					exitCode = FAILED_TO_PRODUCE_OUTPUT_FILE_CODE;
+					logger.Log("Switching exit code as failed to produce output file");
 				}
 
 				var output = string.Join(Environment.NewLine, outputList)
