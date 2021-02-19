@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.IO;
 using System.Linq;
-using FineCodeCoverage.Engine.Utilities;
+using FineCodeCoverage.Core.Utilities;
 
 namespace FineCodeCoverage.Engine.FileSynchronization
 {

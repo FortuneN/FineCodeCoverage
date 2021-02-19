@@ -63,6 +63,25 @@ Run a(some) unit test(s) and ...
 </PropertyGroup>			
 ```
 
+#### Coverlet specific
+<PropertyGroup>
+	<UseDataCollector/>
+</PropertyGroup>
+
+Coverlet has different "drivers".  Fine Code Coverage has in the past only used the coverlet console driver.  This has some issues associated with it.
+It is now possible to switch to the Data Collector driver.  This is the better driver but cannot be used for all projects.
+For now this is opt in.  In the future Fine Code Coverage will determine the appropriate driver.
+Please consult [coverlet docs](https://github.com/coverlet-coverage/coverlet/blob/master/Documentation/VSTestIntegration.md) for version support.
+** Note that it is unnecessary to add the nuget coverlet.collector package as FCC internally supplies coverlet.collector 3.0.3**
+Fine Code Coverage will use the Data Collector driver under two circumstances :
+1) You are testing with runsettings that contains the coverlet collector ( and not disabled)
+2) You set the UseDataCollector project property
+
+The Coverlet Data Collector settings can be found [here](https://github.com/coverlet-coverage/coverlet/blob/master/Documentation/VSTestIntegration.md#advanced-options-supported-via-runsettings).
+If you are using option 2) above then Common settings ( Exclusions and inclusions ) will be generated from project propertes ( above ) and global visual studio options (see below ) with project properties taking precedence.
+If you are using option 1) then project and global options will only be used where a Common settings Configuration element is absent and the RunSettingsOnly option ( see below) has been changed to false.
+
+
 #### Options
 ```
 Enabled                 Specifies whether or not coverage output is enabled
@@ -74,6 +93,8 @@ Include                 Filter expressions to include specific modules and types
 ExcludeByFile           Glob patterns specifying source files to exclude e.g. **/Migrations/* (multiple values)
 ExcludeByAttribute      Attributes to exclude from code coverage (multiple values)
 IncludeTestAssembly     Specifies whether to report code coverage of the test assembly
+
+RunSettingsOnly			Specify false for global and project options to be used for coverlet data collector configuration elements when not specified in runsettings
 
 Both 'Exclude' and 'Include' options can be used together but 'Exclude' takes precedence.
 

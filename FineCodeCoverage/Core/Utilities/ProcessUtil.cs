@@ -1,25 +1,16 @@
 ﻿using System;
 using CliWrap;
-using System.IO;
 using System.Linq;
 using CliWrap.Buffered;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Threading;
-using FineCodeCoverage.Core.Utilities;
 using System.ComponentModel.Composition;
 
-namespace FineCodeCoverage.Engine.Utilities
+namespace FineCodeCoverage.Core.Utilities
 {
-	interface IProcessUtil
-    {
-		Task<ExecuteResponse> ExecuteAsync(ExecuteRequest request);
-		CancellationToken CancellationToken { get; set; }
-
-	}
-
-	[Export(typeof(IProcessUtil))]
+    [Export(typeof(IProcessUtil))]
 	internal class ProcessUtil : IProcessUtil
 	{
 		public CancellationToken CancellationToken { get; set; }

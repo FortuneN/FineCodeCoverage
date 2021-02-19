@@ -1,6 +1,4 @@
-using System.IO;
 using FineCodeCoverage.Core.Coverlet;
-using FineCodeCoverage.Core.Model;
 using NUnit.Framework;
 
 namespace Test
@@ -23,7 +21,7 @@ namespace Test
         </DataCollectors>
     </DataCollectionRunSettings>
 </RunSettings>";
-            Assert.False(runSettingsCoverletConfiguration.Extract(runSettingsXml));
+            Assert.False(runSettingsCoverletConfiguration.Read(runSettingsXml));
         }
 
         [Test]
@@ -40,7 +38,7 @@ namespace Test
     </DataCollectionRunSettings>
 </RunSettings>";
 
-            Assert.False(runSettingsCoverletConfiguration.Extract(runSettingsXml));
+            Assert.False(runSettingsCoverletConfiguration.Read(runSettingsXml));
         }
 
         [Test]
@@ -59,7 +57,7 @@ namespace Test
     </DataCollectionRunSettings>
 </RunSettings>";
 
-            Assert.False(runSettingsCoverletConfiguration.Extract(runSettingsXml));
+            Assert.False(runSettingsCoverletConfiguration.Read(runSettingsXml));
         }
 
         [Test]
@@ -79,7 +77,7 @@ namespace Test
     </DataCollectionRunSettings>
 </RunSettings>";
 
-            Assert.False(runSettingsCoverletConfiguration.Extract(runSettingsXml));
+            Assert.False(runSettingsCoverletConfiguration.Read(runSettingsXml));
         }
 
         [Test]
@@ -99,7 +97,7 @@ namespace Test
     </DataCollectionRunSettings>
 </RunSettings>";
 
-            Assert.True(runSettingsCoverletConfiguration.Extract(runSettingsXml));
+            Assert.True(runSettingsCoverletConfiguration.Read(runSettingsXml));
         }
 
         [Test]
@@ -128,7 +126,7 @@ namespace Test
     </DataCollectionRunSettings>
 </RunSettings>";
 
-            runSettingsCoverletConfiguration.Extract(runSettingsXml);
+            runSettingsCoverletConfiguration.Read(runSettingsXml);
             Assert.AreEqual(runSettingsCoverletConfiguration.Format, "format");
             Assert.AreEqual(runSettingsCoverletConfiguration.Exclude, "exclude");
             Assert.AreEqual(runSettingsCoverletConfiguration.Include, "include");
@@ -159,7 +157,7 @@ namespace Test
     </DataCollectionRunSettings>
 </RunSettings>";
 
-            runSettingsCoverletConfiguration.Extract(runSettingsXml);
+            runSettingsCoverletConfiguration.Read(runSettingsXml);
             
             Assert.IsNull(runSettingsCoverletConfiguration.Exclude);
             Assert.IsNull(runSettingsCoverletConfiguration.Include);
@@ -185,7 +183,7 @@ namespace Test
     </DataCollectionRunSettings>
 </RunSettings>";
 
-            runSettingsCoverletConfiguration2.Extract(runSettingsXml2);
+            runSettingsCoverletConfiguration2.Read(runSettingsXml2);
 
             Assert.IsNull(runSettingsCoverletConfiguration2.Format);
         }

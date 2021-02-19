@@ -1,17 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.Composition;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Linq;
 using System.Xml.Linq;
 
 namespace FineCodeCoverage.Core.Coverlet
 {
+    internal enum CoverletDataCollectorState { NotPresent, Enabled, Disabled}
     internal interface IRunSettingsCoverletConfiguration
     {
-        bool Extract(string runSettingsXml); 
+        CoverletDataCollectorState CoverletDataCollectorState { get; }
         string Format { get; }
+
         string Exclude { get; }
         string Include { get; }
         string ExcludeByAttribute { get; }
@@ -21,12 +18,12 @@ namespace FineCodeCoverage.Core.Coverlet
         string UseSourceLink { get; }
         string IncludeTestAssembly { get; }
         string SkipAutoProps { get; }
+        bool Read(string runSettingsXml);
     }
 
-    [Export(typeof(IRunSettingsCoverletConfiguration))]
     internal class RunSettingsCoverletConfiguration : IRunSettingsCoverletConfiguration
     {
-        public bool Extract(string runSettingsXml)
+        public bool Read(string runSettingsXml)
         {
             var document = XDocument.Parse(runSettingsXml);
             //<DataCollector friendlyName=""XPlat code coverage"">
@@ -36,7 +33,19 @@ namespace FineCodeCoverage.Core.Coverlet
                 return (friendlyNameAttribute == null ? "" : friendlyNameAttribute.Value) == "XPlat code coverage";
             });
 
-            if(coverletDataCollectorElement == null)
+            if(coverletDataCollectorElement != null)
+            {
+                var enabledAttribute = coverletDataCollectorElement.Attribute("enabled");
+                if(enabledAttribute == null)
+                {
+                    CoverletDataCollectorState = CoverletDataCollectorState.Enabled;
+                }
+                else
+                {
+                    CoverletDataCollectorState = enabledAttribute.Value.ToLower() == "true" ? CoverletDataCollectorState.Enabled : CoverletDataCollectorState.Disabled;
+                }
+            }
+            else
             {
                 return false;
             }
@@ -65,6 +74,8 @@ namespace FineCodeCoverage.Core.Coverlet
 
             return foundElements;
         }
+
+        public CoverletDataCollectorState CoverletDataCollectorState { get; private set; }
 
         public string Format { get; private set; }
         public string Exclude { get; private set; }

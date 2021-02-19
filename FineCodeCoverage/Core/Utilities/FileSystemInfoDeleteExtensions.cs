@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace FineCodeCoverage.Core.Utilities
 {
@@ -38,11 +34,8 @@ namespace FineCodeCoverage.Core.Utilities
 			}
 			catch (Exception exc)
 			{
-				if (exceptionCallback != null)
-				{
-					exceptionCallback(exc);
-				}
-			}
+                exceptionCallback?.Invoke(exc);
+            }
 		}
 
 		public static void TryDelete(this DirectoryInfo directoryInfo, bool recursive = true, Action<Exception> exceptionCallback = null)
@@ -53,11 +46,8 @@ namespace FineCodeCoverage.Core.Utilities
 			}
 			catch (Exception exc)
 			{
-				if (exceptionCallback != null)
-				{
-					exceptionCallback(exc);
-				}
-			}
+                exceptionCallback?.Invoke(exc);
+            }
 		}
 	}
 }

@@ -6,7 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using FineCodeCoverage.Engine.Utilities;
+using FineCodeCoverage.Core.Utilities;
 using Fizzler.Systems.HtmlAgilityPack;
 using HtmlAgilityPack;
 using Newtonsoft.Json;
