@@ -84,9 +84,6 @@
     <Reference Include="xmlunit-core, Version=2.9.0.205, Culture=neutral, PublicKeyToken=e7d7e3088fd452f6, processorArchitecture=MSIL">
       <HintPath>..\packages\XMLUnit.Core.2.9.0\lib\net35\xmlunit-core.dll</HintPath>
     </Reference>
-    <Reference Include="xmlunit-nunit3-constraints, Version=2.9.0.205, Culture=neutral, PublicKeyToken=e7d7e3088fd452f6, processorArchitecture=MSIL">
-      <HintPath>..\packages\XMLUnit.NUnit3.Constraints.2.9.0\lib\net35\xmlunit-nunit3-constraints.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CoverletCollectorFolder_Tests.cs" />
