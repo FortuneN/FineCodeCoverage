@@ -11,19 +11,19 @@ namespace FineCodeCoverage.Impl
 	internal class Tagger<T> : ITagger<T> where T : ITag
 	{
 		private readonly ITextBuffer _textBuffer;
-		private List<CoverageLine> coverageLines;
+        private readonly IFCCEngine fccEngine;
 
         public event EventHandler<SnapshotSpanEventArgs> TagsChanged;
 
 		public Tagger(ITextBuffer textBuffer,IFCCEngine fccEngine)
 		{
 			_textBuffer = textBuffer;
+            this.fccEngine = fccEngine;
             fccEngine.UpdateMarginTags += FCCEngine_UpdateMarginTags;
 		}
 
 		private void FCCEngine_UpdateMarginTags(UpdateMarginTagsEventArgs e)
 		{
-			coverageLines = e.CoverageLines;
 			var span = new SnapshotSpan(_textBuffer.CurrentSnapshot, 0, _textBuffer.CurrentSnapshot.Length);
 			var spanEventArgs = new SnapshotSpanEventArgs(span);
 			TagsChanged?.Invoke(this, spanEventArgs);
@@ -33,7 +33,7 @@ namespace FineCodeCoverage.Impl
 		{
 			var result = new List<ITagSpan<T>>();
 
-			if (spans == null || coverageLines == null)
+			if (spans == null || fccEngine.CoverageLines == null)
 			{
 				return result;
 			}
@@ -63,7 +63,7 @@ namespace FineCodeCoverage.Impl
 
 		private IEnumerable<CoverageLine> GetLines(string filePath, int startLineNumber, int endLineNumber)
 		{
-			return coverageLines
+			return fccEngine.CoverageLines
 			.AsParallel()
 			.Where(x => x.Class.Filename.Equals(filePath, StringComparison.OrdinalIgnoreCase))
 			.Where(x => x.Line.Number >= startLineNumber && x.Line.Number <= endLineNumber)

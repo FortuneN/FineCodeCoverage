@@ -34,6 +34,8 @@ namespace FineCodeCoverage.Engine
         public event UpdateOutputWindowDelegate UpdateOutputWindow;
         
         public string AppDataFolderPath { get; private set; }
+        public List<CoverageLine> CoverageLines { get; internal set; }
+
         private readonly ICoverletUtil coverletUtil;
         private readonly IOpenCoverUtil openCoverUtil;
         private readonly ICoberturaUtil coberturaUtil;
@@ -100,7 +102,8 @@ namespace FineCodeCoverage.Engine
 
         public void ClearUI()
         {
-            UpdateMarginTags?.Invoke(new UpdateMarginTagsEventArgs { CoverageLines = new List<CoverageLine>()});
+            CoverageLines = null;
+            UpdateMarginTags?.Invoke(new UpdateMarginTagsEventArgs());
 
             UpdateOutputWindow?.Invoke(new UpdateOutputWindowEventArgs { });
         }
@@ -179,7 +182,8 @@ namespace FineCodeCoverage.Engine
         }
         private void UpdateUI(List<CoverageLine> coverageLines, string reportFilePath)
         {
-            UpdateMarginTags?.Invoke(new UpdateMarginTagsEventArgs { CoverageLines = coverageLines});
+            CoverageLines = coverageLines;
+            UpdateMarginTags?.Invoke(new UpdateMarginTagsEventArgs());
             RaiseUpdateOutputWindow(reportFilePath);
         }
 
