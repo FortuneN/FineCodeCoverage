@@ -23,17 +23,18 @@ namespace Test
     {
         private AutoMoqer mocker;
         private FCCEngine fccEngine;
-        private List<CoverageLine> updatedCoverageLines;
         private string htmlContent;
+        private bool updatedMarginTags;
 
         [SetUp]
         public void SetUp()
         {
+            updatedMarginTags = false;
             mocker = new AutoMoqer();
             fccEngine = mocker.Create<FCCEngine>();
             fccEngine.UpdateMarginTags += (UpdateMarginTagsEventArgs e) =>
             {
-                updatedCoverageLines = e.CoverageLines;
+                updatedMarginTags = true;
             };
 
 
@@ -86,10 +87,18 @@ namespace Test
         }
 
         [Test]
-        public void Should_UpdateMarginTags_With_No_CoverageLines()
+        public void Should_UpdateMarginTags_And_Set_Null_CoverageLines_When_ClearUI()
         {
+            fccEngine.CoverageLines = new List<CoverageLine>();
             fccEngine.ClearUI();
-            Assert.AreEqual(0, updatedCoverageLines.Count);
+            Assert.IsTrue(updatedMarginTags);
+            Assert.IsNull(fccEngine.CoverageLines);
+        }
+
+        [Test]
+        public void Should_Begin_With_Null_CoverageLines()
+        {
+            Assert.IsNull(fccEngine.CoverageLines);
         }
     }
 
@@ -100,7 +109,6 @@ namespace Test
         private bool raisedUpdateMarginTags;
         private bool raisedUpdateOutputWindow;
         private string tempReportGeneratedHtml;
-        private List<CoverageLine> updatedCoverageLines;
         private string htmlContent;
 
         private void VerifyLogsReloadCoverageStatus(ReloadCoverageStatus reloadCoverageStatus)
@@ -115,7 +123,7 @@ namespace Test
         private void VerifyClearUIEvents()
         {
             VerifyRaisedUIEvents();
-            Assert.IsNull(updatedCoverageLines);
+            Assert.IsNull(fccEngine.CoverageLines);
             Assert.IsNull(htmlContent);
         }
 
@@ -166,13 +174,11 @@ namespace Test
             raisedUpdateMarginTags = false;
             raisedUpdateOutputWindow = false;
             tempReportGeneratedHtml = null;
-            updatedCoverageLines = null;
             htmlContent = null;
 
             fccEngine.UpdateMarginTags += (UpdateMarginTagsEventArgs e) =>
             {
                 raisedUpdateMarginTags = true;
-                updatedCoverageLines = e.CoverageLines;
             };
             
             fccEngine.UpdateOutputWindow += (UpdateOutputWindowEventArgs e) =>
@@ -431,7 +437,7 @@ namespace Test
         {
             var mocked = await RunToCompletion(false);
             VerifyLogsReloadCoverageStatus(ReloadCoverageStatus.Done);
-            Assert.AreSame(mocked.updatedCoverageLines, updatedCoverageLines);
+            Assert.AreSame(mocked.updatedCoverageLines, fccEngine.CoverageLines);
             Assert.AreEqual(mocked.reportGeneratedHtmlContent, htmlContent);
 
         }
@@ -439,6 +445,7 @@ namespace Test
         [Test]
         public async Task Should_Clear_UI_When_ReloadCoverage_Completes_Early_With_Reset()
         {
+            fccEngine.CoverageLines = new List<CoverageLine>();
             await RunToCompletion(true);
             VerifyLogsReloadCoverageStatus(ReloadCoverageStatus.Done);
             VerifyClearUIEvents();
@@ -522,6 +529,7 @@ namespace Test
         [Test]
         public async Task Should_Clear_UI_When_There_Is_An_Exception()
         {
+            fccEngine.CoverageLines = new List<CoverageLine>();
             await ThrowException();
             VerifyClearUIEvents();
         }
