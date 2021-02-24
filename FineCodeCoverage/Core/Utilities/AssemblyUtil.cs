@@ -3,17 +3,10 @@ using System.ComponentModel.Composition;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.InteropServices;
 
-namespace FineCodeCoverage.Engine.Utilities
+namespace FineCodeCoverage.Core.Utilities
 {
-	internal interface IAssemblyUtil
-    {
-		T RunInAssemblyResolvingContext<T>(Func<T> func);
-
-	}
-
-	[Export(typeof(IAssemblyUtil))]
+    [Export(typeof(IAssemblyUtil))]
 	internal class AssemblyUtil:IAssemblyUtil
 	{
 		public void RunInAssemblyResolvingContext(Action action)

@@ -69,7 +69,33 @@
     <Compile Include="Core\Cobertura\Packages.cs" />
     <Compile Include="Core\Cobertura\Sources.cs" />
     <Compile Include="Core\CoverageUIEvents.cs" />
+    <Compile Include="Core\Coverlet\CoverletCollectorFolder.cs" />
+    <Compile Include="Core\Coverlet\CoverletCollectorZipProvider.cs" />
+    <Compile Include="Core\Coverlet\CoverletDataCollectorGeneratedCobertura.cs" />
+    <Compile Include="Core\Coverlet\CoverletDataCollectorUtil.cs" />
+    <Compile Include="Core\Coverlet\CoverletGlobalUtil.cs" />
     <Compile Include="Core\Coverlet\CoverletUtil.cs" />
+    <Compile Include="Core\Coverlet\DataCollectorSettingsBuilder.cs" />
+    <Compile Include="Core\Coverlet\DataCollectorSettingsBuilderFactory.cs" />
+    <Compile Include="Core\Coverlet\FileUtil.cs" />
+    <Compile Include="Core\Coverlet\ICoverletCollectorFolder.cs" />
+    <Compile Include="Core\Coverlet\ICoverletCollectorZipProvider.cs" />
+    <Compile Include="Core\Coverlet\ICoverletDataCollectorGeneratedCobertura.cs" />
+    <Compile Include="Core\Coverlet\ICoverletDataCollectorUtil.cs" />
+    <Compile Include="Core\Coverlet\ICoverletGlobalUtil.cs" />
+    <Compile Include="Core\Coverlet\ICoverletUtil.cs" />
+    <Compile Include="Core\Coverlet\IDataCollectorSettingsBuilder.cs" />
+    <Compile Include="Core\Coverlet\IDataCollectorSettingsBuilderFactory.cs" />
+    <Compile Include="Core\Coverlet\IFileUtil.cs" />
+    <Compile Include="Core\Coverlet\IZipFile.cs" />
+    <Compile Include="Core\Coverlet\ZipFileWrapper.cs" />
+    <Compile Include="Core\Utilities\IAssemblyUtil.cs" />
+    <Compile Include="Core\Utilities\IProcessUtil.cs" />
+    <Compile Include="Core\Utilities\ProcessResponseProcessor.cs" />
+    <Compile Include="Core\Utilities\IProcessResponseProcessor.cs" />
+    <Compile Include="Core\Coverlet\IRunSettingsCoverletConfigurationFactory.cs" />
+    <Compile Include="Core\Coverlet\RunSettingsCoverletConfiguration.cs" />
+    <Compile Include="Core\Coverlet\RunSettingsCoverletConfigurationFactory.cs" />
     <Compile Include="Core\EnvironmentVariable.cs" />
     <Compile Include="Core\FileSynchronization\FileSynchronization.cs" />
     <Compile Include="Core\IAppDataFolder.cs" />
@@ -83,6 +109,7 @@
     <Compile Include="Core\Model\ICoverageProjectFactory.cs" />
     <Compile Include="Core\Model\ReferencedProject.cs" />
     <Compile Include="Core\MsTestPlatform\MsTestPlatformUtil.cs" />
+    <Compile Include="Core\OpenCover\IOpenCoverUtil.cs" />
     <Compile Include="Core\ReportGenerator\ReportGeneratorUtil.cs" />
     <Compile Include="Core\SourceFileOpener.cs" />
     <Compile Include="Core\SVsColorThemeService.cs" />
@@ -191,6 +218,9 @@
       <ResourceName>Menus.ctmenu</ResourceName>
       <LastGenOutput>OutputToolWindowPackage1.cs</LastGenOutput>
     </VSCTCompile>
+    <Content Include="Core\Coverlet\coverlet.collector.3.0.3.zip">
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
     <None Include="Output\Resources\OutputToolWindowCommand.png.x" />
     <Content Include="Output\Resources\OutputToolWindowPackage.ico" />
     <None Include="..\.editorconfig">
@@ -236,6 +266,9 @@
     </PackageReference>
     <PackageReference Include="System.Composition">
       <Version>5.0.1</Version>
+    </PackageReference>
+    <PackageReference Include="System.IO.Compression">
+      <Version>4.3.0</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>

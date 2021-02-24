@@ -11,5 +11,6 @@
         bool RunInParallel { get; }
         int RunWhenTestsExceed { get; }
         bool RunWhenTestsFail { get; }
+        bool RunSettingsOnly { get; }
     }
 }

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 
-namespace FineCodeCoverage.Engine.Utilities
+namespace FineCodeCoverage.Core.Utilities
 {
 	internal class ComparableFile : IEquatable<ComparableFile>
 	{

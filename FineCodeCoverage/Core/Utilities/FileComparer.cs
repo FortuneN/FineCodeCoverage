@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace FineCodeCoverage.Engine.Utilities
+namespace FineCodeCoverage.Core.Utilities
 {
 	internal class FileComparer : IEqualityComparer<ComparableFile>
 	{

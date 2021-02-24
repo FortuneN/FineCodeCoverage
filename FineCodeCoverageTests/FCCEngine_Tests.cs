@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AutoMoq;
+using FineCodeCoverage.Core.Utilities;
 using FineCodeCoverage.Engine;
 using FineCodeCoverage.Engine.Cobertura;
 using FineCodeCoverage.Engine.Coverlet;
@@ -12,7 +13,6 @@ using FineCodeCoverage.Engine.Model;
 using FineCodeCoverage.Engine.MsTestPlatform;
 using FineCodeCoverage.Engine.OpenCover;
 using FineCodeCoverage.Engine.ReportGenerator;
-using FineCodeCoverage.Engine.Utilities;
 using FineCodeCoverage.Impl;
 using Moq;
 using NUnit.Framework;
@@ -217,7 +217,7 @@ namespace Test
                 initializeStatusProvider.InitializeStatus = InitializeStatus.Initialized;
             });
             await fccEngine.reloadCoverageTask;
-            mocker.Verify<ILogger>(l => l.Log(fccEngine.GetLogReloadCoverageStatusMessage(ReloadCoverageStatus.Initializing)), Times.Exactly(times));
+            mocker.Verify<ILogger>(l => l.Log(fccEngine.GetLogReloadCoverageStatusMessage(ReloadCoverageStatus.Initializing)), Times.AtLeast(times));
         }
 
         [Test]

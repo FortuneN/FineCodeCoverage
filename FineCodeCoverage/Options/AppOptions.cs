@@ -10,6 +10,7 @@ namespace FineCodeCoverage.Options
     {
         private const string runCategory = "Run";
         private const string excludeIncludeCategory = "Exclude / Include";
+        private const string coverletCategory = "Coverlet";
 
         public AppOptions():this(false)
         {
@@ -105,6 +106,10 @@ namespace FineCodeCoverage.Options
         [Description("Specify a value to only run coverage based upon the number of executing tests.  Cannot be used in conjunction with RunInParallel")]
         [Category(runCategory)]
         public int RunWhenTestsExceed { get; set; }
+
+        [Description("Specify false for global and project options to be used for coverlet data collector configuration elements when not specified in runsettings")]
+        [Category(coverletCategory)]
+        public bool RunSettingsOnly { get; set; } = true;
 
         [SuppressMessage("Usage", "VSTHRD010:Invoke single-threaded types on Main thread")]
         public override void SaveSettingsToStorage()

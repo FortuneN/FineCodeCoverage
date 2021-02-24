@@ -7,20 +7,14 @@ using System.IO.Compression;
 using System.Collections.Generic;
 using FineCodeCoverage.Engine.Model;
 using System.Diagnostics.CodeAnalysis;
-using FineCodeCoverage.Engine.Utilities;
 using FineCodeCoverage.Engine.MsTestPlatform;
 using System.Threading.Tasks;
 using System.ComponentModel.Composition;
+using FineCodeCoverage.Core.Utilities;
 
 namespace FineCodeCoverage.Engine.OpenCover
 {
-	internal interface IOpenCoverUtil
-    {
-		Task<bool> RunOpenCoverAsync(ICoverageProject project, bool throwError = false);
-		void Initialize(string appDataFolder);
-	}
-
-	[Export(typeof(IOpenCoverUtil))]
+    [Export(typeof(IOpenCoverUtil))]
 	internal class OpenCoverUtil:IOpenCoverUtil
 	{
 		private string openCoverExePath;
