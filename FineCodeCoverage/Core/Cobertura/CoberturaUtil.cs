@@ -90,9 +90,10 @@ namespace FineCodeCoverage.Engine.Cobertura
 			}
 		}
 
-		public string[] GetSourceFiles(string assemblyName, string qualifiedClassName)
+		public string[] GetSourceFiles(string assemblyName, string qualifiedClassName, int file)
 		{
 			// Note : There may be more than one file; e.g. in the case of partial classes
+			// For riskhotspots the file parameter is available ( otherwise is -1 )
 
 			var package = coverageReport
 				.Packages.Package
@@ -103,9 +104,16 @@ namespace FineCodeCoverage.Engine.Cobertura
 				return new string[0];
 			}
 
-			var classFiles = package
+			var classes = package
 				.Classes.Class
-				.Where(x => x.Name.Equals(qualifiedClassName))
+				.Where(x => x.Name.Equals(qualifiedClassName));
+
+			if (file != -1)
+			{
+				classes = new List<Class> { classes.ElementAt(file) };
+			}
+
+			var classFiles = classes
 				.Select(x => x.Filename)
 				.ToArray();
 

@@ -300,14 +300,17 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 
 				// TEXT changes
 				var assemblyClassDelimiter = "!";
+
 				var outerHtml = doc.DocumentNode.OuterHtml;
 				var htmlSb = new StringBuilder(outerHtml);
+
 				var assembliesSearch = "var assemblies = [";
 				var startIndex = outerHtml.IndexOf(assembliesSearch) + assembliesSearch.Length - 1;
 				var endIndex = outerHtml.IndexOf("var historicCoverageExecutionTimes");
 				var assembliesToReplace = outerHtml.Substring(startIndex, endIndex - startIndex);
 				endIndex = assembliesToReplace.LastIndexOf(']');
 				assembliesToReplace = assembliesToReplace.Substring(0, endIndex + 1);
+
 				var assemblies = JArray.Parse(assembliesToReplace);
 				foreach (JObject assembly in assemblies)
 				{
@@ -344,7 +347,29 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 				var assembliesReplaced = assemblies.ToString();
 				htmlSb.Replace(assembliesToReplace, assembliesReplaced);
 
-				htmlSb.Replace(".table-fixed", ".table-fixed-ignore-me");
+                //is this even present if there are no riskhotspots
+                var riskHotspotsSearch = "var riskHotspots = [";
+                var rhStartIndex = outerHtml.IndexOf(riskHotspotsSearch) + riskHotspotsSearch.Length - 1;
+                var rhEndIndex = outerHtml.IndexOf("var branchCoverageAvailable");
+                var rhToReplace = outerHtml.Substring(rhStartIndex, rhEndIndex - rhStartIndex);
+                rhEndIndex = rhToReplace.LastIndexOf(']');
+                rhToReplace = rhToReplace.Substring(0, rhEndIndex + 1);
+
+                var riskHotspots = JArray.Parse(rhToReplace);
+                foreach (JObject riskHotspot in riskHotspots)
+                {
+                    var assembly = riskHotspot["assembly"].ToString();
+                    var qualifiedClassName = riskHotspot["class"].ToString();
+					// simplify name
+					var lastIndexOfDotInName = qualifiedClassName.LastIndexOf('.');
+					if (lastIndexOfDotInName != -1) riskHotspot["class"] = qualifiedClassName.Substring(lastIndexOfDotInName).Trim('.');
+					var newReportPath = $"#{assembly}{assemblyClassDelimiter}{qualifiedClassName}.html";
+                    riskHotspot["reportPath"] = newReportPath;
+                }
+                var riskHotspotsReplaced = riskHotspots.ToString();
+                htmlSb.Replace(rhToReplace, riskHotspotsReplaced);
+
+                htmlSb.Replace(".table-fixed", ".table-fixed-ignore-me");
 
 				htmlSb.Replace("</head>", $@"
 					<style type=""text/css"">
@@ -399,19 +424,6 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 
 						eventListener(window,'focus',function(){{window.external.DocumentFocused()}});
 
-						var classes = {{}};
-						
-						Array.prototype.forEach.call(assemblies, function (assembly) {{
-							setTimeout(function () {{
-								Array.prototype.forEach.call(assembly.classes, function (classs) {{
-									setTimeout(function () {{
-										classs.assembly = assembly;
-										classes[classs.rp] = classs;
-									}});
-								}});
-							}});
-						}});
-						
 						eventListener(document, 'click', function (event) {{
 							
 							var target = event.target;
@@ -435,7 +447,7 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 							if (fileLine.indexOf('#') !== -1)
 								fileLine = fileLine.substring(fileLine.indexOf('#') + 1).replace('file', '').replace('line', '').split('_');
 							else
-								fileLine = ['0', '0'];
+								fileLine = ['-1', '0'];
 							
 							window.external.OpenFile(assembly, qualifiedClassName, parseInt(fileLine[0]), parseInt(fileLine[1]));
 							
@@ -513,8 +525,41 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 							{ button: 'btnSummary', content: 'table-fixed' },
 							{ button: 'btnRiskHotspots', content: 'risk-hotspots' },
 						];
-					
-						var openTab = function (tabIndex) {
+
+						var addedFileIndexToRiskHotspots = false;
+						var addFileIndexToRiskHotspotsClassLink = function(){
+						  if(!addedFileIndexToRiskHotspots){
+							addedFileIndexToRiskHotspots = true;
+							var riskHotspotsElements = document.getElementsByTagName('risk-hotspots');
+							if(riskHotspotsElements.length == 1){{
+								var riskHotspotsElement = riskHotspotsElements[0];
+								var riskHotspotsTable = riskHotspotsElement.querySelector('table');
+								var rhBody = riskHotspotsTable.querySelector('tbody');
+								var rows = rhBody.rows;
+								for(var i=0;i<rows.length;i++){
+								  var row = rows[i];
+								  var cells = row.cells;
+								  var classCell = cells[1];
+								  var classLink = classCell.children[0];
+								  var methodCell = cells[2];
+								  var classLink = classCell.children[0];
+								  var methodLink = methodCell.children[0];
+								  var methodHash = methodLink.hash;
+								  var methodHtmlIndex = methodHash.indexOf('.html');
+								  var fileLine = methodHash.substring(methodHtmlIndex + 6);
+								  var fileAndLine = fileLine.replace('file', '').replace('line', '').split('_');
+								  var file = fileAndLine[0];
+								  var line = fileAndLine[1];
+								  classLink.href = classLink.hash + '#file' + file + '_line0';
+								}
+							}}
+							}
+						}
+
+	var openTab = function (tabIndex) {
+							if(tabIndex==2){{
+								addFileIndexToRiskHotspotsClassLink();
+							}}
 							for (var i = 0; i < tabs.length; i++) {
 							
 								var tab = tabs[i];

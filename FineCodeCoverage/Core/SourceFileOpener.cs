@@ -32,7 +32,7 @@ namespace FineCodeCoverage.Engine
         {
             // Note : There may be more than one file; e.g. in the case of partial classes
             //remove CoverageReport
-            var sourceFiles = coberturaUtil.GetSourceFiles(assemblyName, qualifiedClassName);
+            var sourceFiles = coberturaUtil.GetSourceFiles(assemblyName, qualifiedClassName,file);
 
             if (!sourceFiles.Any())
             {
