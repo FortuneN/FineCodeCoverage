@@ -6,6 +6,11 @@ Download this extension from the [Visual Studio Market Place](https://marketplac
 or get the [CI build](https://www.vsixgallery.com/extension/fcc-f339fe606-9d51-4fca-895c-d50375137b62).  Previous versions can be obtained from [here](https://ci.appveyor.com/project/FortuneN/finecodecoverage).
 
 ---------------------------------------
+Prerequisites
+
+Only that the test adapters are nuget packages.  For instance, the NUnit Test Adapter extension is not sufficient.
+
+---------------------------------------
 
 ### <a href="https://www.youtube.com/watch?v=Rae5bTE2D3o" target="_blank">Watch Introduction Video</a>
 
