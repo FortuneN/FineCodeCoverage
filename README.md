@@ -64,9 +64,11 @@ Run a(some) unit test(s) and ...
 ```
 
 #### Coverlet specific
+```
 <PropertyGroup>
 	<UseDataCollector/>
 </PropertyGroup>
+```
 
 Coverlet has different "drivers".  Fine Code Coverage has in the past only used the coverlet console driver.  This has some issues associated with it.
 It is now possible to switch to the Data Collector driver.  This is the better driver but cannot be used for all projects.
