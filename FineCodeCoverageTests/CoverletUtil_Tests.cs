@@ -22,7 +22,7 @@ namespace Test
         public void Should_Initialize_The_GlobalTool_And_DataCollector()
         {
             coverletUtil.Initialize("folder path");
-            mocker.Verify<ICoverletGlobalUtil>(g => g.Initialize("folder path"));
+            mocker.Verify<ICoverletConsoleUtil>(g => g.Initialize("folder path"));
             mocker.Verify<ICoverletDataCollectorUtil>(dc => dc.Initialize("folder path"));
         }
 
@@ -55,7 +55,7 @@ namespace Test
             var mockDataCollectorUtil = mocker.GetMock<ICoverletDataCollectorUtil>();
             mockDataCollectorUtil.Setup(dc => dc.CanUseDataCollector(project)).Returns(false);
 
-            var mockGlobalUtil = mocker.GetMock<ICoverletGlobalUtil>();
+            var mockGlobalUtil = mocker.GetMock<ICoverletConsoleUtil>();
             mockGlobalUtil.Setup(g => g.RunAsync(project, throwOnError).Result).Returns(result);
 
             var success = await coverletUtil.RunCoverletAsync(project, throwOnError);

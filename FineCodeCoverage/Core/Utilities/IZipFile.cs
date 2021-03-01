@@ -1,4 +1,4 @@
-﻿namespace FineCodeCoverage.Engine.Coverlet
+﻿namespace FineCodeCoverage.Core.Utilities
 {
     internal interface IZipFile
     {

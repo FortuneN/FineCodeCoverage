@@ -165,6 +165,19 @@ namespace FineCodeCoverage.Engine.Coverlet
 
         }
 
+        private string GetTestAdapterPathArg()
+        {
+            if (coverageProject.Settings.CoverletCollectorDirectoryPath != null) {
+                var directoryPath = coverageProject.Settings.CoverletCollectorDirectoryPath.Trim();
+                if (Directory.Exists(directoryPath))
+                {
+                    logger.Log($"Using custom coverlet data collector : {directoryPath}");
+                    return $@"""{directoryPath}""";
+                }
+            }
+            return TestAdapterPathArg;
+        }
+
         public async Task<bool> RunAsync(bool throwError = false)
         {
             var settings = GetSettings();
@@ -175,7 +188,7 @@ namespace FineCodeCoverage.Engine.Coverlet
             .ExecuteAsync(new ExecuteRequest
             {
                 FilePath = "dotnet",
-                Arguments = $@"test --collect:""XPlat Code Coverage"" {settings} --test-adapter-path {TestAdapterPathArg}",
+                Arguments = $@"test --collect:""XPlat Code Coverage"" {settings} --test-adapter-path {GetTestAdapterPathArg()}",
                 WorkingDirectory = coverageProject.ProjectOutputFolder
             });
             // this is how coverlet console determines exit code

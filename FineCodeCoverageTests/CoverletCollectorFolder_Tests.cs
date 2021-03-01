@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using AutoMoq;
+using FineCodeCoverage.Core.Utilities;
 using FineCodeCoverage.Engine.Coverlet;
 using Moq;
 using NUnit.Framework;

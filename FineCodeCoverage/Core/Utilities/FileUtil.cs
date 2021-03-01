@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.Composition;
 using System.IO;
 
-namespace FineCodeCoverage.Engine.Coverlet
+namespace FineCodeCoverage.Core.Utilities
 {
     [Export(typeof(IFileUtil))]
     internal class FileUtil : IFileUtil

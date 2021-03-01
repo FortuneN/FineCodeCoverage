@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using AutoMoq;
@@ -20,6 +21,8 @@ namespace Test
         private Mock<ICoverageProject> mockCoverageProject;
         private Mock<IRunSettingsCoverletConfiguration> mockRunSettingsCoverletConfiguration;
         private Mock<IDataCollectorSettingsBuilder> mockDataCollectorSettingsBuilder;
+
+        private string tempDirectory;
         [SetUp]
         public void SetUp()
         {
@@ -36,6 +39,22 @@ namespace Test
             coverletDataCollectorUtil.runSettingsCoverletConfiguration = mockRunSettingsCoverletConfiguration.Object;
             coverletDataCollectorUtil.coverageProject = mockCoverageProject.Object;
         }
+
+        [TearDown]
+        public void DeleteTempDirectory()
+        {
+            if(tempDirectory != null && Directory.Exists(tempDirectory))
+            {
+                Directory.Delete(tempDirectory);
+            }
+        }
+
+        private DirectoryInfo CreateTemporaryDirectory()
+        {
+            tempDirectory = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+            return Directory.CreateDirectory(tempDirectory);
+        }
+
 
         [Test]
         public async Task Should_Get_Settings_With_TestDllFile()
@@ -203,6 +222,30 @@ namespace Test
             coverletDataCollectorUtil.TestAdapterPathArg = "testadapterpath";
             await coverletDataCollectorUtil.RunAsync(false);
             mocker.Verify<IProcessUtil>(p => p.ExecuteAsync(It.Is<ExecuteRequest>(er => er.Arguments == @"test --collect:""XPlat Code Coverage"" settings --test-adapter-path testadapterpath" && er.FilePath == "dotnet" && er.WorkingDirectory == "projectOutputFolder")));
+        }
+
+        private async Task Use_Custom_TestAdapterPath()
+        {
+            CreateTemporaryDirectory();
+            mockCoverageProject.Setup(cp => cp.ProjectOutputFolder).Returns("projectOutputFolder");
+            mockCoverageProject.Setup(cp => cp.Settings.CoverletCollectorDirectoryPath).Returns(tempDirectory);
+            mockDataCollectorSettingsBuilder.Setup(sb => sb.Build()).Returns("settings");
+            coverletDataCollectorUtil.TestAdapterPathArg = "testadapterpath";
+            await coverletDataCollectorUtil.RunAsync(false);
+        }
+
+        [Test]
+        public async Task Should_Use_Custom_TestAdapterPath_Quoted_If_Specified_In_Settings_And_Exists()
+        {
+            await Use_Custom_TestAdapterPath();
+            mocker.Verify<IProcessUtil>(p => p.ExecuteAsync(It.Is<ExecuteRequest>(er => er.Arguments == $@"test --collect:""XPlat Code Coverage"" settings --test-adapter-path ""{tempDirectory}""" && er.FilePath == "dotnet" && er.WorkingDirectory == "projectOutputFolder")));
+        }
+
+        [Test]
+        public async Task Should_Log_When_Using_Custom_TestAdapterPath()
+        {
+            await Use_Custom_TestAdapterPath();
+            mocker.Verify<ILogger>(l => l.Log($"Using custom coverlet data collector : {tempDirectory}"));
         }
 
         [TestCase(true,true)]

@@ -12,5 +12,10 @@
         int RunWhenTestsExceed { get; }
         bool RunWhenTestsFail { get; }
         bool RunSettingsOnly { get; }
+        bool CoverletConsoleGlobal { get; }
+        string CoverletConsoleCustomPath { get; }
+        bool CoverletConsoleLocal { get; }
+        string CoverletCollectorDirectoryPath { get; }
+        string OpenCoverCustomPath { get; }
     }
 }

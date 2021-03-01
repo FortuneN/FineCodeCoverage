@@ -11,6 +11,7 @@ using FineCodeCoverage.Engine.MsTestPlatform;
 using System.Threading.Tasks;
 using System.ComponentModel.Composition;
 using FineCodeCoverage.Core.Utilities;
+using FineCodeCoverage.Options;
 
 namespace FineCodeCoverage.Engine.OpenCover
 {
@@ -154,6 +155,15 @@ namespace FineCodeCoverage.Engine.OpenCover
 			}
 		}
 
+		private string GetOpenCoverExePath(string customExePath)
+        {
+			if(customExePath != null)
+            {
+				return customExePath;
+            }
+			return openCoverExePath;
+        }
+
 		public async Task<bool> RunOpenCoverAsync(ICoverageProject project, bool throwError = false)
 		{
 			var title = $"OpenCover Run ({project.ProjectName})";
@@ -295,7 +305,7 @@ namespace FineCodeCoverage.Engine.OpenCover
 			var result = await processUtil
 			.ExecuteAsync(new ExecuteRequest
 			{
-				FilePath = openCoverExePath,
+				FilePath = GetOpenCoverExePath(project.Settings.OpenCoverCustomPath),
 				Arguments = string.Join(" ", opencoverSettings),
 				WorkingDirectory = project.ProjectOutputFolder
 			});

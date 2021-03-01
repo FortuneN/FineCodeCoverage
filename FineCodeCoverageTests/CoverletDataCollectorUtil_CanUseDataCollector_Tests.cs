@@ -2,6 +2,7 @@
 using System.Xml.Linq;
 using AutoMoq;
 using FineCodeCoverage.Core.Coverlet;
+using FineCodeCoverage.Core.Utilities;
 using FineCodeCoverage.Engine.Coverlet;
 using FineCodeCoverage.Engine.Model;
 using Moq;

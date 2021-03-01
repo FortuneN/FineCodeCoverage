@@ -1,32 +1,54 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
 using FineCodeCoverage.Core.Utilities;
 using FineCodeCoverage.Engine.Model;
+using FineCodeCoverage.Options;
 
 namespace FineCodeCoverage.Engine.Coverlet
 {
-    [Export(typeof(ICoverletGlobalUtil))]
-	internal class CoverletGlobalUtil : ICoverletGlobalUtil
-	{
-		private const string CoverletName = "coverlet.console";
-		private readonly IProcessUtil processUtil;
+    public interface ICoverletConsoleExeFinder
+    {
+        string FindInFolder(string folder, SearchOption searchOption);
+
+    }
+    public class CoverletConsoleExeFinder
+    {
+        public string FindInFolder(string folder, SearchOption searchOption)
+        {
+            return Directory.GetFiles(folder, "coverlet.exe", searchOption).FirstOrDefault()
+                           ?? Directory.GetFiles(folder, "*coverlet*.exe", searchOption).FirstOrDefault();
+        }
+    }
+
+    [Export(typeof(IFCCCoverletConsoleExecutor))]
+    internal class FCCCoverletConsoleExeProvider : IFCCCoverletConsoleExecutor
+    {
+		[ImportingConstructor]
+		public FCCCoverletConsoleExeProvider(ILogger logger)
+        {
+            this.logger = logger;
+        }
+
+        private const string CoverletName = "coverlet.console";
 		private readonly ILogger logger;
-		private string coverletExePath;
+        private string coverletExePath;
 		private string appDataCoverletFolder;
 		private Version currentCoverletVersion;
 		private Version MimimumCoverletVersion { get; } = Version.Parse("1.7.2");
+		public ExecuteRequest GetRequest(ICoverageProject coverageProject, string coverletSettings)
+        {
+			return new ExecuteRequest
+			{
+				FilePath = coverletExePath,
+				Arguments = coverletSettings,
+				WorkingDirectory = coverageProject.ProjectOutputFolder
+			};
 
-		[ImportingConstructor]
-		public CoverletGlobalUtil(IProcessUtil processUtil, ILogger logger)
-		{
-			this.processUtil = processUtil;
-			this.logger = logger;
 		}
+
 		public void Initialize(string appDataFolder)
 		{
 			appDataCoverletFolder = Path.Combine(appDataFolder, "coverlet");
@@ -159,94 +181,7 @@ namespace FineCodeCoverage.Engine.Coverlet
 			logger.Log(title, processOutput);
 		}
 
-		public async Task<bool> RunAsync(ICoverageProject project, bool throwError = false)
-		{
-			var title = $"Coverlet Run ({project.ProjectName})";
-
-			var coverletSettings = new List<string>();
-
-			coverletSettings.Add($@"""{project.TestDllFile}""");
-
-			coverletSettings.Add($@"--format ""cobertura""");
-
-			foreach (var value in (project.Settings.Exclude ?? new string[0]).Where(x => !string.IsNullOrWhiteSpace(x)))
-			{
-				coverletSettings.Add($@"--exclude ""{value.Replace("\"", "\\\"").Trim(' ', '\'')}""");
-			}
-
-			foreach (var referencedProjectExcludedFromCodeCoverage in project.ExcludedReferencedProjects)
-			{
-				coverletSettings.Add($@"--exclude ""[{referencedProjectExcludedFromCodeCoverage}]*""");
-			}
-
-			foreach (var value in (project.Settings.Include ?? new string[0]).Where(x => !string.IsNullOrWhiteSpace(x)))
-			{
-				coverletSettings.Add($@"--include ""{value.Replace("\"", "\\\"").Trim(' ', '\'')}""");
-			}
-
-			foreach (var value in (project.Settings.ExcludeByFile ?? new string[0]).Where(x => !string.IsNullOrWhiteSpace(x)))
-			{
-				coverletSettings.Add($@"--exclude-by-file ""{value.Replace("\"", "\\\"").Trim(' ', '\'')}""");
-			}
-
-			foreach (var value in (project.Settings.ExcludeByAttribute ?? new string[0]).Where(x => !string.IsNullOrWhiteSpace(x)))
-			{
-				coverletSettings.Add($@"--exclude-by-attribute ""{value.Replace("\"", "\\\"").Trim(' ', '\'', '[', ']')}""");
-			}
-
-			if (project.Settings.IncludeTestAssembly)
-			{
-				coverletSettings.Add("--include-test-assembly");
-			}
-
-			coverletSettings.Add($@"--target ""dotnet""");
-
-			coverletSettings.Add($@"--threshold-type line");
-
-			coverletSettings.Add($@"--threshold-stat total");
-
-			coverletSettings.Add($@"--threshold 0");
-
-			coverletSettings.Add($@"--output ""{ project.CoverageOutputFile }""");
-
-			var runSettings = !string.IsNullOrWhiteSpace(project.RunSettingsFile) ? $@"--settings """"{project.RunSettingsFile}""""" : default;
-			coverletSettings.Add($@"--targetargs ""test  """"{project.TestDllFile}"""" --nologo --blame {runSettings} --results-directory """"{project.CoverageOutputFolder}"""" --diag """"{project.CoverageOutputFolder}/diagnostics.log""""  """);
-
-			logger.Log($"{title} Arguments {Environment.NewLine}{string.Join($"{Environment.NewLine}", coverletSettings)}");
-
-			var result = await processUtil
-			.ExecuteAsync(new ExecuteRequest
-			{
-				FilePath = coverletExePath,
-				Arguments = string.Join(" ", coverletSettings),
-				WorkingDirectory = project.ProjectOutputFolder
-			});
 
 
-			if (result != null)
-			{
-				/*
-				0 - Success.
-				1 - If any test fails.
-				2 - Coverage percentage is below threshold.
-				3 - Test fails and also coverage percentage is below threshold.
-			*/
-				if (result.ExitCode > 3)
-				{
-					if (throwError)
-					{
-						throw new Exception(result.Output);
-					}
-
-					logger.Log($"{title} Error", result.Output);
-					return false;
-				}
-
-				logger.Log(title, result.Output);
-
-				return true;
-			}
-			return false;
-		}
 	}
 }
