@@ -86,19 +86,21 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CoverletCollectorFolder_Tests.cs" />
-    <Compile Include="CoverletCollectorZipProvider_Tests.cs" />
+    <Compile Include="ToolFolder_Tests.cs" />
+    <Compile Include="ToolZipProvider_Tests.cs" />
     <Compile Include="CoverletDataCollectorGeneratedCobertura_Tests.cs" />
     <Compile Include="CoverletDataCollectorUtil_CanUseDataCollector_Tests.cs" />
     <Compile Include="CoverletDataCollectorUtil_Initialize_Tests.cs" />
     <Compile Include="CoverletDataCollectorUtil_RunAsync_Tests.cs" />
     <Compile Include="DataCollectorSettingsBuilder_Tests.cs" />
+    <Compile Include="DotNetToolList_Tests.cs" />
     <Compile Include="ProcessResponseProcessor_Tests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="FCCEngine_Tests.cs" />
     <Compile Include="CoverageProject_Tests.cs" />
     <Compile Include="Initializer_Tests.cs" />
     <Compile Include="CoverletUtil_Tests.cs" />
+    <Compile Include="CoverletConsole_Tests.cs" />
     <Compile Include="RunSettingsCoverletConfigurationFactory_Tests.cs" />
     <Compile Include="RunSettingsCoverletConfiguration_Tests.cs" />
     <Compile Include="ScriptManager_Tests.cs" />

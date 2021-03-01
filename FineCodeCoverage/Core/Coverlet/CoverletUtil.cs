@@ -9,10 +9,10 @@ namespace FineCodeCoverage.Engine.Coverlet
     internal class CoverletUtil:ICoverletUtil
 	{
         private readonly ICoverletDataCollectorUtil coverletDataCollectorUtil;
-        private readonly ICoverletGlobalUtil coverletGlobalUtil;
+        private readonly ICoverletConsoleUtil coverletGlobalUtil;
 
         [ImportingConstructor]
-		public CoverletUtil(ICoverletDataCollectorUtil coverletDataCollectorUtil, ICoverletGlobalUtil coverletGlobalUtil)
+		public CoverletUtil(ICoverletDataCollectorUtil coverletDataCollectorUtil, ICoverletConsoleUtil coverletGlobalUtil)
         {
             this.coverletDataCollectorUtil = coverletDataCollectorUtil;
             this.coverletGlobalUtil = coverletGlobalUtil;

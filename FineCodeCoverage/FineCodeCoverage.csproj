@@ -69,33 +69,49 @@
     <Compile Include="Core\Cobertura\Packages.cs" />
     <Compile Include="Core\Cobertura\Sources.cs" />
     <Compile Include="Core\CoverageUIEvents.cs" />
-    <Compile Include="Core\Coverlet\CoverletCollectorFolder.cs" />
-    <Compile Include="Core\Coverlet\CoverletCollectorZipProvider.cs" />
-    <Compile Include="Core\Coverlet\CoverletDataCollectorGeneratedCobertura.cs" />
-    <Compile Include="Core\Coverlet\CoverletDataCollectorUtil.cs" />
-    <Compile Include="Core\Coverlet\CoverletGlobalUtil.cs" />
+    <Compile Include="Core\Coverlet\Console\CoverletConsoleDotnetToolsGlobalExecutor.cs" />
+    <Compile Include="Core\Coverlet\Console\CoverletConsoleCustomPathExecutor.cs" />
+    <Compile Include="Core\Coverlet\Console\CoverletConsoleDotnetToolsLocalExecutor.cs" />
+    <Compile Include="Core\MsTestPlatform\IMsTestPlatformUtil.cs" />
+    <Compile Include="Core\Utilities\ToolZip\IToolFolder.cs" />
+    <Compile Include="Core\Utilities\ToolZip\IToolZipProvider.cs" />
+    <Compile Include="Core\Utilities\ToolZip\ToolFolder.cs" />
+    <Compile Include="Core\Utilities\ToolZip\ToolZipProvider.cs" />
+    <Compile Include="Core\Utilities\DotNet\DotNetConfigFinder.cs" />
+    <Compile Include="Core\Coverlet\Console\DotNetToolListCoverlet.cs" />
+    <Compile Include="Core\Utilities\DotNet\DotNetToolListExecutor.cs" />
+    <Compile Include="Core\Utilities\DotNet\DotNetToolListParser.cs" />
+    <Compile Include="Core\Coverlet\Console\FCCCoverletConsoleExecutor.cs" />
+    <Compile Include="Core\Coverlet\Console\ICoverletConsoleExecutor.cs" />
+    <Compile Include="Core\Utilities\DotNet\IDotNetConfigFinder.cs" />
+    <Compile Include="Core\Coverlet\Console\IDotNetToolListCoverlet.cs" />
+    <Compile Include="Core\Utilities\DotNet\IDotNetToolListExecutor.cs" />
+    <Compile Include="Core\Utilities\DotNet\IDotNetToolListParser.cs" />
+    <Compile Include="Core\Coverlet\Console\IFCCCoverletConsoleExecutor.cs" />
+    <Compile Include="Core\Coverlet\DataCollector\CoverletDataCollectorGeneratedCobertura.cs" />
+    <Compile Include="Core\Coverlet\DataCollector\CoverletDataCollectorUtil.cs" />
+    <Compile Include="Core\Coverlet\Console\CoverletConsoleUtil.cs" />
     <Compile Include="Core\Coverlet\CoverletUtil.cs" />
-    <Compile Include="Core\Coverlet\DataCollectorSettingsBuilder.cs" />
-    <Compile Include="Core\Coverlet\DataCollectorSettingsBuilderFactory.cs" />
-    <Compile Include="Core\Coverlet\FileUtil.cs" />
-    <Compile Include="Core\Coverlet\ICoverletCollectorFolder.cs" />
-    <Compile Include="Core\Coverlet\ICoverletCollectorZipProvider.cs" />
-    <Compile Include="Core\Coverlet\ICoverletDataCollectorGeneratedCobertura.cs" />
-    <Compile Include="Core\Coverlet\ICoverletDataCollectorUtil.cs" />
-    <Compile Include="Core\Coverlet\ICoverletGlobalUtil.cs" />
+    <Compile Include="Core\Coverlet\DataCollector\DataCollectorSettingsBuilder.cs" />
+    <Compile Include="Core\Coverlet\DataCollector\DataCollectorSettingsBuilderFactory.cs" />
+    <Compile Include="Core\Utilities\FileUtil.cs" />
+    <Compile Include="Core\Coverlet\DataCollector\interfaces\ICoverletDataCollectorGeneratedCobertura.cs" />
+    <Compile Include="Core\Coverlet\DataCollector\interfaces\ICoverletDataCollectorUtil.cs" />
+    <Compile Include="Core\Coverlet\Console\ICoverletConsoleUtil.cs" />
     <Compile Include="Core\Coverlet\ICoverletUtil.cs" />
-    <Compile Include="Core\Coverlet\IDataCollectorSettingsBuilder.cs" />
-    <Compile Include="Core\Coverlet\IDataCollectorSettingsBuilderFactory.cs" />
-    <Compile Include="Core\Coverlet\IFileUtil.cs" />
-    <Compile Include="Core\Coverlet\IZipFile.cs" />
-    <Compile Include="Core\Coverlet\ZipFileWrapper.cs" />
+    <Compile Include="Core\Coverlet\DataCollector\interfaces\IDataCollectorSettingsBuilder.cs" />
+    <Compile Include="Core\Coverlet\DataCollector\interfaces\IDataCollectorSettingsBuilderFactory.cs" />
+    <Compile Include="Core\Utilities\IFileUtil.cs" />
+    <Compile Include="Core\Utilities\IZipFile.cs" />
+    <Compile Include="Core\Utilities\ZipFileWrapper.cs" />
+    <Compile Include="Core\Coverlet\DataCollector\interfaces\IRunSettingsCoverletConfiguration.cs" />
     <Compile Include="Core\Utilities\IAssemblyUtil.cs" />
     <Compile Include="Core\Utilities\IProcessUtil.cs" />
     <Compile Include="Core\Utilities\ProcessResponseProcessor.cs" />
     <Compile Include="Core\Utilities\IProcessResponseProcessor.cs" />
-    <Compile Include="Core\Coverlet\IRunSettingsCoverletConfigurationFactory.cs" />
-    <Compile Include="Core\Coverlet\RunSettingsCoverletConfiguration.cs" />
-    <Compile Include="Core\Coverlet\RunSettingsCoverletConfigurationFactory.cs" />
+    <Compile Include="Core\Coverlet\DataCollector\interfaces\IRunSettingsCoverletConfigurationFactory.cs" />
+    <Compile Include="Core\Coverlet\DataCollector\RunSettingsCoverletConfiguration.cs" />
+    <Compile Include="Core\Coverlet\DataCollector\RunSettingsCoverletConfigurationFactory.cs" />
     <Compile Include="Core\EnvironmentVariable.cs" />
     <Compile Include="Core\FileSynchronization\FileSynchronization.cs" />
     <Compile Include="Core\IAppDataFolder.cs" />
@@ -213,12 +229,24 @@
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="Output\Resources\OutputToolWindowCommand.png" />
+    <Content Include="ZippedTools\coverlet.console.3.0.3.zip">
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="ZippedTools\microsoft.testplatform.16.9.1.zip">
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="ZippedTools\openCover.4.7.922.zip">
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="ZippedTools\reportGenerator.4.7.1.zip">
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
     <VSCTCompile Include="Output\OutputToolWindowPackage.vsct">
       <Generator>VsctGenerator</Generator>
       <ResourceName>Menus.ctmenu</ResourceName>
       <LastGenOutput>OutputToolWindowPackage1.cs</LastGenOutput>
     </VSCTCompile>
-    <Content Include="Core\Coverlet\coverlet.collector.3.0.3.zip">
+    <Content Include="ZippedTools\coverlet.collector.3.0.3.zip">
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <None Include="Output\Resources\OutputToolWindowCommand.png.x" />
@@ -306,6 +334,7 @@
       <Name>ReportGeneratorPlugins</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets" Condition="'$(VSToolsPath)' != ''" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

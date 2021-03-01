@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -33,157 +32,37 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 	[Export(typeof(IReportGeneratorUtil))]
 	internal partial class ReportGeneratorUtil: IReportGeneratorUtil
 	{
-		public const string ReportGeneratorName = "dotnet-reportgenerator-globaltool";
         private readonly IAssemblyUtil assemblyUtil;
         private readonly IProcessUtil processUtil;
         private readonly ILogger logger;
+        private readonly IToolFolder toolFolder;
+        private readonly IToolZipProvider toolZipProvider;
+		private const string zipPrefix = "reportGenerator";
+		private const string zipDirectoryName = "reportGenerator";
 
         public string ReportGeneratorExePath { get; private set; }
-		public string AppDataReportGeneratorFolder { get; private set; }
-		public Version CurrentReportGeneratorVersion { get; private set; }
-		public Version MimimumReportGeneratorVersion { get; private set; }
 
 		[ImportingConstructor]
-		public ReportGeneratorUtil(IAssemblyUtil assemblyUtil,IProcessUtil processUtil, ILogger logger)
+		public ReportGeneratorUtil(
+			IAssemblyUtil assemblyUtil,
+			IProcessUtil processUtil, 
+			ILogger logger,
+			IToolFolder toolFolder,
+			IToolZipProvider toolZipProvider
+			)
 		{
-			// version of report generator from class inherited by our custom plugins
-			var reportGeneratorLibVersion = typeof(FccLightReportBuilder).BaseType.Assembly.GetName().Version.ToString().Split('.').Take(3);
-			MimimumReportGeneratorVersion = Version.Parse(string.Join(".", reportGeneratorLibVersion));
             this.assemblyUtil = assemblyUtil;
             this.processUtil = processUtil;
             this.logger = logger;
+            this.toolFolder = toolFolder;
+            this.toolZipProvider = toolZipProvider;
         }
 
 		public void Initialize(string appDataFolder)
 		{
-			AppDataReportGeneratorFolder = Path.Combine(appDataFolder, "reportGenerator");
-			Directory.CreateDirectory(AppDataReportGeneratorFolder);
-			GetReportGeneratorVersion();
-
-			if (CurrentReportGeneratorVersion == null)
-			{
-				InstallReportGenerator();
-			}
-			else if (CurrentReportGeneratorVersion < MimimumReportGeneratorVersion)
-			{
-				UpdateReportGenerator();
-			}
-		}
-
-		private Version GetReportGeneratorVersion()
-		{
-			var title = "ReportGenerator Get Info";
-
-			var processStartInfo = new ProcessStartInfo
-			{
-				FileName = "dotnet",
-				CreateNoWindow = true,
-				UseShellExecute = false,
-				RedirectStandardError = true,
-				RedirectStandardOutput = true,
-				WindowStyle = ProcessWindowStyle.Hidden,
-				WorkingDirectory = AppDataReportGeneratorFolder,
-				Arguments = $"tool list --tool-path \"{AppDataReportGeneratorFolder}\"",
-			};
-
-			var process = Process.Start(processStartInfo);
-
-			process.WaitForExit();
-
-			var processOutput = process.GetOutput();
-
-			if (process.ExitCode != 0)
-			{
-				logger.Log($"{title} Error", processOutput);
-				return null;
-			}
-
-			var outputLines = processOutput.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
-			var reportGeneratorLine = outputLines.FirstOrDefault(x => x.Trim().StartsWith(ReportGeneratorName, StringComparison.OrdinalIgnoreCase));
-
-			if (string.IsNullOrWhiteSpace(reportGeneratorLine))
-			{
-				// reportGenerator is not installed
-				ReportGeneratorExePath = null;
-				CurrentReportGeneratorVersion = null;
-				return null;
-			}
-
-			var reportGeneratorLineTokens = reportGeneratorLine.Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
-			var reportGeneratorVersion = reportGeneratorLineTokens[1].Trim();
-
-			CurrentReportGeneratorVersion = Version.Parse(reportGeneratorVersion);
-
-			ReportGeneratorExePath = Directory.GetFiles(AppDataReportGeneratorFolder, "reportGenerator.exe"  , SearchOption.AllDirectories).FirstOrDefault()
-								  ?? Directory.GetFiles(AppDataReportGeneratorFolder, "*reportGenerator*.exe", SearchOption.AllDirectories).FirstOrDefault();
-
-			return CurrentReportGeneratorVersion;
-		}
-
-		private void UpdateReportGenerator()
-		{
-			var title = "ReportGenerator Update";
-
-			var processStartInfo = new ProcessStartInfo
-			{
-				FileName = "dotnet",
-				CreateNoWindow = true,
-				UseShellExecute = false,
-				RedirectStandardError = true,
-				RedirectStandardOutput = true,
-				WindowStyle = ProcessWindowStyle.Hidden,
-				WorkingDirectory = AppDataReportGeneratorFolder,
-				Arguments = $"tool update {ReportGeneratorName} --verbosity normal --version {MimimumReportGeneratorVersion} --tool-path \"{AppDataReportGeneratorFolder}\"",
-			};
-
-			var process = Process.Start(processStartInfo);
-
-			process.WaitForExit();
-
-			var processOutput = process.GetOutput();
-
-			if (process.ExitCode != 0)
-			{
-				logger.Log($"{title} Error", processOutput);
-				return;
-			}
-
-			GetReportGeneratorVersion();
-
-			logger.Log(title, processOutput);
-		}
-
-		private void InstallReportGenerator()
-		{
-			var title = "ReportGenerator Install";
-
-			var processStartInfo = new ProcessStartInfo
-			{
-				FileName = "dotnet",
-				CreateNoWindow = true,
-				UseShellExecute = false,
-				RedirectStandardError = true,
-				RedirectStandardOutput = true,
-				WindowStyle = ProcessWindowStyle.Hidden,
-				WorkingDirectory = AppDataReportGeneratorFolder,
-				Arguments = $"tool install {ReportGeneratorName} --verbosity normal --version {MimimumReportGeneratorVersion} --tool-path \"{AppDataReportGeneratorFolder}\"",
-			};
-
-			var process = Process.Start(processStartInfo);
-
-			process.WaitForExit();
-
-			var processOutput = process.GetOutput();
-
-			if (process.ExitCode != 0)
-			{
-				logger.Log($"{title} Error", processOutput);
-				return;
-			}
-
-			GetReportGeneratorVersion();
-
-			logger.Log(title, processOutput);
+			var zipDestination = toolFolder.EnsureUnzipped(appDataFolder, zipDirectoryName, toolZipProvider.ProvideZip(zipPrefix));
+			ReportGeneratorExePath = Directory.GetFiles(zipDestination, "reportGenerator.exe", SearchOption.AllDirectories).FirstOrDefault()
+								  ?? Directory.GetFiles(zipDestination, "*reportGenerator*.exe", SearchOption.AllDirectories).FirstOrDefault();
 		}
 
 		public async Task<ReportGeneratorResult> RunReportGeneratorAsync(IEnumerable<string> coverOutputFiles, bool darkMode, bool throwError = false)

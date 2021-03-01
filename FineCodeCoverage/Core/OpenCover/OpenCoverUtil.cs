@@ -1,12 +1,8 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
-using System.Net.Http;
-using System.Xml.Linq;
-using System.IO.Compression;
 using System.Collections.Generic;
 using FineCodeCoverage.Engine.Model;
-using System.Diagnostics.CodeAnalysis;
 using FineCodeCoverage.Engine.MsTestPlatform;
 using System.Threading.Tasks;
 using System.ComponentModel.Composition;
@@ -18,141 +14,45 @@ namespace FineCodeCoverage.Engine.OpenCover
 	internal class OpenCoverUtil:IOpenCoverUtil
 	{
 		private string openCoverExePath;
-		private HttpClient HttpClient { get; } = new HttpClient();
-		private string appDataOpenCoverFolder;
-		private Version currentOpenCoverVersion;
         private readonly IMsTestPlatformUtil msTestPlatformUtil;
         private readonly IProcessUtil processUtil;
         private readonly ILogger logger;
-
-        private Version MimimumOpenCoverVersion { get; } = Version.Parse("4.7.922");
+        private readonly IToolFolder toolFolder;
+        private readonly IToolZipProvider toolZipProvider;
+		private const string zipPrefix = "openCover";
+		private const string zipDirectoryName = "openCover";
 
 		[ImportingConstructor]
-		public OpenCoverUtil(IMsTestPlatformUtil msTestPlatformUtil,IProcessUtil processUtil, ILogger logger)
+		public OpenCoverUtil(
+			IMsTestPlatformUtil msTestPlatformUtil,
+			IProcessUtil processUtil, 
+			ILogger logger, 
+			IToolFolder toolFolder, 
+			IToolZipProvider toolZipProvider)
         {
             this.msTestPlatformUtil = msTestPlatformUtil;
             this.processUtil = processUtil;
             this.logger = logger;
+            this.toolFolder = toolFolder;
+            this.toolZipProvider = toolZipProvider;
         }
 
 		public void Initialize(string appDataFolder)
 		{
-			appDataOpenCoverFolder = Path.Combine(appDataFolder, "openCover");
-			Directory.CreateDirectory(appDataOpenCoverFolder);
-			GetOpenCoverVersion();
-
-			if (currentOpenCoverVersion == null)
-			{
-				InstallOpenCover();
-			}
-			else if (currentOpenCoverVersion < MimimumOpenCoverVersion)
-			{
-				UpdateOpenCover();
-			}
-		}
-
-		private Version GetOpenCoverVersion()
-		{
-			var title = "OpenCover Get Info";
-
+			var zipDestination = toolFolder.EnsureUnzipped(appDataFolder, zipDirectoryName, toolZipProvider.ProvideZip(zipPrefix));
 			openCoverExePath = Directory
-				.GetFiles(appDataOpenCoverFolder, "OpenCover.Console.exe", SearchOption.AllDirectories)
+				.GetFiles(zipDestination, "OpenCover.Console.exe", SearchOption.AllDirectories)
 				.FirstOrDefault();
-
-			if (string.IsNullOrWhiteSpace(openCoverExePath))
-			{
-				logger.Log($"{title} Not Installed");
-				return null;
-			}
-
-			var nuspecFile = Directory.GetFiles(appDataOpenCoverFolder, "OpenCover.nuspec", SearchOption.TopDirectoryOnly).FirstOrDefault();
-
-			if (string.IsNullOrWhiteSpace(openCoverExePath))
-			{
-				logger.Log($"{title} Nuspec Not Found");
-				return null;
-			}
-
-			var nuspecXmlText = File.ReadAllText(nuspecFile);
-			var nuspecXml = XElement.Parse(nuspecXmlText);
-			var versionText = nuspecXml
-				?.Elements()
-				?.FirstOrDefault()
-				?.Elements()
-				?.FirstOrDefault(x => x.Name.LocalName.Equals("version", StringComparison.OrdinalIgnoreCase))
-				?.Value
-				?.Trim();
-
-			var versionParsed = Version.TryParse(versionText, out var version);
-
-			if (!versionParsed)
-			{
-				logger.Log($"{title} Failed to parse nuspec", nuspecXmlText);
-				return null;
-			}
-
-			currentOpenCoverVersion = version;
-
-			return currentOpenCoverVersion;
 		}
-
-		private void UpdateOpenCover()
-		{
-			var title = "OpenCover Update";
-
-			try
-			{
-				if (Directory.Exists(appDataOpenCoverFolder))
-				{
-					Directory.Delete(appDataOpenCoverFolder);
-				}
-
-				InstallOpenCover();
-			}
-			catch (Exception exception)
-			{
-				logger.Log(title, $"Error {exception}");
-			}
-		}
-
-		[SuppressMessage("Usage", "VSTHRD002:Avoid problematic synchronous waits")]
-		private void InstallOpenCover()
-		{
-			var title = "OpenCover Install";
-
-			try
-			{
-				Directory.CreateDirectory(appDataOpenCoverFolder);
-
-				// download
-
-				var zipFile = Path.Combine(appDataOpenCoverFolder, "bundle.zip");
-				var url = $"https://www.nuget.org/api/v2/package/OpenCover/{MimimumOpenCoverVersion}";
-				
-				using (var remoteStream = HttpClient.GetStreamAsync(url).GetAwaiter().GetResult())
-				using (var localStream = File.OpenWrite(zipFile))
-				{
-					remoteStream.CopyToAsync(localStream).GetAwaiter().GetResult();
-				}
-
-				// extract and cleanup
-
-				ZipFile.ExtractToDirectory(zipFile, appDataOpenCoverFolder);
-				File.Delete(zipFile);
-
-				// process
-
-				GetOpenCoverVersion();
-
-				// report
-
-				logger.Log(title, $"Installed version {currentOpenCoverVersion}");
-			}
-			catch (Exception exception)
-			{
-				logger.Log(title, $"Error {exception}");
-			}
-		}
+		
+		private string GetOpenCoverExePath(string customExePath)
+        {
+			if(customExePath != null)
+            {
+				return customExePath;
+            }
+			return openCoverExePath;
+        }
 
 		public async Task<bool> RunOpenCoverAsync(ICoverageProject project, bool throwError = false)
 		{
@@ -295,7 +195,7 @@ namespace FineCodeCoverage.Engine.OpenCover
 			var result = await processUtil
 			.ExecuteAsync(new ExecuteRequest
 			{
-				FilePath = openCoverExePath,
+				FilePath = GetOpenCoverExePath(project.Settings.OpenCoverCustomPath),
 				Arguments = string.Join(" ", opencoverSettings),
 				WorkingDirectory = project.ProjectOutputFolder
 			});

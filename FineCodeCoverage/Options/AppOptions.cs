@@ -11,6 +11,7 @@ namespace FineCodeCoverage.Options
         private const string runCategory = "Run";
         private const string excludeIncludeCategory = "Exclude / Include";
         private const string coverletCategory = "Coverlet";
+        private const string openCoverCategory = "OpenCover";
 
         public AppOptions():this(false)
         {
@@ -110,6 +111,26 @@ namespace FineCodeCoverage.Options
         [Description("Specify false for global and project options to be used for coverlet data collector configuration elements when not specified in runsettings")]
         [Category(coverletCategory)]
         public bool RunSettingsOnly { get; set; } = true;
+
+        [Description("Specify true to use your own dotnet tools global install of coverlet console.")]
+        [Category(coverletCategory)]
+        public bool CoverletConsoleGlobal { get; set; }
+
+        [Description("Specify true to use your own dotnet tools local install of coverlet console.")]
+        [Category(coverletCategory)]
+        public bool CoverletConsoleLocal { get; set; }
+
+        [Description("Specify path to coverlet console exe if you need functionality that the FCC version does not provide.")]
+        [Category(coverletCategory)]
+        public string CoverletConsoleCustomPath { get; set; }
+
+        [Description("Specify path to directory containing coverlet collector files if you need functionality that the FCC version does not provide.")]
+        [Category(coverletCategory)]
+        public string CoverletCollectorDirectoryPath { get; set; }
+
+        [Description("Specify path to open cover exe if you need functionality that the FCC version does not provide.")]
+        [Category(openCoverCategory)]
+        public string OpenCoverCustomPath { get; set; }
 
         [SuppressMessage("Usage", "VSTHRD010:Invoke single-threaded types on Main thread")]
         public override void SaveSettingsToStorage()
