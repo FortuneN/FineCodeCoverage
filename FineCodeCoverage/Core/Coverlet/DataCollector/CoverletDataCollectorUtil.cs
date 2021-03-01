@@ -20,8 +20,8 @@ namespace FineCodeCoverage.Engine.Coverlet
         private readonly IDataCollectorSettingsBuilderFactory dataCollectorSettingsBuilderFactory;
         private readonly ICoverletDataCollectorGeneratedCobertura coverletDataCollectorGeneratedCobertura;
         private readonly IProcessResponseProcessor processResponseProcessor;
-        private readonly ICoverletCollectorZipProvider coverletCollectorZipProvider;
-        private readonly ICoverletCollectorFolder coverletCollectorFolder;
+        private readonly IToolZipProvider toolZipProvider;
+        private readonly IToolFolder toolFolder;
 
 
         //for tests
@@ -29,6 +29,8 @@ namespace FineCodeCoverage.Engine.Coverlet
         internal ICoverageProject coverageProject;
         private const string LogPrefix = "Coverlet Collector Run";
         internal string TestAdapterPathArg { get; set; }
+        internal const string zipPrefix = "coverlet.collector";
+        internal const string zipDirectoryName = "coverletCollector";
 
         [ImportingConstructor]
         public CoverletDataCollectorUtil(
@@ -39,8 +41,8 @@ namespace FineCodeCoverage.Engine.Coverlet
             IDataCollectorSettingsBuilderFactory dataCollectorSettingsBuilderFactory,
             ICoverletDataCollectorGeneratedCobertura coverletDataCollectorGeneratedCobertura,
             IProcessResponseProcessor processResponseProcessor,
-            ICoverletCollectorZipProvider coverletCollectorZipProvider,
-            ICoverletCollectorFolder coverletCollectorFolder
+            IToolZipProvider toolZipProvider,
+            IToolFolder toolFolder
             )
         {
             this.fileUtil = fileUtil;
@@ -50,8 +52,8 @@ namespace FineCodeCoverage.Engine.Coverlet
             this.dataCollectorSettingsBuilderFactory = dataCollectorSettingsBuilderFactory;
             this.coverletDataCollectorGeneratedCobertura = coverletDataCollectorGeneratedCobertura;
             this.processResponseProcessor = processResponseProcessor;
-            this.coverletCollectorZipProvider = coverletCollectorZipProvider;
-            this.coverletCollectorFolder = coverletCollectorFolder;
+            this.toolZipProvider = toolZipProvider;
+            this.toolFolder = toolFolder;
         }
         
         private bool? GetUseDataCollectorFromProjectFile()
@@ -223,7 +225,7 @@ namespace FineCodeCoverage.Engine.Coverlet
 
         public void Initialize(string appDataFolder)
         {
-            var zipDestination = coverletCollectorFolder.EnsureUnzipped(appDataFolder, coverletCollectorZipProvider.ProvideZip());
+            var zipDestination = toolFolder.EnsureUnzipped(appDataFolder, zipDirectoryName,toolZipProvider.ProvideZip(zipPrefix));
             var testAdapterPath = Path.Combine(zipDestination, "build", "netstandard1.0");
             TestAdapterPathArg = $@"""{testAdapterPath}""";
         }

@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.Composition;
 using System.Linq;
 
 namespace FineCodeCoverage.Core.Utilities
 {
+    [Export(typeof(IDotNetToolListParser))]
     internal class DotNetToolListParser : IDotNetToolListParser
     {
         public List<DotNetTool> Parse(string output)

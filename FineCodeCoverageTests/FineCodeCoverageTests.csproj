@@ -86,8 +86,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CoverletCollectorFolder_Tests.cs" />
-    <Compile Include="CoverletCollectorZipProvider_Tests.cs" />
+    <Compile Include="ToolFolder_Tests.cs" />
+    <Compile Include="ToolZipProvider_Tests.cs" />
     <Compile Include="CoverletDataCollectorGeneratedCobertura_Tests.cs" />
     <Compile Include="CoverletDataCollectorUtil_CanUseDataCollector_Tests.cs" />
     <Compile Include="CoverletDataCollectorUtil_Initialize_Tests.cs" />

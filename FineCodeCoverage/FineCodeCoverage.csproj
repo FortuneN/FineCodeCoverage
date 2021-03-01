@@ -72,19 +72,22 @@
     <Compile Include="Core\Coverlet\Console\CoverletConsoleDotnetToolsGlobalExecutor.cs" />
     <Compile Include="Core\Coverlet\Console\CoverletConsoleCustomPathExecutor.cs" />
     <Compile Include="Core\Coverlet\Console\CoverletConsoleDotnetToolsLocalExecutor.cs" />
+    <Compile Include="Core\MsTestPlatform\IMsTestPlatformUtil.cs" />
+    <Compile Include="Core\Utilities\ToolZip\IToolFolder.cs" />
+    <Compile Include="Core\Utilities\ToolZip\IToolZipProvider.cs" />
+    <Compile Include="Core\Utilities\ToolZip\ToolFolder.cs" />
+    <Compile Include="Core\Utilities\ToolZip\ToolZipProvider.cs" />
     <Compile Include="Core\Utilities\DotNet\DotNetConfigFinder.cs" />
     <Compile Include="Core\Coverlet\Console\DotNetToolListCoverlet.cs" />
     <Compile Include="Core\Utilities\DotNet\DotNetToolListExecutor.cs" />
     <Compile Include="Core\Utilities\DotNet\DotNetToolListParser.cs" />
-    <Compile Include="Core\Coverlet\Console\FCCCoverletConsoleExeProvider.cs" />
+    <Compile Include="Core\Coverlet\Console\FCCCoverletConsoleExecutor.cs" />
     <Compile Include="Core\Coverlet\Console\ICoverletConsoleExecutor.cs" />
     <Compile Include="Core\Utilities\DotNet\IDotNetConfigFinder.cs" />
     <Compile Include="Core\Coverlet\Console\IDotNetToolListCoverlet.cs" />
     <Compile Include="Core\Utilities\DotNet\IDotNetToolListExecutor.cs" />
     <Compile Include="Core\Utilities\DotNet\IDotNetToolListParser.cs" />
     <Compile Include="Core\Coverlet\Console\IFCCCoverletConsoleExecutor.cs" />
-    <Compile Include="Core\Coverlet\DataCollector\CoverletCollectorFolder.cs" />
-    <Compile Include="Core\Coverlet\DataCollector\CoverletCollectorZipProvider.cs" />
     <Compile Include="Core\Coverlet\DataCollector\CoverletDataCollectorGeneratedCobertura.cs" />
     <Compile Include="Core\Coverlet\DataCollector\CoverletDataCollectorUtil.cs" />
     <Compile Include="Core\Coverlet\Console\CoverletConsoleUtil.cs" />
@@ -92,8 +95,6 @@
     <Compile Include="Core\Coverlet\DataCollector\DataCollectorSettingsBuilder.cs" />
     <Compile Include="Core\Coverlet\DataCollector\DataCollectorSettingsBuilderFactory.cs" />
     <Compile Include="Core\Utilities\FileUtil.cs" />
-    <Compile Include="Core\Coverlet\DataCollector\interfaces\ICoverletCollectorFolder.cs" />
-    <Compile Include="Core\Coverlet\DataCollector\interfaces\ICoverletCollectorZipProvider.cs" />
     <Compile Include="Core\Coverlet\DataCollector\interfaces\ICoverletDataCollectorGeneratedCobertura.cs" />
     <Compile Include="Core\Coverlet\DataCollector\interfaces\ICoverletDataCollectorUtil.cs" />
     <Compile Include="Core\Coverlet\Console\ICoverletConsoleUtil.cs" />
@@ -228,12 +229,24 @@
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="Output\Resources\OutputToolWindowCommand.png" />
+    <Content Include="ZippedTools\coverlet.console.3.0.3.zip">
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="ZippedTools\microsoft.testplatform.16.9.1.zip">
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="ZippedTools\openCover.4.7.922.zip">
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="ZippedTools\reportGenerator.4.7.1.zip">
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
     <VSCTCompile Include="Output\OutputToolWindowPackage.vsct">
       <Generator>VsctGenerator</Generator>
       <ResourceName>Menus.ctmenu</ResourceName>
       <LastGenOutput>OutputToolWindowPackage1.cs</LastGenOutput>
     </VSCTCompile>
-    <Content Include="Core\Coverlet\coverlet.collector.3.0.3.zip">
+    <Content Include="ZippedTools\coverlet.collector.3.0.3.zip">
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <None Include="Output\Resources\OutputToolWindowCommand.png.x" />

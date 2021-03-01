@@ -8,51 +8,50 @@ using FineCodeCoverage.Engine.Model;
 
 namespace FineCodeCoverage.Engine.Coverlet
 {
-
     [Export(typeof(ICoverletConsoleUtil))]
 	internal class CoverletConsoleUtil : ICoverletConsoleUtil
 	{
 		private readonly IProcessUtil processUtil;
 		private readonly ILogger logger;
-        private readonly IFCCCoverletConsoleExecutor fccExeProvider;
-		private readonly List<ICoverletConsoleExecutor> exeProviders;
+        private readonly IFCCCoverletConsoleExecutor fccExecutor;
+		private readonly List<ICoverletConsoleExecutor> executors;
 
 		[ImportingConstructor]
 		public CoverletConsoleUtil(
 			IProcessUtil processUtil, 
 			ILogger logger,
 			[Import(typeof(ICoverletConsoleDotnetToolsGlobalExecutor))]
-			ICoverletConsoleExecutor globalExeProvider,
+			ICoverletConsoleExecutor globalExecutor,
 			[Import(typeof(ICoverletConsoleCustomPathExecutor))]
-			ICoverletConsoleExecutor customPathExeProvider,
+			ICoverletConsoleExecutor customPathExecutor,
 			[Import(typeof(ICoverletConsoleDotnetToolsLocalExecutor))]
-			ICoverletConsoleExecutor localExeProvider,
-			IFCCCoverletConsoleExecutor fccExeProvider
+			ICoverletConsoleExecutor localExecutor,
+			IFCCCoverletConsoleExecutor fccExecutor
 			)
 		{
 			this.processUtil = processUtil;
 			this.logger = logger;
 
-            exeProviders = new List<ICoverletConsoleExecutor>
+            executors = new List<ICoverletConsoleExecutor>
             {
-                localExeProvider,
-                customPathExeProvider,
-                globalExeProvider,
-                fccExeProvider
+                localExecutor,
+                customPathExecutor,
+                globalExecutor,
+                fccExecutor
             };
 
-            this.fccExeProvider = fccExeProvider;
+            this.fccExecutor = fccExecutor;
         }
 		public void Initialize(string appDataFolder)
 		{
-			fccExeProvider.Initialize(appDataFolder);
+			fccExecutor.Initialize(appDataFolder);
 		}
 
 		// for now FCCCoverletConsoleExeProvider can return null for exe path
 
 		internal ExecuteRequest GetExecuteRequest(ICoverageProject project, string coverletSettings)
         {
-			foreach(var exeProvider in exeProviders)
+			foreach(var exeProvider in executors)
             {
 				var executeRequest = exeProvider.GetRequest(project, coverletSettings);
 				if(executeRequest != null)

@@ -1,8 +1,9 @@
-﻿using System.Diagnostics;
-using FineCodeCoverage.Core.Utilities;
+﻿using System.ComponentModel.Composition;
+using System.Diagnostics;
 
 namespace FineCodeCoverage.Core.Utilities
 {
+    [Export(typeof(IDotNetToolListExecutor))]
     internal class DotNetToolListExecutor : IDotNetToolListExecutor
     {
         public DotNetToolListExecutionResult Global()

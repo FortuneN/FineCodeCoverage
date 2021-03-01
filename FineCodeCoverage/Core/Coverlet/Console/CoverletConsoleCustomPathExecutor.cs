@@ -2,7 +2,6 @@
 using System.IO;
 using FineCodeCoverage.Core.Utilities;
 using FineCodeCoverage.Engine.Model;
-using FineCodeCoverage.Options;
 
 namespace FineCodeCoverage.Engine.Coverlet
 {
