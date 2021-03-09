@@ -36,13 +36,13 @@ namespace Test
         }
 
         [Test]
-        public async Task Should_Throw_Exception_If_Non_Success_ExitCode_And_Throw_Error_True()
+        public void Should_Throw_Exception_If_Non_Success_ExitCode_And_Throw_Error_True()
         {
             var executeResponse = new ExecuteResponse();
             executeResponse.ExitCode = 999;
             executeResponse.Output = "This will be exception message";
             var callbackExitCode = 0;
-            Assert.Throws<Exception>(async() =>
+            Assert.ThrowsAsync<Exception>(async() =>
             {
                 await processor.ProcessAsync(executeResponse, exitCode =>
                 {

@@ -92,7 +92,7 @@ namespace Test
         public void Should_Throw_Exception_If_Cobertura_Is_Not_Generated_In_The_Timeout()
         {
             SetUpPoller(false);
-            Assert.Throws<Exception>(async () =>
+            Assert.ThrowsAsync<Exception>(async () =>
             {
                 await CorrectPathAsync();
             }, "Data collector did not generate coverage.cobertura.xml");
