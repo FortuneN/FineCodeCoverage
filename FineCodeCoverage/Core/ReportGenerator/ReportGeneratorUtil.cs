@@ -413,24 +413,27 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 							if(riskHotspotsElements.length == 1){{
 								var riskHotspotsElement = riskHotspotsElements[0];
 								var riskHotspotsTable = riskHotspotsElement.querySelector('table');
-								var rhBody = riskHotspotsTable.querySelector('tbody');
-								var rows = rhBody.rows;
-								for(var i=0;i<rows.length;i++){
-								  var row = rows[i];
-								  var cells = row.cells;
-								  var classCell = cells[1];
-								  var classLink = classCell.children[0];
-								  var methodCell = cells[2];
-								  var classLink = classCell.children[0];
-								  var methodLink = methodCell.children[0];
-								  var methodHash = methodLink.hash;
-								  var methodHtmlIndex = methodHash.indexOf('.html');
-								  var fileLine = methodHash.substring(methodHtmlIndex + 6);
-								  var fileAndLine = fileLine.replace('file', '').replace('line', '').split('_');
-								  var file = fileAndLine[0];
-								  var line = fileAndLine[1];
-								  classLink.href = classLink.hash + '#file' + file + '_line0';
+								if(riskHotspotsTable){
+									var rhBody = riskHotspotsTable.querySelector('tbody');
+									var rows = rhBody.rows;
+									for(var i=0;i<rows.length;i++){
+									  var row = rows[i];
+									  var cells = row.cells;
+									  var classCell = cells[1];
+									  var classLink = classCell.children[0];
+									  var methodCell = cells[2];
+									  var classLink = classCell.children[0];
+									  var methodLink = methodCell.children[0];
+									  var methodHash = methodLink.hash;
+									  var methodHtmlIndex = methodHash.indexOf('.html');
+									  var fileLine = methodHash.substring(methodHtmlIndex + 6);
+									  var fileAndLine = fileLine.replace('file', '').replace('line', '').split('_');
+									  var file = fileAndLine[0];
+									  var line = fileAndLine[1];
+									  classLink.href = classLink.hash + '#file' + file + '_line0';
+									}
 								}
+								
 							}}
 							}
 						}
