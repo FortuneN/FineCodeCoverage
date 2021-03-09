@@ -260,7 +260,7 @@ namespace Test
             var mockProcessResponseProcessor = mocker.GetMock<IProcessResponseProcessor>();
 
             var logTitle = "Coverlet Collector Run (TestProject)";
-            mockProcessResponseProcessor.Setup(rp => rp.Process(executeResponse, It.IsAny<Func<int, bool>>(), throwOnError, logTitle, It.IsAny<Action>())).Returns(processResponseProcessorResult);
+            mockProcessResponseProcessor.Setup(rp => rp.ProcessAsync(executeResponse, It.IsAny<Func<int, bool>>(), throwOnError, logTitle, It.IsAny<Func<Task>>()).Result).Returns(processResponseProcessorResult);
             
             Assert.AreEqual(processResponseProcessorResult, await coverletDataCollectorUtil.RunAsync(throwOnError));
         }
@@ -272,7 +272,7 @@ namespace Test
         {
             var mockProcessResponseProcessor = mocker.GetMock<IProcessResponseProcessor>();
             Func<int, bool> _exitCodePredicate = null;
-            mockProcessResponseProcessor.Setup(rp => rp.Process(It.IsAny<ExecuteResponse>(), It.IsAny<Func<int, bool>>(), false, It.IsAny<string>(), It.IsAny<Action>())).Callback<ExecuteResponse, Func<int, bool>, bool, string, Action>((_, exitCodePredicate, __, ___, ____) =>
+            mockProcessResponseProcessor.Setup(rp => rp.ProcessAsync(It.IsAny<ExecuteResponse>(), It.IsAny<Func<int, bool>>(), false, It.IsAny<string>(), It.IsAny<Func<Task>>())).Callback<ExecuteResponse, Func<int, bool>, bool, string, Func<Task>>((_, exitCodePredicate, __, ___, ____) =>
                 {
                     _exitCodePredicate = exitCodePredicate;
                 });
@@ -287,15 +287,15 @@ namespace Test
             mockCoverageProject.Setup(cp => cp.CoverageOutputFolder).Returns("outputFolder");
             mockCoverageProject.Setup(cp => cp.CoverageOutputFile).Returns("outputFile");
             var mockProcessResponseProcessor = mocker.GetMock<IProcessResponseProcessor>();
-            Action _successCallback = null;
-            mockProcessResponseProcessor.Setup(rp => rp.Process(It.IsAny<ExecuteResponse>(), It.IsAny<Func<int, bool>>(), false, It.IsAny<string>(), It.IsAny<Action>())).Callback<ExecuteResponse, Func<int, bool>, bool, string, Action>((_, __, ___, ____, successCallback) =>
+            Func<Task> _successCallback = null;
+            mockProcessResponseProcessor.Setup(rp => rp.ProcessAsync(It.IsAny<ExecuteResponse>(), It.IsAny<Func<int, bool>>(), false, It.IsAny<string>(), It.IsAny<Func<Task>>())).Callback<ExecuteResponse, Func<int, bool>, bool, string, Func<Task>>((_, __, ___, ____, successCallback) =>
             {
                 _successCallback = successCallback;
             });
 
             await coverletDataCollectorUtil.RunAsync(false);
-            _successCallback();
-            mocker.Verify<ICoverletDataCollectorGeneratedCobertura>(gc => gc.CorrectPath("outputFolder", "outputFile"));
+            await _successCallback();
+            mocker.Verify<ICoverletDataCollectorGeneratedCobertura>(gc => gc.CorrectPathAsync("outputFolder", "outputFile"));
         }
     }
 

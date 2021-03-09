@@ -1,86 +1,111 @@
 ﻿using System;
 using System.IO;
 using System.Threading;
+using System.Threading.Tasks;
+using AutoMoq;
+using FineCodeCoverage.Core.Utilities;
 using FineCodeCoverage.Engine.Coverlet;
+using Moq;
+using Moq.Language.Flow;
 using NUnit.Framework;
 
 namespace Test
 {
     public class CoverletDataCollectorGeneratedCobertura_Tests
     {
-        private DirectoryInfo coverageOutputFolder;
+        private AutoMoqer mocker;
+        private CoverletDataCollectorGeneratedCobertura coverletDataCollectorGeneratedCobertura;
+        private FileInfo generatedCobertura;
+        private Mock<IDirectoryFilePoller> mockDirectoryFilePoller;
+        private IReturnsResult<IDirectoryFilePoller> pollerMockSetUp;
+        private string coverageOutputFile;
+        private const string generatedCoberturaText = "Generated cobertura !";
 
         [SetUp]
-        public void CreateCoverageOutputFolder()
+        public void SetUp()
         {
-            coverageOutputFolder = CreateTemporaryDirectory();
+            mocker = new AutoMoqer();
+            coverletDataCollectorGeneratedCobertura = mocker.Create<CoverletDataCollectorGeneratedCobertura>();
+            generatedCobertura = CreateTemporyFile();
+            File.WriteAllText(generatedCobertura.FullName, generatedCoberturaText);
+            coverageOutputFile = Path.GetTempFileName();
+            //necessary for MoveTo
+            File.Delete(coverageOutputFile);
+
         }
 
         [TearDown]
-        public void DeleteCoverageOutputFolder()
+        public void DeleteTempFiles()
         {
-            coverageOutputFolder.Delete(true);
-        }
-
-        public DirectoryInfo CreateTemporaryDirectory()
-        {
-            string tempDirectory = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
-            return Directory.CreateDirectory(tempDirectory);
-            
-        }
-
-        [Test]
-        public void Should_Rename_And_Move_The_Generated()
-        {
-            CreateGeneratedFiles();
-            var coverletDataCollectorGeneratedCobertura = new CoverletDataCollectorGeneratedCobertura();
-            var coverageOutputFile = Path.Combine(coverageOutputFolder.FullName, "renamed.xml");
-            coverletDataCollectorGeneratedCobertura.CorrectPath(coverageOutputFolder.FullName, coverageOutputFile);
-            Assert.AreEqual("last", File.ReadAllText(coverageOutputFile));
-        }
-
-        [Test]
-        public void Should_Delete_The_Generated_Directory()
-        {
-            var generatedDirectory = GetLastDirectoryPath();
-            CreateGeneratedFiles();
-            Assert.True(Directory.Exists(generatedDirectory));
-            var coverletDataCollectorGeneratedCobertura = new CoverletDataCollectorGeneratedCobertura();
-            var coverageOutputFile = Path.Combine(coverageOutputFolder.FullName, "renamed.xml");
-            coverletDataCollectorGeneratedCobertura.CorrectPath(coverageOutputFolder.FullName, coverageOutputFile);
-            Assert.False(Directory.Exists(generatedDirectory));
-        }
-
-        [Test]
-        public void Should_Throw_If_Did_Not_Generate()
-        {
-            var coverletDataCollectorGeneratedCobertura = new CoverletDataCollectorGeneratedCobertura();
-            var coverageOutputFile = Path.Combine(coverageOutputFolder.FullName, "renamed.xml");
-            Assert.Throws<Exception>(() =>
+            generatedCobertura.Delete();
+            if (File.Exists(coverageOutputFile))
             {
-                coverletDataCollectorGeneratedCobertura.CorrectPath(coverageOutputFolder.FullName, coverageOutputFile);
-            }, "Data collector did not generate coverage.cobertura.xml");
-            
+                File.Delete(coverageOutputFile);
+            }
         }
-        private string GetLastDirectoryPath()
-        {
-            return Path.Combine(coverageOutputFolder.FullName, "efgh");
-        }
-        private void CreateGeneratedFiles()
-        {
-            var firstDirectory = Path.Combine(coverageOutputFolder.FullName, "abcd");
-            var lastDirectory = GetLastDirectoryPath();
 
-            WriteGeneratedCobertura(firstDirectory, false);
-            Thread.Sleep(2000);
-            WriteGeneratedCobertura(lastDirectory, true);
-        }
-        private void WriteGeneratedCobertura(string directory, bool last)
+        private FileInfo CreateTemporyFile()
         {
-            Directory.CreateDirectory(directory);
-            var generatedPath = Path.Combine(directory, CoverletDataCollectorGeneratedCobertura.collectorGeneratedCobertura);
-            File.WriteAllText(generatedPath, last ? "last" : "first");
+            return new FileInfo(Path.GetTempFileName());
         }
-        
+
+        private void SetUpPoller(bool finds)
+        {
+            mockDirectoryFilePoller = mocker.GetMock<IDirectoryFilePoller>();
+            pollerMockSetUp = mockDirectoryFilePoller.Setup(poller => poller.PollAsync("coverageOutputFolder", "coverage.cobertura.xml", CoverletDataCollectorGeneratedCobertura.fileWaitMs, It.IsAny<Func<FileInfo[], FileInfo>>(), SearchOption.AllDirectories).Result).Returns(finds ? generatedCobertura : null);
+
+        }
+
+        private Task CorrectPathAsync()
+        {
+            return coverletDataCollectorGeneratedCobertura.CorrectPathAsync("coverageOutputFolder",coverageOutputFile);
+        }
+
+        [Test]
+        public async Task Should_Poll_The_Coverage_Output_Folder_All_Directories_For_The_Cobertura_File()
+        {
+            SetUpPoller(true);
+            await CorrectPathAsync();
+            mockDirectoryFilePoller.VerifyAll();
+
+        }
+
+        [TestCase(true)] // should only be one
+        [TestCase(false)]
+        public async Task Should_Select_The_Last_Written_Cobertura(bool reverseOrder)
+        {
+            SetUpPoller(true);
+            Func<FileInfo[], FileInfo> _filter = null;
+            pollerMockSetUp.Callback<string, string, int, Func<FileInfo[], FileInfo>, SearchOption>((_, __, ___, filter, ____) =>
+               {
+                   _filter = filter;
+               });
+            await CorrectPathAsync();
+            Thread.Sleep(1000);
+            var cobertura2 = CreateTemporyFile();
+            Assert.AreSame(cobertura2, _filter(reverseOrder ? new FileInfo[] { generatedCobertura, cobertura2 } : new FileInfo[] { cobertura2, generatedCobertura }));
+
+
+        }
+
+        [Test]
+        public void Should_Throw_Exception_If_Cobertura_Is_Not_Generated_In_The_Timeout()
+        {
+            SetUpPoller(false);
+            Assert.Throws<Exception>(async () =>
+            {
+                await CorrectPathAsync();
+            }, "Data collector did not generate coverage.cobertura.xml");
+        }
+
+        [Test]
+        public async Task Should_Move_And_Rename_The_Generated_Cobertura()
+        {
+            SetUpPoller(true);
+            await CorrectPathAsync();
+            Assert.AreEqual(generatedCoberturaText, File.ReadAllText(coverageOutputFile));
+
+        }
     }
+    
 }

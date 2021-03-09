@@ -204,9 +204,9 @@ namespace FineCodeCoverage.Engine.Coverlet
             // https://github.com/dotnet/sdk/blob/936935f18c3540ed77c97e392780a9dd82aca441/src/Cli/dotnet/commands/dotnet-test/Program.cs#L86
             
             // test failure has exit code 1 
-            return processResponseProcessor.Process(result, code => code == 0 || code == 1, throwError, GetLogTitle(), () =>
+            return await processResponseProcessor.ProcessAsync(result, code => code == 0 || code == 1, throwError, GetLogTitle(), () =>
              {
-                 coverletDataCollectorGeneratedCobertura.CorrectPath(coverageProject.CoverageOutputFolder, coverageProject.CoverageOutputFile);
+                 return coverletDataCollectorGeneratedCobertura.CorrectPathAsync(coverageProject.CoverageOutputFolder, coverageProject.CoverageOutputFile);
              });
 
         }

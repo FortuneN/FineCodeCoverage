@@ -72,6 +72,8 @@
     <Compile Include="Core\Coverlet\Console\CoverletConsoleDotnetToolsGlobalExecutor.cs" />
     <Compile Include="Core\Coverlet\Console\CoverletConsoleCustomPathExecutor.cs" />
     <Compile Include="Core\Coverlet\Console\CoverletConsoleDotnetToolsLocalExecutor.cs" />
+    <Compile Include="Core\Utilities\DirectoryFilePoller.cs" />
+    <Compile Include="Core\Utilities\IDirectoryFilePoller.cs" />
     <Compile Include="Core\MsTestPlatform\IMsTestPlatformUtil.cs" />
     <Compile Include="Core\Utilities\ToolZip\IToolFolder.cs" />
     <Compile Include="Core\Utilities\ToolZip\IToolZipProvider.cs" />

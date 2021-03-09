@@ -1,7 +1,9 @@
-﻿namespace FineCodeCoverage.Engine.Coverlet
+﻿using System.Threading.Tasks;
+
+namespace FineCodeCoverage.Engine.Coverlet
 {
     internal interface ICoverletDataCollectorGeneratedCobertura
     {
-        void CorrectPath(string coverageOutputFolder, string coverageOutputFile);
+        Task CorrectPathAsync(string coverageOutputFolder, string coverageOutputFile);
     }
 }
