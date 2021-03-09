@@ -25,7 +25,12 @@ namespace FineCodeCoverage.Engine.Coverlet
             //C:\\Users\\tonyh\\Source\\Repos\\DataCollectorXUnit\\XUnitTestProject1\\bin\\Debug\\netcoreapp3.1\\fine-code-coverage\\coverage-tool-output\\7ba6447d-a89f-4836-bffc-aeb4799e48ab\\coverage.cobertura.xml\r\nP
 
             //should only be the one
-            return directoryFilePoller.PollAsync(coverageOutputFolder, collectorGeneratedCobertura, fileWaitMs, file => file.OrderBy(f => f.LastWriteTime).Last(),SearchOption.AllDirectories);
+            return directoryFilePoller.PollAsync(
+                coverageOutputFolder, 
+                collectorGeneratedCobertura, 
+                fileWaitMs, 
+                file => file.OrderBy(f => f.LastWriteTime).Last(),
+                SearchOption.AllDirectories);
         }
         public async Task CorrectPathAsync(string coverageOutputFolder, string coverageOutputFile)
         {

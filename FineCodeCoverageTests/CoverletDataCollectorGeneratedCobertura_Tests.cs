@@ -52,7 +52,7 @@ namespace Test
         private void SetUpPoller(bool finds)
         {
             mockDirectoryFilePoller = mocker.GetMock<IDirectoryFilePoller>();
-            pollerMockSetUp = mockDirectoryFilePoller.Setup(poller => poller.PollAsync("coverageOutputFolder", "coverage.cobertura.xml", CoverletDataCollectorGeneratedCobertura.fileWaitMs, It.IsAny<Func<FileInfo[], FileInfo>>(), SearchOption.AllDirectories).Result).Returns(finds ? generatedCobertura : null);
+            pollerMockSetUp = mockDirectoryFilePoller.Setup(poller => poller.PollAsync("coverageOutputFolder", "coverage.cobertura.xml", CoverletDataCollectorGeneratedCobertura.fileWaitMs, It.IsAny<Func<FileInfo[], FileInfo>>(), SearchOption.AllDirectories)).Returns(Task.FromResult(finds ? generatedCobertura : null));
 
         }
 
