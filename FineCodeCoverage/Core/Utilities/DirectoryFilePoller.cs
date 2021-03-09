@@ -22,7 +22,7 @@ namespace FineCodeCoverage.Core.Utilities
             return Task.Run(() =>
             {
                 FileInfo file = null;
-                var startTime = new DateTime();
+                var startTime = DateTime.Now;
                 while (true)
                 {
                     file = FindFile();
@@ -32,7 +32,7 @@ namespace FineCodeCoverage.Core.Utilities
                     }
                     if (timeoutMs != 0)
                     {
-                        var endTime = new DateTime();
+                        var endTime = DateTime.Now;
                         var elapsed = endTime - startTime;
                         if (elapsed.TotalMilliseconds > timeoutMs)
                         {
