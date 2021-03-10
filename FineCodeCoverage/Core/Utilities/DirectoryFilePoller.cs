@@ -1,6 +1,7 @@
 ﻿using System;
 using System.ComponentModel.Composition;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace FineCodeCoverage.Core.Utilities
@@ -30,6 +31,9 @@ namespace FineCodeCoverage.Core.Utilities
                     {
                         break;
                     }
+
+                    Thread.Sleep(250);
+
                     if (timeoutMs != 0)
                     {
                         var endTime = DateTime.Now;
