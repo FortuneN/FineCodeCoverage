@@ -13,17 +13,19 @@ namespace FineCodeCoverage.Engine.Coverlet
     {
         internal const string collectorGeneratedCobertura = "coverage.cobertura.xml";
         private readonly IDirectoryFilePoller directoryFilePoller;
+        private readonly ILogger logger;
         internal const int fileWaitMs = 10000;
 
         [ImportingConstructor]
         public CoverletDataCollectorGeneratedCobertura(IDirectoryFilePoller directoryFilePoller, ILogger logger)
         {
             this.directoryFilePoller = directoryFilePoller;
+            this.logger = logger;
         }
         private Task<FileInfo> GetCoberturaFileAsync(string coverageOutputFolder)
         {
             //C:\\Users\\tonyh\\Source\\Repos\\DataCollectorXUnit\\XUnitTestProject1\\bin\\Debug\\netcoreapp3.1\\fine-code-coverage\\coverage-tool-output\\7ba6447d-a89f-4836-bffc-aeb4799e48ab\\coverage.cobertura.xml\r\nP
-            Logger.Log($"Getting generated cobertura from {coverageOutputFolder}");
+            logger.Log($"Getting generated cobertura from {coverageOutputFolder}");
             //should only be the one
             return directoryFilePoller.PollAsync(
                 coverageOutputFolder, 
