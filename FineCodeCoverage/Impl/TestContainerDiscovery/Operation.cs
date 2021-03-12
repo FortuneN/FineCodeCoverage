@@ -8,6 +8,7 @@ namespace FineCodeCoverage.Impl
 		public Operation(object toReflect) : base(toReflect) { }
 		[ReflectFlags(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)]
 		public TestConfiguration Configuration { get; protected set; }
+		[ReflectFlags(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)]
 		public TestRunResponse Response { get; protected set; }
 		public long TotalTests { get; protected set; }
 
