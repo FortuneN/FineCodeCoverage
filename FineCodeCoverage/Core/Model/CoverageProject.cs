@@ -498,7 +498,7 @@ namespace FineCodeCoverage.Engine.Model
             fccPath = Path.Combine(ProjectOutputFolder, fccFolderName);
             buildOutputPath = Path.Combine(fccPath, buildOutputFolderName);
             CoverageOutputFolder = Path.Combine(fccPath, coverageToolOutputFolderName);
-            CoverageOutputFile = Path.Combine(CoverageOutputFolder, "project.coverage.xml");
+            CoverageOutputFile = Path.Combine(CoverageOutputFolder, $"{ProjectName}.coverage.xml");
         }
         private void EnsureDirectories()
         {
