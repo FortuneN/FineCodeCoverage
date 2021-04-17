@@ -1,0 +1,50 @@
+{
+  "$schema": "http://json.schemastore.org/vsix-publish",
+  "categories": [ "coding", "reporting", "testing" ],
+  "identity": {
+    "description": "Visualize unit test code coverage easily for free in Visual Studio Community Edition (and other editions too)", // The description of the extension. Required for non-vsix extensions.
+    "displayName": "Fine Code Coverage",  // The display name of the extension. Required for non-vsix extensions.
+    "icon": "\\path\\to\\icon.ico", // The path to an icon file (can be relative to the json file location). Required for non-vsix extensions.
+    "installTargets": [             // The installation targets for the extension. Required for non-vsix extensions.
+      {
+        "sku": "Microsoft.VisualStudio.Community",
+        "version": "[16.0, 17.0)"
+      }
+    ],
+    "internalName": "FineCodeCoverage",
+    "language": "en-US",            // The default language id of the extension. Can be in the "1033" or "en-US" format. Required for non-vsix extensions.
+    "version": "1.1.0",             // The version of the extension. Required for non-vsix extensions.
+    "vsixId": "fcc-f339fe606-9d51-4fca-895c-d50375137b62", // The vsix id of the extension. Not required but useful for showing updates to installed extensions.
+    "tags": [
+      ".net",
+      ".net core",
+      ".net framework",
+      ".netcore",
+      ".netframework",
+      "c#",
+      "code coverage",
+      "community",
+      "community edition",
+      "core",
+      "coverage",
+      "coverlet",
+      "free",
+      "open cover",
+      "openCover",
+      "report generator",
+      "reportGenerator",
+      "test",
+      "test coverage",
+      "unit test",
+      "unit test coverage",
+      "vb",
+      "visual studio",
+    ],
+  },
+  "overview": "vs-market-place-overview.md",
+  "priceCategory": "free",
+  "publisher": "FortuneNgwenya",
+  "private": false,
+  "qna": true,
+  "repo": "https://github.com/FortuneN/FineCodeCoverage"
+}
