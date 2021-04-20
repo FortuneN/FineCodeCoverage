@@ -82,7 +82,7 @@ Run a(some) unit test(s) and ...
 </PropertyGroup>			
 ```
 
-#### Coverlet specific
+#### Coverlet specific ( add this to your test project's `csproj` : REQUIRED )
 ```
 <PropertyGroup>
 	<UseDataCollector/>
