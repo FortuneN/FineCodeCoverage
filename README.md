@@ -89,11 +89,13 @@ Run a(some) unit test(s) and ...
 </PropertyGroup>
 ```
 
-Coverlet has different "drivers".  Fine Code Coverage has in the past only used the coverlet console driver.  This has some issues associated with it.
-It is now possible to switch to the Data Collector driver.  This is the better driver but cannot be used for all projects.
+Coverlet has different "drivers".  Fine Code Coverage has in the past only used the coverlet console driver.  This has some [issues](https://github.com/coverlet-coverage/coverlet/blob/master/Documentation/KnownIssues.md#1-vstest-stops-process-execution-earlydotnet-test) associated with it.
+If you encounter **0% coverage or inconsistent coverage** it is now possible to switch to the Data Collector driver.  This is the better driver but cannot be used for all projects.
 For now this is opt in.  In the future Fine Code Coverage will determine the appropriate driver.
 Please consult [coverlet docs](https://github.com/coverlet-coverage/coverlet/blob/master/Documentation/VSTestIntegration.md) for version support.
-** Note that it is unnecessary to add the nuget coverlet.collector package as FCC internally supplies coverlet.collector 3.0.3**
+
+**Note that it is unnecessary to add the nuget coverlet.collector package as FCC internally supplies coverlet.collector 3.0.3**
+
 Fine Code Coverage will use the Data Collector driver under two circumstances :
 1) You are testing with runsettings that contains the coverlet collector ( and not disabled)
 2) You set the UseDataCollector project property
