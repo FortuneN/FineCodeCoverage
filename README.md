@@ -11,6 +11,7 @@ Prerequisites
 Only that the test adapters are nuget packages.  For instance, the NUnit Test Adapter extension is not sufficient.
 
 ---------------------------------------
+
 Introduction
 
 Fine Code Coverage works by reacting to the visual studio test explorer, providing coverage from each test project containing tests that you have selected 
