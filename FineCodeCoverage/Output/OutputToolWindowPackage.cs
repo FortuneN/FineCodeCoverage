@@ -75,6 +75,7 @@ namespace FineCodeCoverage.Output
 			componentModel = sp.GetService(typeof(Microsoft.VisualStudio.ComponentModelHost.SComponentModel)) as Microsoft.VisualStudio.ComponentModelHost.IComponentModel;
             Assumes.Present(componentModel);
             await OutputToolWindowCommand.InitializeAsync(this);
+		    await ClearUICommand.InitializeAsync(this, componentModel.GetService<IFCCEngine>());
 		}
 
         protected override System.Threading.Tasks.Task<object> InitializeToolWindowAsync(Type toolWindowType, int id, CancellationToken cancellationToken)

@@ -170,6 +170,7 @@
     <Compile Include="Options\IAppOptions.cs" />
     <Compile Include="Options\IAppOptionsProvider.cs" />
     <Compile Include="Options\IAppOptionsStorageProvider.cs" />
+    <Compile Include="Output\ClearUICommand.cs" />
     <Compile Include="Output\IProcess.cs" />
     <Compile Include="Output\OutputToolWindow.cs" />
     <Compile Include="Output\OutputToolWindowCommand.cs" />
@@ -228,6 +229,7 @@
       <Link>Resources\LICENSE</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
+    <Content Include="Output\Resources\ClearUICommand.png" />
     <Content Include="Output\Resources\OutputToolWindowCommand.png" />
     <Content Include="ZippedTools\coverlet.console.3.0.3.zip">
       <IncludeInVSIX>true</IncludeInVSIX>
