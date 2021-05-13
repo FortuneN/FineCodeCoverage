@@ -15,6 +15,9 @@ Introduction
 
 Fine Code Coverage works by reacting to the visual studio test explorer, providing coverage from each test project containing tests that you have selected 
 to run.  This coverage is presented as a single unified report as well as coloured margins alongside your code.
+This coverage is not dynamic and represents the coverage obtained from the last time you executed tests.
+When the coverage becomes outdated, you can click the 'FCC Clear UI' button in Tools or run coverage again.
+
 The coverage is provided by either [OpenCover](https://github.com/OpenCover/opencover) for old style projects and [Coverlet](https://github.com/coverlet-coverage/coverlet) 
 for new style sdk projects.  FCC provides an abstraction over both so that it is possible to ignore the differences between the two but there are circumstances where 
 it is important to be aware of cover tool that will be run.  This is most apparent when Coverlet is used, please read on for the specifics.  
