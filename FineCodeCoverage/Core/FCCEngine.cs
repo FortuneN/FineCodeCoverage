@@ -118,6 +118,7 @@ namespace FineCodeCoverage.Engine
         
         private CancellationToken Reset()
         {
+            ClearUI();
             StopCoverage();
 
             cancellationTokenSource = new CancellationTokenSource();
@@ -240,7 +241,7 @@ namespace FineCodeCoverage.Engine
                 case System.Threading.Tasks.TaskStatus.Faulted:
                     LogReloadCoverageStatus(ReloadCoverageStatus.Error);
                     logger.Log(t.Exception.InnerExceptions[0]);
-                    UpdateUI(null, null);
+                    ClearUI();
                     break;
                 case System.Threading.Tasks.TaskStatus.RanToCompletion:
                     LogReloadCoverageStatus(ReloadCoverageStatus.Done);
