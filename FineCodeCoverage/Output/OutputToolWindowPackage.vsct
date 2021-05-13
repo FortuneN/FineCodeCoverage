@@ -15,10 +15,10 @@
         defining some of the constants that we will use inside the file. -->
 
   <!--This is the file that defines the IDs for all the commands exposed by VisualStudio. -->
-  <Extern href="stdidcmd.h"/>
+  <Extern href="stdidcmd.h" />
 
   <!--This header contains the command ids for the menus provided by the shell. -->
-  <Extern href="vsshlids.h"/>
+  <Extern href="vsshlids.h" />
 
   <!--The Commands section is where commands, menus, and menu groups are defined.
       This section uses a Guid to identify the package that provides the command defined inside it. -->
@@ -43,10 +43,17 @@
               <CommandFlag>DynamicVisibility</CommandFlag>
           If you do not want an image next to your command, remove the Icon node /> -->
       <Button guid="guidOutputToolWindowPackageCmdSet" id="OutputToolWindowCommandId" priority="0x0100" type="Button">
-        <Parent guid="guidSHLMainMenu" id="IDG_VS_WNDO_OTRWNDWS1"/>
+        <Parent guid="guidSHLMainMenu" id="IDG_VS_WNDO_OTRWNDWS1" />
         <Icon guid="guidImages" id="bmpPic1" />
         <Strings>
           <ButtonText>Fine Code Coverage</ButtonText>
+        </Strings>
+      </Button>
+      <Button guid="guidOutputToolWindowPackageCmdSet1" id="cmdidClearUICommand" priority="0x0100" type="Button">
+        <Parent guid="guidOutputToolWindowPackageCmdSet1" id="MyMenuGroup" />
+        <Icon guid="guidImages1" id="bmpPic1" />
+        <Strings>
+          <ButtonText>FCC Clear UI</ButtonText>
         </Strings>
       </Button>
     </Buttons>
@@ -58,8 +65,14 @@
             bitmap strip containing the bitmaps and then there are the numeric ids of the elements used
             inside a button definition. An important aspect of this declaration is that the element id
             must be the actual index (1-based) of the bitmap inside the bitmap strip. -->
-      <Bitmap guid="guidImages" href="Resources\OutputToolWindowCommand.png" usedList="bmpPic1"/>
+      <Bitmap guid="guidImages" href="Resources\OutputToolWindowCommand.png" usedList="bmpPic1" />
+      <Bitmap guid="guidImages1" href="Resources\ClearUICommand.png" usedList="bmpPic1" />
     </Bitmaps>
+    <Groups>
+      <Group guid="guidOutputToolWindowPackageCmdSet1" id="MyMenuGroup" priority="0x0600">
+        <Parent guid="guidSHLMainMenu" id="IDM_VS_MENU_TOOLS" />
+      </Group>
+    </Groups>
   </Commands>
 
   <Symbols>
@@ -71,7 +84,16 @@
       <IDSymbol name="OutputToolWindowCommandId" value="0x0100" />
     </GuidSymbol>
 
-    <GuidSymbol name="guidImages" value="{297e101c-4afa-47b1-b382-087cfb4618b0}" >
+    <GuidSymbol name="guidImages" value="{297e101c-4afa-47b1-b382-087cfb4618b0}">
+      <IDSymbol name="bmpPic1" value="1" />
+    </GuidSymbol>
+  
+    <GuidSymbol value="{d58a999f-4a1b-42df-839a-cb31a0a4fed7}" name="guidOutputToolWindowPackageCmdSet1">
+      <IDSymbol value="4128" name="MyMenuGroup" />
+      <IDSymbol value="256" name="cmdidClearUICommand" />
+    </GuidSymbol>
+  
+    <GuidSymbol value="{8252a6d7-bcf3-4518-ae22-ad20ef8d4b63}" name="guidImages1">
       <IDSymbol name="bmpPic1" value="1" />
     </GuidSymbol>
   </Symbols>

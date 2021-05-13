@@ -20,6 +20,12 @@ namespace FineCodeCoverage.Output
 
         public const string guidImagesString = "297e101c-4afa-47b1-b382-087cfb4618b0";
         public static Guid guidImages = new Guid(guidImagesString);
+
+        public const string guidOutputToolWindowPackageCmdSet1String = "d58a999f-4a1b-42df-839a-cb31a0a4fed7";
+        public static Guid guidOutputToolWindowPackageCmdSet1 = new Guid(guidOutputToolWindowPackageCmdSet1String);
+
+        public const string guidImages1String = "8252a6d7-bcf3-4518-ae22-ad20ef8d4b63";
+        public static Guid guidImages1 = new Guid(guidImages1String);
     }
     /// <summary>
     /// Helper class that encapsulates all CommandIDs uses across VS Package.
@@ -28,5 +34,7 @@ namespace FineCodeCoverage.Output
     {
         public const int OutputToolWindowCommandId = 0x0100;
         public const int bmpPic1 = 0x0001;
+        public const int MyMenuGroup = 0x1020;
+        public const int cmdidClearUICommand = 0x0100;
     }
 }
