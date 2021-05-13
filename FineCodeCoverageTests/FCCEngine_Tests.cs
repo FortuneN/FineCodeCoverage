@@ -344,7 +344,7 @@ namespace Test
         public async Task Should_Clear_UI_Then_Update_UI_When_ReloadCoverage_Completes_Fully()
         {
             fccEngine.CoverageLines = new List<CoverageLine>();
-            var (updatedCoverageLines, reportGeneratedHtmlContent) = await RunToCompletion(false);
+            var (reportGeneratedHtmlContent, updatedCoverageLines) = await RunToCompletion(false);
 
             VerifyLogsReloadCoverageStatus(ReloadCoverageStatus.Done);
 
