@@ -3,7 +3,7 @@
 [![Build status](https://ci.appveyor.com/api/projects/status/yq8s0ridnphpx4ig?svg=true)](https://ci.appveyor.com/project/FortuneN/finecodecoverage)
 
 Download this extension from the [Visual Studio Market Place](https://marketplace.visualstudio.com/items?itemName=FortuneNgwenya.FineCodeCoverage)
-or get the [CI build](https://www.vsixgallery.com/extension/fcc-f339fe606-9d51-4fca-895c-d50375137b62).  Previous versions can be obtained from [here](https://ci.appveyor.com/project/FortuneN/finecodecoverage).
+or get the [CI build](https://www.vsixgallery.com/extension/fcc-f339fe606-9d51-4fca-895c-d50375137b62).  Previous versions can be obtained from [here](https://ci.appveyor.com/project/FortuneN/finecodecoverage/history).
 
 ---------------------------------------
 Prerequisites
@@ -11,6 +11,7 @@ Prerequisites
 Only that the test adapters are nuget packages.  For instance, the NUnit Test Adapter extension is not sufficient.
 
 ---------------------------------------
+
 Introduction
 
 Fine Code Coverage works by reacting to the visual studio test explorer, providing coverage from each test project containing tests that you have selected 
