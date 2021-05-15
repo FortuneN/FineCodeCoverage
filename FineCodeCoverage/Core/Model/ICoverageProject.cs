@@ -8,7 +8,9 @@ namespace FineCodeCoverage.Engine.Model
 {
     internal interface ICoverageProject
     {
-        string CoverageOutputFile { get; set; }
+        string AllProjectsCoverageOutputFolder { get; }
+        string FCCOutputFolder { get; }
+        string CoverageOutputFile { get; }
         string CoverageOutputFolder { get; set; }
         List<string> ExcludedReferencedProjects { get; }
         string FailureDescription { get; set; }

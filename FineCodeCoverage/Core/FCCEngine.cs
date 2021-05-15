@@ -22,7 +22,6 @@ namespace FineCodeCoverage.Engine
     {
         internal int InitializeWait { get; set; } = 5000;
         internal const string initializationFailedMessagePrefix = "Initialization failed.  Please check the following error which may be resolved by reopening visual studio which will start the initialization process again.";
-        internal const string errorReadingReportGeneratorOutputMessage = "error reading report generator output";
         private readonly object colorThemeService;
         private string CurrentTheme => $"{((dynamic)colorThemeService)?.CurrentTheme?.Name}".Trim();
 
@@ -44,6 +43,7 @@ namespace FineCodeCoverage.Engine
         private readonly IAppDataFolder appDataFolder;
         private readonly IServiceProvider serviceProvider;
         private IInitializeStatusProvider initializeStatusProvider;
+        private readonly ICoverageToolOutputManager coverageOutputManager;
         internal System.Threading.Tasks.Task reloadCoverageTask;
 
         [ImportingConstructor]
@@ -56,10 +56,12 @@ namespace FineCodeCoverage.Engine
             IAppOptionsProvider appOptionsProvider,
             ILogger logger,
             IAppDataFolder appDataFolder,
+            ICoverageToolOutputManager coverageOutputManager,
             [Import(typeof(SVsServiceProvider))]
             IServiceProvider serviceProvider
             )
         {
+            this.coverageOutputManager = coverageOutputManager;
             this.coverageUtilManager = coverageUtilManager;
             this.coberturaUtil = coberturaUtil;
             this.msTestPlatformUtil = msTestPlatformUtil;
@@ -142,32 +144,16 @@ namespace FineCodeCoverage.Engine
 
         }
 
-        private void RaiseUpdateOutputWindow(string reportFilePath)
+        private void RaiseUpdateOutputWindow(string reportHtml)
         {
-            UpdateOutputWindowEventArgs updateOutputWindowEventArgs = new UpdateOutputWindowEventArgs { };
-
-            try
-            {
-                if (!string.IsNullOrEmpty(reportFilePath))
-                {
-                    var htmlContent = File.ReadAllText(reportFilePath);
-                    updateOutputWindowEventArgs.HtmlContent = htmlContent;
-                }
-            }
-            catch
-            {
-                logger.Log(errorReadingReportGeneratorOutputMessage);
-            }
-            finally
-            {
-                UpdateOutputWindow?.Invoke(updateOutputWindowEventArgs);
-            }
+            UpdateOutputWindowEventArgs updateOutputWindowEventArgs = new UpdateOutputWindowEventArgs { HtmlContent = reportHtml};
+            UpdateOutputWindow?.Invoke(updateOutputWindowEventArgs);
         }
-        private void UpdateUI(List<CoverageLine> coverageLines, string reportFilePath)
+        private void UpdateUI(List<CoverageLine> coverageLines, string reportHtml)
         {
             CoverageLines = coverageLines;
             UpdateMarginTags?.Invoke(new UpdateMarginTagsEventArgs());
-            RaiseUpdateOutputWindow(reportFilePath);
+            RaiseUpdateOutputWindow(reportHtml);
         }
 
         private async System.Threading.Tasks.Task<(List<CoverageLine> coverageLines,string reportFilePath)> RunAndProcessReportAsync(string[] coverOutputFiles,CancellationToken cancellationToken)
@@ -175,7 +161,7 @@ namespace FineCodeCoverage.Engine
             cancellationToken.ThrowIfCancellationRequested();
 
             List<CoverageLine> coverageLines = null;
-            string reportFilePath = null;
+            string processedReport = null;
             
             var darkMode = CurrentTheme.Equals("Dark", StringComparison.OrdinalIgnoreCase);
 
@@ -183,13 +169,13 @@ namespace FineCodeCoverage.Engine
 
             if (result.Success)
             {
-                coberturaUtil.ProcessCoberturaXmlFile(result.UnifiedXmlFile);
+                coberturaUtil.ProcessCoberturaXml(result.UnifiedXml);
                 coverageLines = coberturaUtil.CoverageLines;
 
-                reportGeneratorUtil.ProcessUnifiedHtmlFile(result.UnifiedHtmlFile, darkMode, out var htmlFilePath);
-                reportFilePath = htmlFilePath;
+                processedReport = reportGeneratorUtil.ProcessUnifiedHtml(result.UnifiedHtml, darkMode);
+                coverageOutputManager.SetReportOutput(result.UnifiedHtml, processedReport, result.UnifiedXml);
             }
-            return (coverageLines, reportFilePath);
+            return (coverageLines, processedReport);
         }
 
         private async System.Threading.Tasks.Task PrepareCoverageProjectsAsync(List<ICoverageProject> coverageProjects, CancellationToken cancellationToken)
@@ -213,7 +199,7 @@ namespace FineCodeCoverage.Engine
             }
         }
 
-        private void ReloadCoverageTaskContinuation(System.Threading.Tasks.Task<(List<CoverageLine> coverageLines, string reportFilePath)> t)
+        private void ReloadCoverageTaskContinuation(System.Threading.Tasks.Task<(List<CoverageLine> coverageLines, string reportHtml)> t)
         {
             switch (t.Status)
             {
@@ -228,7 +214,7 @@ namespace FineCodeCoverage.Engine
                 case System.Threading.Tasks.TaskStatus.RanToCompletion:
                     LogReloadCoverageStatus(ReloadCoverageStatus.Done);
 #pragma warning disable VSTHRD002 // Avoid problematic synchronous waits
-                    UpdateUI(t.Result.coverageLines, t.Result.reportFilePath);
+                    UpdateUI(t.Result.coverageLines, t.Result.reportHtml);
 #pragma warning restore VSTHRD002 // Avoid problematic synchronous waits
                     break;
             }
@@ -263,7 +249,7 @@ namespace FineCodeCoverage.Engine
             reloadCoverageTask = System.Threading.Tasks.Task.Run(async () =>
             {
                 List<CoverageLine> coverageLines = null;
-                string reportFilePath = null;
+                string reportHtml = null;
 
                 await PollInitializedStatusAsync(cancellationToken);
 
@@ -271,16 +257,18 @@ namespace FineCodeCoverage.Engine
 
                 var coverageProjects = await coverageRequestCallback();
 
+                coverageOutputManager.SetProjectCoverageOutputFolder(coverageProjects);
+
                 var coverOutputFiles = await RunCoverageAsync(coverageProjects, cancellationToken);
 
                 if (coverOutputFiles.Any())
                 {
-                    var (lines, rFilePath) = await RunAndProcessReportAsync(coverOutputFiles,cancellationToken);
+                    var (lines, report) = await RunAndProcessReportAsync(coverOutputFiles,cancellationToken);
                     coverageLines = lines;
-                    reportFilePath = rFilePath;
+                    reportHtml = report;
                 }
 
-                return (coverageLines, reportFilePath);
+                return (coverageLines, reportHtml);
                  
             }, cancellationToken)
             .ContinueWith(t =>
