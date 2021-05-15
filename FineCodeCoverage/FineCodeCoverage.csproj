@@ -69,9 +69,11 @@
     <Compile Include="Core\Cobertura\Packages.cs" />
     <Compile Include="Core\Cobertura\Sources.cs" />
     <Compile Include="Core\CoverageUIEvents.cs" />
+    <Compile Include="Core\CoverageUtilManager.cs" />
     <Compile Include="Core\Coverlet\Console\CoverletConsoleDotnetToolsGlobalExecutor.cs" />
     <Compile Include="Core\Coverlet\Console\CoverletConsoleCustomPathExecutor.cs" />
     <Compile Include="Core\Coverlet\Console\CoverletConsoleDotnetToolsLocalExecutor.cs" />
+    <Compile Include="Core\ICoverageUtilManager.cs" />
     <Compile Include="Core\MsTestPlatform\IMsTestPlatformUtil.cs" />
     <Compile Include="Core\Utilities\ToolZip\IToolFolder.cs" />
     <Compile Include="Core\Utilities\ToolZip\IToolZipProvider.cs" />
