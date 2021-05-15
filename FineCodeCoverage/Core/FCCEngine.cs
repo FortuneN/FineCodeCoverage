@@ -6,10 +6,8 @@ using System.Linq;
 using System.Threading;
 using FineCodeCoverage.Core.Utilities;
 using FineCodeCoverage.Engine.Cobertura;
-using FineCodeCoverage.Engine.Coverlet;
 using FineCodeCoverage.Engine.Model;
 using FineCodeCoverage.Engine.MsTestPlatform;
-using FineCodeCoverage.Engine.OpenCover;
 using FineCodeCoverage.Engine.ReportGenerator;
 using FineCodeCoverage.Impl;
 using FineCodeCoverage.Options;
@@ -36,8 +34,7 @@ namespace FineCodeCoverage.Engine
         public string AppDataFolderPath { get; private set; }
         public List<CoverageLine> CoverageLines { get; internal set; }
 
-        private readonly ICoverletUtil coverletUtil;
-        private readonly IOpenCoverUtil openCoverUtil;
+        private readonly ICoverageUtilManager coverageUtilManager;
         private readonly ICoberturaUtil coberturaUtil;
         private readonly IMsTestPlatformUtil msTestPlatformUtil;
         private readonly IReportGeneratorUtil reportGeneratorUtil;
@@ -51,8 +48,7 @@ namespace FineCodeCoverage.Engine
 
         [ImportingConstructor]
         public FCCEngine(
-            ICoverletUtil coverletUtil,
-            IOpenCoverUtil openCoverUtil,
+            ICoverageUtilManager coverageUtilManager,
             ICoberturaUtil coberturaUtil,
             IMsTestPlatformUtil msTestPlatformUtil,
             IReportGeneratorUtil reportGeneratorUtil,
@@ -64,8 +60,7 @@ namespace FineCodeCoverage.Engine
             IServiceProvider serviceProvider
             )
         {
-            this.coverletUtil = coverletUtil;
-            this.openCoverUtil = openCoverUtil;
+            this.coverageUtilManager = coverageUtilManager;
             this.coberturaUtil = coberturaUtil;
             this.msTestPlatformUtil = msTestPlatformUtil;
             this.reportGeneratorUtil = reportGeneratorUtil;
@@ -96,8 +91,7 @@ namespace FineCodeCoverage.Engine
 
             reportGeneratorUtil.Initialize(AppDataFolderPath);
             msTestPlatformUtil.Initialize(AppDataFolderPath);
-            openCoverUtil.Initialize(AppDataFolderPath);
-            coverletUtil.Initialize(AppDataFolderPath);
+            coverageUtilManager.Initialize(AppDataFolderPath);
         }
 
         public void ClearUI()
@@ -128,18 +122,6 @@ namespace FineCodeCoverage.Engine
             return cancellationToken;
         }
 
-        private System.Threading.Tasks.Task RunCoverToolAsync(ICoverageProject project)
-        {
-            if (project.IsDotNetSdkStyle())
-            {
-                return coverletUtil.RunCoverletAsync(project, true);
-            }
-            else
-            {
-                return openCoverUtil.RunOpenCoverAsync(project, true);
-            }
-        }
-
         private async System.Threading.Tasks.Task<string[]> RunCoverageAsync(List<ICoverageProject> coverageProjects,CancellationToken cancellationToken)
         {
             // process pipeline
@@ -149,7 +131,7 @@ namespace FineCodeCoverage.Engine
             foreach (var coverageProject in coverageProjects)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                await coverageProject.StepAsync("Run Coverage Tool", RunCoverToolAsync);
+                await coverageProject.StepAsync("Run Coverage Tool", (project) => coverageUtilManager.RunCoverageAsync(project, true));
             }
 
             var passedProjects = coverageProjects.Where(p => !p.HasFailed);

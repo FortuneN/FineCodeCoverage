@@ -8,10 +8,8 @@ using AutoMoq;
 using FineCodeCoverage.Core.Utilities;
 using FineCodeCoverage.Engine;
 using FineCodeCoverage.Engine.Cobertura;
-using FineCodeCoverage.Engine.Coverlet;
 using FineCodeCoverage.Engine.Model;
 using FineCodeCoverage.Engine.MsTestPlatform;
-using FineCodeCoverage.Engine.OpenCover;
 using FineCodeCoverage.Engine.ReportGenerator;
 using FineCodeCoverage.Impl;
 using Moq;
@@ -54,17 +52,15 @@ namespace Test
             mockAppDataFolder.Setup(appDataFolder => appDataFolder.Initialize()).Callback(() => callOrder.Add(1));
             mockAppDataFolder.Setup(appDataFolder => appDataFolder.DirectoryPath).Returns(appDataFolderPath);
 
-            var coverletMock = mocker.GetMock<ICoverletUtil>().Setup(coverlet => coverlet.Initialize(appDataFolderPath)).Callback(() => callOrder.Add(2));
+            var reportGeneratorMock = mocker.GetMock<IReportGeneratorUtil>().Setup(reportGenerator => reportGenerator.Initialize(appDataFolderPath)).Callback(() => callOrder.Add(2));
 
-            var reportGeneratorMock = mocker.GetMock<IReportGeneratorUtil>().Setup(reportGenerator => reportGenerator.Initialize(appDataFolderPath)).Callback(() => callOrder.Add(3));
+            var msTestPlatformMock = mocker.GetMock<IMsTestPlatformUtil>().Setup(msTestPlatform => msTestPlatform.Initialize(appDataFolderPath)).Callback(() => callOrder.Add(3));
 
-            var msTestPlatformMock = mocker.GetMock<IMsTestPlatformUtil>().Setup(msTestPlatform => msTestPlatform.Initialize(appDataFolderPath)).Callback(() => callOrder.Add(4));
-
-            var openCoverMock = mocker.GetMock<IOpenCoverUtil>().Setup(openCover => openCover.Initialize(appDataFolderPath)).Callback(() => callOrder.Add(5));
+            var openCoverMock = mocker.GetMock<ICoverageUtilManager>().Setup(openCover => openCover.Initialize(appDataFolderPath)).Callback(() => callOrder.Add(4));
 
             fccEngine.Initialize(null);
 
-            Assert.AreEqual(5, callOrder.Count);
+            Assert.AreEqual(4, callOrder.Count);
             Assert.AreEqual(1, callOrder[0]);
         }
 
@@ -232,29 +228,20 @@ namespace Test
             mockCoverageProject.Verify(p => p.StepAsync("Run Coverage Tool", It.IsAny<Func<ICoverageProject, Task>>()));
         }
 
-        [TestCase(true)]
-        [TestCase(false)]
-        public async Task Should_Run_The_Appropriate_Cover_Tool_Based_On_IsDotNetSdkStyle(bool isDotNetSdkStyle)
+        [Test]
+        public async Task Should_Run_Coverage_ThrowingErrors_But_Safely_With_StepAsync()
         {
-            Task waitForCoverage = null;
             ICoverageProject coverageProject = null;
             await ReloadSuitableCoverageProject(mockCoverageProject => {
                 coverageProject = mockCoverageProject.Object;
-                mockCoverageProject.Setup(p => p.IsDotNetSdkStyle()).Returns(isDotNetSdkStyle);
                 mockCoverageProject.Setup(p => p.StepAsync("Run Coverage Tool", It.IsAny<Func<ICoverageProject, Task>>())).Callback<string,Func<ICoverageProject, Task>>((_,runCoverTool) =>
                 {
-                    waitForCoverage = runCoverTool(coverageProject);
+                    runCoverTool(coverageProject);
                 });
             });
-            if (isDotNetSdkStyle)
-            {
-                mocker.Verify<ICoverletUtil>(coverlet => coverlet.RunCoverletAsync(coverageProject, true));
-            }
-            else
-            {
-                mocker.Verify<IOpenCoverUtil>(openCover => openCover.RunOpenCoverAsync(coverageProject, true));
-            }
-            
+
+            mocker.Verify<ICoverageUtilManager>(coverageUtilManager => coverageUtilManager.RunCoverageAsync(coverageProject, true));
+
         }
     
         [Test] // Not testing dark mode as ui will change
