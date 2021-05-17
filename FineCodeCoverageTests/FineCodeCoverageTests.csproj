@@ -67,6 +67,7 @@
       <HintPath>..\packages\NUnit.3.13.1\lib\net45\nunit.framework.dll</HintPath>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
     <Reference Include="System.Runtime.CompilerServices.Unsafe, Version=5.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
@@ -86,7 +87,14 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CoverageToolOutput_Tests\AppOptionsCoverageToolOutputFolderSolutionProvider_Tests.cs" />
+    <Compile Include="CoverageToolOutput_Tests\CoverageToolOutputFolderFromSolutionProvider_Tests.cs" />
+    <Compile Include="CoverageToolOutput_Tests\CoverageToolOutputManager_Tests.cs" />
+    <Compile Include="CoverageToolOutput_Tests\CoverageToolOutput_Exports_Tests.cs" />
+    <Compile Include="CoverageToolOutput_Tests\FccOutputExistenceCoverageToolOutputFolderSolutionProvider_Tests.cs" />
+    <Compile Include="CoverageToolOutput_Tests\SolutionFolderProvider_Tests.cs" />
     <Compile Include="CoverageUtilManager_Tests.cs" />
+    <Compile Include="Test helpers\MefOrderAssertions.cs" />
     <Compile Include="ToolFolder_Tests.cs" />
     <Compile Include="ToolZipProvider_Tests.cs" />
     <Compile Include="CoverletDataCollectorGeneratedCobertura_Tests.cs" />

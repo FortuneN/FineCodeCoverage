@@ -24,10 +24,9 @@ namespace FineCodeCoverage.Engine.Model
         private readonly bool canUseMsBuildWorkspace;
         private XElement projectFileXElement;
         private IAppOptions settings;
-        private string fccPath;
         private readonly string fccFolderName = "fine-code-coverage";
         private readonly string buildOutputFolderName = "build-output";
-        private string buildOutputPath;
+        private string BuildOutputPath => Path.Combine(FCCOutputFolder, buildOutputFolderName);
         private readonly string coverageToolOutputFolderName = "coverage-tool-output";
 
         public CoverageProject(IAppOptionsProvider appOptionsProvider, IFileSynchronizationUtil fileSynchronizationUtil, ILogger logger, DTE dte, bool canUseMsBuildWorkspace)
@@ -39,6 +38,7 @@ namespace FineCodeCoverage.Engine.Model
             this.canUseMsBuildWorkspace = canUseMsBuildWorkspace;
         }
 
+        public string FCCOutputFolder => Path.Combine(ProjectOutputFolder, fccFolderName);
         public bool IsDotNetSdkStyle()
         {
             return ProjectFileXElement
@@ -126,7 +126,7 @@ namespace FineCodeCoverage.Engine.Model
         public bool HasFailed => !string.IsNullOrWhiteSpace(FailureStage) || !string.IsNullOrWhiteSpace(FailureDescription);
         public string ProjectFile { get; set; }
         public string ProjectName { get; set; }
-        public string CoverageOutputFile { get; set; }
+        public string CoverageOutputFile => Path.Combine(CoverageOutputFolder, $"{ProjectName}.coverage.xml");
 
         private bool TypeMatch(Type type, params Type[] otherTypes)
         {
@@ -356,7 +356,6 @@ namespace FineCodeCoverage.Engine.Model
 
         public async System.Threading.Tasks.Task PrepareForCoverageAsync()
         {
-            SetPaths();
             EnsureDirectories();
             CleanDirectory();
             SynchronizeBuildOutput();
@@ -493,13 +492,6 @@ namespace FineCodeCoverage.Engine.Model
             return referencedProjectFiles.Select(referencedProjectProjectFile => new ReferencedProject(referencedProjectProjectFile)).ToList();
         }
 
-        private void SetPaths()
-        {
-            fccPath = Path.Combine(ProjectOutputFolder, fccFolderName);
-            buildOutputPath = Path.Combine(fccPath, buildOutputFolderName);
-            CoverageOutputFolder = Path.Combine(fccPath, coverageToolOutputFolderName);
-            CoverageOutputFile = Path.Combine(CoverageOutputFolder, $"{ProjectName}.coverage.xml");
-        }
         private void EnsureDirectories()
         {
             EnsureFccDirectory();
@@ -508,11 +500,11 @@ namespace FineCodeCoverage.Engine.Model
         }
         private void EnsureFccDirectory()
         {
-            CreateIfDoesNotExist(fccPath);
+            CreateIfDoesNotExist(FCCOutputFolder);
         }
         private void EnsureBuildOutputDirectory()
         {
-            CreateIfDoesNotExist(buildOutputPath);
+            CreateIfDoesNotExist(BuildOutputPath);
         }
         private void CreateIfDoesNotExist(string path)
         {
@@ -546,7 +538,7 @@ namespace FineCodeCoverage.Engine.Model
         private void CleanDirectory()
         {
             var exclusions = new List<string> { buildOutputFolderName, coverageToolOutputFolderName };
-            var fccDirectory = new DirectoryInfo(fccPath);
+            var fccDirectory = new DirectoryInfo(FCCOutputFolder);
 
             fccDirectory.EnumerateFileSystemInfos().AsParallel().ForAll(fileOrDirectory =>
                {
@@ -570,8 +562,8 @@ namespace FineCodeCoverage.Engine.Model
         }
         private void SynchronizeBuildOutput()
         {
-            fileSynchronizationUtil.Synchronize(ProjectOutputFolder, buildOutputPath, fccFolderName);
-            TestDllFile = Path.Combine(buildOutputPath, Path.GetFileName(TestDllFile));
+            fileSynchronizationUtil.Synchronize(ProjectOutputFolder, BuildOutputPath, fccFolderName);
+            TestDllFile = Path.Combine(BuildOutputPath, Path.GetFileName(TestDllFile));
         }
 
     }

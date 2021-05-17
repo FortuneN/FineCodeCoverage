@@ -102,7 +102,6 @@ namespace Test
     {
         private AutoMoqer mocker;
         private FCCEngine fccEngine;
-        private string tempReportGeneratedHtml;
         private List<UpdateMarginTagsEventArgs> updateMarginTagsEvents;
         private List<List<CoverageLine>> updateMarginTagsCoverageLines;
         private List<UpdateOutputWindowEventArgs> updateOutputWindowEvents;
@@ -116,7 +115,6 @@ namespace Test
             updateMarginTagsEvents = new List<UpdateMarginTagsEventArgs>();
             updateMarginTagsCoverageLines = new List<List<CoverageLine>>();
             updateOutputWindowEvents = new List<UpdateOutputWindowEventArgs>();
-            tempReportGeneratedHtml = null;
 
             fccEngine.UpdateMarginTags += (UpdateMarginTagsEventArgs e) =>
             {
@@ -128,15 +126,6 @@ namespace Test
             {
                 updateOutputWindowEvents.Add(e);
             };
-        }
-
-        [TearDown]
-        public void Delete_ReportGeneratedHtml()
-        {
-            if (tempReportGeneratedHtml != null)
-            {
-                File.Delete(tempReportGeneratedHtml);
-            }
         }
 
         [Test]
@@ -243,7 +232,36 @@ namespace Test
             mocker.Verify<ICoverageUtilManager>(coverageUtilManager => coverageUtilManager.RunCoverageAsync(coverageProject, true));
 
         }
-    
+
+        [Test]
+        public async Task Should_Allow_The_CoverageOutputManager_To_SetProjectCoverageOutputFolder()
+        {
+            var mockCoverageToolOutputManager = mocker.GetMock<ICoverageToolOutputManager>();
+            mockCoverageToolOutputManager.Setup(om => om.SetProjectCoverageOutputFolder(It.IsAny<List<ICoverageProject>>())).
+                Callback<List<ICoverageProject>>(coverageProjects =>
+                {
+                    coverageProjects[0].CoverageOutputFolder = "Set by ICoverageToolOutputManager";
+                });
+
+            ICoverageProject coverageProjectAfterCoverageOutputManager = null;
+            var coverageUtilManager = mocker.GetMock<ICoverageUtilManager>();
+            coverageUtilManager.Setup(mgr => mgr.RunCoverageAsync(It.IsAny<ICoverageProject>(), It.IsAny<bool>()))
+                .Callback<ICoverageProject, bool>((cp, _) =>
+                 {
+                     coverageProjectAfterCoverageOutputManager = cp;
+                 });
+
+            await ReloadSuitableCoverageProject(mockCoverageProject => {
+                mockCoverageProject.SetupProperty(cp => cp.CoverageOutputFolder);
+                mockCoverageProject.Setup(p => p.StepAsync("Run Coverage Tool", It.IsAny<Func<ICoverageProject, Task>>())).Callback<string, Func<ICoverageProject, Task>>((_, runCoverTool) =>
+                {
+                    runCoverTool(mockCoverageProject.Object);
+                });
+            });
+
+            Assert.AreEqual(coverageProjectAfterCoverageOutputManager.CoverageOutputFolder, "Set by ICoverageToolOutputManager");
+        }
+
         [Test] // Not testing dark mode as ui will change
         public async Task Should_Run_Report_Generator_With_Output_Files_From_Coverage_For_Coverage_Projects_That_Have_Not_Failed()
         {
@@ -255,7 +273,7 @@ namespace Test
             passedProject.Setup(p => p.CoverageOutputFile).Returns(passedProjectCoverageOutputFile);
             
             mocker.GetMock<IReportGeneratorUtil>().Setup(rg => 
-                rg.RunReportGeneratorAsync(
+                rg.GenerateAsync(
                     It.Is<string[]>(
                         coverOutputFiles => coverOutputFiles.Count() == 1 && coverOutputFiles.First() == passedProjectCoverageOutputFile),
                     It.IsAny<bool>(),
@@ -271,7 +289,7 @@ namespace Test
         public async Task Should_Not_Run_ReportGenerator_If_No_Successful_Projects()
         {
             await ReloadInitializedCoverage();
-            mocker.Verify<IReportGeneratorUtil>(rg => rg.RunReportGeneratorAsync(It.IsAny<IEnumerable<string>>(), It.IsAny<bool>(), It.IsAny<bool>()), Times.Never());
+            mocker.Verify<IReportGeneratorUtil>(rg => rg.GenerateAsync(It.IsAny<IEnumerable<string>>(), It.IsAny<bool>(), It.IsAny<bool>()), Times.Never());
         }
 
         [Test]
@@ -279,11 +297,9 @@ namespace Test
         {
             var passedProject = CreateSuitableProject();
 
-            var unifiedXmlFile = "unified.xml";
-            var unifiedHtmlFile = "unified.html";
             var mockReportGenerator = mocker.GetMock<IReportGeneratorUtil>();
             mockReportGenerator.Setup(rg =>
-                rg.RunReportGeneratorAsync(
+                rg.GenerateAsync(
                     It.IsAny<IEnumerable<string>>(),
                     It.IsAny<bool>(),
                     true).Result)
@@ -291,17 +307,42 @@ namespace Test
                     new ReportGeneratorResult
                     {
                         Success = true,
-                        UnifiedXmlFile = unifiedXmlFile,
-                        UnifiedHtmlFile = unifiedHtmlFile
+                        UnifiedXml = "Unified xml",
+                        UnifiedHtml = "Unified html"
                     }
                 );
 
-            var _ = "";
-            mockReportGenerator.Setup(rg => rg.ProcessUnifiedHtmlFile(unifiedHtmlFile, It.IsAny<bool>(), out _));
+            mockReportGenerator.Setup(rg => rg.ProcessUnifiedHtml("Unified html", It.IsAny<bool>()));
 
             await ReloadInitializedCoverage(passedProject.Object);
-            mocker.Verify<ICoberturaUtil>(coberturaUtil => coberturaUtil.ProcessCoberturaXmlFile(unifiedXmlFile));
+            mocker.Verify<ICoberturaUtil>(coberturaUtil => coberturaUtil.ProcessCoberturaXml("Unified xml"));
             mockReportGenerator.VerifyAll();
+        }
+
+        [Test]
+        public async Task Should_Set_Report_Output_If_Success()
+        {
+            var passedProject = CreateSuitableProject();
+
+            var mockReportGenerator = mocker.GetMock<IReportGeneratorUtil>();
+            mockReportGenerator.Setup(rg =>
+                rg.GenerateAsync(
+                    It.IsAny<IEnumerable<string>>(),
+                    It.IsAny<bool>(),
+                    true).Result)
+                .Returns(
+                    new ReportGeneratorResult
+                    {
+                        Success = true,
+                        UnifiedXml = "Unified xml",
+                        UnifiedHtml = "Unified html"
+                    }
+                );
+
+            mockReportGenerator.Setup(rg => rg.ProcessUnifiedHtml("Unified html", It.IsAny<bool>())).Returns("Processed html");
+
+            await ReloadInitializedCoverage(passedProject.Object);
+            mocker.Verify<ICoverageToolOutputManager>(coverageToolOutputManager => coverageToolOutputManager.OutputReports("Unified html","Processed html","Unified xml"));
         }
 
         [Test]
@@ -311,7 +352,7 @@ namespace Test
 
             var mockReportGenerator = mocker.GetMock<IReportGeneratorUtil>();
             mockReportGenerator.Setup(rg =>
-                rg.RunReportGeneratorAsync(
+                rg.GenerateAsync(
                     It.IsAny<IEnumerable<string>>(),
                     It.IsAny<bool>(),
                     true).Result)
@@ -323,10 +364,32 @@ namespace Test
                 );
 
             await ReloadInitializedCoverage(passedProject.Object);
-            mocker.Verify<ICoberturaUtil>(coberturaUtil => coberturaUtil.ProcessCoberturaXmlFile(It.IsAny<string>()), Times.Never());
+            mocker.Verify<ICoberturaUtil>(coberturaUtil => coberturaUtil.ProcessCoberturaXml(It.IsAny<string>()), Times.Never());
             
         }
-        
+
+        [Test]
+        public async Task Should_Not_Set_Report_Output_If_Failure()
+        {
+            var passedProject = CreateSuitableProject();
+
+            var mockReportGenerator = mocker.GetMock<IReportGeneratorUtil>();
+            mockReportGenerator.Setup(rg =>
+                rg.GenerateAsync(
+                    It.IsAny<IEnumerable<string>>(),
+                    It.IsAny<bool>(),
+                    true).Result)
+                .Returns(
+                    new ReportGeneratorResult
+                    {
+                        Success = false,
+                    }
+                );
+
+            await ReloadInitializedCoverage(passedProject.Object);
+            mocker.Verify<ICoverageToolOutputManager>(coverageToolOutputManager => coverageToolOutputManager.OutputReports(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()),Times.Never());
+        }
+
         [Test]
         public async Task Should_Clear_UI_Then_Update_UI_When_ReloadCoverage_Completes_Fully()
         {
@@ -355,21 +418,6 @@ namespace Test
             Assert.Null(updateOutputWindowEvents[1].HtmlContent);
         }
         
-        [Test] // CoverageLines will be present and tags added hence done - unlikely for this branch to occur
-        public async Task Should_Log_Done_When_Exception_Reading_Report_Html()
-        {
-            await ThrowReadingReportHtml();
-            VerifyLogsReloadCoverageStatus(ReloadCoverageStatus.Done);
-            mocker.Verify<ILogger>(l => l.Log(FCCEngine.errorReadingReportGeneratorOutputMessage));
-        }
-
-        [Test]
-        public async Task Should_Log_Message_When_Exception_Reading_Report_Html()
-        {
-            await ThrowReadingReportHtml();
-            mocker.Verify<ILogger>(l => l.Log(FCCEngine.errorReadingReportGeneratorOutputMessage));
-        }
-
         [Test]
         public async Task Should_Update_OutputWindow_With_Null_HtmlContent_When_Reading_Report_Html_Throws()
         {
@@ -471,25 +519,23 @@ namespace Test
 
         private async Task<(string reportGeneratedHtmlContent, List<CoverageLine> updatedCoverageLines)> RunToCompletion(bool noCoverageProjects)
         {
-            var passedProject = CreateSuitableProject();
-
+            var coverageProject = CreateSuitableProject().Object;
             var mockReportGenerator = mocker.GetMock<IReportGeneratorUtil>();
             mockReportGenerator.Setup(rg =>
-                rg.RunReportGeneratorAsync(
-                    It.IsAny<IEnumerable<string>>(),
+                rg.GenerateAsync(
+                    It.Is<IEnumerable<string>>(coverOutputFiles => coverOutputFiles.Count() == 1 && coverOutputFiles.First() == coverageProject.CoverageOutputFile),
                     It.IsAny<bool>(),
                     true).Result)
                 .Returns(
                     new ReportGeneratorResult
                     {
                         Success = true,
+                        UnifiedHtml = "Unified"
                     }
                 );
 
             var reportGeneratedHtmlContent = "<somehtml/>";
-            tempReportGeneratedHtml = Path.GetTempFileName();
-            File.WriteAllText(tempReportGeneratedHtml, reportGeneratedHtmlContent);
-            mockReportGenerator.Setup(rg => rg.ProcessUnifiedHtmlFile(It.IsAny<string>(), It.IsAny<bool>(), out tempReportGeneratedHtml));
+            mockReportGenerator.Setup(rg => rg.ProcessUnifiedHtml("Unified", It.IsAny<bool>())).Returns(reportGeneratedHtmlContent);
 
             List<CoverageLine> coverageLines = new List<CoverageLine>() { new CoverageLine() };
             mocker.GetMock<ICoberturaUtil>().Setup(coberturaUtil => coberturaUtil.CoverageLines).Returns(coverageLines);
@@ -499,7 +545,7 @@ namespace Test
             }
             else
             {
-                await ReloadInitializedCoverage(passedProject.Object);
+                await ReloadInitializedCoverage(coverageProject);
             }
 
             return (reportGeneratedHtmlContent, coverageLines);
@@ -512,7 +558,7 @@ namespace Test
 
             var mockReportGenerator = mocker.GetMock<IReportGeneratorUtil>();
             mockReportGenerator.Setup(rg =>
-                rg.RunReportGeneratorAsync(
+                rg.GenerateAsync(
                     It.IsAny<IEnumerable<string>>(),
                     It.IsAny<bool>(),
                     true).Result)
@@ -524,7 +570,7 @@ namespace Test
                 );
 
             var badPath = "^&$!";
-            mockReportGenerator.Setup(rg => rg.ProcessUnifiedHtmlFile(It.IsAny<string>(), It.IsAny<bool>(), out badPath));
+            //mockReportGenerator.Setup(rg => rg.ProcessUnifiedHtml(It.IsAny<string>(), It.IsAny<bool>(), out badPath));
 
             List<CoverageLine> coverageLines = new List<CoverageLine>() { new CoverageLine() };
             mocker.GetMock<ICoberturaUtil>().Setup(coberturaUtil => coberturaUtil.CoverageLines).Returns(coverageLines);
@@ -566,7 +612,7 @@ namespace Test
         private void SetUpSuccessfulRunReportGenerator()
         {
             mocker.GetMock<IReportGeneratorUtil>()
-                .Setup(rg => rg.RunReportGeneratorAsync(
+                .Setup(rg => rg.GenerateAsync(
                     It.IsAny<IEnumerable<string>>(),
                     It.IsAny<bool>(),
                     It.IsAny<bool>()

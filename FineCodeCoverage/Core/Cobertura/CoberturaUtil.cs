@@ -4,6 +4,7 @@ using System.Xml.Serialization;
 using System.Collections.Generic;
 using FineCodeCoverage.Engine.Model;
 using System.ComponentModel.Composition;
+using System.IO;
 
 namespace FineCodeCoverage.Engine.Cobertura
 {
@@ -16,9 +17,9 @@ namespace FineCodeCoverage.Engine.Cobertura
 		private CoverageReport coverageReport;
 		public List<CoverageLine> CoverageLines { get; private set; }
 
-		private CoverageReport LoadReportFile(string inputFilePath)
+		private CoverageReport LoadReport(string xml)
 		{
-			using (var reader = XmlReader.Create(inputFilePath, READER_SETTINGS))
+			using (var reader = XmlReader.Create(new StringReader(xml), READER_SETTINGS))
 			{
 				var report = (CoverageReport)SERIALIZER.Deserialize(reader);
 				return report;
@@ -67,11 +68,11 @@ namespace FineCodeCoverage.Engine.Cobertura
 		//	return jsonText;
 		//}
 
-		public void ProcessCoberturaXmlFile(string xmlFilePath)
+		public void ProcessCoberturaXml(string xml)
 		{
 			CoverageLines = new List<CoverageLine>();
 
-			coverageReport = LoadReportFile(xmlFilePath);
+			coverageReport = LoadReport(xml);
 
 			foreach (var package in coverageReport.Packages.Package)
 			{
