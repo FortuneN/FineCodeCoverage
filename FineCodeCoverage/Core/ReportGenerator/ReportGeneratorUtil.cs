@@ -18,7 +18,7 @@ namespace FineCodeCoverage.Engine.ReportGenerator
     {
 		void Initialize(string appDataFolder);
 		string ProcessUnifiedHtml(string htmlForProcessing, bool darkMode);
-		Task<ReportGeneratorResult> RunReportGeneratorAsync(IEnumerable<string> coverOutputFiles, bool darkMode, bool throwError = false);
+		Task<ReportGeneratorResult> GenerateAsync(IEnumerable<string> coverOutputFiles, bool darkMode, bool throwError = false);
 
 	}
 
@@ -68,7 +68,7 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 								  ?? Directory.GetFiles(zipDestination, "*reportGenerator*.exe", SearchOption.AllDirectories).FirstOrDefault();
 		}
 
-		public async Task<ReportGeneratorResult> RunReportGeneratorAsync(IEnumerable<string> coverOutputFiles, bool darkMode, bool throwError = false)
+		public async Task<ReportGeneratorResult> GenerateAsync(IEnumerable<string> coverOutputFiles, bool darkMode, bool throwError = false)
 		{
 			var title = "ReportGenerator Run";
 			var tempDirectory = fileUtil.CreateTempDirectory();

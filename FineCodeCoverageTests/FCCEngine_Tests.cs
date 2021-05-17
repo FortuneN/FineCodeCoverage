@@ -273,7 +273,7 @@ namespace Test
             passedProject.Setup(p => p.CoverageOutputFile).Returns(passedProjectCoverageOutputFile);
             
             mocker.GetMock<IReportGeneratorUtil>().Setup(rg => 
-                rg.RunReportGeneratorAsync(
+                rg.GenerateAsync(
                     It.Is<string[]>(
                         coverOutputFiles => coverOutputFiles.Count() == 1 && coverOutputFiles.First() == passedProjectCoverageOutputFile),
                     It.IsAny<bool>(),
@@ -289,7 +289,7 @@ namespace Test
         public async Task Should_Not_Run_ReportGenerator_If_No_Successful_Projects()
         {
             await ReloadInitializedCoverage();
-            mocker.Verify<IReportGeneratorUtil>(rg => rg.RunReportGeneratorAsync(It.IsAny<IEnumerable<string>>(), It.IsAny<bool>(), It.IsAny<bool>()), Times.Never());
+            mocker.Verify<IReportGeneratorUtil>(rg => rg.GenerateAsync(It.IsAny<IEnumerable<string>>(), It.IsAny<bool>(), It.IsAny<bool>()), Times.Never());
         }
 
         [Test]
@@ -299,7 +299,7 @@ namespace Test
 
             var mockReportGenerator = mocker.GetMock<IReportGeneratorUtil>();
             mockReportGenerator.Setup(rg =>
-                rg.RunReportGeneratorAsync(
+                rg.GenerateAsync(
                     It.IsAny<IEnumerable<string>>(),
                     It.IsAny<bool>(),
                     true).Result)
@@ -326,7 +326,7 @@ namespace Test
 
             var mockReportGenerator = mocker.GetMock<IReportGeneratorUtil>();
             mockReportGenerator.Setup(rg =>
-                rg.RunReportGeneratorAsync(
+                rg.GenerateAsync(
                     It.IsAny<IEnumerable<string>>(),
                     It.IsAny<bool>(),
                     true).Result)
@@ -352,7 +352,7 @@ namespace Test
 
             var mockReportGenerator = mocker.GetMock<IReportGeneratorUtil>();
             mockReportGenerator.Setup(rg =>
-                rg.RunReportGeneratorAsync(
+                rg.GenerateAsync(
                     It.IsAny<IEnumerable<string>>(),
                     It.IsAny<bool>(),
                     true).Result)
@@ -375,7 +375,7 @@ namespace Test
 
             var mockReportGenerator = mocker.GetMock<IReportGeneratorUtil>();
             mockReportGenerator.Setup(rg =>
-                rg.RunReportGeneratorAsync(
+                rg.GenerateAsync(
                     It.IsAny<IEnumerable<string>>(),
                     It.IsAny<bool>(),
                     true).Result)
@@ -522,7 +522,7 @@ namespace Test
             var coverageProject = CreateSuitableProject().Object;
             var mockReportGenerator = mocker.GetMock<IReportGeneratorUtil>();
             mockReportGenerator.Setup(rg =>
-                rg.RunReportGeneratorAsync(
+                rg.GenerateAsync(
                     It.Is<IEnumerable<string>>(coverOutputFiles => coverOutputFiles.Count() == 1 && coverOutputFiles.First() == coverageProject.CoverageOutputFile),
                     It.IsAny<bool>(),
                     true).Result)
@@ -558,7 +558,7 @@ namespace Test
 
             var mockReportGenerator = mocker.GetMock<IReportGeneratorUtil>();
             mockReportGenerator.Setup(rg =>
-                rg.RunReportGeneratorAsync(
+                rg.GenerateAsync(
                     It.IsAny<IEnumerable<string>>(),
                     It.IsAny<bool>(),
                     true).Result)
@@ -612,7 +612,7 @@ namespace Test
         private void SetUpSuccessfulRunReportGenerator()
         {
             mocker.GetMock<IReportGeneratorUtil>()
-                .Setup(rg => rg.RunReportGeneratorAsync(
+                .Setup(rg => rg.GenerateAsync(
                     It.IsAny<IEnumerable<string>>(),
                     It.IsAny<bool>(),
                     It.IsAny<bool>()

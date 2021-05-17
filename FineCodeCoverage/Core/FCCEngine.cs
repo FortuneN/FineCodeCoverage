@@ -164,7 +164,7 @@ namespace FineCodeCoverage.Engine
             
             var darkMode = CurrentTheme.Equals("Dark", StringComparison.OrdinalIgnoreCase);
 
-            var result = await reportGeneratorUtil.RunReportGeneratorAsync(coverOutputFiles, darkMode, true);
+            var result = await reportGeneratorUtil.GenerateAsync(coverOutputFiles, darkMode, true);
 
             if (result.Success)
             {
