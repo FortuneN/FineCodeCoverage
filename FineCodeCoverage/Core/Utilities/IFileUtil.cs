@@ -9,5 +9,6 @@
         void TryEmptyDirectory(string directory);
         string EnsureAbsolute(string directory, string possiblyRelativeTo);
         string ParentDirectoryPath(string filePath);
+        void TryDeleteDirectory(string directory);
     }
 }

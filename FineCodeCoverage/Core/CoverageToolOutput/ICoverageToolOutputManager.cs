@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 using FineCodeCoverage.Engine.Model;
 
 namespace FineCodeCoverage.Engine
@@ -10,6 +6,6 @@ namespace FineCodeCoverage.Engine
     internal interface ICoverageToolOutputManager
     {
         void SetProjectCoverageOutputFolder(List<ICoverageProject> coverageProjects);
-        void SetReportOutput(string unifiedHtml, string processedReport, string unifiedXml);
+        void OutputReports(string unifiedHtml, string processedReport, string unifiedXml);
     }
 }

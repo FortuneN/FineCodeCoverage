@@ -17,5 +17,6 @@
         bool CoverletConsoleLocal { get; }
         string CoverletCollectorDirectoryPath { get; }
         string OpenCoverCustomPath { get; }
+        string FCCSolutionOutputDirectoryName { get; }
     }
 }

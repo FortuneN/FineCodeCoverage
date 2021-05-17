@@ -14,6 +14,11 @@ namespace FineCodeCoverage.Core.Utilities
             return tempDirectory;
         }
 
+        public void TryDeleteDirectory(string directory)
+        {
+            new DirectoryInfo(directory).TryDelete();
+        }
+
         public bool DirectoryExists(string directory)
         {
             return Directory.Exists(directory);

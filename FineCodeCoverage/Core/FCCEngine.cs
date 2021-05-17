@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.IO;
 using System.Linq;
 using System.Threading;
 using FineCodeCoverage.Core.Utilities;
@@ -173,7 +172,7 @@ namespace FineCodeCoverage.Engine
                 coverageLines = coberturaUtil.CoverageLines;
 
                 processedReport = reportGeneratorUtil.ProcessUnifiedHtml(result.UnifiedHtml, darkMode);
-                coverageOutputManager.SetReportOutput(result.UnifiedHtml, processedReport, result.UnifiedXml);
+                coverageOutputManager.OutputReports(result.UnifiedHtml, processedReport, result.UnifiedXml);
             }
             return (coverageLines, processedReport);
         }

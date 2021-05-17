@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.IO;
 using System.Linq;
@@ -18,19 +19,21 @@ namespace FineCodeCoverage.Engine
         private const string projectCoverageToolOutputFolderName = "coverage-tool-output";
         private string outputFolderForAllProjects;
         private List<ICoverageProject> coverageProjects;
+        private readonly IOrderedEnumerable<Lazy<ICoverageToolOutputFolderProvider, IOrderMetadata>> outputFolderProviders;
 
         [ImportingConstructor]
-        public CoverageToolOutputManager(IFileUtil fileUtil, ILogger logger)
+        public CoverageToolOutputManager(IFileUtil fileUtil, ILogger logger,[ImportMany] IEnumerable<Lazy<ICoverageToolOutputFolderProvider, IOrderMetadata>> outputFolderProviders)
         {
             this.logger = logger;
             this.fileUtil = fileUtil;
+            this.outputFolderProviders = outputFolderProviders.OrderBy(p => p.Metadata.Order);
         }
 
         public void SetProjectCoverageOutputFolder(List<ICoverageProject> coverageProjects)
         {
             this.coverageProjects = coverageProjects;
-            DetermineOutputFolderForAllProjects();
-            if(outputFolderForAllProjects == null)
+            DetermineOutputFolder();
+            if (outputFolderForAllProjects == null)
             {
                 foreach(var coverageProject in coverageProjects)
                 {
@@ -47,7 +50,7 @@ namespace FineCodeCoverage.Engine
             }
         }
 
-        public void SetReportOutput(string unifiedHtml, string processedReport, string unifiedXml)
+        public void OutputReports(string unifiedHtml, string processedReport, string unifiedXml)
         {
             var outputFolder = outputFolderForAllProjects ?? coverageProjects[0].CoverageOutputFolder;
 
@@ -56,25 +59,13 @@ namespace FineCodeCoverage.Engine
             fileUtil.WriteAllText(Path.Combine(outputFolder, unifiedXmlFileName), unifiedXml);
         }
 
-        private void DetermineOutputFolderForAllProjects()
+        private void DetermineOutputFolder()
         {
-            outputFolderForAllProjects = null;
-            var coverageProjectWithAllProjectsCoverageOutputFolder = coverageProjects.FirstOrDefault(cp => cp.AllProjectsCoverageOutputFolder != null);
-            if(coverageProjectWithAllProjectsCoverageOutputFolder != null)
+            outputFolderForAllProjects = outputFolderProviders.SelectFirstNonNull(p => p.Value.Provide(coverageProjects));
+            if(outputFolderForAllProjects != null)
             {
-                var allProjectsCoverageOutputFolder = fileUtil.EnsureAbsolute(
-                    coverageProjectWithAllProjectsCoverageOutputFolder.AllProjectsCoverageOutputFolder,
-                    fileUtil.ParentDirectoryPath(coverageProjectWithAllProjectsCoverageOutputFolder.ProjectFile)
-                );
-         
-                outputFolderForAllProjects = allProjectsCoverageOutputFolder;
-                logger.Log($"Outputting coverage files to - {outputFolderForAllProjects}");
-                return;
+                logger.Log($"FCC output in {outputFolderForAllProjects}");
             }
-            
-            
-            logger.Log($"Outputting coverage files in project output folder");
-
         }
     }
 }

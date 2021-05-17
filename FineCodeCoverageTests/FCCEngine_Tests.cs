@@ -232,7 +232,36 @@ namespace Test
             mocker.Verify<ICoverageUtilManager>(coverageUtilManager => coverageUtilManager.RunCoverageAsync(coverageProject, true));
 
         }
-    
+
+        [Test]
+        public async Task Should_Allow_The_CoverageOutputManager_To_SetProjectCoverageOutputFolder()
+        {
+            var mockCoverageToolOutputManager = mocker.GetMock<ICoverageToolOutputManager>();
+            mockCoverageToolOutputManager.Setup(om => om.SetProjectCoverageOutputFolder(It.IsAny<List<ICoverageProject>>())).
+                Callback<List<ICoverageProject>>(coverageProjects =>
+                {
+                    coverageProjects[0].CoverageOutputFolder = "Set by ICoverageToolOutputManager";
+                });
+
+            ICoverageProject coverageProjectAfterCoverageOutputManager = null;
+            var coverageUtilManager = mocker.GetMock<ICoverageUtilManager>();
+            coverageUtilManager.Setup(mgr => mgr.RunCoverageAsync(It.IsAny<ICoverageProject>(), It.IsAny<bool>()))
+                .Callback<ICoverageProject, bool>((cp, _) =>
+                 {
+                     coverageProjectAfterCoverageOutputManager = cp;
+                 });
+
+            await ReloadSuitableCoverageProject(mockCoverageProject => {
+                mockCoverageProject.SetupProperty(cp => cp.CoverageOutputFolder);
+                mockCoverageProject.Setup(p => p.StepAsync("Run Coverage Tool", It.IsAny<Func<ICoverageProject, Task>>())).Callback<string, Func<ICoverageProject, Task>>((_, runCoverTool) =>
+                {
+                    runCoverTool(mockCoverageProject.Object);
+                });
+            });
+
+            Assert.AreEqual(coverageProjectAfterCoverageOutputManager.CoverageOutputFolder, "Set by ICoverageToolOutputManager");
+        }
+
         [Test] // Not testing dark mode as ui will change
         public async Task Should_Run_Report_Generator_With_Output_Files_From_Coverage_For_Coverage_Projects_That_Have_Not_Failed()
         {
@@ -313,7 +342,7 @@ namespace Test
             mockReportGenerator.Setup(rg => rg.ProcessUnifiedHtml("Unified html", It.IsAny<bool>())).Returns("Processed html");
 
             await ReloadInitializedCoverage(passedProject.Object);
-            mocker.Verify<ICoverageToolOutputManager>(coverageToolOutputManager => coverageToolOutputManager.SetReportOutput("Unified html","Processed html","Unified xml"));
+            mocker.Verify<ICoverageToolOutputManager>(coverageToolOutputManager => coverageToolOutputManager.OutputReports("Unified html","Processed html","Unified xml"));
         }
 
         [Test]
@@ -358,7 +387,7 @@ namespace Test
                 );
 
             await ReloadInitializedCoverage(passedProject.Object);
-            mocker.Verify<ICoverageToolOutputManager>(coverageToolOutputManager => coverageToolOutputManager.SetReportOutput(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()),Times.Never());
+            mocker.Verify<ICoverageToolOutputManager>(coverageToolOutputManager => coverageToolOutputManager.OutputReports(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()),Times.Never());
         }
 
         [Test]

@@ -147,6 +147,8 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 				
 			}
 
+			fileUtil.TryDeleteDirectory(tempDirectory);
+			
 			return reportGeneratorResult;
 			
 		}

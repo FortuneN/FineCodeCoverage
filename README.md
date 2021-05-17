@@ -128,6 +128,8 @@ CoverletConsoleLocal			Specify true to use your own dotnet tools local install o
 CoverletConsoleCustomPath		Specify path to coverlet console exe if you need functionality that the FCC version does not provide.
 CoverletConsoleGlobal			Specify true to use your own dotnet tools global install of coverlet console.
 
+FCCSolutionOutputDirectoryName  To have fcc output visible in a sub folder of your solution provide this name
+
 The "CoverletConsole" settings have precedence Local / CustomPath / Global.
 
 Both 'Exclude' and 'Include' options can be used together but 'Exclude' takes precedence.
@@ -151,6 +153,16 @@ Examples
 
 Both 'Exclude' and 'Include' options can be used together but 'Exclude' takes precedence.
 ```
+
+## FCC Output
+FCC outputs, by default, inside each test project's Debug folder.
+If you prefer you can specify a folder to contain the files output internally and used by FCC.
+Both of the methods below look for a directory containing a .sln file in an ascendant directory of the directory containing the 
+first test project file.  If such a solution directory is found then the logic applies.
+
+If the solution directory has a sub directory fcc-output then it will automatically be used.
+
+Alternatively, if you supply FCCSolutionOutputDirectoryName in options the directory will be created if necessary and used.
  
 ## Contribute
 Check out the [contribution guidelines](CONTRIBUTING.md)

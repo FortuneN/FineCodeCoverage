@@ -38,8 +38,6 @@ namespace FineCodeCoverage.Engine.Model
             this.canUseMsBuildWorkspace = canUseMsBuildWorkspace;
         }
 
-        public string AllProjectsCoverageOutputFolder => ProjectFileXElement.XPathSelectElement($"/PropertyGroup/AllProjectsCoverageOutputFolder")?.Value;
-        
         public string FCCOutputFolder => Path.Combine(ProjectOutputFolder, fccFolderName);
         public bool IsDotNetSdkStyle()
         {

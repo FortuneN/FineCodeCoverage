@@ -12,6 +12,7 @@ namespace FineCodeCoverage.Options
         private const string excludeIncludeCategory = "Exclude / Include";
         private const string coverletCategory = "Coverlet";
         private const string openCoverCategory = "OpenCover";
+        private const string outputCategory = "Output";
 
         public AppOptions():this(false)
         {
@@ -131,6 +132,10 @@ namespace FineCodeCoverage.Options
         [Description("Specify path to open cover exe if you need functionality that the FCC version does not provide.")]
         [Category(openCoverCategory)]
         public string OpenCoverCustomPath { get; set; }
+
+        [Description("To have fcc output visible in a sub folder of your solution provide this name")]
+        [Category(outputCategory)]
+        public string FCCSolutionOutputDirectoryName { get; set; }
 
         [SuppressMessage("Usage", "VSTHRD010:Invoke single-threaded types on Main thread")]
         public override void SaveSettingsToStorage()
