@@ -11,12 +11,14 @@ namespace FineCodeCoverage.Engine.Coverlet
     {
         private readonly IDotNetToolListCoverlet dotnetToolListCoverlet;
         private readonly IDotNetConfigFinder dotNetConfigFinder;
+        private readonly ILogger logger;
 
         [ImportingConstructor]
-        public CoverletConsoleDotnetToolsLocalExecutor(IDotNetToolListCoverlet dotnetToolListCoverlet, IDotNetConfigFinder dotNetConfigFinder)
+        public CoverletConsoleDotnetToolsLocalExecutor(IDotNetToolListCoverlet dotnetToolListCoverlet, IDotNetConfigFinder dotNetConfigFinder, ILogger logger)
         {
             this.dotnetToolListCoverlet = dotnetToolListCoverlet;
             this.dotNetConfigFinder = dotNetConfigFinder;
+            this.logger = logger;
         }
         public ExecuteRequest GetRequest(ICoverageProject coverageProject, string coverletSettings)
         {
@@ -35,6 +37,8 @@ namespace FineCodeCoverage.Engine.Coverlet
                         };
                     }
                 }
+                
+                this.logger.Log("Unable to use Coverlet console local tool");
 
                 return null;
             }

@@ -86,6 +86,19 @@ namespace FineCodeCoverageTests
         }
 
         [Test]
+        public void Should_Log_Output_And_Return_Null_When_Parsing_Error()
+        {
+            var parsing = "this will be parsed";
+            var mockExecutor = mocker.GetMock<IDotNetToolListExecutor>();
+            mockExecutor.Setup(executor => executor.Global()).Returns(new DotNetToolListExecutionResult { ExitCode = 0, Output = parsing });
+            var mockParser = mocker.GetMock<IDotNetToolListParser>();
+            mockParser.Setup(parser => parser.Parse(parsing)).Throws(new System.Exception());
+            var coverletToolDetails = dotNetToolListCoverlet.Global();
+            Assert.IsNull(coverletToolDetails);
+            mocker.Verify<ILogger>(l => l.Log("Dotnet tool list Coverlet Error parsing", parsing));
+        }
+
+        [Test]
         public void Should_Log_Output_When_Executor_Error()
         {
             var mockExecutor = mocker.GetMock<IDotNetToolListExecutor>();

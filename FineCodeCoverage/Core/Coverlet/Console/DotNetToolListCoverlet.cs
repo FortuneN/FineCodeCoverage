@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
 using FineCodeCoverage.Core.Utilities;
@@ -30,8 +31,18 @@ namespace FineCodeCoverage.Engine.Coverlet
 				logger.Log($"{title} Error", result.Output);
 				return null;
 			}
-
-			var tools = parser.Parse(result.Output);
+			List<DotNetTool> tools = null;
+            try
+            {
+				tools = parser.Parse(result.Output);
+			}
+			catch (Exception)
+            {
+				var title = $"Dotnet tool list Coverlet";
+				logger.Log($"{title} Error parsing", result.Output);
+				return null;
+			}
+			
 			var coverletConsoleTool = tools.FirstOrDefault(tool => tool.PackageId == CoverletPackageId);
 			if(coverletConsoleTool == null)
             {

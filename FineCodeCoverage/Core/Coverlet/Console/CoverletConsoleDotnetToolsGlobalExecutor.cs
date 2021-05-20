@@ -13,11 +13,13 @@ namespace FineCodeCoverage.Engine.Coverlet
     internal class CoverletConsoleDotnetToolsGlobalExecutor : ICoverletConsoleDotnetToolsGlobalExecutor
     {
         private readonly IDotNetToolListCoverlet dotNetToolListCoverlet;
+        private readonly ILogger logger;
 
         [ImportingConstructor]
-		public CoverletConsoleDotnetToolsGlobalExecutor(IDotNetToolListCoverlet dotNetToolListCoverlet)
+		public CoverletConsoleDotnetToolsGlobalExecutor(IDotNetToolListCoverlet dotNetToolListCoverlet, ILogger logger)
         {
             this.dotNetToolListCoverlet = dotNetToolListCoverlet;
+            this.logger = logger;
         }
 		public ExecuteRequest GetRequest(ICoverageProject coverageProject, string coverletSettings)
         {
@@ -26,6 +28,7 @@ namespace FineCodeCoverage.Engine.Coverlet
 				var details = dotNetToolListCoverlet.Global();
 				if(details == null)
                 {
+                    logger.Log("Unable to use Coverlet console global tool");
 					return null;
                 }
 				return new ExecuteRequest

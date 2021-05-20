@@ -127,6 +127,19 @@ namespace Test
             dotNetToolListCoverlet.VerifyAll();
         }
 
+        [Test]
+        public void Should_Log_When_Enabled_And_Unsuccessful()
+        {
+            var mockCoverageProject = new Mock<ICoverageProject>();
+            mockCoverageProject.Setup(cp => cp.Settings.CoverletConsoleGlobal).Returns(true);
+            var dotNetToolListCoverlet = mocker.GetMock<IDotNetToolListCoverlet>();
+            dotNetToolListCoverlet.Setup(dotnet => dotnet.Global()).Returns((CoverletToolDetails)null);
+
+            globalExeProvider.GetRequest(mockCoverageProject.Object, null);
+            mocker.Verify<ILogger>(l => l.Log("Unable to use Coverlet console global tool"));
+            
+        }
+
         private ExecuteRequest GetRequest_For_Globally_Installed_Coverlet_Console()
         {
             var mockCoverageProject = new Mock<ICoverageProject>();
@@ -298,6 +311,24 @@ namespace Test
             mockDotNetToolListCoverlet.VerifyAll();
 
 
+        }
+
+        [Test]
+        public void Shoul_Log_If_None_Of_The_DotNetConfig_Containing_Directories_Are_Local_Tool()
+        {
+            var projectOutputFolder = "projectoutputfolder";
+            var mockCoverageProject = new Mock<ICoverageProject>();
+            mockCoverageProject.Setup(cp => cp.Settings.CoverletConsoleLocal).Returns(true);
+            mockCoverageProject.Setup(cp => cp.ProjectOutputFolder).Returns(projectOutputFolder);
+
+            var mockDotNetConfigFinder = mocker.GetMock<IDotNetConfigFinder>();
+            mockDotNetConfigFinder.Setup(f => f.GetConfigDirectories(projectOutputFolder)).Returns(new List<string> { "ConfigDirectory1", "ConfigDirectory2" });
+
+            var mockDotNetToolListCoverlet = mocker.GetMock<IDotNetToolListCoverlet>();
+            mockDotNetToolListCoverlet.Setup(dotnet => dotnet.Local("ConfigDirectory1")).Returns((CoverletToolDetails)null);
+            mockDotNetToolListCoverlet.Setup(dotnet => dotnet.Local("ConfigDirectory2")).Returns((CoverletToolDetails)null);
+            localExecutor.GetRequest(mockCoverageProject.Object, null);
+            mocker.Verify<ILogger>(l => l.Log("Unable to use Coverlet console local tool"));
         }
 
         private ExecuteRequest Get_Request_For_Local_Install(bool firstConfigDirectoryLocalInstall, bool secondConfigDirectoryLocalInstall)
