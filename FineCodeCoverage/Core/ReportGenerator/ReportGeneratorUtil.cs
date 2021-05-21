@@ -115,6 +115,7 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 					if (result.ExitCode != 0)
 					{
 						logger.Log($"{title} [reporttype:{outputReportType}] Error", result.Output);
+						logger.Log($"{title} [reporttype:{outputReportType}] Error", result.ExitCode);
 
 						if (throwError)
 						{
