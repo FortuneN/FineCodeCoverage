@@ -138,12 +138,14 @@ namespace FineCodeCoverage.Engine.Coverlet
 			*/
 				if (result.ExitCode > 3)
 				{
+					logger.Log($"{title} Error. Exit code: {result.ExitCode}");
+					logger.Log($"{title} Error. Output: ", result.Output);
 					if (throwError)
 					{
 						throw new Exception(result.Output);
 					}
 
-					logger.Log($"{title} Error", result.Output);
+					
 					return false;
 				}
 
