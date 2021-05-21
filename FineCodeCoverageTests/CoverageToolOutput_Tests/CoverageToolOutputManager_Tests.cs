@@ -124,28 +124,21 @@ namespace FineCodeCoverageTests
             var coverageToolOutputManager = mocker.Create<CoverageToolOutputManager>();
             coverageToolOutputManager.SetProjectCoverageOutputFolder(coverageProjects);
 
-            coverageToolOutputManager.OutputReports("unified html", "processed report", "unified xml");
-
             var firstProjectOutputFolder = mockProject1.Object.CoverageOutputFolder;
-
-            mocker.Verify<IFileUtil>(f => f.WriteAllText(Path.Combine(firstProjectOutputFolder, "index.html"), "unified html"));
-            mocker.Verify<IFileUtil>(f => f.WriteAllText(Path.Combine(firstProjectOutputFolder, "index-processed.html"), "processed report"));
-            mocker.Verify<IFileUtil>(f => f.WriteAllText(Path.Combine(firstProjectOutputFolder, "Cobertura.xml"), "unified xml"));
             
+            Assert.AreEqual(coverageToolOutputManager.GetReportOutputFolder(), firstProjectOutputFolder);
         }
 
         [Test]
-        public void Should_Output_Reports_To_Provided_When_Not_Provided()
+        public void Should_Output_Reports_To_Provided_When_Provided()
         {
             SetUpProviders(true, "Provided", null);
             var coverageToolOutputManager = mocker.Create<CoverageToolOutputManager>();
             coverageToolOutputManager.SetProjectCoverageOutputFolder(coverageProjects);
 
-            coverageToolOutputManager.OutputReports("unified html", "processed report", "unified xml");
+            var outputFolder = coverageToolOutputManager.GetReportOutputFolder();
 
-            mocker.Verify<IFileUtil>(f => f.WriteAllText(Path.Combine("Provided", "index.html"), "unified html"));
-            mocker.Verify<IFileUtil>(f => f.WriteAllText(Path.Combine("Provided", "index-processed.html"), "processed report"));
-            mocker.Verify<IFileUtil>(f => f.WriteAllText(Path.Combine("Provided", "Cobertura.xml"), "unified xml"));
+            Assert.AreEqual(outputFolder, "Provided");
 
         }
 
