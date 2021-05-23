@@ -1,14 +1,14 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel.Composition;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using FineCodeCoverage;
-using System.Diagnostics;
-using Microsoft.VisualStudio;
-using System.Collections.Generic;
-using Microsoft.VisualStudio.Shell;
-using System.Diagnostics.CodeAnalysis;
-using Microsoft.VisualStudio.Shell.Interop;
-using System.ComponentModel.Composition;
 using Microsoft;
+using Microsoft.VisualStudio;
+using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
 
 [Export(typeof(ILogger))]
 public class Logger : ILogger

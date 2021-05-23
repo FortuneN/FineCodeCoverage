@@ -1,5 +1,5 @@
-﻿using ReflectObject;
-using System.Reflection;
+﻿using System.Reflection;
+using ReflectObject;
 
 namespace FineCodeCoverage.Impl
 {

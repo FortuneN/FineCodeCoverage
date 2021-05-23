@@ -2,9 +2,9 @@
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using FineCodeCoverage.Engine;
 using Microsoft.VisualStudio.Shell;
-using System.Runtime.InteropServices;
 using Microsoft.VisualStudio.Shell.Interop;
 
 namespace FineCodeCoverage.Output

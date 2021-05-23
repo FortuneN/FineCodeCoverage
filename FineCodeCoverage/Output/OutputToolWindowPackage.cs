@@ -1,15 +1,14 @@
 ﻿using System;
-using System.Threading;
-using FineCodeCoverage.Options;
-using Microsoft.VisualStudio.Shell;
-using System.Runtime.InteropServices;
-using System.Diagnostics.CodeAnalysis;
 using System.ComponentModel.Composition;
-using Task = System.Threading.Tasks.Task;
-using Microsoft.VisualStudio.Shell.Interop;
+using System.Runtime.InteropServices;
+using System.Threading;
 using EnvDTE80;
-using Microsoft;
 using FineCodeCoverage.Engine;
+using FineCodeCoverage.Options;
+using Microsoft;
+using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
+using Task = System.Threading.Tasks.Task;
 
 namespace FineCodeCoverage.Output
 {

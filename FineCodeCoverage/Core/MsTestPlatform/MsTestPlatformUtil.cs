@@ -1,6 +1,6 @@
-﻿using System.IO;
+﻿using System.ComponentModel.Composition;
+using System.IO;
 using System.Linq;
-using System.ComponentModel.Composition;
 using FineCodeCoverage.Core.Utilities;
 
 namespace FineCodeCoverage.Engine.MsTestPlatform

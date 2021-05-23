@@ -1,5 +1,5 @@
-﻿using FineCodeCoverage.Engine.Model;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
+using FineCodeCoverage.Engine.Model;
 
 namespace FineCodeCoverage.Engine.OpenCover
 {

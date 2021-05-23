@@ -1,10 +1,10 @@
 ﻿using System;
-using FineCodeCoverage.Engine;
 using System.Collections.Generic;
+using System.Linq;
+using FineCodeCoverage.Engine;
+using FineCodeCoverage.Engine.Model;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
-using FineCodeCoverage.Engine.Model;
-using System.Linq;
 
 namespace FineCodeCoverage.Impl
 {

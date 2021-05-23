@@ -1,12 +1,12 @@
 ﻿using System;
-using CliWrap;
-using System.Linq;
-using CliWrap.Buffered;
-using System.Diagnostics;
-using System.Threading.Tasks;
 using System.Collections.Generic;
-using System.Threading;
 using System.ComponentModel.Composition;
+using System.Diagnostics;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using CliWrap;
+using CliWrap.Buffered;
 
 namespace FineCodeCoverage.Core.Utilities
 {

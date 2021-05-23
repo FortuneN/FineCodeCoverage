@@ -10,8 +10,8 @@ using FineCodeCoverage.Core.Model;
 using FineCodeCoverage.Core.Utilities;
 using FineCodeCoverage.Engine.FileSynchronization;
 using FineCodeCoverage.Options;
-using Microsoft.VisualStudio.Shell;
 using Microsoft.CodeAnalysis.MSBuild;
+using Microsoft.VisualStudio.Shell;
 
 namespace FineCodeCoverage.Engine.Model
 {

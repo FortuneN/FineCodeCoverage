@@ -1,7 +1,7 @@
-﻿using Microsoft.VisualStudio.Utilities;
-using System.ComponentModel.Composition;
+﻿using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
+using Microsoft.VisualStudio.Utilities;
 
 namespace FineCodeCoverage.Impl
 {

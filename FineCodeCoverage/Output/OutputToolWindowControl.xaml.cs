@@ -1,9 +1,9 @@
-﻿using EnvDTE;
-using System.Windows;
-using FineCodeCoverage.Engine;
+﻿using System.Windows;
 using System.Windows.Controls;
-using Microsoft.VisualStudio.Shell;
+using EnvDTE;
+using FineCodeCoverage.Engine;
 using Microsoft;
+using Microsoft.VisualStudio.Shell;
 
 namespace FineCodeCoverage.Output
 {

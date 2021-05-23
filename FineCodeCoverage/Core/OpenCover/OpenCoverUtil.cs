@@ -1,12 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel.Composition;
 using System.IO;
 using System.Linq;
-using System.Collections.Generic;
+using System.Threading.Tasks;
+using FineCodeCoverage.Core.Utilities;
 using FineCodeCoverage.Engine.Model;
 using FineCodeCoverage.Engine.MsTestPlatform;
-using System.Threading.Tasks;
-using System.ComponentModel.Composition;
-using FineCodeCoverage.Core.Utilities;
 
 namespace FineCodeCoverage.Engine.OpenCover
 {

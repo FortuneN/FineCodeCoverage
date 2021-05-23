@@ -1,6 +1,6 @@
-﻿using Palmmedia.ReportGenerator.Core.Parser.Analysis;
+﻿using System.Collections.Generic;
+using Palmmedia.ReportGenerator.Core.Parser.Analysis;
 using Palmmedia.ReportGenerator.Core.Reporting.Builders;
-using System.Collections.Generic;
 
 namespace ReportGeneratorPlugins
 {

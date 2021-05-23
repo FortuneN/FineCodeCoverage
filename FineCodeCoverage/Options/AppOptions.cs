@@ -1,8 +1,8 @@
 ﻿using System.ComponentModel;
-using Microsoft.VisualStudio.Shell;
 using System.Diagnostics.CodeAnalysis;
 using EnvDTE;
 using Microsoft;
+using Microsoft.VisualStudio.Shell;
 
 namespace FineCodeCoverage.Options
 {

@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.IO;
 using FineCodeCoverage.Core.Utilities;
 using FineCodeCoverage.Engine;
 using NUnit.Framework;

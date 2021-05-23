@@ -1,10 +1,10 @@
-﻿using System.Xml;
-using System.Linq;
-using System.Xml.Serialization;
-using System.Collections.Generic;
-using FineCodeCoverage.Engine.Model;
+﻿using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.IO;
+using System.Linq;
+using System.Xml;
+using System.Xml.Serialization;
+using FineCodeCoverage.Engine.Model;
 
 namespace FineCodeCoverage.Engine.Cobertura
 {
