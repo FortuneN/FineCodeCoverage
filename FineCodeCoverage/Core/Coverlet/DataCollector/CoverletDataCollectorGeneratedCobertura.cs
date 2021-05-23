@@ -28,9 +28,9 @@ namespace FineCodeCoverage.Engine.Coverlet
             }
             var guidDirectoryToDelete = coberturaFile.Directory;
             coberturaFile.MoveTo(coverageOutputFile);
-            
+
             guidDirectoryToDelete.TryDelete();
-            
+
         }
     }
 }

@@ -63,7 +63,7 @@ namespace FineCodeCoverageTests.CoverageToolOutput_Tests
             mockAppOptions.SetupGet(options => options.FCCSolutionOutputDirectoryName).Returns("FCCOutput");
             mockAppOptionsProvider.Setup(aop => aop.Get()).Returns(mockAppOptions.Object);
             var provider = mocker.Create<AppOptionsCoverageToolOutputFolderSolutionProvider>();
-            Assert.AreEqual(provider.Provide(() => "SolutionFolder"),Path.Combine("SolutionFolder","FCCOutput"));
+            Assert.AreEqual(provider.Provide(() => "SolutionFolder"), Path.Combine("SolutionFolder", "FCCOutput"));
         }
 
         [Test]

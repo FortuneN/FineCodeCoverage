@@ -2,6 +2,6 @@
 {
     internal interface IToolFolder
     {
-        string EnsureUnzipped(string appDataFolder,string ownFolderName, ZipDetails zipDetails);
+        string EnsureUnzipped(string appDataFolder, string ownFolderName, ZipDetails zipDetails);
     }
 }

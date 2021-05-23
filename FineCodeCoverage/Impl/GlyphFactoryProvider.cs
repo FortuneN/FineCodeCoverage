@@ -5,16 +5,16 @@ using Microsoft.VisualStudio.Text.Tagging;
 
 namespace FineCodeCoverage.Impl
 {
-	[ContentType("code")]
-	[TagType(typeof(GlyphTag))]
-	[Order(Before = "VsTextMarker")]
-	[Name(Vsix.GlyphFactoryProviderName)]
-	[Export(typeof(IGlyphFactoryProvider))]
-	internal class GlyphFactoryProvider: IGlyphFactoryProvider
-	{
-		public IGlyphFactory GetGlyphFactory(IWpfTextView textView, IWpfTextViewMargin textViewMargin)
-		{
-			return new GlyphFactory();
-		}
-	}
+    [ContentType("code")]
+    [TagType(typeof(GlyphTag))]
+    [Order(Before = "VsTextMarker")]
+    [Name(Vsix.GlyphFactoryProviderName)]
+    [Export(typeof(IGlyphFactoryProvider))]
+    internal class GlyphFactoryProvider : IGlyphFactoryProvider
+    {
+        public IGlyphFactory GetGlyphFactory(IWpfTextView textView, IWpfTextViewMargin textViewMargin)
+        {
+            return new GlyphFactory();
+        }
+    }
 }

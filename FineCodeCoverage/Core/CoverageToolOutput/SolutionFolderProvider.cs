@@ -11,7 +11,7 @@ namespace FineCodeCoverage.Engine
         {
             string provided = null;
             var directory = new FileInfo(projectFile).Directory;
-            while(directory != null)
+            while (directory != null)
             {
                 var isSolutionDirectory = directory.EnumerateFiles().Any(f => f.Name.EndsWith(".sln"));
                 if (isSolutionDirectory)

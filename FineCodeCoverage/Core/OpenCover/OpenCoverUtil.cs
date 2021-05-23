@@ -11,24 +11,24 @@ using FineCodeCoverage.Core.Utilities;
 namespace FineCodeCoverage.Engine.OpenCover
 {
     [Export(typeof(IOpenCoverUtil))]
-	internal class OpenCoverUtil:IOpenCoverUtil
-	{
-		private string openCoverExePath;
+    internal class OpenCoverUtil : IOpenCoverUtil
+    {
+        private string openCoverExePath;
         private readonly IMsTestPlatformUtil msTestPlatformUtil;
         private readonly IProcessUtil processUtil;
         private readonly ILogger logger;
         private readonly IToolFolder toolFolder;
         private readonly IToolZipProvider toolZipProvider;
-		private const string zipPrefix = "openCover";
-		private const string zipDirectoryName = "openCover";
+        private const string zipPrefix = "openCover";
+        private const string zipDirectoryName = "openCover";
 
-		[ImportingConstructor]
-		public OpenCoverUtil(
-			IMsTestPlatformUtil msTestPlatformUtil,
-			IProcessUtil processUtil, 
-			ILogger logger, 
-			IToolFolder toolFolder, 
-			IToolZipProvider toolZipProvider)
+        [ImportingConstructor]
+        public OpenCoverUtil(
+            IMsTestPlatformUtil msTestPlatformUtil,
+            IProcessUtil processUtil,
+            ILogger logger,
+            IToolFolder toolFolder,
+            IToolZipProvider toolZipProvider)
         {
             this.msTestPlatformUtil = msTestPlatformUtil;
             this.processUtil = processUtil;
@@ -37,186 +37,186 @@ namespace FineCodeCoverage.Engine.OpenCover
             this.toolZipProvider = toolZipProvider;
         }
 
-		public void Initialize(string appDataFolder)
-		{
-			var zipDestination = toolFolder.EnsureUnzipped(appDataFolder, zipDirectoryName, toolZipProvider.ProvideZip(zipPrefix));
-			openCoverExePath = Directory
-				.GetFiles(zipDestination, "OpenCover.Console.exe", SearchOption.AllDirectories)
-				.FirstOrDefault();
-		}
-		
-		private string GetOpenCoverExePath(string customExePath)
+        public void Initialize(string appDataFolder)
         {
-			if(customExePath != null)
-            {
-				return customExePath;
-            }
-			return openCoverExePath;
+            var zipDestination = toolFolder.EnsureUnzipped(appDataFolder, zipDirectoryName, toolZipProvider.ProvideZip(zipPrefix));
+            openCoverExePath = Directory
+                .GetFiles(zipDestination, "OpenCover.Console.exe", SearchOption.AllDirectories)
+                .FirstOrDefault();
         }
 
-		public async Task<bool> RunOpenCoverAsync(ICoverageProject project, bool throwError = false)
-		{
-			var title = $"OpenCover Run ({project.ProjectName})";
+        private string GetOpenCoverExePath(string customExePath)
+        {
+            if (customExePath != null)
+            {
+                return customExePath;
+            }
+            return openCoverExePath;
+        }
 
-			var opencoverSettings = new List<string>();
+        public async Task<bool> RunOpenCoverAsync(ICoverageProject project, bool throwError = false)
+        {
+            var title = $"OpenCover Run ({project.ProjectName})";
 
-			opencoverSettings.Add($@" -mergebyhash ");
+            var opencoverSettings = new List<string>();
 
-			opencoverSettings.Add($@" -hideskipped:all ");
+            opencoverSettings.Add($@" -mergebyhash ");
 
-			{
-				// -register:
+            opencoverSettings.Add($@" -hideskipped:all ");
 
-				var registerValue = "path32";
+            {
+                // -register:
 
-				if (project.Is64Bit)
-				{
-					registerValue = "path64";
-				}
+                var registerValue = "path32";
 
-				opencoverSettings.Add($@" -register:{registerValue} ");
-			}
+                if (project.Is64Bit)
+                {
+                    registerValue = "path64";
+                }
 
-			{
-				// -target:
+                opencoverSettings.Add($@" -register:{registerValue} ");
+            }
 
-				opencoverSettings.Add($@" ""-target:{msTestPlatformUtil.MsTestPlatformExePath}"" ");
-			}
+            {
+                // -target:
 
-			{
-				// -filter:
+                opencoverSettings.Add($@" ""-target:{msTestPlatformUtil.MsTestPlatformExePath}"" ");
+            }
 
-				var filters = new List<string>();
-				var defaultFilter = "+[*]*";
+            {
+                // -filter:
 
-				foreach (var value in (project.Settings.Include ?? new string[0]).Where(x => !string.IsNullOrWhiteSpace(x)))
-				{
-					filters.Add($@"+{value.Replace("\"", "\\\"").Trim(' ', '\'')}");
-				}
+                var filters = new List<string>();
+                var defaultFilter = "+[*]*";
 
-				if (!filters.Any())
-				{
-					filters.Add(defaultFilter);
-				}
+                foreach (var value in (project.Settings.Include ?? new string[0]).Where(x => !string.IsNullOrWhiteSpace(x)))
+                {
+                    filters.Add($@"+{value.Replace("\"", "\\\"").Trim(' ', '\'')}");
+                }
 
-				foreach (var value in (project.Settings.Exclude ?? new string[0]).Where(x => !string.IsNullOrWhiteSpace(x)))
-				{
-					filters.Add($@"-{value.Replace("\"", "\\\"").Trim(' ', '\'')}");
-				}
+                if (!filters.Any())
+                {
+                    filters.Add(defaultFilter);
+                }
 
-				foreach (var referencedProjectExcludedFromCodeCoverage in project.ExcludedReferencedProjects)
-				{
-					filters.Add($@"-[{referencedProjectExcludedFromCodeCoverage}]*");
-				}
+                foreach (var value in (project.Settings.Exclude ?? new string[0]).Where(x => !string.IsNullOrWhiteSpace(x)))
+                {
+                    filters.Add($@"-{value.Replace("\"", "\\\"").Trim(' ', '\'')}");
+                }
 
-				if (filters.Any(x => !x.Equals(defaultFilter)))
-				{
-					opencoverSettings.Add($@" ""-filter:{string.Join(" ", filters.Distinct())}"" ");
-				}
-			}
+                foreach (var referencedProjectExcludedFromCodeCoverage in project.ExcludedReferencedProjects)
+                {
+                    filters.Add($@"-[{referencedProjectExcludedFromCodeCoverage}]*");
+                }
 
-			{
-				// -excludebyfile:
+                if (filters.Any(x => !x.Equals(defaultFilter)))
+                {
+                    opencoverSettings.Add($@" ""-filter:{string.Join(" ", filters.Distinct())}"" ");
+                }
+            }
 
-				var excludes = new List<string>();
+            {
+                // -excludebyfile:
 
-				foreach (var value in (project.Settings.ExcludeByFile ?? new string[0]).Where(x => !string.IsNullOrWhiteSpace(x)))
-				{
-					excludes.Add(value.Replace("\"", "\\\"").Trim(' ', '\''));
-				}
+                var excludes = new List<string>();
 
-				if (excludes.Any())
-				{
-					opencoverSettings.Add($@" ""-excludebyfile:{string.Join(";", excludes)}"" ");
-				}
-			}
+                foreach (var value in (project.Settings.ExcludeByFile ?? new string[0]).Where(x => !string.IsNullOrWhiteSpace(x)))
+                {
+                    excludes.Add(value.Replace("\"", "\\\"").Trim(' ', '\''));
+                }
 
-			{
-				// -excludebyattribute:
+                if (excludes.Any())
+                {
+                    opencoverSettings.Add($@" ""-excludebyfile:{string.Join(";", excludes)}"" ");
+                }
+            }
 
-				var excludes = new List<string>()
-				{
+            {
+                // -excludebyattribute:
+
+                var excludes = new List<string>()
+                {
 					// coverlet knows these implicitly
 					"ExcludeFromCoverage",
-					"ExcludeFromCodeCoverage" 
-				};
+                    "ExcludeFromCodeCoverage"
+                };
 
-				foreach (var value in (project.Settings.ExcludeByAttribute ?? new string[0]).Where(x => !string.IsNullOrWhiteSpace(x)))
-				{
-					excludes.Add(value.Replace("\"", "\\\"").Trim(' ', '\''));
-				}
+                foreach (var value in (project.Settings.ExcludeByAttribute ?? new string[0]).Where(x => !string.IsNullOrWhiteSpace(x)))
+                {
+                    excludes.Add(value.Replace("\"", "\\\"").Trim(' ', '\''));
+                }
 
-				foreach (var exclude in excludes.ToArray())
-				{
-					var excludeAlternateName = default(string);
+                foreach (var exclude in excludes.ToArray())
+                {
+                    var excludeAlternateName = default(string);
 
-					if (exclude.EndsWith("Attribute", StringComparison.OrdinalIgnoreCase))
-					{
-						// remove 'Attribute' suffix
-						excludeAlternateName = exclude.Substring(0, exclude.IndexOf("Attribute", StringComparison.OrdinalIgnoreCase));
-					}
-					else
-					{
-						// add 'Attribute' suffix
-						excludeAlternateName = $"{exclude}Attribute";
-					}
+                    if (exclude.EndsWith("Attribute", StringComparison.OrdinalIgnoreCase))
+                    {
+                        // remove 'Attribute' suffix
+                        excludeAlternateName = exclude.Substring(0, exclude.IndexOf("Attribute", StringComparison.OrdinalIgnoreCase));
+                    }
+                    else
+                    {
+                        // add 'Attribute' suffix
+                        excludeAlternateName = $"{exclude}Attribute";
+                    }
 
-					excludes.Add(excludeAlternateName);
-				}
+                    excludes.Add(excludeAlternateName);
+                }
 
-				excludes = excludes.Distinct(StringComparer.OrdinalIgnoreCase).OrderBy(x => x).ToList();
+                excludes = excludes.Distinct(StringComparer.OrdinalIgnoreCase).OrderBy(x => x).ToList();
 
-				if (excludes.Any())
-				{
-					opencoverSettings.Add($@" ""-excludebyattribute:(*.{string.Join(")|(*.", excludes)})"" ");
-				}
-			}
+                if (excludes.Any())
+                {
+                    opencoverSettings.Add($@" ""-excludebyattribute:(*.{string.Join(")|(*.", excludes)})"" ");
+                }
+            }
 
-			if (!project.Settings.IncludeTestAssembly)
-			{
-				// deleting the pdb of the test assembly seems to work; this is a VERY VERY shameful hack :(
-				
-				var testDllPdbFile = Path.Combine(project.ProjectOutputFolder, Path.GetFileNameWithoutExtension(project.TestDllFile)) + ".pdb";
-				File.Delete(testDllPdbFile);
-
-				// filtering out the test-assembly blows up the entire process and nothing gets instrumented or analysed
-				
-				//var nameOnlyOfDll = Path.GetFileNameWithoutExtension(project.TestDllFileInWorkFolder);
-				//filters.Add($@"-[{nameOnlyOfDll}]*");
-			}
-
-			var runSettings = !string.IsNullOrWhiteSpace(project.RunSettingsFile) ? $@"/Settings:\""{project.RunSettingsFile}\""" : default;
-			opencoverSettings.Add($@" ""-targetargs:\""{project.TestDllFile}\"" {runSettings}"" ");
-
-			opencoverSettings.Add($@" ""-output:{ project.CoverageOutputFile }"" ");
-
-			logger.Log($"{title} Arguments {Environment.NewLine}{string.Join($"{Environment.NewLine}", opencoverSettings)}");
-
-			var result = await processUtil
-			.ExecuteAsync(new ExecuteRequest
-			{
-				FilePath = GetOpenCoverExePath(project.Settings.OpenCoverCustomPath),
-				Arguments = string.Join(" ", opencoverSettings),
-				WorkingDirectory = project.ProjectOutputFolder
-			});
-			
-			if(result != null)
+            if (!project.Settings.IncludeTestAssembly)
             {
-				if (result.ExitCode != 0)
-				{
-					if (throwError)
-					{
-						throw new Exception(result.Output);
-					}
+                // deleting the pdb of the test assembly seems to work; this is a VERY VERY shameful hack :(
 
-					logger.Log($"{title} Error", result.Output);
-					return false;
-				}
+                var testDllPdbFile = Path.Combine(project.ProjectOutputFolder, Path.GetFileNameWithoutExtension(project.TestDllFile)) + ".pdb";
+                File.Delete(testDllPdbFile);
 
-				logger.Log(title, result.Output);
-				return true;
-			}
-			return false;
-		}
-	}
+                // filtering out the test-assembly blows up the entire process and nothing gets instrumented or analysed
+
+                //var nameOnlyOfDll = Path.GetFileNameWithoutExtension(project.TestDllFileInWorkFolder);
+                //filters.Add($@"-[{nameOnlyOfDll}]*");
+            }
+
+            var runSettings = !string.IsNullOrWhiteSpace(project.RunSettingsFile) ? $@"/Settings:\""{project.RunSettingsFile}\""" : default;
+            opencoverSettings.Add($@" ""-targetargs:\""{project.TestDllFile}\"" {runSettings}"" ");
+
+            opencoverSettings.Add($@" ""-output:{ project.CoverageOutputFile }"" ");
+
+            logger.Log($"{title} Arguments {Environment.NewLine}{string.Join($"{Environment.NewLine}", opencoverSettings)}");
+
+            var result = await processUtil
+            .ExecuteAsync(new ExecuteRequest
+            {
+                FilePath = GetOpenCoverExePath(project.Settings.OpenCoverCustomPath),
+                Arguments = string.Join(" ", opencoverSettings),
+                WorkingDirectory = project.ProjectOutputFolder
+            });
+
+            if (result != null)
+            {
+                if (result.ExitCode != 0)
+                {
+                    if (throwError)
+                    {
+                        throw new Exception(result.Output);
+                    }
+
+                    logger.Log($"{title} Error", result.Output);
+                    return false;
+                }
+
+                logger.Log(title, result.Output);
+                return true;
+            }
+            return false;
+        }
+    }
 }

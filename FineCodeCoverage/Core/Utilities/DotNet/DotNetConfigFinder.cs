@@ -22,7 +22,7 @@ namespace FineCodeCoverage.Core.Utilities
                     yield return currentDirectory.FullName;
                 }
                 var parentDirectory = currentDirectory.Parent;
-                if(parentDirectory != null)
+                if (parentDirectory != null)
                 {
                     currentDirectory = parentDirectory;
                 }

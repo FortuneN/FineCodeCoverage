@@ -15,10 +15,10 @@ namespace FineCodeCoverage.Core.Coverlet
                 return (friendlyNameAttribute == null ? "" : friendlyNameAttribute.Value) == "XPlat code coverage";
             });
 
-            if(coverletDataCollectorElement != null)
+            if (coverletDataCollectorElement != null)
             {
                 var enabledAttribute = coverletDataCollectorElement.Attribute("enabled");
-                if(enabledAttribute == null)
+                if (enabledAttribute == null)
                 {
                     CoverletDataCollectorState = CoverletDataCollectorState.Enabled;
                 }
@@ -33,12 +33,12 @@ namespace FineCodeCoverage.Core.Coverlet
             }
 
             var configurationElement = coverletDataCollectorElement.Element("Configuration");
-            if(configurationElement == null)
+            if (configurationElement == null)
             {
                 return false;
             }
             var configurationElements = configurationElement.Elements().ToList();
-            if(configurationElements.Count == 0)
+            if (configurationElements.Count == 0)
             {
                 return false;
             }
@@ -47,7 +47,7 @@ namespace FineCodeCoverage.Core.Coverlet
             this.GetType().GetProperties().ToList().ForEach(p =>
             {
                 var configurationPropertyElement = configurationElements.FirstOrDefault(e => e.Name == p.Name);
-                if(configurationPropertyElement != null)
+                if (configurationPropertyElement != null)
                 {
                     foundElements = true;
                     p.SetValue(this, configurationPropertyElement.Value);

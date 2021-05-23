@@ -28,7 +28,7 @@ namespace FineCodeCoverage.Core.Utilities
         {
             if (!Path.IsPathRooted(directory))
             {
-                directory =  Path.GetFullPath(Path.Combine(possiblyRelativeTo, directory));
+                directory = Path.GetFullPath(Path.Combine(possiblyRelativeTo, directory));
             }
             return directory;
         }
@@ -63,6 +63,6 @@ namespace FineCodeCoverage.Core.Utilities
         {
             File.WriteAllText(path, contents);
         }
-       
+
     }
 }

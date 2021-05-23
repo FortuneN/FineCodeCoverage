@@ -36,7 +36,7 @@ namespace Test
         [Test]
         public void Should_Create_Zip_Destination_From_Version_And_Extract_If_Destination_Does_Not_Exist()
         {
-            var zipDestination = toolFolder.EnsureUnzipped(appDataFolder.FullName,"ToolFolder", new ZipDetails { Version = "3.0", Path = "zipPath" });
+            var zipDestination = toolFolder.EnsureUnzipped(appDataFolder.FullName, "ToolFolder", new ZipDetails { Version = "3.0", Path = "zipPath" });
             mocker.Verify<IZipFile>(z => z.ExtractToDirectory("zipPath", zipDestination));
             Assert.IsTrue(Directory.Exists(zipDestination));
             var zipDestinationDirectory = new DirectoryInfo(zipDestination);
@@ -49,11 +49,11 @@ namespace Test
         [Test]
         public void Should_Delete_Old_Versions_When_Update_Zip()
         {
-            var oldZipDestination = toolFolder.EnsureUnzipped(appDataFolder.FullName,"ToolFolder", new ZipDetails { Version = "3.0", Path = "zipPath" });
+            var oldZipDestination = toolFolder.EnsureUnzipped(appDataFolder.FullName, "ToolFolder", new ZipDetails { Version = "3.0", Path = "zipPath" });
             var toolDirectoryPath = new DirectoryInfo(oldZipDestination).Parent.FullName;
             var oldFileShouldBeDeleted = Path.Combine(toolDirectoryPath, "somefile.txt");
             File.WriteAllText(oldFileShouldBeDeleted, "");
-            var newZipDestination = toolFolder.EnsureUnzipped(appDataFolder.FullName,"ToolFolder", new ZipDetails { Version = "3.1", Path = "zipPath" });
+            var newZipDestination = toolFolder.EnsureUnzipped(appDataFolder.FullName, "ToolFolder", new ZipDetails { Version = "3.1", Path = "zipPath" });
             Assert.IsFalse(Directory.Exists(oldZipDestination));
             Assert.IsFalse(File.Exists(oldFileShouldBeDeleted));
             Assert.IsTrue(Directory.Exists(newZipDestination));
@@ -62,11 +62,11 @@ namespace Test
         [Test]
         public void Should_Do_Nothing_If_Version_Has_Not_Changed()
         {
-            var zipDestination = toolFolder.EnsureUnzipped(appDataFolder.FullName,"ToolFolder", new ZipDetails { Version = "3.0", Path = "zipPath" });
-            toolFolder.EnsureUnzipped(appDataFolder.FullName,"ToolFolder", new ZipDetails { Version = "3.0", Path = "zipPath" });
-            mocker.Verify<IZipFile>(z => z.ExtractToDirectory("zipPath", zipDestination),Times.Once());
+            var zipDestination = toolFolder.EnsureUnzipped(appDataFolder.FullName, "ToolFolder", new ZipDetails { Version = "3.0", Path = "zipPath" });
+            toolFolder.EnsureUnzipped(appDataFolder.FullName, "ToolFolder", new ZipDetails { Version = "3.0", Path = "zipPath" });
+            mocker.Verify<IZipFile>(z => z.ExtractToDirectory("zipPath", zipDestination), Times.Once());
             Assert.IsTrue(Directory.Exists(zipDestination));
         }
-        
+
     }
 }

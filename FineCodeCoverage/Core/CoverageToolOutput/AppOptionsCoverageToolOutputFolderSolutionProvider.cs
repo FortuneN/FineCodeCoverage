@@ -22,7 +22,7 @@ namespace FineCodeCoverage.Engine
             if (!String.IsNullOrEmpty(appOptions.FCCSolutionOutputDirectoryName))
             {
                 var solutionFolder = solutionFolderProvider();
-                if(solutionFolder != null)
+                if (solutionFolder != null)
                 {
                     return Path.Combine(solutionFolder, appOptions.FCCSolutionOutputDirectoryName);
                 }

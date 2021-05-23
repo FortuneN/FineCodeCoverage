@@ -48,7 +48,7 @@ namespace Test
 
             ExecuteRequest GetExecuteRequest(int order)
             {
-                if(order != providingExeProvider)
+                if (order != providingExeProvider)
                 {
                     return null;
                 }
@@ -72,10 +72,10 @@ namespace Test
             {
                 var order = i;
                 var mockExeProvider = mockExecutors[i];
-                mockExeProvider.Setup(p => p.GetRequest(coverageProject, coverletSettings)).Returns(GetExecuteRequest(i)).Callback<ICoverageProject,string>((_,__) =>
-                {
-                    callOrder.Add(order);
-                });
+                mockExeProvider.Setup(p => p.GetRequest(coverageProject, coverletSettings)).Returns(GetExecuteRequest(i)).Callback<ICoverageProject, string>((_, __) =>
+                 {
+                     callOrder.Add(order);
+                 });
             }
 
             var coverletConsoleUtil = new CoverletConsoleUtil(null, null, mockGlobalExecutor.Object, mockCustomPathExecutor.Object, mockLocalExecutor.Object, mockFCCCoverletConsoleExecutor.Object);
@@ -137,7 +137,7 @@ namespace Test
 
             globalExeProvider.GetRequest(mockCoverageProject.Object, null);
             mocker.Verify<ILogger>(l => l.Log("Unable to use Coverlet console global tool"));
-            
+
         }
 
         private ExecuteRequest GetRequest_For_Globally_Installed_Coverlet_Console()
@@ -202,7 +202,7 @@ namespace Test
         {
             var mockCoverageProject = new Mock<ICoverageProject>();
             mockCoverageProject.Setup(cp => cp.Settings.CoverletConsoleCustomPath).Returns(coverletConsoleCustomPath);
-            Assert.IsNull(customPathExecutor.GetRequest(mockCoverageProject.Object,null));
+            Assert.IsNull(customPathExecutor.GetRequest(mockCoverageProject.Object, null));
         }
 
         [Test]
@@ -276,7 +276,7 @@ namespace Test
         {
             var mockCoverageProject = new Mock<ICoverageProject>();
             mockCoverageProject.Setup(cp => cp.Settings.CoverletConsoleLocal).Returns(false);
-            Assert.IsNull(localExecutor.GetRequest(mockCoverageProject.Object,null));
+            Assert.IsNull(localExecutor.GetRequest(mockCoverageProject.Object, null));
         }
 
         [Test]
@@ -292,7 +292,7 @@ namespace Test
             Assert.IsNull(localExecutor.GetRequest(mockCoverageProject.Object, null));
             mockDotNetConfigFinder.VerifyAll();
         }
-        
+
         [Test]
         public void Should_Return_Null_If_None_Of_The_DotNetConfig_Containing_Directories_Are_Local_Tool()
         {
@@ -343,7 +343,7 @@ namespace Test
 
             var mockDotNetToolListCoverlet = mocker.GetMock<IDotNetToolListCoverlet>();
             var coverletToolDetails = new CoverletToolDetails { Command = "TheCommand" };
-            mockDotNetToolListCoverlet.Setup(dotnet => dotnet.Local("ConfigDirectory1")).Returns(firstConfigDirectoryLocalInstall?coverletToolDetails:null);
+            mockDotNetToolListCoverlet.Setup(dotnet => dotnet.Local("ConfigDirectory1")).Returns(firstConfigDirectoryLocalInstall ? coverletToolDetails : null);
             mockDotNetToolListCoverlet.Setup(dotnet => dotnet.Local("ConfigDirectory2")).Returns(secondConfigDirectoryLocalInstall ? coverletToolDetails : null);
             return localExecutor.GetRequest(mockCoverageProject.Object, "coverlet settings");
         }
@@ -352,7 +352,7 @@ namespace Test
         public void Should_Use_The_WorkingDirectory_Of_The_Nearest_Local_Tool_Install()
         {
             var executeRequest = Get_Request_For_Local_Install(true, true);
-            Assert.AreEqual("ConfigDirectory1",executeRequest.WorkingDirectory);
+            Assert.AreEqual("ConfigDirectory1", executeRequest.WorkingDirectory);
         }
 
         [Test]

@@ -24,7 +24,7 @@ namespace FineCodeCoverage.Output
             this.sourceFileOpener = sourceFileOpener;
             this.process = process;
         }
-        
+
         public void OpenFile(string assemblyName, string qualifiedClassName, int file, int line)
         {
             openFileTask = sourceFileOpener.OpenFileAsync(assemblyName, qualifiedClassName, file, line);

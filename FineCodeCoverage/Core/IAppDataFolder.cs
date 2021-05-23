@@ -4,7 +4,7 @@
     {
         string DirectoryPath { get; }
         void Initialize();
-        
+
     }
 
 }

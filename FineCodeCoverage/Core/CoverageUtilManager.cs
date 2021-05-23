@@ -20,7 +20,7 @@ namespace FineCodeCoverage.Engine
             this.openCoverUtil = openCoverUtil;
             this.coverletUtil = coverletUtil;
         }
-        
+
         public void Initialize(string appDataFolder)
         {
             openCoverUtil.Initialize(appDataFolder);

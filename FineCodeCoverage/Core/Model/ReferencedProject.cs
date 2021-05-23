@@ -6,24 +6,24 @@ using FineCodeCoverage.Core.Utilities;
 namespace FineCodeCoverage.Core.Model
 {
     internal class ReferencedProject
-	{
-		internal const string excludeFromCodeCoveragePropertyName = "FCCExcludeFromCodeCoverage";
+    {
+        internal const string excludeFromCodeCoveragePropertyName = "FCCExcludeFromCodeCoverage";
         private readonly string projectPath;
 
-        public ReferencedProject(string projectPath,string assemblyName)
+        public ReferencedProject(string projectPath, string assemblyName)
         {
-			AssemblyName = assemblyName;
+            AssemblyName = assemblyName;
             this.projectPath = projectPath;
         }
-		public ReferencedProject(string projectPath)
+        public ReferencedProject(string projectPath)
         {
-			this.projectPath = projectPath;
-			AssemblyName = GetAssemblyName(XElementUtil.Load(projectPath, true), Path.GetFileNameWithoutExtension(projectPath));
-		}
+            this.projectPath = projectPath;
+            AssemblyName = GetAssemblyName(XElementUtil.Load(projectPath, true), Path.GetFileNameWithoutExtension(projectPath));
+        }
 
-		private string GetAssemblyName(XElement projectFileXElement, string fallbackName = null)
-		{
-			/*
+        private string GetAssemblyName(XElement projectFileXElement, string fallbackName = null)
+        {
+            /*
 			<PropertyGroup>
 				...
 				<AssemblyName>Branch_Coverage.Tests</AssemblyName>
@@ -31,35 +31,35 @@ namespace FineCodeCoverage.Core.Model
 			</PropertyGroup>
 			 */
 
-			var xassemblyName = projectFileXElement.XPathSelectElement("/PropertyGroup/AssemblyName");
+            var xassemblyName = projectFileXElement.XPathSelectElement("/PropertyGroup/AssemblyName");
 
-			var result = xassemblyName?.Value.Trim();
+            var result = xassemblyName?.Value.Trim();
 
-			if (string.IsNullOrWhiteSpace(result))
-			{
-				result = fallbackName;
-			}
+            if (string.IsNullOrWhiteSpace(result))
+            {
+                result = fallbackName;
+            }
 
-			return result;
-		}
+            return result;
+        }
 
-		public string AssemblyName { get; private set; }
-		public bool ExcludeFromCodeCoverage
-		{
-			get
-			{
-				/*
+        public string AssemblyName { get; private set; }
+        public bool ExcludeFromCodeCoverage
+        {
+            get
+            {
+                /*
 					 ...
 					<PropertyGroup>
 						<FCCExcludeFromCodeCoverage />
 					</PropertyGroup>
 					...
 				 */
-				var projectFileXElement = XElementUtil.Load(projectPath, true);
-				var excludeFromCodeCoverageProperty = projectFileXElement.XPathSelectElement($"/PropertyGroup/{excludeFromCodeCoveragePropertyName}");
+                var projectFileXElement = XElementUtil.Load(projectPath, true);
+                var excludeFromCodeCoverageProperty = projectFileXElement.XPathSelectElement($"/PropertyGroup/{excludeFromCodeCoveragePropertyName}");
 
-				return excludeFromCodeCoverageProperty != null;
-			}
-		}
-	}
+                return excludeFromCodeCoverageProperty != null;
+            }
+        }
+    }
 }

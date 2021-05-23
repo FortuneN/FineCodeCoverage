@@ -14,9 +14,9 @@ namespace FineCodeCoverage.Options
         private const string openCoverCategory = "OpenCover";
         private const string outputCategory = "Output";
 
-        public AppOptions():this(false)
+        public AppOptions() : this(false)
         {
-            
+
         }
         internal AppOptions(bool isReadOnly)
         {

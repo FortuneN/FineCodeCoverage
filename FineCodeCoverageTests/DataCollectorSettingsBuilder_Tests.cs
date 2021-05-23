@@ -84,14 +84,14 @@ namespace Test
             dataCollectorSettingsBuilder.WithProjectDll("projectdll");
             Assert.AreEqual(dataCollectorSettingsBuilder.ProjectDll, dataCollectorSettingsBuilder.Quote("projectdll"));
         }
-        
+
         [Test]
         public void Should_Set_RunSettings_As_Quoted_GeneratedRunSettings_When_Initialize()
         {
-            dataCollectorSettingsBuilder.Initialize(null,".runsettings","generated.runsettings");
-            Assert.AreEqual(dataCollectorSettingsBuilder.RunSettings,$"--settings {dataCollectorSettingsBuilder.Quote("generated.runsettings")}");
+            dataCollectorSettingsBuilder.Initialize(null, ".runsettings", "generated.runsettings");
+            Assert.AreEqual(dataCollectorSettingsBuilder.RunSettings, $"--settings {dataCollectorSettingsBuilder.Quote("generated.runsettings")}");
         }
-        
+
         #endregion
 
         [Test]
@@ -269,12 +269,12 @@ namespace Test
             Assert.AreEqual(expected, dataCollectorSettingsBuilder.IncludeTestAssembly);
         }
 
-        [TestCase(true,"true")]
-        [TestCase(false,"false")]
-        public void Should_Fallback_To_Options_For_IncludeTestAssembly_If_Not_RunSettingsOnly(bool optionsIncludeTestAssembly,string expected)
+        [TestCase(true, "true")]
+        [TestCase(false, "false")]
+        public void Should_Fallback_To_Options_For_IncludeTestAssembly_If_Not_RunSettingsOnly(bool optionsIncludeTestAssembly, string expected)
         {
             Initialize(false);
-            dataCollectorSettingsBuilder.WithIncludeTestAssembly(optionsIncludeTestAssembly,null);
+            dataCollectorSettingsBuilder.WithIncludeTestAssembly(optionsIncludeTestAssembly, null);
             Assert.AreEqual(dataCollectorSettingsBuilder.IncludeTestAssembly, expected);
         }
 
@@ -303,7 +303,7 @@ namespace Test
         [TestCaseSource(nameof(BuildReturnsSettingsSource))]
         public void Should_Return_Dotnet_Test_Settings_When_Build(Action<DataCollectorSettingsBuilder> setUp, string expectedSettings)
         {
-            dataCollectorSettingsBuilder.Initialize(new Mock<IAppOptions>().Object,null, generatedRunSettingsPath);
+            dataCollectorSettingsBuilder.Initialize(new Mock<IAppOptions>().Object, null, generatedRunSettingsPath);
             setUp(dataCollectorSettingsBuilder);
             Assert.AreEqual(dataCollectorSettingsBuilder.Build(), expectedSettings);
         }
@@ -327,7 +327,7 @@ namespace Test
         }
 
         [TestCaseSource(nameof(BuildGeneratesRunSettingsSource))]
-        public void Should_Generate_RunSettings_When_Builds(Action<DataCollectorSettingsBuilder> setUp,string existingRunSettings,string expectedXml)
+        public void Should_Generate_RunSettings_When_Builds(Action<DataCollectorSettingsBuilder> setUp, string existingRunSettings, string expectedXml)
         {
             setUp(dataCollectorSettingsBuilder);
 
@@ -335,14 +335,14 @@ namespace Test
             {
                 XDocument.Parse(existingRunSettings).Save(existingRunSettingsPath);
             }
-            
-            dataCollectorSettingsBuilder.Initialize(null,existingRunSettings == null ? null : existingRunSettingsPath, generatedRunSettingsPath);
+
+            dataCollectorSettingsBuilder.Initialize(null, existingRunSettings == null ? null : existingRunSettingsPath, generatedRunSettingsPath);
             dataCollectorSettingsBuilder.Build();
 
-            
+
             var diff = DiffBuilder.Compare(Input.FromDocument(XDocument.Load(generatedRunSettingsPath)))
              .WithTest(Input.From(expectedXml)).Build();
-            
+
             Assert.IsFalse(diff.HasDifferences());
 
         }
@@ -384,8 +384,8 @@ namespace Test
     </DataCollectionRunSettings>
 </RunSettings>
 ";
-            
-            var noExistingRunSettingsTest = new TestCaseData(fullSetup,null, expectedXml);
+
+            var noExistingRunSettingsTest = new TestCaseData(fullSetup, null, expectedXml);
 
             var existingCoverletCollector = @"<RunSettings>
       <DataCollectionRunSettings>

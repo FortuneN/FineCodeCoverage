@@ -22,7 +22,7 @@ namespace Test
             {
                 successCallbackCalled = true;
             };
-            
+
         }
 
         [Test]
@@ -63,7 +63,7 @@ namespace Test
 
             Assert.IsFalse(successCallbackCalled);
             mocker.Verify<ILogger>(l => l.Log("title Error", "This will be logged"));
-            
+
         }
 
         [Test]

@@ -8,8 +8,8 @@
 
     internal interface IDotNetToolListCoverlet
     {
-		CoverletToolDetails Local(string directory);
-		CoverletToolDetails Global();
-		CoverletToolDetails GlobalToolsPath(string directory);
+        CoverletToolDetails Local(string directory);
+        CoverletToolDetails Global();
+        CoverletToolDetails GlobalToolsPath(string directory);
     }
 }

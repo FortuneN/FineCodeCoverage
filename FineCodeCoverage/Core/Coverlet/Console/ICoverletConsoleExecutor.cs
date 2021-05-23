@@ -6,6 +6,6 @@ namespace FineCodeCoverage.Engine.Coverlet
 {
     internal interface ICoverletConsoleExecutor
     {
-		ExecuteRequest GetRequest(ICoverageProject coverageProject,string coverletSettings);
+        ExecuteRequest GetRequest(ICoverageProject coverageProject, string coverletSettings);
     }
 }

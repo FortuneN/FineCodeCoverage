@@ -17,7 +17,7 @@ namespace FineCodeCoverage.Impl
 
         [ImportingConstructor]
         public PackageInitializer(
-            IFCCEngine fccEngine, 
+            IFCCEngine fccEngine,
             [Import(typeof(SVsServiceProvider))]
             IServiceProvider serviceProvider)
         {

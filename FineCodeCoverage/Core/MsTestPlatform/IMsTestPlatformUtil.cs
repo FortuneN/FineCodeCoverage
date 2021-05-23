@@ -2,7 +2,7 @@
 {
     interface IMsTestPlatformUtil
     {
-		string MsTestPlatformExePath { get; }
-		void Initialize(string appDataFolder);
-	}
+        string MsTestPlatformExePath { get; }
+        void Initialize(string appDataFolder);
+    }
 }

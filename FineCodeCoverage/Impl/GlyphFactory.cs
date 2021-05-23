@@ -6,47 +6,47 @@ using Microsoft.VisualStudio.Text.Formatting;
 
 namespace FineCodeCoverage.Impl
 {
-	internal class GlyphFactory : IGlyphFactory
-	{
-		private static readonly SolidColorBrush CustomGoldBrush = new SolidColorBrush(Color.FromRgb(255, 165, 0));
+    internal class GlyphFactory : IGlyphFactory
+    {
+        private static readonly SolidColorBrush CustomGoldBrush = new SolidColorBrush(Color.FromRgb(255, 165, 0));
 
-		public UIElement GenerateGlyph(IWpfTextViewLine textViewLine, IGlyphTag glyphTag)
-		{
-			if (!(glyphTag is GlyphTag tag))
-			{
-				return null;
-			}
+        public UIElement GenerateGlyph(IWpfTextViewLine textViewLine, IGlyphTag glyphTag)
+        {
+            if (!(glyphTag is GlyphTag tag))
+            {
+                return null;
+            }
 
-			// vars
+            // vars
 
-			var line = tag?.CoverageLine?.Line;
-			var lineHitCount = line?.Hits ?? 0;
-			var lineConditionCoverage = line?.ConditionCoverage?.Trim();
+            var line = tag?.CoverageLine?.Line;
+            var lineHitCount = line?.Hits ?? 0;
+            var lineConditionCoverage = line?.ConditionCoverage?.Trim();
 
-			// brush (color)
+            // brush (color)
 
-			var brush = Brushes.Red;
+            var brush = Brushes.Red;
 
-			if (lineHitCount > 0)
-			{
-				brush = Brushes.Green;
+            if (lineHitCount > 0)
+            {
+                brush = Brushes.Green;
 
-				if (!string.IsNullOrWhiteSpace(lineConditionCoverage) && !lineConditionCoverage.StartsWith("100"))
-				{
-					brush = CustomGoldBrush;
-				}
-			}
+                if (!string.IsNullOrWhiteSpace(lineConditionCoverage) && !lineConditionCoverage.StartsWith("100"))
+                {
+                    brush = CustomGoldBrush;
+                }
+            }
 
-			// result
+            // result
 
-			var result = new Rectangle();
-			result.Width = 3;
-			result.Height = 16;
-			result.Fill = brush;
+            var result = new Rectangle();
+            result.Width = 3;
+            result.Height = 16;
+            result.Fill = brush;
 
-			// return
+            // return
 
-			return result;
-		}
-	}
+            return result;
+        }
+    }
 }

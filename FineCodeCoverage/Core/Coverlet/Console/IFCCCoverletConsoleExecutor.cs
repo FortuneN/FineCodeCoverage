@@ -2,6 +2,6 @@
 {
     internal interface IFCCCoverletConsoleExecutor : ICoverletConsoleExecutor
     {
-		void Initialize(string appDataFolder);
+        void Initialize(string appDataFolder);
     }
 }

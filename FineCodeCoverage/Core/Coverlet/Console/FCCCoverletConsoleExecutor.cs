@@ -23,8 +23,8 @@ namespace FineCodeCoverage.Engine.Coverlet
     [Export(typeof(IFCCCoverletConsoleExecutor))]
     internal class FCCCoverletConsoleExecutor : IFCCCoverletConsoleExecutor
     {
-		[ImportingConstructor]
-		public FCCCoverletConsoleExecutor(IToolFolder toolFolder, IToolZipProvider toolZipProvider)
+        [ImportingConstructor]
+        public FCCCoverletConsoleExecutor(IToolFolder toolFolder, IToolZipProvider toolZipProvider)
         {
             this.toolFolder = toolFolder;
             this.toolZipProvider = toolZipProvider;
@@ -33,24 +33,24 @@ namespace FineCodeCoverage.Engine.Coverlet
         private readonly IToolFolder toolFolder;
         private readonly IToolZipProvider toolZipProvider;
         private string coverletExePath;
-		private const string zipPrefix = "coverlet.console";
-		private const string zipDirectoryName = "coverlet";//backwards compatibility
-		public ExecuteRequest GetRequest(ICoverageProject coverageProject, string coverletSettings)
+        private const string zipPrefix = "coverlet.console";
+        private const string zipDirectoryName = "coverlet";//backwards compatibility
+        public ExecuteRequest GetRequest(ICoverageProject coverageProject, string coverletSettings)
         {
-			return new ExecuteRequest
-			{
-				FilePath = coverletExePath,
-				Arguments = coverletSettings,
-				WorkingDirectory = coverageProject.ProjectOutputFolder
-			};
+            return new ExecuteRequest
+            {
+                FilePath = coverletExePath,
+                Arguments = coverletSettings,
+                WorkingDirectory = coverageProject.ProjectOutputFolder
+            };
 
-		}
+        }
 
-		public void Initialize(string appDataFolder)
-		{
-			var zipDestination = toolFolder.EnsureUnzipped(appDataFolder, zipDirectoryName, toolZipProvider.ProvideZip(zipPrefix));
-			coverletExePath = Directory.GetFiles(zipDestination, "coverlet.exe", SearchOption.AllDirectories).FirstOrDefault()
-						   ?? Directory.GetFiles(zipDestination, "*coverlet*.exe", SearchOption.AllDirectories).FirstOrDefault();
-		}
-	}
+        public void Initialize(string appDataFolder)
+        {
+            var zipDestination = toolFolder.EnsureUnzipped(appDataFolder, zipDirectoryName, toolZipProvider.ProvideZip(zipPrefix));
+            coverletExePath = Directory.GetFiles(zipDestination, "coverlet.exe", SearchOption.AllDirectories).FirstOrDefault()
+                           ?? Directory.GetFiles(zipDestination, "*coverlet*.exe", SearchOption.AllDirectories).FirstOrDefault();
+        }
+    }
 }

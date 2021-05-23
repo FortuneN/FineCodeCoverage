@@ -19,7 +19,7 @@ namespace FineCodeCoverage.Engine
         [ImportingConstructor]
         public SourceFileOpener(
             ICoberturaUtil coberturaUtil,
-            IMessageBox messageBox,ILogger logger, 
+            IMessageBox messageBox, ILogger logger,
             [Import(typeof(SVsServiceProvider))]
             IServiceProvider serviceProvider)
         {
@@ -32,7 +32,7 @@ namespace FineCodeCoverage.Engine
         {
             // Note : There may be more than one file; e.g. in the case of partial classes
             //remove CoverageReport
-            var sourceFiles = coberturaUtil.GetSourceFiles(assemblyName, qualifiedClassName,file);
+            var sourceFiles = coberturaUtil.GetSourceFiles(assemblyName, qualifiedClassName, file);
 
             if (!sourceFiles.Any())
             {

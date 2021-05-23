@@ -65,7 +65,7 @@ namespace FineCodeCoverageTests.CoverageToolOutput_Tests
         {
             SetUpProviders(true, "Folder", "_");
             var coverageToolOutputFolderFromSolutionProvider = mocker.Create<CoverageToolOutputFolderFromSolutionProvider>();
-            Assert.AreEqual(coverageToolOutputFolderFromSolutionProvider.Provide(null),"Folder");
+            Assert.AreEqual(coverageToolOutputFolderFromSolutionProvider.Provide(null), "Folder");
             Assert.AreEqual(callOrder, new List<int> { 1 });
         }
 
@@ -76,7 +76,7 @@ namespace FineCodeCoverageTests.CoverageToolOutput_Tests
             mockProject1.Setup(p => p.ProjectFile).Returns("project.csproj");
             var mockProject2 = new Mock<ICoverageProject>();
             mockProject2.Setup(p => p.ProjectFile).Returns("project2.csproj");
-            var coverageProjects = new List<ICoverageProject>{ mockProject1.Object, mockProject2.Object};
+            var coverageProjects = new List<ICoverageProject> { mockProject1.Object, mockProject2.Object };
 
             var mockOrderMetadata1 = new Mock<IOrderMetadata>();
             mockOrderMetadata1.Setup(o => o.Order).Returns(1);
@@ -93,11 +93,11 @@ namespace FineCodeCoverageTests.CoverageToolOutput_Tests
                 new Lazy<ICoverageToolOutputFolderSolutionProvider, IOrderMetadata>(()=>mockCoverageToolOutputFolderProvider1.Object,mockOrderMetadata1.Object),
             };
             mocker.SetInstance<IEnumerable<Lazy<ICoverageToolOutputFolderSolutionProvider, IOrderMetadata>>>(lazyOrderedProviders);
-            
+
             var mockSolutionFolderProvider = mocker.GetMock<ISolutionFolderProvider>();
             mockSolutionFolderProvider.Setup(sfp => sfp.Provide("project.csproj")).Returns("SolutionPath");
             var coverageToolOutputFolderFromSolutionProvider = mocker.Create<CoverageToolOutputFolderFromSolutionProvider>();
-            
+
             coverageToolOutputFolderFromSolutionProvider.Provide(coverageProjects);
 
             var solutionFolder = solutionFolderProviderFunc();
@@ -105,7 +105,7 @@ namespace FineCodeCoverageTests.CoverageToolOutput_Tests
             Assert.AreEqual(solutionFolder, "SolutionPath");
             Assert.AreEqual(solutionFolder2, "SolutionPath");
             mockSolutionFolderProvider.Verify(sfp => sfp.Provide("project.csproj"), Times.Once());
-            
+
         }
     }
 }

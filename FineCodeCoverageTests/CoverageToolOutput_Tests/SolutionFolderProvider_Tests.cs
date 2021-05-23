@@ -33,7 +33,7 @@ namespace FineCodeCoverageTests.CoverageToolOutput_Tests
         {
             var solutionFolderProvider = new SolutionFolderProvider();
             var provided = solutionFolderProvider.Provide(Path.Combine(tempDirectory, "my.proj"));
-            
+
             Assert.AreEqual(tempDirectory, provided);
         }
 

@@ -14,7 +14,7 @@ namespace FineCodeCoverage.Engine
         internal const string fccDebugCleanInstallEnvironmentVariable = "FCCDebugCleanInstall";
 
         [ImportingConstructor]
-        public AppDataFolder(ILogger logger,IEnvironmentVariable environmentVariable)
+        public AppDataFolder(ILogger logger, IEnvironmentVariable environmentVariable)
         {
             this.logger = logger;
             this.environmentVariable = environmentVariable;

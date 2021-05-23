@@ -74,7 +74,7 @@ namespace FineCodeCoverage.Engine.Coverlet
         {
             return new XDocument(new XElement("RunSettings",
                 DataCollectionRunSettings()));
-            
+
         }
         private XElement DataCollectionRunSettings()
         {
@@ -98,7 +98,7 @@ namespace FineCodeCoverage.Engine.Coverlet
             else
             {
                 var dataCollectors = dataCollectionRunSettings.Element("DataCollectors");
-                if(dataCollectors == null)
+                if (dataCollectors == null)
                 {
                     dataCollectionRunSettings.Add(DataCollectors());
                 }
@@ -153,7 +153,7 @@ namespace FineCodeCoverage.Engine.Coverlet
 
         }
         #endregion
-        
+
         internal string Quote(string settings)
         {
             return $@"""{settings}""";
@@ -199,18 +199,18 @@ namespace FineCodeCoverage.Engine.Coverlet
         {
             string DelimitProject()
             {
-                if(project == null)
+                if (project == null)
                 {
                     return null;
                 }
                 return string.Join(",", project);
             }
 
-            if(existingRunSettings == null)
+            if (existingRunSettings == null)
             {
                 return DelimitProject();
             }
-            
+
             if (runSettings != null)
             {
                 return runSettings;
@@ -227,7 +227,7 @@ namespace FineCodeCoverage.Engine.Coverlet
         {
             Exclude = RunSettingsOrProject(projectExclude, runSettingsExclude);
         }
-        
+
         public void WithExcludeByAttribute(string[] projectExcludeByAttribute, string runSettingsExcludeByAttribute)
         {
             ExcludeByAttribute = RunSettingsOrProject(projectExcludeByAttribute, runSettingsExcludeByAttribute);
@@ -269,8 +269,8 @@ namespace FineCodeCoverage.Engine.Coverlet
                     }
                 }
             }
-            
-            
+
+
             IncludeTestAssembly = includeTestAssembly;
         }
         #endregion

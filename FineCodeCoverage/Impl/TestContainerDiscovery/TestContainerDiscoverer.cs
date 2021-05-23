@@ -50,14 +50,14 @@ namespace FineCodeCoverage.Impl
             this.fccEngine = fccEngine;
             this.testOperationFactory = testOperationFactory;
             this.logger = logger;
-            
+
             initializeThread = new Thread(() =>
             {
                 operationState.StateChanged += OperationState_StateChanged;
                 initializer.Initialize();
             });
             initializeThread.Start();
-            
+
         }
 
         private void AppOptionsEvents_OptionsChanged(IAppOptions appOptions)
@@ -122,12 +122,12 @@ namespace FineCodeCoverage.Impl
         {
             try
             {
-                if(e.State == TestOperationStates.TestExecutionCanceling)
+                if (e.State == TestOperationStates.TestExecutionCanceling)
                 {
                     fccEngine.StopCoverage();
                 }
 
-                
+
                 if (e.State == TestOperationStates.TestExecutionStarting)
                 {
                     TestExecutionStarting(e.Operation);

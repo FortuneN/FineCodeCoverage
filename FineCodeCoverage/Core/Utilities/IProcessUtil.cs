@@ -5,8 +5,8 @@ namespace FineCodeCoverage.Core.Utilities
 {
     interface IProcessUtil
     {
-		Task<ExecuteResponse> ExecuteAsync(ExecuteRequest request);
-		CancellationToken CancellationToken { get; set; }
+        Task<ExecuteResponse> ExecuteAsync(ExecuteRequest request);
+        CancellationToken CancellationToken { get; set; }
 
-	}
+    }
 }

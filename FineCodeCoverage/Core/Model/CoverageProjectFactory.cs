@@ -14,16 +14,16 @@ namespace FineCodeCoverage.Engine.Model
         private readonly IAppOptionsProvider appOptionsProvider;
         private readonly IFileSynchronizationUtil fileSynchronizationUtil;
         private readonly ILogger logger;
-		private DTE dte;
+        private DTE dte;
         private bool canUseMsBuildWorkspace = true;
 
         [ImportingConstructor]
-		public CoverageProjectFactory(
-			IAppOptionsProvider appOptionsProvider,
-			IFileSynchronizationUtil fileSynchronizationUtil, 
-			ILogger logger,
-			[Import(typeof(SVsServiceProvider))]
-			IServiceProvider serviceProvider)
+        public CoverageProjectFactory(
+            IAppOptionsProvider appOptionsProvider,
+            IFileSynchronizationUtil fileSynchronizationUtil,
+            ILogger logger,
+            [Import(typeof(SVsServiceProvider))]
+            IServiceProvider serviceProvider)
         {
             this.appOptionsProvider = appOptionsProvider;
             this.fileSynchronizationUtil = fileSynchronizationUtil;
@@ -31,11 +31,11 @@ namespace FineCodeCoverage.Engine.Model
             // todo - when debugging we are on the main thread - to determine does vs satisfy imports on the main thread ?
             // if so could change the code below
             ThreadHelper.JoinableTaskFactory.Run(async () =>
-			{
-				await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-				dte = (DTE)serviceProvider.GetService(typeof(DTE));
-			});
-		}
+            {
+                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                dte = (DTE)serviceProvider.GetService(typeof(DTE));
+            });
+        }
 
         public void Initialize()
         {
@@ -50,7 +50,7 @@ namespace FineCodeCoverage.Engine.Model
         }
         public ICoverageProject Create()
         {
-			return new CoverageProject(appOptionsProvider,fileSynchronizationUtil, logger, dte, canUseMsBuildWorkspace);
+            return new CoverageProject(appOptionsProvider, fileSynchronizationUtil, logger, dte, canUseMsBuildWorkspace);
         }
     }
 }

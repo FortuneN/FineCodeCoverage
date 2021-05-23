@@ -18,8 +18,8 @@ namespace FineCodeCoverage.Impl
 
         [ImportingConstructor]
         public Initializer(
-            IFCCEngine fccEngine, 
-            ILogger logger, 
+            IFCCEngine fccEngine,
+            ILogger logger,
             ICoverageProjectFactory coverageProjectFactory,
             IPackageInitializer packageInitializer
         )
@@ -48,12 +48,12 @@ namespace FineCodeCoverage.Impl
                 logger.Log($"Failed Initialization", exception);
             }
 
-            if(InitializeStatus != InitializeStatus.Error)
+            if (InitializeStatus != InitializeStatus.Error)
             {
                 InitializeStatus = InitializeStatus.Initialized;
             }
         }
-        
+
     }
 
 }

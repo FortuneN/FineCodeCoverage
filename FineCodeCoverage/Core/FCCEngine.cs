@@ -25,10 +25,10 @@ namespace FineCodeCoverage.Engine
         private string CurrentTheme => $"{((dynamic)colorThemeService)?.CurrentTheme?.Name}".Trim();
 
         private CancellationTokenSource cancellationTokenSource;
-        
+
         public event UpdateMarginTagsDelegate UpdateMarginTags;
         public event UpdateOutputWindowDelegate UpdateOutputWindow;
-        
+
         public string AppDataFolderPath { get; private set; }
         public List<CoverageLine> CoverageLines { get; internal set; }
 
@@ -110,7 +110,7 @@ namespace FineCodeCoverage.Engine
                 cancellationTokenSource.Cancel();
             }
         }
-        
+
         private CancellationToken Reset()
         {
             ClearUI();
@@ -123,7 +123,7 @@ namespace FineCodeCoverage.Engine
             return cancellationToken;
         }
 
-        private async System.Threading.Tasks.Task<string[]> RunCoverageAsync(List<ICoverageProject> coverageProjects,CancellationToken cancellationToken)
+        private async System.Threading.Tasks.Task<string[]> RunCoverageAsync(List<ICoverageProject> coverageProjects, CancellationToken cancellationToken)
         {
             // process pipeline
 
@@ -145,7 +145,7 @@ namespace FineCodeCoverage.Engine
 
         private void RaiseUpdateOutputWindow(string reportHtml)
         {
-            UpdateOutputWindowEventArgs updateOutputWindowEventArgs = new UpdateOutputWindowEventArgs { HtmlContent = reportHtml};
+            UpdateOutputWindowEventArgs updateOutputWindowEventArgs = new UpdateOutputWindowEventArgs { HtmlContent = reportHtml };
             UpdateOutputWindow?.Invoke(updateOutputWindowEventArgs);
         }
         private void UpdateUI(List<CoverageLine> coverageLines, string reportHtml)
@@ -155,13 +155,13 @@ namespace FineCodeCoverage.Engine
             RaiseUpdateOutputWindow(reportHtml);
         }
 
-        private async System.Threading.Tasks.Task<(List<CoverageLine> coverageLines,string reportFilePath)> RunAndProcessReportAsync(string[] coverOutputFiles,CancellationToken cancellationToken)
+        private async System.Threading.Tasks.Task<(List<CoverageLine> coverageLines, string reportFilePath)> RunAndProcessReportAsync(string[] coverOutputFiles, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
             List<CoverageLine> coverageLines = null;
             string processedReport = null;
-            
+
             var darkMode = CurrentTheme.Equals("Dark", StringComparison.OrdinalIgnoreCase);
 
             var result = await reportGeneratorUtil.GenerateAsync(coverOutputFiles, darkMode, true);
@@ -230,7 +230,7 @@ namespace FineCodeCoverage.Engine
                 {
                     case InitializeStatus.Initialized:
                         return;
-                    
+
                     case InitializeStatus.Initializing:
                         LogReloadCoverageStatus(ReloadCoverageStatus.Initializing);
                         await System.Threading.Tasks.Task.Delay(InitializeWait);
@@ -262,19 +262,19 @@ namespace FineCodeCoverage.Engine
 
                 if (coverOutputFiles.Any())
                 {
-                    var (lines, report) = await RunAndProcessReportAsync(coverOutputFiles,cancellationToken);
+                    var (lines, report) = await RunAndProcessReportAsync(coverOutputFiles, cancellationToken);
                     coverageLines = lines;
                     reportHtml = report;
                 }
 
                 return (coverageLines, reportHtml);
-                 
+
             }, cancellationToken)
             .ContinueWith(t =>
             {
                 ReloadCoverageTaskContinuation(t);
 
-              }, System.Threading.Tasks.TaskScheduler.Default);
+            }, System.Threading.Tasks.TaskScheduler.Default);
 
         }
 

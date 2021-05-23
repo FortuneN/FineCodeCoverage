@@ -30,7 +30,7 @@ namespace FineCodeCoverage.Core.Utilities
                 Directory.CreateDirectory(zipDestination);
 
                 zipFile.ExtractToDirectory(zipDetails.Path, zipDestination);
-                foreach(var file in toolDirectory.GetFiles())
+                foreach (var file in toolDirectory.GetFiles())
                 {
                     file.TryDelete();
                 }

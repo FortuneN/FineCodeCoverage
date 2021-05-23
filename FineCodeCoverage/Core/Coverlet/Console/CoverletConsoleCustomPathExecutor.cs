@@ -10,12 +10,12 @@ namespace FineCodeCoverage.Engine.Coverlet
     [Export(typeof(ICoverletConsoleCustomPathExecutor))]
     internal class CoverletConsoleCustomPathExecutor : ICoverletConsoleCustomPathExecutor
     {
-        public ExecuteRequest GetRequest(ICoverageProject coverageProject,string coverletSettings)
+        public ExecuteRequest GetRequest(ICoverageProject coverageProject, string coverletSettings)
         {
             var coverletConsoleCustomPath = coverageProject.Settings.CoverletConsoleCustomPath;
             if (string.IsNullOrWhiteSpace(coverletConsoleCustomPath))
             {
-				return null;
+                return null;
             }
             if (File.Exists(coverletConsoleCustomPath) && Path.GetExtension(coverletConsoleCustomPath) == ".exe")
             {
@@ -26,7 +26,7 @@ namespace FineCodeCoverage.Engine.Coverlet
                     WorkingDirectory = coverageProject.ProjectOutputFolder
                 };
             }
-			return null;
+            return null;
         }
     }
 }

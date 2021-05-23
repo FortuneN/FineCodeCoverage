@@ -14,46 +14,46 @@ using ReportGeneratorPlugins;
 
 namespace FineCodeCoverage.Engine.ReportGenerator
 {
-	interface IReportGeneratorUtil
+    interface IReportGeneratorUtil
     {
-		void Initialize(string appDataFolder);
-		string ProcessUnifiedHtml(string htmlForProcessing, bool darkMode);
-		Task<ReportGeneratorResult> GenerateAsync(IEnumerable<string> coverOutputFiles, bool darkMode, bool throwError = false);
+        void Initialize(string appDataFolder);
+        string ProcessUnifiedHtml(string htmlForProcessing, bool darkMode);
+        Task<ReportGeneratorResult> GenerateAsync(IEnumerable<string> coverOutputFiles, bool darkMode, bool throwError = false);
 
-	}
+    }
 
-	internal class ReportGeneratorResult
-	{
-		public string UnifiedHtml { get; set; }
-		public string UnifiedXml { get; set; }
-		public bool Success { get; set; }
-	}
+    internal class ReportGeneratorResult
+    {
+        public string UnifiedHtml { get; set; }
+        public string UnifiedXml { get; set; }
+        public bool Success { get; set; }
+    }
 
-	[Export(typeof(IReportGeneratorUtil))]
-	internal partial class ReportGeneratorUtil: IReportGeneratorUtil
-	{
+    [Export(typeof(IReportGeneratorUtil))]
+    internal partial class ReportGeneratorUtil : IReportGeneratorUtil
+    {
         private readonly IAssemblyUtil assemblyUtil;
         private readonly IProcessUtil processUtil;
         private readonly ILogger logger;
         private readonly IToolFolder toolFolder;
         private readonly IToolZipProvider toolZipProvider;
-		private readonly IFileUtil fileUtil;
-		private const string zipPrefix = "reportGenerator";
-		private const string zipDirectoryName = "reportGenerator";
+        private readonly IFileUtil fileUtil;
+        private const string zipPrefix = "reportGenerator";
+        private const string zipDirectoryName = "reportGenerator";
 
         public string ReportGeneratorExePath { get; private set; }
 
-		[ImportingConstructor]
-		public ReportGeneratorUtil(
-			IAssemblyUtil assemblyUtil,
-			IProcessUtil processUtil, 
-			ILogger logger,
-			IToolFolder toolFolder,
-			IToolZipProvider toolZipProvider,
-			IFileUtil fileUtil
-			)
-		{
-			this.fileUtil = fileUtil;
+        [ImportingConstructor]
+        public ReportGeneratorUtil(
+            IAssemblyUtil assemblyUtil,
+            IProcessUtil processUtil,
+            ILogger logger,
+            IToolFolder toolFolder,
+            IToolZipProvider toolZipProvider,
+            IFileUtil fileUtil
+            )
+        {
+            this.fileUtil = fileUtil;
             this.assemblyUtil = assemblyUtil;
             this.processUtil = processUtil;
             this.logger = logger;
@@ -61,173 +61,173 @@ namespace FineCodeCoverage.Engine.ReportGenerator
             this.toolZipProvider = toolZipProvider;
         }
 
-		public void Initialize(string appDataFolder)
-		{
-			var zipDestination = toolFolder.EnsureUnzipped(appDataFolder, zipDirectoryName, toolZipProvider.ProvideZip(zipPrefix));
-			ReportGeneratorExePath = Directory.GetFiles(zipDestination, "reportGenerator.exe", SearchOption.AllDirectories).FirstOrDefault()
-								  ?? Directory.GetFiles(zipDestination, "*reportGenerator*.exe", SearchOption.AllDirectories).FirstOrDefault();
-		}
+        public void Initialize(string appDataFolder)
+        {
+            var zipDestination = toolFolder.EnsureUnzipped(appDataFolder, zipDirectoryName, toolZipProvider.ProvideZip(zipPrefix));
+            ReportGeneratorExePath = Directory.GetFiles(zipDestination, "reportGenerator.exe", SearchOption.AllDirectories).FirstOrDefault()
+                                  ?? Directory.GetFiles(zipDestination, "*reportGenerator*.exe", SearchOption.AllDirectories).FirstOrDefault();
+        }
 
-		public async Task<ReportGeneratorResult> GenerateAsync(IEnumerable<string> coverOutputFiles, bool darkMode, bool throwError = false)
-		{
-			var title = "ReportGenerator Run";
-			var tempDirectory = fileUtil.CreateTempDirectory();
+        public async Task<ReportGeneratorResult> GenerateAsync(IEnumerable<string> coverOutputFiles, bool darkMode, bool throwError = false)
+        {
+            var title = "ReportGenerator Run";
+            var tempDirectory = fileUtil.CreateTempDirectory();
 
-			var unifiedHtmlFile = Path.Combine(tempDirectory, "index.html");
-			var unifiedXmlFile = Path.Combine(tempDirectory, "Cobertura.xml");
+            var unifiedHtmlFile = Path.Combine(tempDirectory, "index.html");
+            var unifiedXmlFile = Path.Combine(tempDirectory, "Cobertura.xml");
 
-			var reportGeneratorSettings = new List<string>();
+            var reportGeneratorSettings = new List<string>();
 
-			reportGeneratorSettings.Add($@"""-targetdir:{tempDirectory}""");
-			
-			async Task<bool> run(string outputReportType, string inputReports)
-			{
-				var reportTypeSettings = reportGeneratorSettings.ToArray().ToList();
+            reportGeneratorSettings.Add($@"""-targetdir:{tempDirectory}""");
 
-				if (outputReportType.Equals("Cobertura", StringComparison.OrdinalIgnoreCase))
-				{
-					reportTypeSettings.Add($@"""-reports:{inputReports}""");
-					reportTypeSettings.Add($@"""-reporttypes:Cobertura""");
-				}
-				else if (outputReportType.Equals("HtmlInline_AzurePipelines", StringComparison.OrdinalIgnoreCase))
-				{
-					reportTypeSettings.Add($@"""-reports:{inputReports}""");
-					reportTypeSettings.Add($@"""-plugins:{typeof(FccLightReportBuilder).Assembly.Location}""");
-					reportTypeSettings.Add($@"""-reporttypes:{(darkMode ? FccDarkReportBuilder.REPORT_TYPE : FccLightReportBuilder.REPORT_TYPE)}""");
-				}
-				else
-				{
-					throw new Exception($"Unknown reporttype '{outputReportType}'");
-				}
+            async Task<bool> run(string outputReportType, string inputReports)
+            {
+                var reportTypeSettings = reportGeneratorSettings.ToArray().ToList();
 
-				logger.Log($"{title} Arguments [reporttype:{outputReportType}] {Environment.NewLine}{string.Join($"{Environment.NewLine}", reportTypeSettings)}");
-
-				var result = await processUtil
-					.ExecuteAsync(new ExecuteRequest
-					{
-						FilePath = ReportGeneratorExePath,
-						Arguments = string.Join(" ", reportTypeSettings),
-						WorkingDirectory = tempDirectory
-					});
-				
-
-				if(result != null)
+                if (outputReportType.Equals("Cobertura", StringComparison.OrdinalIgnoreCase))
                 {
-					if (result.ExitCode != 0)
-					{
-						if (throwError)
-						{
-							throw new Exception(result.Output);
-						}
-
-						logger.Log($"{title} [reporttype:{outputReportType}] Error", result.Output);
-						return false;
-					}
-
-					logger.Log($"{title} [reporttype:{outputReportType}]", result.Output);
-					return true;
-				}
-				return false;
-				
-			}
-			
-			var reportGeneratorResult = new ReportGeneratorResult { Success = false, UnifiedHtml = null, UnifiedXml = null };
-			
-			var coberturaResult = await run("Cobertura", string.Join(";", coverOutputFiles));
-
-			if (coberturaResult)
-			{
-				var htmlResult = await run("HtmlInline_AzurePipelines", unifiedXmlFile);
-				if (htmlResult)
-				{
-					reportGeneratorResult.UnifiedXml = fileUtil.ReadAllText(unifiedXmlFile);
-					reportGeneratorResult.UnifiedHtml = fileUtil.ReadAllText(unifiedHtmlFile);
-					reportGeneratorResult.Success = true;
+                    reportTypeSettings.Add($@"""-reports:{inputReports}""");
+                    reportTypeSettings.Add($@"""-reporttypes:Cobertura""");
                 }
-				
-			}
+                else if (outputReportType.Equals("HtmlInline_AzurePipelines", StringComparison.OrdinalIgnoreCase))
+                {
+                    reportTypeSettings.Add($@"""-reports:{inputReports}""");
+                    reportTypeSettings.Add($@"""-plugins:{typeof(FccLightReportBuilder).Assembly.Location}""");
+                    reportTypeSettings.Add($@"""-reporttypes:{(darkMode ? FccDarkReportBuilder.REPORT_TYPE : FccLightReportBuilder.REPORT_TYPE)}""");
+                }
+                else
+                {
+                    throw new Exception($"Unknown reporttype '{outputReportType}'");
+                }
 
-			fileUtil.TryDeleteDirectory(tempDirectory);
-			
-			return reportGeneratorResult;
-			
-		}
+                logger.Log($"{title} Arguments [reporttype:{outputReportType}] {Environment.NewLine}{string.Join($"{Environment.NewLine}", reportTypeSettings)}");
 
-		public string ProcessUnifiedHtml(string htmlForProcessing, bool darkMode)
-		{
-			return assemblyUtil.RunInAssemblyResolvingContext(() =>
-			{
-				var doc = new HtmlDocument();
+                var result = await processUtil
+                    .ExecuteAsync(new ExecuteRequest
+                    {
+                        FilePath = ReportGeneratorExePath,
+                        Arguments = string.Join(" ", reportTypeSettings),
+                        WorkingDirectory = tempDirectory
+                    });
 
-				doc.OptionFixNestedTags = true;
-				doc.OptionAutoCloseOnEnd = true;
 
-				doc.LoadHtml(htmlForProcessing);
+                if (result != null)
+                {
+                    if (result.ExitCode != 0)
+                    {
+                        if (throwError)
+                        {
+                            throw new Exception(result.Output);
+                        }
 
-				doc.DocumentNode.QuerySelectorAll(".footer").ToList().ForEach(x => x.SetAttributeValue("style", "display:none"));
-				doc.DocumentNode.QuerySelectorAll(".container").ToList().ForEach(x => x.SetAttributeValue("style", "margin:0;padding:0;border:0"));
-				doc.DocumentNode.QuerySelectorAll(".containerleft").ToList().ForEach(x => x.SetAttributeValue("style", "margin:0;padding:0;border:0"));
-				doc.DocumentNode.QuerySelectorAll(".containerleft > h1 , .containerleft > p").ToList().ForEach(x => x.SetAttributeValue("style", "display:none"));
-				
-				// DOM changes
+                        logger.Log($"{title} [reporttype:{outputReportType}] Error", result.Output);
+                        return false;
+                    }
 
-				var table = doc.DocumentNode.QuerySelectorAll("table.overview").First();
-				var tableRows = table.QuerySelectorAll("tr").ToArray();
-				try { tableRows[0].SetAttributeValue("style", "display:none"); } catch { }
-				try { tableRows[1].SetAttributeValue("style", "display:none"); } catch { }
-				try { tableRows[10].SetAttributeValue("style", "display:none"); } catch { }
-				try { tableRows[10].SetAttributeValue("style", "display:none"); } catch { }
-				try { tableRows[11].SetAttributeValue("style", "display:none"); } catch { }
-				try { tableRows[12].SetAttributeValue("style", "display:none"); } catch { }
+                    logger.Log($"{title} [reporttype:{outputReportType}]", result.Output);
+                    return true;
+                }
+                return false;
 
-				// TEXT changes
-				var assemblyClassDelimiter = "!";
+            }
 
-				var outerHtml = doc.DocumentNode.OuterHtml;
-				var htmlSb = new StringBuilder(outerHtml);
+            var reportGeneratorResult = new ReportGeneratorResult { Success = false, UnifiedHtml = null, UnifiedXml = null };
 
-				var assembliesSearch = "var assemblies = [";
-				var startIndex = outerHtml.IndexOf(assembliesSearch) + assembliesSearch.Length - 1;
-				var endIndex = outerHtml.IndexOf("var historicCoverageExecutionTimes");
-				var assembliesToReplace = outerHtml.Substring(startIndex, endIndex - startIndex);
-				endIndex = assembliesToReplace.LastIndexOf(']');
-				assembliesToReplace = assembliesToReplace.Substring(0, endIndex + 1);
+            var coberturaResult = await run("Cobertura", string.Join(";", coverOutputFiles));
 
-				var assemblies = JArray.Parse(assembliesToReplace);
-				foreach (JObject assembly in assemblies)
-				{
-					var assemblyName = assembly["name"];
-					var classes = assembly["classes"] as JArray;
+            if (coberturaResult)
+            {
+                var htmlResult = await run("HtmlInline_AzurePipelines", unifiedXmlFile);
+                if (htmlResult)
+                {
+                    reportGeneratorResult.UnifiedXml = fileUtil.ReadAllText(unifiedXmlFile);
+                    reportGeneratorResult.UnifiedHtml = fileUtil.ReadAllText(unifiedHtmlFile);
+                    reportGeneratorResult.Success = true;
+                }
 
-					var autoGeneratedRemovals = new List<JObject>();
-					foreach (JObject @class in classes)
-					{
-						var className = @class["name"].ToString();
-						if (className == "AutoGeneratedProgram")
-						{
-							autoGeneratedRemovals.Add(@class);
-						}
-						else
-						{
-							// simplify name
-							var lastIndexOfDotInName = className.LastIndexOf('.');
-							if (lastIndexOfDotInName != -1) @class["name"] = className.Substring(lastIndexOfDotInName).Trim('.');
+            }
 
-							//mark with # and add the assembly name
-							var rp = @class["rp"].ToString();
-							var htmlIndex = rp.IndexOf(".html");
-							@class["rp"] = $"#{assemblyName}{assemblyClassDelimiter}{className + ".html" + rp.Substring(htmlIndex + 5)}";
-						}
+            fileUtil.TryDeleteDirectory(tempDirectory);
 
-					}
-					foreach (var autoGeneratedRemoval in autoGeneratedRemovals)
-					{
-						classes.Remove(autoGeneratedRemoval);
-					}
+            return reportGeneratorResult;
 
-				}
-				var assembliesReplaced = assemblies.ToString();
-				htmlSb.Replace(assembliesToReplace, assembliesReplaced);
+        }
+
+        public string ProcessUnifiedHtml(string htmlForProcessing, bool darkMode)
+        {
+            return assemblyUtil.RunInAssemblyResolvingContext(() =>
+            {
+                var doc = new HtmlDocument();
+
+                doc.OptionFixNestedTags = true;
+                doc.OptionAutoCloseOnEnd = true;
+
+                doc.LoadHtml(htmlForProcessing);
+
+                doc.DocumentNode.QuerySelectorAll(".footer").ToList().ForEach(x => x.SetAttributeValue("style", "display:none"));
+                doc.DocumentNode.QuerySelectorAll(".container").ToList().ForEach(x => x.SetAttributeValue("style", "margin:0;padding:0;border:0"));
+                doc.DocumentNode.QuerySelectorAll(".containerleft").ToList().ForEach(x => x.SetAttributeValue("style", "margin:0;padding:0;border:0"));
+                doc.DocumentNode.QuerySelectorAll(".containerleft > h1 , .containerleft > p").ToList().ForEach(x => x.SetAttributeValue("style", "display:none"));
+
+                // DOM changes
+
+                var table = doc.DocumentNode.QuerySelectorAll("table.overview").First();
+                var tableRows = table.QuerySelectorAll("tr").ToArray();
+                try { tableRows[0].SetAttributeValue("style", "display:none"); } catch { }
+                try { tableRows[1].SetAttributeValue("style", "display:none"); } catch { }
+                try { tableRows[10].SetAttributeValue("style", "display:none"); } catch { }
+                try { tableRows[10].SetAttributeValue("style", "display:none"); } catch { }
+                try { tableRows[11].SetAttributeValue("style", "display:none"); } catch { }
+                try { tableRows[12].SetAttributeValue("style", "display:none"); } catch { }
+
+                // TEXT changes
+                var assemblyClassDelimiter = "!";
+
+                var outerHtml = doc.DocumentNode.OuterHtml;
+                var htmlSb = new StringBuilder(outerHtml);
+
+                var assembliesSearch = "var assemblies = [";
+                var startIndex = outerHtml.IndexOf(assembliesSearch) + assembliesSearch.Length - 1;
+                var endIndex = outerHtml.IndexOf("var historicCoverageExecutionTimes");
+                var assembliesToReplace = outerHtml.Substring(startIndex, endIndex - startIndex);
+                endIndex = assembliesToReplace.LastIndexOf(']');
+                assembliesToReplace = assembliesToReplace.Substring(0, endIndex + 1);
+
+                var assemblies = JArray.Parse(assembliesToReplace);
+                foreach (JObject assembly in assemblies)
+                {
+                    var assemblyName = assembly["name"];
+                    var classes = assembly["classes"] as JArray;
+
+                    var autoGeneratedRemovals = new List<JObject>();
+                    foreach (JObject @class in classes)
+                    {
+                        var className = @class["name"].ToString();
+                        if (className == "AutoGeneratedProgram")
+                        {
+                            autoGeneratedRemovals.Add(@class);
+                        }
+                        else
+                        {
+                            // simplify name
+                            var lastIndexOfDotInName = className.LastIndexOf('.');
+                            if (lastIndexOfDotInName != -1) @class["name"] = className.Substring(lastIndexOfDotInName).Trim('.');
+
+                            //mark with # and add the assembly name
+                            var rp = @class["rp"].ToString();
+                            var htmlIndex = rp.IndexOf(".html");
+                            @class["rp"] = $"#{assemblyName}{assemblyClassDelimiter}{className + ".html" + rp.Substring(htmlIndex + 5)}";
+                        }
+
+                    }
+                    foreach (var autoGeneratedRemoval in autoGeneratedRemovals)
+                    {
+                        classes.Remove(autoGeneratedRemoval);
+                    }
+
+                }
+                var assembliesReplaced = assemblies.ToString();
+                htmlSb.Replace(assembliesToReplace, assembliesReplaced);
 
                 //is this even present if there are no riskhotspots
                 var riskHotspotsSearch = "var riskHotspots = [";
@@ -242,10 +242,10 @@ namespace FineCodeCoverage.Engine.ReportGenerator
                 {
                     var assembly = riskHotspot["assembly"].ToString();
                     var qualifiedClassName = riskHotspot["class"].ToString();
-					// simplify name
-					var lastIndexOfDotInName = qualifiedClassName.LastIndexOf('.');
-					if (lastIndexOfDotInName != -1) riskHotspot["class"] = qualifiedClassName.Substring(lastIndexOfDotInName).Trim('.');
-					var newReportPath = $"#{assembly}{assemblyClassDelimiter}{qualifiedClassName}.html";
+                    // simplify name
+                    var lastIndexOfDotInName = qualifiedClassName.LastIndexOf('.');
+                    if (lastIndexOfDotInName != -1) riskHotspot["class"] = qualifiedClassName.Substring(lastIndexOfDotInName).Trim('.');
+                    var newReportPath = $"#{assembly}{assemblyClassDelimiter}{qualifiedClassName}.html";
                     riskHotspot["reportPath"] = newReportPath;
                 }
                 var riskHotspotsReplaced = riskHotspots.ToString();
@@ -253,7 +253,7 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 
                 htmlSb.Replace(".table-fixed", ".table-fixed-ignore-me");
 
-				htmlSb.Replace("</head>", $@"
+                htmlSb.Replace("</head>", $@"
 					<style type=""text/css"">
 						*, body {{ font-size: small; }}
 						table td {{ white-space: nowrap; }}
@@ -269,9 +269,9 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 					</head>
 				");
 
-				if (darkMode)
-				{
-					htmlSb.Replace("</head>", $@"
+                if (darkMode)
+                {
+                    htmlSb.Replace("</head>", $@"
 						<style type=""text/css"">
 							*, body {{ color: #f1f1f1 }}
 							table.overview.table-fixed {{ border: 1px solid #3f3f46; }}
@@ -279,18 +279,18 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 						</style>
 						</head>
 					");
-				}
-				else
-				{
-					htmlSb.Replace("</head>", $@"
+                }
+                else
+                {
+                    htmlSb.Replace("</head>", $@"
 						<style type=""text/css"">
 							table.overview.table-fixed {{ border-width: 1px }}
 						</style>
 						</head>
 					");
-				}
+                }
 
-				htmlSb.Replace("</body>", $@"
+                htmlSb.Replace("</body>", $@"
 					<script type=""text/javascript"">
 						
 						var htmlExtension = '.html';
@@ -340,16 +340,16 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 					</body>
 				");
 
-				htmlSb.Replace("</head>", $@"
+                htmlSb.Replace("</head>", $@"
 					<style type=""text/css"">
 						table.overview.table-fixed.stripped > thead > tr > th:nth-of-type(4) > a:nth-of-type(2) {{ display: none; }}
 					</style>
 					</head>
 				");
 
-				if (darkMode)
-				{
-					htmlSb.Replace("<body>", @"
+                if (darkMode)
+                {
+                    htmlSb.Replace("<body>", @"
 						<body>
 						<style>
 							#divHeader {
@@ -361,10 +361,10 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 							}
 						</style>
 					");
-				}
-				else
-				{
-					htmlSb.Replace("<body>", @"
+                }
+                else
+                {
+                    htmlSb.Replace("<body>", @"
 						<body>
 						<style>
 							#divHeader {
@@ -376,9 +376,9 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 							}
 						</style>
 					");
-				}
+                }
 
-				htmlSb.Replace("<body>", @"
+                htmlSb.Replace("<body>", @"
 					<body oncontextmenu='return false;'>
 					<style>
 						
@@ -498,75 +498,75 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 					</div>
 				");
 
-				htmlSb.Replace("branchCoverageAvailable = true", "branchCoverageAvailable = false");
+                htmlSb.Replace("branchCoverageAvailable = true", "branchCoverageAvailable = false");
 
-				return string.Join(
-				Environment.NewLine,
-				htmlSb.ToString().Split('\r', '\n')
-				.Select(line =>
-				{
-					// modify column widths
+                return string.Join(
+                Environment.NewLine,
+                htmlSb.ToString().Split('\r', '\n')
+                .Select(line =>
+                {
+                    // modify column widths
 
-					if (line.StartsWith(".column"))
-					{
-						line = $"{line.Substring(0, line.IndexOf('{')).Trim('{')} {{white-space: nowrap; width:1%;}}";
-					}
+                    if (line.StartsWith(".column"))
+                    {
+                        line = $"{line.Substring(0, line.IndexOf('{')).Trim('{')} {{white-space: nowrap; width:1%;}}";
+                    }
 
-					// modify coverage data
+                    // modify coverage data
 
-					if (line.IndexOf(@"""name"":") != -1 && line.IndexOf(@"""rp"":") != -1 && line.IndexOf(@"""cl"":") != -1)
-					{
-						var lineJO = JObject.Parse(line.TrimEnd(','));
-						var name = lineJO.Value<string>("name");
+                    if (line.IndexOf(@"""name"":") != -1 && line.IndexOf(@"""rp"":") != -1 && line.IndexOf(@"""cl"":") != -1)
+                    {
+                        var lineJO = JObject.Parse(line.TrimEnd(','));
+                        var name = lineJO.Value<string>("name");
 
-						if (name.Equals("AutoGeneratedProgram"))
-						{
-							// output line
+                        if (name.Equals("AutoGeneratedProgram"))
+                        {
+                            // output line
 
-							line = string.Empty;
-						}
-						else
-						{
-							// simplify name
+                            line = string.Empty;
+                        }
+                        else
+                        {
+                            // simplify name
 
-							var lastIndexOfDotInName = name.LastIndexOf('.');
-							if (lastIndexOfDotInName != -1) lineJO["name"] = name.Substring(lastIndexOfDotInName).Trim('.');
+                            var lastIndexOfDotInName = name.LastIndexOf('.');
+                            if (lastIndexOfDotInName != -1) lineJO["name"] = name.Substring(lastIndexOfDotInName).Trim('.');
 
-							// prefix the url with #
+                            // prefix the url with #
 
-							lineJO["rp"] = $"#{lineJO.Value<string>("rp")}";
+                            lineJO["rp"] = $"#{lineJO.Value<string>("rp")}";
 
-							// output line
+                            // output line
 
-							line = $"{lineJO.ToString(Formatting.None)},";
-						}
-					}
+                            line = $"{lineJO.ToString(Formatting.None)},";
+                        }
+                    }
 
-					// modify risk host spots data
+                    // modify risk host spots data
 
-					if (line.IndexOf(@"""assembly"":") != -1 && line.IndexOf(@"""class"":") != -1 && line.IndexOf(@"""reportPath"":") != -1)
-					{
-						var lineJO = JObject.Parse($"{{ {line.TrimEnd(',')} }}");
+                    if (line.IndexOf(@"""assembly"":") != -1 && line.IndexOf(@"""class"":") != -1 && line.IndexOf(@"""reportPath"":") != -1)
+                    {
+                        var lineJO = JObject.Parse($"{{ {line.TrimEnd(',')} }}");
 
-						// simplify class
+                        // simplify class
 
-						var _class = lineJO.Value<string>("class");
-						var lastIndexOfDotInClass = _class.LastIndexOf('.');
-						if (lastIndexOfDotInClass != -1) lineJO["class"] = _class.Substring(lastIndexOfDotInClass).Trim('.');
+                        var _class = lineJO.Value<string>("class");
+                        var lastIndexOfDotInClass = _class.LastIndexOf('.');
+                        if (lastIndexOfDotInClass != -1) lineJO["class"] = _class.Substring(lastIndexOfDotInClass).Trim('.');
 
-						// prefix the urls with #
+                        // prefix the urls with #
 
-						lineJO["reportPath"] = $"#{lineJO.Value<string>("reportPath")}";
+                        lineJO["reportPath"] = $"#{lineJO.Value<string>("reportPath")}";
 
-						// output line
+                        // output line
 
-						line = $"{lineJO.ToString(Formatting.None).Trim('{', '}')},";
-					}
+                        line = $"{lineJO.ToString(Formatting.None).Trim('{', '}')},";
+                    }
 
-					return line;
-				}));
+                    return line;
+                }));
 
-			});
-		}
-	}
+            });
+        }
+    }
 }

@@ -15,19 +15,19 @@ namespace Test
     public class TestContainerDiscovery_Tests
     {
         private AutoMoqer mocker;
-        private void RaiseOperationStateChanged(TestOperationStates testOperationStates,IOperation operation = null)
+        private void RaiseOperationStateChanged(TestOperationStates testOperationStates, IOperation operation = null)
         {
             var args = operation == null ? new OperationStateChangedEventArgs(testOperationStates) : new OperationStateChangedEventArgs(operation, (RequestStates)testOperationStates);
             mocker.GetMock<IOperationState>().Raise(s => s.StateChanged += null, args);
         }
         private void RaiseTestExecutionStarting(IOperation operation = null)
         {
-            RaiseOperationStateChanged(TestOperationStates.TestExecutionStarting,operation);
+            RaiseOperationStateChanged(TestOperationStates.TestExecutionStarting, operation);
         }
 
         private void RaiseTestExecutionFinished(IOperation operation = null)
         {
-            RaiseOperationStateChanged(TestOperationStates.TestExecutionFinished,operation);
+            RaiseOperationStateChanged(TestOperationStates.TestExecutionFinished, operation);
         }
 
         private void RaiseTestExecutionCancelling()
@@ -158,7 +158,7 @@ namespace Test
                 mockAppOptions.Setup(o => o.Enabled).Returns(false);
                 mockAppOptions.Setup(o => o.RunInParallel).Returns(true);
             });
-            
+
             RaiseTestExecutionStarting();
             AssertShouldNotReloadCoverage();
         }
@@ -195,7 +195,7 @@ namespace Test
             {
                 AssertShouldNotReloadCoverage();
             }
-            
+
         }
 
         [Test]

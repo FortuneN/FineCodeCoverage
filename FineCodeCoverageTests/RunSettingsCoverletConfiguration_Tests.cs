@@ -158,7 +158,7 @@ namespace Test
 </RunSettings>";
 
             runSettingsCoverletConfiguration.Read(runSettingsXml);
-            
+
             Assert.IsNull(runSettingsCoverletConfiguration.Exclude);
             Assert.IsNull(runSettingsCoverletConfiguration.Include);
             Assert.IsNull(runSettingsCoverletConfiguration.ExcludeByAttribute);

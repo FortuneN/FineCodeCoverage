@@ -26,14 +26,14 @@ namespace FineCodeCoverage.Engine
             string providedDirectory = null;
             return solutionFolderProviders.SelectFirstNonNull(p => p.Value.Provide(() =>
             {
-                if(!provided)
+                if (!provided)
                 {
                     providedDirectory = solutionFolderProvider.Provide(coverageProjects[0].ProjectFile);
                     provided = true;
                 }
                 return providedDirectory;
             }));
-            
+
         }
     }
 }

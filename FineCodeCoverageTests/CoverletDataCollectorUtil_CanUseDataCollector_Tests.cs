@@ -32,7 +32,7 @@ namespace Test
             mockRunSettingsCoverletConfigurationFactory.Setup(rscf => rscf.Create()).Returns(mockRunSettingsCoverletConfiguration.Object);
             setup?.Invoke(mockRunSettingsCoverletConfiguration);
         }
-        
+
         private void SetupDataCollectorState(Mock<ICoverageProject> mockCoverageProject, CoverletDataCollectorState coverletDataCollectorState)
         {
             SetUpRunSettings(mockCoverageProject, mrsc => mrsc.Setup(rsc => rsc.CoverletDataCollectorState).Returns(coverletDataCollectorState));
@@ -41,26 +41,26 @@ namespace Test
         private XElement GetProjectElementWithDataCollector(UseDataCollectorElement useDataCollector)
         {
             var useDataCollectorElement = "";
-            if(useDataCollector != UseDataCollectorElement.None)
+            if (useDataCollector != UseDataCollectorElement.None)
             {
                 var value = "";
-                if(useDataCollector == UseDataCollectorElement.True)
+                if (useDataCollector == UseDataCollectorElement.True)
                 {
                     value = "true";
                 }
-                if(useDataCollector == UseDataCollectorElement.False)
+                if (useDataCollector == UseDataCollectorElement.False)
                 {
                     value = "false";
                 }
                 useDataCollectorElement = $"<PropertyGroup><UseDataCollector>{value}</UseDataCollector></PropertyGroup>";
             }
-            
+
             return XElement.Parse($@"<Project>
 {useDataCollectorElement}
 </Project>");
         }
 
-        
+
 
         [Test]
         public void Should_Factory_Create_Configuration_And_Read_CoverageProject_RunSettings()
@@ -91,7 +91,7 @@ namespace Test
             var mockCoverageProject = new Mock<ICoverageProject>();
             mockCoverageProject.Setup(cp => cp.ProjectFileXElement).Returns(GetProjectElementWithDataCollector(useDataCollector));
             SetupDataCollectorState(mockCoverageProject, CoverletDataCollectorState.Enabled);
-            
+
             Assert.True(coverletDataCollectorUtil.CanUseDataCollector(mockCoverageProject.Object));
         }
 
@@ -136,7 +136,7 @@ namespace Test
             var mockCoverageProject = new Mock<ICoverageProject>();
             mockCoverageProject.Setup(cp => cp.ProjectFileXElement).Returns(GetProjectElementWithDataCollector(useDataCollector));
             SetupDataCollectorState(mockCoverageProject, CoverletDataCollectorState.NotPresent);
-            
+
             Assert.False(coverletDataCollectorUtil.CanUseDataCollector(mockCoverageProject.Object));
         }
 

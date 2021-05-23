@@ -32,7 +32,7 @@ public class Logger : ILogger
     IVsOutputWindowPane CreatePane(Guid paneGuid, string title,
         bool visible, bool clearWithSolution)
     {
-        
+
         ThreadHelper.ThrowIfNotOnUIThread();
         _outputWindow = (IVsOutputWindow)_serviceProvider.GetService(typeof(SVsOutputWindow));
         Assumes.Present(_outputWindow);
@@ -73,12 +73,12 @@ public class Logger : ILogger
             {
                 await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 
-                if(_pane == null)
+                if (_pane == null)
                 {
                     SetPane();
                 }
 
-                if(_pane == null)
+                if (_pane == null)
                 {
                     return;
                 }

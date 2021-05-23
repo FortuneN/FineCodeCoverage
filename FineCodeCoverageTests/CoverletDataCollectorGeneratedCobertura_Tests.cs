@@ -26,7 +26,7 @@ namespace Test
         {
             string tempDirectory = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
             return Directory.CreateDirectory(tempDirectory);
-            
+
         }
 
         [Test]
@@ -60,7 +60,7 @@ namespace Test
             {
                 coverletDataCollectorGeneratedCobertura.CorrectPath(coverageOutputFolder.FullName, coverageOutputFile);
             }, "Data collector did not generate coverage.cobertura.xml");
-            
+
         }
         private string GetLastDirectoryPath()
         {
@@ -81,6 +81,6 @@ namespace Test
             var generatedPath = Path.Combine(directory, CoverletDataCollectorGeneratedCobertura.collectorGeneratedCobertura);
             File.WriteAllText(generatedPath, last ? "last" : "first");
         }
-        
+
     }
 }

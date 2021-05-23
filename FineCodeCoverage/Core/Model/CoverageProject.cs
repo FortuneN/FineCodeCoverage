@@ -469,7 +469,7 @@ namespace FineCodeCoverage.Engine.Model
                     {
                         logger.Log($"Cannot exclude referenced project {referencedProjectProjectFile} of {ProjectFile} with {ReferencedProject.excludeFromCodeCoveragePropertyName}.  Cannot use MSBuildWorkspace");
                     }
-                    
+
                 }
                 else
                 {

@@ -13,7 +13,7 @@ namespace FineCodeCoverage.Core.Utilities
         {
             this.logger = logger;
         }
-        public bool Process(ExecuteResponse result, Func<int, bool> exitCodeSuccessPredicate, bool throwError, string title,Action successCallback = null)
+        public bool Process(ExecuteResponse result, Func<int, bool> exitCodeSuccessPredicate, bool throwError, string title, Action successCallback = null)
         {
             if (result != null)
             {

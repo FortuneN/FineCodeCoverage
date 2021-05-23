@@ -31,6 +31,6 @@ namespace FineCodeCoverage.Core.Utilities
             Order = order;
         }
 
-        public int Order { get;private set;}
+        public int Order { get; private set; }
     }
 }

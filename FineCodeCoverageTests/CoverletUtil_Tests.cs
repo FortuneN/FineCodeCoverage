@@ -26,7 +26,7 @@ namespace Test
             mocker.Verify<ICoverletDataCollectorUtil>(dc => dc.Initialize("folder path"));
         }
 
-        [TestCase(true,true)]
+        [TestCase(true, true)]
         [TestCase(true, false)]
         [TestCase(false, false)]
         [TestCase(false, true)]
@@ -39,7 +39,7 @@ namespace Test
             mockDataCollectorUtil.Setup(dc => dc.RunAsync(throwOnError).Result).Returns(result);
 
             var success = await coverletUtil.RunCoverletAsync(project, throwOnError);
-            
+
             Assert.AreEqual(result, success);
             mockDataCollectorUtil.VerifyAll();
         }

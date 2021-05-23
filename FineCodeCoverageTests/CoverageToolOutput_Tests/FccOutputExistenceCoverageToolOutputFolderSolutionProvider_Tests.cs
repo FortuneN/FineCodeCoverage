@@ -36,12 +36,12 @@ namespace FineCodeCoverageTests.CoverageToolOutput_Tests
         {
             var solutionFolder = "SolutionFolder";
             var expected = Path.Combine("SolutionFolder", "fcc-output");
-            
+
             var mockFileUtil = mocker.GetMock<IFileUtil>();
             mockFileUtil.Setup(fu => fu.DirectoryExists(expected)).Returns(exists);
 
             var provider = mocker.Create<FccOutputExistenceCoverageToolOutputFolderSolutionProvider>();
-            Assert.AreEqual(provider.Provide(() => solutionFolder),exists? expected : null);
+            Assert.AreEqual(provider.Provide(() => solutionFolder), exists ? expected : null);
         }
 
         [Test]

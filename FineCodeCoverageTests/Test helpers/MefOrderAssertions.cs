@@ -15,7 +15,7 @@ namespace FineCodeCoverageTests.Test_helpers
             return classType.GetTypedCustomAttributes<FineCodeCoverage.Core.Utilities.OrderAttribute>(
                 false)[0];
         }
-        public static void TypeHasExpectedOrder(Type classType,int expectedOrder)
+        public static void TypeHasExpectedOrder(Type classType, int expectedOrder)
         {
             Assert.AreEqual(GetOrderAtrribute(classType).Order, expectedOrder);
         }
@@ -39,7 +39,7 @@ namespace FineCodeCoverageTests.Test_helpers
             }).OrderBy(i => i).ToList();
             Assert.Greater(orders.Count, 0);
             var count = 1;
-            foreach(var order in orders)
+            foreach (var order in orders)
             {
                 Assert.AreEqual(order, count);
                 count++;

@@ -5,9 +5,9 @@ namespace FineCodeCoverage.Engine.Cobertura
 {
     interface ICoberturaUtil
     {
-		List<CoverageLine> CoverageLines { get; }
-		
-		void ProcessCoberturaXml(string xml);
-		string[] GetSourceFiles(string assemblyName, string qualifiedClassName, int file);
-	}
+        List<CoverageLine> CoverageLines { get; }
+
+        void ProcessCoberturaXml(string xml);
+        string[] GetSourceFiles(string assemblyName, string qualifiedClassName, int file);
+    }
 }
