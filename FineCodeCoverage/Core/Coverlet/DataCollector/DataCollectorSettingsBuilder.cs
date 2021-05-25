@@ -14,7 +14,13 @@ namespace FineCodeCoverage.Engine.Coverlet
         private string generatedRunSettingsPath;
         private string existingRunSettings;
         private IAppOptions coverageProjectSettings;
+        private readonly ILogger logger;
 
+        [ImportingConstructor]
+        public DataCollectorSettingsBuilder(ILogger logger)
+        {
+            this.logger = logger;
+        }
         #region Arguments
         internal string ProjectDll { get; set; }
         internal string Blame { get; set; }
@@ -67,6 +73,7 @@ namespace FineCodeCoverage.Engine.Coverlet
         private void GenerateRunSettings()
         {
             var runSettingsDocument = existingRunSettings == null ? GenerateFullRunSettings() : GenerateRunSettingsFromExisting();
+            logger.Log($"Saving run settings to {generatedRunSettingsPath}");
             runSettingsDocument.Save(generatedRunSettingsPath);
         }
 
