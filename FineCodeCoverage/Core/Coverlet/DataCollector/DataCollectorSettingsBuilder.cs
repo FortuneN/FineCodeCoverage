@@ -16,7 +16,6 @@ namespace FineCodeCoverage.Engine.Coverlet
         private IAppOptions coverageProjectSettings;
         private readonly ILogger logger;
 
-        [ImportingConstructor]
         public DataCollectorSettingsBuilder(ILogger logger)
         {
             this.logger = logger;
