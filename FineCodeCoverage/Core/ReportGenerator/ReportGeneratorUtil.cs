@@ -407,14 +407,16 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 							{ button: 'btnRiskHotspots', content: 'risk-hotspots' },
 						];
 
+						var riskHotspotsTable;
+						var riskHotspotsElement;
 						var addedFileIndexToRiskHotspots = false;
 						var addFileIndexToRiskHotspotsClassLink = function(){
 						  if(!addedFileIndexToRiskHotspots){
 							addedFileIndexToRiskHotspots = true;
 							var riskHotspotsElements = document.getElementsByTagName('risk-hotspots');
 							if(riskHotspotsElements.length == 1){{
-								var riskHotspotsElement = riskHotspotsElements[0];
-								var riskHotspotsTable = riskHotspotsElement.querySelector('table');
+								riskHotspotsElement = riskHotspotsElements[0];
+								riskHotspotsTable = riskHotspotsElement.querySelector('table');
 								if(riskHotspotsTable){
 									var rhBody = riskHotspotsTable.querySelector('tbody');
 									var rows = rhBody.rows;
@@ -439,10 +441,40 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 							}}
 							}
 						}
+						
+						// necessary for WebBrowser 
+						function removeElement(element){
+							element.parentNode.removeChild(element);
+						}
 
-	var openTab = function (tabIndex) {
+						function insertAfter(newNode, existingNode) {
+							existingNode.parentNode.insertBefore(newNode, existingNode.nextSibling);
+						}
+
+						var noHotspotsMessage
+						var addNoRiskHotspotsMessageIfRequired = function(){
+							if(riskHotspotsTable == null){
+								noHotspotsMessage = document.createElement(""p"");
+								noHotspotsMessage.style.margin = ""0"";
+								noHotspotsMessage.innerText = ""No risk hotspots found."";
+
+								insertAfter(noHotspotsMessage, riskHotspotsElement);
+							}
+						}
+
+						var removeNoRiskHotspotsMessage = function(){
+							if(noHotspotsMessage){
+								removeElement(noHotspotsMessage);
+								noHotspotsMessage = null;
+							}
+						}
+
+						var openTab = function (tabIndex) {
 							if(tabIndex==2){{
 								addFileIndexToRiskHotspotsClassLink();
+								addNoRiskHotspotsMessageIfRequired();
+							}}else{{
+								removeNoRiskHotspotsMessage();
 							}}
 							for (var i = 0; i < tabs.length; i++) {
 							
