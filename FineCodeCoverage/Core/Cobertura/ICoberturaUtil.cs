@@ -7,7 +7,7 @@ namespace FineCodeCoverage.Engine.Cobertura
     {
 		List<CoverageLine> CoverageLines { get; }
 		
-		void ProcessCoberturaXml(string xml);
+		void ProcessCoberturaXml(string xmlFile);
 		string[] GetSourceFiles(string assemblyName, string qualifiedClassName, int file);
 	}
 }

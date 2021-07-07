@@ -17,9 +17,9 @@ namespace FineCodeCoverage.Engine.Cobertura
 		private CoverageReport coverageReport;
 		public List<CoverageLine> CoverageLines { get; private set; }
 
-		private CoverageReport LoadReport(string xml)
+		private CoverageReport LoadReport(string xmlFile)
 		{
-			using (var reader = XmlReader.Create(new StringReader(xml), READER_SETTINGS))
+			using (var reader = XmlReader.Create(xmlFile, READER_SETTINGS))
 			{
 				var report = (CoverageReport)SERIALIZER.Deserialize(reader);
 				return report;
@@ -68,11 +68,11 @@ namespace FineCodeCoverage.Engine.Cobertura
 		//	return jsonText;
 		//}
 
-		public void ProcessCoberturaXml(string xml)
+		public void ProcessCoberturaXml(string xmlFile)
 		{
 			CoverageLines = new List<CoverageLine>();
 
-			coverageReport = LoadReport(xml);
+			coverageReport = LoadReport(xmlFile);
 
 			foreach (var package in coverageReport.Packages.Package)
 			{

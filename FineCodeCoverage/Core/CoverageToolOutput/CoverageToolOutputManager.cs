@@ -13,9 +13,6 @@ namespace FineCodeCoverage.Engine
     {
         private readonly ILogger logger;
         private readonly IFileUtil fileUtil;
-        private const string unifiedHtmlFileName = "index.html";
-        private const string unifiedXmlFileName = "Cobertura.xml";
-        private const string processedHtmlFileName = "index-processed.html";
         private const string projectCoverageToolOutputFolderName = "coverage-tool-output";
         private string outputFolderForAllProjects;
         private List<ICoverageProject> coverageProjects;
@@ -50,14 +47,7 @@ namespace FineCodeCoverage.Engine
             }
         }
 
-        public void OutputReports(string unifiedHtml, string processedReport, string unifiedXml)
-        {
-            var outputFolder = outputFolderForAllProjects ?? coverageProjects[0].CoverageOutputFolder;
-
-            fileUtil.WriteAllText(Path.Combine(outputFolder, unifiedHtmlFileName), unifiedHtml);
-            fileUtil.WriteAllText(Path.Combine(outputFolder, processedHtmlFileName), processedReport);
-            fileUtil.WriteAllText(Path.Combine(outputFolder, unifiedXmlFileName), unifiedXml);
-        }
+        
 
         private void DetermineOutputFolder()
         {
@@ -66,6 +56,11 @@ namespace FineCodeCoverage.Engine
             {
                 logger.Log($"FCC output in {outputFolderForAllProjects}");
             }
+        }
+
+        public string GetReportOutputFolder()
+        {
+            return outputFolderForAllProjects ?? coverageProjects[0].CoverageOutputFolder;
         }
     }
 }

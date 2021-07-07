@@ -155,7 +155,7 @@ namespace FineCodeCoverage.Engine
             RaiseUpdateOutputWindow(reportHtml);
         }
 
-        private async System.Threading.Tasks.Task<(List<CoverageLine> coverageLines,string reportFilePath)> RunAndProcessReportAsync(string[] coverOutputFiles,CancellationToken cancellationToken)
+        private async System.Threading.Tasks.Task<(List<CoverageLine> coverageLines,string reportFilePath)> RunAndProcessReportAsync(string[] coverOutputFiles,string reportOutputFolder,CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -164,15 +164,16 @@ namespace FineCodeCoverage.Engine
             
             var darkMode = CurrentTheme.Equals("Dark", StringComparison.OrdinalIgnoreCase);
 
-            var result = await reportGeneratorUtil.GenerateAsync(coverOutputFiles, darkMode, true);
+            var result = await reportGeneratorUtil.GenerateAsync(coverOutputFiles,reportOutputFolder, darkMode, true);
 
             if (result.Success)
             {
-                coberturaUtil.ProcessCoberturaXml(result.UnifiedXml);
+                logger.Log("Processing cobertura");
+                coberturaUtil.ProcessCoberturaXml(result.UnifiedXmlFile);
                 coverageLines = coberturaUtil.CoverageLines;
 
-                processedReport = reportGeneratorUtil.ProcessUnifiedHtml(result.UnifiedHtml, darkMode);
-                coverageOutputManager.OutputReports(result.UnifiedHtml, processedReport, result.UnifiedXml);
+                logger.Log("Processing report");
+                processedReport = reportGeneratorUtil.ProcessUnifiedHtml(result.UnifiedHtml,reportOutputFolder, darkMode);
             }
             return (coverageLines, processedReport);
         }
@@ -257,12 +258,13 @@ namespace FineCodeCoverage.Engine
                 var coverageProjects = await coverageRequestCallback();
 
                 coverageOutputManager.SetProjectCoverageOutputFolder(coverageProjects);
+                var reportOutputFolder = coverageOutputManager.GetReportOutputFolder();
 
                 var coverOutputFiles = await RunCoverageAsync(coverageProjects, cancellationToken);
 
                 if (coverOutputFiles.Any())
                 {
-                    var (lines, report) = await RunAndProcessReportAsync(coverOutputFiles,cancellationToken);
+                    var (lines, report) = await RunAndProcessReportAsync(coverOutputFiles,reportOutputFolder,cancellationToken);
                     coverageLines = lines;
                     reportHtml = report;
                 }

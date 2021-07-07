@@ -120,7 +120,7 @@ namespace FineCodeCoverage.Engine.Coverlet
         {
             var dataCollectorSettingsBuilder = dataCollectorSettingsBuilderFactory.Create();
             dataCollectorSettingsBuilder
-                .Initialize(coverageProject.Settings, coverageProject.RunSettingsFile, $"{coverageProject.CoverageOutputFolder}/FCC.runsettings");
+                .Initialize(coverageProject.Settings, coverageProject.RunSettingsFile, Path.Combine(coverageProject.CoverageOutputFolder,"FCC.runsettings"));
             
             // command arguments
             dataCollectorSettingsBuilder

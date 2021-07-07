@@ -17,15 +17,15 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 	interface IReportGeneratorUtil
     {
 		void Initialize(string appDataFolder);
-		string ProcessUnifiedHtml(string htmlForProcessing, bool darkMode);
-		Task<ReportGeneratorResult> GenerateAsync(IEnumerable<string> coverOutputFiles, bool darkMode, bool throwError = false);
+		string ProcessUnifiedHtml(string htmlForProcessing,string reportOutputFolder, bool darkMode);
+		Task<ReportGeneratorResult> GenerateAsync(IEnumerable<string> coverOutputFiles,string reportOutputFolder, bool darkMode, bool throwError = false);
 
 	}
 
 	internal class ReportGeneratorResult
 	{
 		public string UnifiedHtml { get; set; }
-		public string UnifiedXml { get; set; }
+		public string UnifiedXmlFile { get; set; }
 		public bool Success { get; set; }
 	}
 
@@ -68,17 +68,16 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 								  ?? Directory.GetFiles(zipDestination, "*reportGenerator*.exe", SearchOption.AllDirectories).FirstOrDefault();
 		}
 
-		public async Task<ReportGeneratorResult> GenerateAsync(IEnumerable<string> coverOutputFiles, bool darkMode, bool throwError = false)
+		public async Task<ReportGeneratorResult> GenerateAsync(IEnumerable<string> coverOutputFiles,string reportOutputFolder, bool darkMode, bool throwError = false)
 		{
 			var title = "ReportGenerator Run";
-			var tempDirectory = fileUtil.CreateTempDirectory();
 
-			var unifiedHtmlFile = Path.Combine(tempDirectory, "index.html");
-			var unifiedXmlFile = Path.Combine(tempDirectory, "Cobertura.xml");
+			var unifiedHtmlFile = Path.Combine(reportOutputFolder, "index.html");
+			var unifiedXmlFile = Path.Combine(reportOutputFolder, "Cobertura.xml");
 
 			var reportGeneratorSettings = new List<string>();
 
-			reportGeneratorSettings.Add($@"""-targetdir:{tempDirectory}""");
+			reportGeneratorSettings.Add($@"""-targetdir:{reportOutputFolder}""");
 			
 			async Task<bool> run(string outputReportType, string inputReports)
 			{
@@ -107,7 +106,7 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 					{
 						FilePath = ReportGeneratorExePath,
 						Arguments = string.Join(" ", reportTypeSettings),
-						WorkingDirectory = tempDirectory
+						WorkingDirectory = reportOutputFolder
 					});
 				
 
@@ -115,12 +114,14 @@ namespace FineCodeCoverage.Engine.ReportGenerator
                 {
 					if (result.ExitCode != 0)
 					{
+						logger.Log($"{title} [reporttype:{outputReportType}] Error", result.Output);
+						logger.Log($"{title} [reporttype:{outputReportType}] Error", result.ExitCode);
+
 						if (throwError)
 						{
 							throw new Exception(result.Output);
 						}
 
-						logger.Log($"{title} [reporttype:{outputReportType}] Error", result.Output);
 						return false;
 					}
 
@@ -131,7 +132,7 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 				
 			}
 			
-			var reportGeneratorResult = new ReportGeneratorResult { Success = false, UnifiedHtml = null, UnifiedXml = null };
+			var reportGeneratorResult = new ReportGeneratorResult { Success = false, UnifiedHtml = null, UnifiedXmlFile = unifiedXmlFile };
 			
 			var coberturaResult = await run("Cobertura", string.Join(";", coverOutputFiles));
 
@@ -140,20 +141,17 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 				var htmlResult = await run("HtmlInline_AzurePipelines", unifiedXmlFile);
 				if (htmlResult)
 				{
-					reportGeneratorResult.UnifiedXml = fileUtil.ReadAllText(unifiedXmlFile);
 					reportGeneratorResult.UnifiedHtml = fileUtil.ReadAllText(unifiedHtmlFile);
 					reportGeneratorResult.Success = true;
                 }
 				
 			}
 
-			fileUtil.TryDeleteDirectory(tempDirectory);
-			
 			return reportGeneratorResult;
 			
 		}
 
-		public string ProcessUnifiedHtml(string htmlForProcessing, bool darkMode)
+		public string ProcessUnifiedHtml(string htmlForProcessing, string reportOutputFolder, bool darkMode)
 		{
 			return assemblyUtil.RunInAssemblyResolvingContext(() =>
 			{
@@ -163,6 +161,7 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 				doc.OptionAutoCloseOnEnd = true;
 
 				doc.LoadHtml(htmlForProcessing);
+				htmlForProcessing = null;
 
 				doc.DocumentNode.QuerySelectorAll(".footer").ToList().ForEach(x => x.SetAttributeValue("style", "display:none"));
 				doc.DocumentNode.QuerySelectorAll(".container").ToList().ForEach(x => x.SetAttributeValue("style", "margin:0;padding:0;border:0"));
@@ -500,7 +499,7 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 
 				htmlSb.Replace("branchCoverageAvailable = true", "branchCoverageAvailable = false");
 
-				return string.Join(
+				var processed = string.Join(
 				Environment.NewLine,
 				htmlSb.ToString().Split('\r', '\n')
 				.Select(line =>
@@ -565,6 +564,11 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 
 					return line;
 				}));
+
+				var processedHtmlFile = Path.Combine(reportOutputFolder, "index-processed.html");
+				File.WriteAllText(processedHtmlFile, processed);
+
+				return processed;
 
 			});
 		}
