@@ -18,5 +18,8 @@
         string CoverletCollectorDirectoryPath { get; }
         string OpenCoverCustomPath { get; }
         string FCCSolutionOutputDirectoryName { get; }
+        int ThresholdForCyclomaticComplexity { get; }
+        int ThresholdForNPathComplexity { get; }
+        int ThresholdForCrapScore { get; }
     }
 }

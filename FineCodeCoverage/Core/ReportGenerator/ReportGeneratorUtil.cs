@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using FineCodeCoverage.Core.Utilities;
+using FineCodeCoverage.Options;
 using Fizzler.Systems.HtmlAgilityPack;
 using HtmlAgilityPack;
 using Newtonsoft.Json;
@@ -38,7 +39,8 @@ namespace FineCodeCoverage.Engine.ReportGenerator
         private readonly IToolFolder toolFolder;
         private readonly IToolZipProvider toolZipProvider;
 		private readonly IFileUtil fileUtil;
-		private const string zipPrefix = "reportGenerator";
+        private readonly IAppOptionsProvider appOptionsProvider;
+        private const string zipPrefix = "reportGenerator";
 		private const string zipDirectoryName = "reportGenerator";
 
         public string ReportGeneratorExePath { get; private set; }
@@ -50,10 +52,12 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 			ILogger logger,
 			IToolFolder toolFolder,
 			IToolZipProvider toolZipProvider,
-			IFileUtil fileUtil
+			IFileUtil fileUtil,
+			IAppOptionsProvider appOptionsProvider
 			)
 		{
 			this.fileUtil = fileUtil;
+            this.appOptionsProvider = appOptionsProvider;
             this.assemblyUtil = assemblyUtil;
             this.processUtil = processUtil;
             this.logger = logger;
@@ -87,6 +91,15 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 				{
 					reportTypeSettings.Add($@"""-reports:{inputReports}""");
 					reportTypeSettings.Add($@"""-reporttypes:Cobertura""");
+					var options = appOptionsProvider.Get();
+					var cyclomaticThreshold = options.ThresholdForCyclomaticComplexity;
+					var crapScoreThreshold = options.ThresholdForCrapScore;
+					var nPathThreshold = options.ThresholdForNPathComplexity;
+					
+					reportTypeSettings.Add($@"""-riskHotspotsAnalysisThresholds:metricThresholdForCyclomaticComplexity={cyclomaticThreshold}""");
+					reportTypeSettings.Add($@"""-riskHotspotsAnalysisThresholds:metricThresholdForCrapScore={crapScoreThreshold}""");
+					reportTypeSettings.Add($@"""-riskHotspotsAnalysisThresholds:metricThresholdForNPathComplexity={nPathThreshold}""");
+
 				}
 				else if (outputReportType.Equals("HtmlInline_AzurePipelines", StringComparison.OrdinalIgnoreCase))
 				{

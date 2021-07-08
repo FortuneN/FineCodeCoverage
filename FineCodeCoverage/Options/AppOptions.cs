@@ -13,6 +13,7 @@ namespace FineCodeCoverage.Options
         private const string coverletCategory = "Coverlet";
         private const string openCoverCategory = "OpenCover";
         private const string outputCategory = "Output";
+        private const string reportCategory = "Report";
 
         public AppOptions():this(false)
         {
@@ -136,6 +137,16 @@ namespace FineCodeCoverage.Options
         [Description("To have fcc output visible in a sub folder of your solution provide this name")]
         [Category(outputCategory)]
         public string FCCSolutionOutputDirectoryName { get; set; }
+
+        [Category(reportCategory)]
+        [Description("When cyclomatic complexity exceeds this value for a method then the method will be present in the risk hotspots tab.")]
+        public int ThresholdForCyclomaticComplexity { get; set; } = 30
+        [Category(reportCategory)]
+        [Description("When npath complexity exceeds this value for a method then the method will be present in the risk hotspots tab. OpenCover only")]
+        public int ThresholdForNPathComplexity { get; set; } = 200
+        [Category(reportCategory)]
+        [Description("When crap score exceeds this value for a method then the method will be present in the risk hotspots tab. OpenCover only")]
+        public int ThresholdForCrapScore { get; set; } = 15
 
         [SuppressMessage("Usage", "VSTHRD010:Invoke single-threaded types on Main thread")]
         public override void SaveSettingsToStorage()
