@@ -47,7 +47,7 @@ namespace FineCodeCoverage.Engine.OpenCover
 		
 		private string GetOpenCoverExePath(string customExePath)
         {
-			if(customExePath != null)
+			if(!String.IsNullOrWhiteSpace(customExePath))
             {
 				return customExePath;
             }
