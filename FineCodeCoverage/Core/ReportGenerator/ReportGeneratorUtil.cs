@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using FineCodeCoverage.Core.Utilities;
+using FineCodeCoverage.Options;
 using Fizzler.Systems.HtmlAgilityPack;
 using HtmlAgilityPack;
 using Newtonsoft.Json;
@@ -38,7 +39,8 @@ namespace FineCodeCoverage.Engine.ReportGenerator
         private readonly IToolFolder toolFolder;
         private readonly IToolZipProvider toolZipProvider;
 		private readonly IFileUtil fileUtil;
-		private const string zipPrefix = "reportGenerator";
+        private readonly IAppOptionsProvider appOptionsProvider;
+        private const string zipPrefix = "reportGenerator";
 		private const string zipDirectoryName = "reportGenerator";
 
         public string ReportGeneratorExePath { get; private set; }
@@ -50,10 +52,12 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 			ILogger logger,
 			IToolFolder toolFolder,
 			IToolZipProvider toolZipProvider,
-			IFileUtil fileUtil
+			IFileUtil fileUtil,
+			IAppOptionsProvider appOptionsProvider
 			)
 		{
 			this.fileUtil = fileUtil;
+            this.appOptionsProvider = appOptionsProvider;
             this.assemblyUtil = assemblyUtil;
             this.processUtil = processUtil;
             this.logger = logger;
@@ -87,12 +91,22 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 				{
 					reportTypeSettings.Add($@"""-reports:{inputReports}""");
 					reportTypeSettings.Add($@"""-reporttypes:Cobertura""");
+					
 				}
 				else if (outputReportType.Equals("HtmlInline_AzurePipelines", StringComparison.OrdinalIgnoreCase))
 				{
 					reportTypeSettings.Add($@"""-reports:{inputReports}""");
 					reportTypeSettings.Add($@"""-plugins:{typeof(FccLightReportBuilder).Assembly.Location}""");
 					reportTypeSettings.Add($@"""-reporttypes:{(darkMode ? FccDarkReportBuilder.REPORT_TYPE : FccLightReportBuilder.REPORT_TYPE)}""");
+					var options = appOptionsProvider.Get();
+					var cyclomaticThreshold = options.ThresholdForCyclomaticComplexity;
+					var crapScoreThreshold = options.ThresholdForCrapScore;
+					var nPathThreshold = options.ThresholdForNPathComplexity;
+
+					reportTypeSettings.Add($@"""riskHotspotsAnalysisThresholds:metricThresholdForCyclomaticComplexity={cyclomaticThreshold}""");
+					reportTypeSettings.Add($@"""riskHotspotsAnalysisThresholds:metricThresholdForCrapScore={crapScoreThreshold}""");
+					reportTypeSettings.Add($@"""riskHotspotsAnalysisThresholds:metricThresholdForNPathComplexity={nPathThreshold}""");
+
 				}
 				else
 				{
@@ -407,14 +421,16 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 							{ button: 'btnRiskHotspots', content: 'risk-hotspots' },
 						];
 
+						var riskHotspotsTable;
+						var riskHotspotsElement;
 						var addedFileIndexToRiskHotspots = false;
 						var addFileIndexToRiskHotspotsClassLink = function(){
 						  if(!addedFileIndexToRiskHotspots){
 							addedFileIndexToRiskHotspots = true;
 							var riskHotspotsElements = document.getElementsByTagName('risk-hotspots');
 							if(riskHotspotsElements.length == 1){{
-								var riskHotspotsElement = riskHotspotsElements[0];
-								var riskHotspotsTable = riskHotspotsElement.querySelector('table');
+								riskHotspotsElement = riskHotspotsElements[0];
+								riskHotspotsTable = riskHotspotsElement.querySelector('table');
 								if(riskHotspotsTable){
 									var rhBody = riskHotspotsTable.querySelector('tbody');
 									var rows = rhBody.rows;
@@ -439,10 +455,40 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 							}}
 							}
 						}
+						
+						// necessary for WebBrowser 
+						function removeElement(element){
+							element.parentNode.removeChild(element);
+						}
 
-	var openTab = function (tabIndex) {
+						function insertAfter(newNode, existingNode) {
+							existingNode.parentNode.insertBefore(newNode, existingNode.nextSibling);
+						}
+
+						var noHotspotsMessage
+						var addNoRiskHotspotsMessageIfRequired = function(){
+							if(riskHotspotsTable == null){
+								noHotspotsMessage = document.createElement(""p"");
+								noHotspotsMessage.style.margin = ""0"";
+								noHotspotsMessage.innerText = ""No risk hotspots found."";
+
+								insertAfter(noHotspotsMessage, riskHotspotsElement);
+							}
+						}
+
+						var removeNoRiskHotspotsMessage = function(){
+							if(noHotspotsMessage){
+								removeElement(noHotspotsMessage);
+								noHotspotsMessage = null;
+							}
+						}
+
+						var openTab = function (tabIndex) {
 							if(tabIndex==2){{
 								addFileIndexToRiskHotspotsClassLink();
+								addNoRiskHotspotsMessageIfRequired();
+							}}else{{
+								removeNoRiskHotspotsMessage();
 							}}
 							for (var i = 0; i < tabs.length; i++) {
 							

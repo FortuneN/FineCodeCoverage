@@ -121,6 +121,10 @@ ExcludeByFile					Glob patterns specifying source files to exclude e.g. **/Migra
 ExcludeByAttribute				Attributes to exclude from code coverage (multiple values)
 IncludeTestAssembly				Specifies whether to report code coverage of the test assembly
 
+ThresholdForCyclomaticComplexity When [cyclomatic complexity](https://en.wikipedia.org/wiki/Cyclomatic_complexity) exceeds this value for a method then the method will be present in the risk hotspots tab. 
+ThresholdForNPathComplexity     When [npath complexity](https://en.wikipedia.org/wiki/Cyclomatic_complexity) exceeds this value for a method then the method will be present in the risk hotspots tab. OpenCover only.
+ThresholdForCrapScore           When [crap score](https://testing.googleblog.com/2011/02/this-code-is-crap.html) exceeds this value for a method then the method will be present in the risk hotspots tab. OpenCover only. 
+
 RunSettingsOnly					Specify false for global and project options to be used for coverlet data collector configuration elements when not specified in runsettings
 CoverletCollectorDirectoryPath	Specify path to directory containing coverlet collector files if you need functionality that the FCC version does not provide.
 
@@ -138,6 +142,8 @@ You can ignore a method or an entire class from code coverage by creating and ap
 You can also ignore additional attributes by adding to the 'ExcludeByAttributes' list (short name or full name supported) e.g. :
 [GeneratedCode] => Present in System.CodeDom.Compiler namespace
 [MyCustomExcludeFromCodeCoverage] => Any custom attribute that you may define
+
+ 
 ```
 
 #### Filter Expressions
