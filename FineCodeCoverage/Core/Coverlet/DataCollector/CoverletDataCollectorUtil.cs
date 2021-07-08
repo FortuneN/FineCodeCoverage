@@ -169,7 +169,7 @@ namespace FineCodeCoverage.Engine.Coverlet
 
         private string GetTestAdapterPathArg()
         {
-            if (coverageProject.Settings.CoverletCollectorDirectoryPath != null) {
+            if (!String.IsNullOrWhiteSpace(coverageProject.Settings.CoverletCollectorDirectoryPath)) {
                 var directoryPath = coverageProject.Settings.CoverletCollectorDirectoryPath.Trim();
                 if (Directory.Exists(directoryPath))
                 {
