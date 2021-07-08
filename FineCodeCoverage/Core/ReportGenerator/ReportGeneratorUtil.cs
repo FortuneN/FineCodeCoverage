@@ -91,21 +91,22 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 				{
 					reportTypeSettings.Add($@"""-reports:{inputReports}""");
 					reportTypeSettings.Add($@"""-reporttypes:Cobertura""");
-					var options = appOptionsProvider.Get();
-					var cyclomaticThreshold = options.ThresholdForCyclomaticComplexity;
-					var crapScoreThreshold = options.ThresholdForCrapScore;
-					var nPathThreshold = options.ThresholdForNPathComplexity;
 					
-					reportTypeSettings.Add($@"""-riskHotspotsAnalysisThresholds:metricThresholdForCyclomaticComplexity={cyclomaticThreshold}""");
-					reportTypeSettings.Add($@"""-riskHotspotsAnalysisThresholds:metricThresholdForCrapScore={crapScoreThreshold}""");
-					reportTypeSettings.Add($@"""-riskHotspotsAnalysisThresholds:metricThresholdForNPathComplexity={nPathThreshold}""");
-
 				}
 				else if (outputReportType.Equals("HtmlInline_AzurePipelines", StringComparison.OrdinalIgnoreCase))
 				{
 					reportTypeSettings.Add($@"""-reports:{inputReports}""");
 					reportTypeSettings.Add($@"""-plugins:{typeof(FccLightReportBuilder).Assembly.Location}""");
 					reportTypeSettings.Add($@"""-reporttypes:{(darkMode ? FccDarkReportBuilder.REPORT_TYPE : FccLightReportBuilder.REPORT_TYPE)}""");
+					var options = appOptionsProvider.Get();
+					var cyclomaticThreshold = options.ThresholdForCyclomaticComplexity;
+					var crapScoreThreshold = options.ThresholdForCrapScore;
+					var nPathThreshold = options.ThresholdForNPathComplexity;
+
+					reportTypeSettings.Add($@"""riskHotspotsAnalysisThresholds:metricThresholdForCyclomaticComplexity={cyclomaticThreshold}""");
+					reportTypeSettings.Add($@"""riskHotspotsAnalysisThresholds:metricThresholdForCrapScore={crapScoreThreshold}""");
+					reportTypeSettings.Add($@"""riskHotspotsAnalysisThresholds:metricThresholdForNPathComplexity={nPathThreshold}""");
+
 				}
 				else
 				{

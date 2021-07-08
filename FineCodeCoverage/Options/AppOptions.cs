@@ -140,13 +140,15 @@ namespace FineCodeCoverage.Options
 
         [Category(reportCategory)]
         [Description("When cyclomatic complexity exceeds this value for a method then the method will be present in the risk hotspots tab.")]
-        public int ThresholdForCyclomaticComplexity { get; set; } = 30
+        public int ThresholdForCyclomaticComplexity { get; set; } = 30;
+
         [Category(reportCategory)]
         [Description("When npath complexity exceeds this value for a method then the method will be present in the risk hotspots tab. OpenCover only")]
-        public int ThresholdForNPathComplexity { get; set; } = 200
+        public int ThresholdForNPathComplexity { get; set; } = 200;
+        
         [Category(reportCategory)]
         [Description("When crap score exceeds this value for a method then the method will be present in the risk hotspots tab. OpenCover only")]
-        public int ThresholdForCrapScore { get; set; } = 15
+        public int ThresholdForCrapScore { get; set; } = 15;
 
         [SuppressMessage("Usage", "VSTHRD010:Invoke single-threaded types on Main thread")]
         public override void SaveSettingsToStorage()
