@@ -31,24 +31,24 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 	}
 
 	[Export(typeof(IReportGeneratorUtil))]
-	internal partial class ReportGeneratorUtil: IReportGeneratorUtil
+	internal partial class ReportGeneratorUtil : IReportGeneratorUtil
 	{
-        private readonly IAssemblyUtil assemblyUtil;
-        private readonly IProcessUtil processUtil;
-        private readonly ILogger logger;
-        private readonly IToolFolder toolFolder;
-        private readonly IToolZipProvider toolZipProvider;
+		private readonly IAssemblyUtil assemblyUtil;
+		private readonly IProcessUtil processUtil;
+		private readonly ILogger logger;
+		private readonly IToolFolder toolFolder;
+		private readonly IToolZipProvider toolZipProvider;
 		private readonly IFileUtil fileUtil;
-        private readonly IAppOptionsProvider appOptionsProvider;
-        private const string zipPrefix = "reportGenerator";
+		private readonly IAppOptionsProvider appOptionsProvider;
+		private const string zipPrefix = "reportGenerator";
 		private const string zipDirectoryName = "reportGenerator";
 
-        public string ReportGeneratorExePath { get; private set; }
+		public string ReportGeneratorExePath { get; private set; }
 
 		[ImportingConstructor]
 		public ReportGeneratorUtil(
 			IAssemblyUtil assemblyUtil,
-			IProcessUtil processUtil, 
+			IProcessUtil processUtil,
 			ILogger logger,
 			IToolFolder toolFolder,
 			IToolZipProvider toolZipProvider,
@@ -57,13 +57,13 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 			)
 		{
 			this.fileUtil = fileUtil;
-            this.appOptionsProvider = appOptionsProvider;
-            this.assemblyUtil = assemblyUtil;
-            this.processUtil = processUtil;
-            this.logger = logger;
-            this.toolFolder = toolFolder;
-            this.toolZipProvider = toolZipProvider;
-        }
+			this.appOptionsProvider = appOptionsProvider;
+			this.assemblyUtil = assemblyUtil;
+			this.processUtil = processUtil;
+			this.logger = logger;
+			this.toolFolder = toolFolder;
+			this.toolZipProvider = toolZipProvider;
+		}
 
 		public void Initialize(string appDataFolder)
 		{
@@ -72,7 +72,7 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 								  ?? Directory.GetFiles(zipDestination, "*reportGenerator*.exe", SearchOption.AllDirectories).FirstOrDefault();
 		}
 
-		public async Task<ReportGeneratorResult> GenerateAsync(IEnumerable<string> coverOutputFiles,string reportOutputFolder, bool darkMode, bool throwError = false)
+		public async Task<ReportGeneratorResult> GenerateAsync(IEnumerable<string> coverOutputFiles, string reportOutputFolder, bool darkMode, bool throwError = false)
 		{
 			var title = "ReportGenerator Run";
 
@@ -82,7 +82,7 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 			var reportGeneratorSettings = new List<string>();
 
 			reportGeneratorSettings.Add($@"""-targetdir:{reportOutputFolder}""");
-			
+
 			async Task<bool> run(string outputReportType, string inputReports)
 			{
 				var reportTypeSettings = reportGeneratorSettings.ToArray().ToList();
@@ -91,17 +91,14 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 				{
 					reportTypeSettings.Add($@"""-reports:{inputReports}""");
 					reportTypeSettings.Add($@"""-reporttypes:Cobertura""");
-					
+
 				}
 				else if (outputReportType.Equals("HtmlInline_AzurePipelines", StringComparison.OrdinalIgnoreCase))
 				{
 					reportTypeSettings.Add($@"""-reports:{inputReports}""");
 					reportTypeSettings.Add($@"""-plugins:{typeof(FccLightReportBuilder).Assembly.Location}""");
 					reportTypeSettings.Add($@"""-reporttypes:{(darkMode ? FccDarkReportBuilder.REPORT_TYPE : FccLightReportBuilder.REPORT_TYPE)}""");
-					var options = appOptionsProvider.Get();
-					var cyclomaticThreshold = options.ThresholdForCyclomaticComplexity;
-					var crapScoreThreshold = options.ThresholdForCrapScore;
-					var nPathThreshold = options.ThresholdForNPathComplexity;
+					var (cyclomaticThreshold, crapScoreThreshold, nPathThreshold) = HotspotThresholds();
 
 					reportTypeSettings.Add($@"""riskHotspotsAnalysisThresholds:metricThresholdForCyclomaticComplexity={cyclomaticThreshold}""");
 					reportTypeSettings.Add($@"""riskHotspotsAnalysisThresholds:metricThresholdForCrapScore={crapScoreThreshold}""");
@@ -122,10 +119,10 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 						Arguments = string.Join(" ", reportTypeSettings),
 						WorkingDirectory = reportOutputFolder
 					});
-				
 
-				if(result != null)
-                {
+
+				if (result != null)
+				{
 					if (result.ExitCode != 0)
 					{
 						logger.Log($"{title} [reporttype:{outputReportType}] Error", result.Output);
@@ -143,11 +140,11 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 					return true;
 				}
 				return false;
-				
+
 			}
-			
+
 			var reportGeneratorResult = new ReportGeneratorResult { Success = false, UnifiedHtml = null, UnifiedXmlFile = unifiedXmlFile };
-			
+
 			var coberturaResult = await run("Cobertura", string.Join(";", coverOutputFiles));
 
 			if (coberturaResult)
@@ -157,18 +154,23 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 				{
 					reportGeneratorResult.UnifiedHtml = fileUtil.ReadAllText(unifiedHtmlFile);
 					reportGeneratorResult.Success = true;
-                }
-				
+				}
+
 			}
 
 			return reportGeneratorResult;
-			
+
 		}
 
 		public string ProcessUnifiedHtml(string htmlForProcessing, string reportOutputFolder, bool darkMode)
 		{
 			return assemblyUtil.RunInAssemblyResolvingContext(() =>
 			{
+				var (cyclomaticThreshold, crapScoreThreshold, nPathThreshold) = HotspotThresholds();
+				var noRiskHotspotsHeader = "No risk hotspots that exceed options :";
+				var noRiskHotspotsCyclomaticMsg = $"Cyclomatic complexity : {cyclomaticThreshold}";
+				var noRiskHotspotsNpathMsg =$"NPath complexity      : {nPathThreshold}";
+				var noRiskHotspotsCrapMessage = $"Crap score            : {crapScoreThreshold}";
 				var doc = new HtmlDocument();
 
 				doc.OptionFixNestedTags = true;
@@ -181,7 +183,7 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 				doc.DocumentNode.QuerySelectorAll(".container").ToList().ForEach(x => x.SetAttributeValue("style", "margin:0;padding:0;border:0"));
 				doc.DocumentNode.QuerySelectorAll(".containerleft").ToList().ForEach(x => x.SetAttributeValue("style", "margin:0;padding:0;border:0"));
 				doc.DocumentNode.QuerySelectorAll(".containerleft > h1 , .containerleft > p").ToList().ForEach(x => x.SetAttributeValue("style", "display:none"));
-				
+
 				// DOM changes
 
 				var table = doc.DocumentNode.QuerySelectorAll("table.overview").First();
@@ -242,29 +244,29 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 				var assembliesReplaced = assemblies.ToString();
 				htmlSb.Replace(assembliesToReplace, assembliesReplaced);
 
-                //is this even present if there are no riskhotspots
-                var riskHotspotsSearch = "var riskHotspots = [";
-                var rhStartIndex = outerHtml.IndexOf(riskHotspotsSearch) + riskHotspotsSearch.Length - 1;
-                var rhEndIndex = outerHtml.IndexOf("var branchCoverageAvailable");
-                var rhToReplace = outerHtml.Substring(rhStartIndex, rhEndIndex - rhStartIndex);
-                rhEndIndex = rhToReplace.LastIndexOf(']');
-                rhToReplace = rhToReplace.Substring(0, rhEndIndex + 1);
+				//is this even present if there are no riskhotspots
+				var riskHotspotsSearch = "var riskHotspots = [";
+				var rhStartIndex = outerHtml.IndexOf(riskHotspotsSearch) + riskHotspotsSearch.Length - 1;
+				var rhEndIndex = outerHtml.IndexOf("var branchCoverageAvailable");
+				var rhToReplace = outerHtml.Substring(rhStartIndex, rhEndIndex - rhStartIndex);
+				rhEndIndex = rhToReplace.LastIndexOf(']');
+				rhToReplace = rhToReplace.Substring(0, rhEndIndex + 1);
 
-                var riskHotspots = JArray.Parse(rhToReplace);
-                foreach (JObject riskHotspot in riskHotspots)
-                {
-                    var assembly = riskHotspot["assembly"].ToString();
-                    var qualifiedClassName = riskHotspot["class"].ToString();
+				var riskHotspots = JArray.Parse(rhToReplace);
+				foreach (JObject riskHotspot in riskHotspots)
+				{
+					var assembly = riskHotspot["assembly"].ToString();
+					var qualifiedClassName = riskHotspot["class"].ToString();
 					// simplify name
 					var lastIndexOfDotInName = qualifiedClassName.LastIndexOf('.');
 					if (lastIndexOfDotInName != -1) riskHotspot["class"] = qualifiedClassName.Substring(lastIndexOfDotInName).Trim('.');
 					var newReportPath = $"#{assembly}{assemblyClassDelimiter}{qualifiedClassName}.html";
-                    riskHotspot["reportPath"] = newReportPath;
-                }
-                var riskHotspotsReplaced = riskHotspots.ToString();
-                htmlSb.Replace(rhToReplace, riskHotspotsReplaced);
+					riskHotspot["reportPath"] = newReportPath;
+				}
+				var riskHotspotsReplaced = riskHotspots.ToString();
+				htmlSb.Replace(rhToReplace, riskHotspotsReplaced);
 
-                htmlSb.Replace(".table-fixed", ".table-fixed-ignore-me");
+				htmlSb.Replace(".table-fixed", ".table-fixed-ignore-me");
 
 				htmlSb.Replace("</head>", $@"
 					<style type=""text/css"">
@@ -391,23 +393,23 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 					");
 				}
 
-				htmlSb.Replace("<body>", @"
+				htmlSb.Replace("<body>", $@"
 					<body oncontextmenu='return false;'>
 					<style>
 						
-						table#headerTabs td {
+						table#headerTabs td {{
 							border-width:3px;
 							padding: 3px;
 							padding-left: 7px;
 							padding-right: 7px;
-						}
-						table#headerTabs td.tab {
+						}}
+						table#headerTabs td.tab {{
 							cursor: pointer;
-						}
-						table#headerTabs td.active {
+						}}
+						table#headerTabs td.active {{
 							border-bottom: 3px solid transparent;
 							font-weight: bolder;
-						}
+						}}
 						
 					</style>
 					<script>
@@ -416,25 +418,25 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 						body.style['padding-top'] = '50px';
 					
 						var tabs = [
-							{ button: 'btnCoverage', content: 'coverage-info' }, 
-							{ button: 'btnSummary', content: 'table-fixed' },
-							{ button: 'btnRiskHotspots', content: 'risk-hotspots' },
+							{{ button: 'btnCoverage', content: 'coverage-info' }}, 
+							{{ button: 'btnSummary', content: 'table-fixed' }},
+							{{ button: 'btnRiskHotspots', content: 'risk-hotspots' }},
 						];
 
 						var riskHotspotsTable;
 						var riskHotspotsElement;
 						var addedFileIndexToRiskHotspots = false;
-						var addFileIndexToRiskHotspotsClassLink = function(){
-						  if(!addedFileIndexToRiskHotspots){
+						var addFileIndexToRiskHotspotsClassLink = function(){{
+						  if(!addedFileIndexToRiskHotspots){{
 							addedFileIndexToRiskHotspots = true;
 							var riskHotspotsElements = document.getElementsByTagName('risk-hotspots');
 							if(riskHotspotsElements.length == 1){{
 								riskHotspotsElement = riskHotspotsElements[0];
 								riskHotspotsTable = riskHotspotsElement.querySelector('table');
-								if(riskHotspotsTable){
+								if(riskHotspotsTable){{
 									var rhBody = riskHotspotsTable.querySelector('tbody');
 									var rows = rhBody.rows;
-									for(var i=0;i<rows.length;i++){
+									for(var i=0;i<rows.length;i++){{
 									  var row = rows[i];
 									  var cells = row.cells;
 									  var classCell = cells[1];
@@ -449,48 +451,52 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 									  var file = fileAndLine[0];
 									  var line = fileAndLine[1];
 									  classLink.href = classLink.hash + '#file' + file + '_line0';
-									}
-								}
+									}}
+								}}
 								
 							}}
-							}
-						}
+							}}
+						}}
 						
 						// necessary for WebBrowser 
-						function removeElement(element){
+						function removeElement(element){{
 							element.parentNode.removeChild(element);
-						}
+						}}
 
-						function insertAfter(newNode, existingNode) {
+						function insertAfter(newNode, existingNode) {{
 							existingNode.parentNode.insertBefore(newNode, existingNode.nextSibling);
-						}
+						}}
 
 						var noHotspotsMessage
-						var addNoRiskHotspotsMessageIfRequired = function(){
-							if(riskHotspotsTable == null){
+						var addNoRiskHotspotsMessageIfRequired = function(){{
+							if(riskHotspotsTable == null){{
 								noHotspotsMessage = document.createElement(""p"");
 								noHotspotsMessage.style.margin = ""0"";
-								noHotspotsMessage.innerText = ""No risk hotspots found."";
+								var header = ""{noRiskHotspotsHeader}"";
+								var cyclomaticMessage = ""{noRiskHotspotsCyclomaticMsg}"";
+								var crapMessage =""{noRiskHotspotsCrapMessage}""; 
+								var nPathMessage = ""{noRiskHotspotsNpathMsg}"";
+								noHotspotsMessage.innerText = header + ""\n"" + cyclomaticMessage + ""\n"" + crapMessage + ""\n"" + nPathMessage;
 
 								insertAfter(noHotspotsMessage, riskHotspotsElement);
-							}
-						}
+							}}
+						}}
 
-						var removeNoRiskHotspotsMessage = function(){
-							if(noHotspotsMessage){
+						var removeNoRiskHotspotsMessage = function(){{
+							if(noHotspotsMessage){{
 								removeElement(noHotspotsMessage);
 								noHotspotsMessage = null;
-							}
-						}
+							}}
+						}}
 
-						var openTab = function (tabIndex) {
+						var openTab = function (tabIndex) {{
 							if(tabIndex==2){{
 								addFileIndexToRiskHotspotsClassLink();
 								addNoRiskHotspotsMessageIfRequired();
 							}}else{{
 								removeNoRiskHotspotsMessage();
 							}}
-							for (var i = 0; i < tabs.length; i++) {
+							for (var i = 0; i < tabs.length; i++) {{
 							
 								var tab = tabs[i];
 								if (!tab) continue;
@@ -502,19 +508,19 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 								if (!content) content = document.getElementsByClassName(tab.content)[0];
 								if (!content) continue;
 							
-								if (i == tabIndex) {
+								if (i == tabIndex) {{
 									if (button.className.indexOf('active') == -1) button.className += ' active';
 									content.style.display = 'block';
-								} else {
+								}} else {{
 									button.className = button.className.replace('active', '');
 									content.style.display = 'none';
-								}
-							}
-						};
+								}}
+							}}
+						}};
 					
-						window.addEventListener('load', function() {
+						window.addEventListener('load', function() {{
 							openTab(0);
-						});
+						}});
 					
 					</script>
 					<div id='divHeader' style='border-collapse:collapse;padding:0;padding-top:3px;margin:0;border:0;position:fixed;top:0;left:0;width:100%;z-index:100' cellpadding='0' cellspacing='0'>
@@ -617,6 +623,17 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 				return processed;
 
 			});
+		}
+
+		private (int cyclomaticThreshold, int crapScoreThreshold, int nPathThreshold) HotspotThresholds()
+        {
+			var options = appOptionsProvider.Get();
+			return (
+				options.ThresholdForCyclomaticComplexity,
+				options.ThresholdForCrapScore,
+				options.ThresholdForNPathComplexity
+			);
+
 		}
 	}
 }
