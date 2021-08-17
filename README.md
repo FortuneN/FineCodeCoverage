@@ -3,7 +3,7 @@
 [![Build status](https://ci.appveyor.com/api/projects/status/yq8s0ridnphpx4ig?svg=true)](https://ci.appveyor.com/project/FortuneN/finecodecoverage)
 
 Download this extension from the [Visual Studio Market Place](https://marketplace.visualstudio.com/items?itemName=FortuneNgwenya.FineCodeCoverage)
-or get the [CI build](https://www.vsixgallery.com/extension/fcc-f339fe606-9d51-4fca-895c-d50375137b62).  Previous versions can be obtained from [here](https://ci.appveyor.com/project/FortuneN/finecodecoverage/history).
+or download from [releases](https://github.com/FortuneN/FineCodeCoverage/releases).  Older versions can be obtained from [here](https://ci.appveyor.com/project/FortuneN/finecodecoverage/history).
 
 ---------------------------------------
 Prerequisites
@@ -98,7 +98,7 @@ If you encounter **0% coverage or inconsistent coverage** it is now possible to 
 For now this is opt in.  In the future Fine Code Coverage will determine the appropriate driver.
 Please consult [coverlet docs](https://github.com/coverlet-coverage/coverlet/blob/master/Documentation/VSTestIntegration.md) for version support.
 
-**Note that it is unnecessary to add the nuget coverlet.collector package as FCC internally supplies coverlet.collector 3.0.3**
+**Note that it is unnecessary to add the nuget coverlet.collector package as FCC internally supplies it.**
 
 Fine Code Coverage will use the Data Collector driver under two circumstances :
 1) You are testing with runsettings that contains the coverlet collector ( and not disabled)
