@@ -91,7 +91,7 @@ jobs:
         uses: mrluje/vs-marketplace-publisher@v2
         with:
           pat: ${{ secrets.FCC_VS_MARKET_PLACE_PUBLISH_TOKEN }} 
-          manifestPath: ${{env.VSIX_PROJECT}}\vs-market-place-manifest.json
+          manifestPath: ${{github.workspace}}\vs-market-place-manifest.json
           vsixPath: ${{env.VSIX}}
       - name: comment - released and added to marketplace
         if: github.event_name == 'push'
