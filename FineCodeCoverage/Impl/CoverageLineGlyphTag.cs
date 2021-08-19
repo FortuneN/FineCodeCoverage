@@ -3,11 +3,11 @@ using Microsoft.VisualStudio.Text.Editor;
 
 namespace FineCodeCoverage.Impl
 {
-	internal class GlyphTag : IGlyphTag
+	internal class CoverageLineGlyphTag : IGlyphTag
 	{
 		public CoverageLine CoverageLine { get; }
 
-		public GlyphTag(CoverageLine coverageLine)
+		public CoverageLineGlyphTag(CoverageLine coverageLine)
 		{
 			CoverageLine = coverageLine;
 		}

@@ -68,6 +68,7 @@
     <Compile Include="Core\Cobertura\Package.cs" />
     <Compile Include="Core\Cobertura\Packages.cs" />
     <Compile Include="Core\Cobertura\Sources.cs" />
+    <Compile Include="Impl\CoverageColorProvider.cs" />
     <Compile Include="Core\CoverageToolOutput\AppOptionsCoverageToolOutputFolderSolutionProvider.cs" />
     <Compile Include="Core\CoverageToolOutput\CoverageToolOutputFolderFromSolutionProvider.cs" />
     <Compile Include="Core\CoverageToolOutput\FccOutputExistenceCoverageToolOutputFolderSolutionProvider.cs" />
@@ -81,6 +82,8 @@
     <Compile Include="Core\Coverlet\Console\CoverletConsoleCustomPathExecutor.cs" />
     <Compile Include="Core\Coverlet\Console\CoverletConsoleDotnetToolsLocalExecutor.cs" />
     <Compile Include="Core\CoverageToolOutput\ICoverageToolOutputManager.cs" />
+    <Compile Include="Impl\ICoverageColours.cs" />
+    <Compile Include="Impl\ICoverageColoursProvider.cs" />
     <Compile Include="Core\ICoverageUtilManager.cs" />
     <Compile Include="Core\MsTestPlatform\IMsTestPlatformUtil.cs" />
     <Compile Include="Core\Utilities\LinqExtensions.cs" />
@@ -153,9 +156,9 @@
     <Compile Include="Core\CoverageToolOutput\CoverageToolOutputManager.cs" />
     <Compile Include="Impl\ILogger.cs" />
     <Compile Include="Impl\RunSettingsRetriever.cs" />
-    <Compile Include="Impl\GlyphFactory.cs" />
-    <Compile Include="Impl\GlyphFactoryProvider.cs" />
-    <Compile Include="Impl\GlyphTag.cs" />
+    <Compile Include="Impl\CoverageLineGlyphFactory.cs" />
+    <Compile Include="Impl\CoverageLineGlyphFactoryProvider.cs" />
+    <Compile Include="Impl\CoverageLineGlyphTag.cs" />
     <Compile Include="Impl\Logger.cs" />
     <Compile Include="Impl\TestContainerDiscovery\Container.cs" />
     <Compile Include="Impl\TestContainerDiscovery\ContainerData.cs" />
@@ -173,8 +176,8 @@
     <Compile Include="Impl\TestContainerDiscovery\TestOperationFactory.cs" />
     <Compile Include="Impl\TestContainerDiscovery\TestRunResponse.cs" />
     <Compile Include="Impl\Vsix.cs" />
-    <Compile Include="Impl\Tagger.cs" />
-    <Compile Include="Impl\TaggerProvider.cs" />
+    <Compile Include="Impl\CoverageLineGlyphTagger.cs" />
+    <Compile Include="Impl\CoverageLineGlyphTaggerProvider.cs" />
     <Compile Include="Impl\TestContainerDiscovery\TestContainerDiscoverer.cs" />
     <Compile Include="Core\OpenCover\OpenCoverUtil.cs" />
     <Compile Include="Options\AppOptions.cs">

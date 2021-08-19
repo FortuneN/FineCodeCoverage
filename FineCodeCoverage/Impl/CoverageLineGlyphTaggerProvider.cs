@@ -7,21 +7,23 @@ using FineCodeCoverage.Engine;
 namespace FineCodeCoverage.Impl
 {
 	[ContentType("code")]
-	[TagType(typeof(GlyphTag))]
+	[TagType(typeof(CoverageLineGlyphTag))]
 	[Name(Vsix.TaggerProviderName)]
 	[Export(typeof(ITaggerProvider))]
-	internal class TaggerProvider : ITaggerProvider
+	internal class CoverageLineGlyphTaggerProvider : ITaggerProvider
 	{
         private readonly IFCCEngine fccEngine;
+        private readonly ICoverageColoursProvider coverageColoursProvider;
 
         [ImportingConstructor]
-		public TaggerProvider(IFCCEngine fccEngine)
+		public CoverageLineGlyphTaggerProvider(IFCCEngine fccEngine, ICoverageColoursProvider coverageColoursProvider)
         {
             this.fccEngine = fccEngine;
+            this.coverageColoursProvider = coverageColoursProvider;
         }
 		public ITagger<T> CreateTagger<T>(ITextBuffer textBuffer) where T : ITag
 		{
-			return new Tagger<T>(textBuffer,fccEngine);
+			return new CoverageLineGlyphTagger(textBuffer, fccEngine, coverageColoursProvider) as ITagger<T>;
 		}
 	}
 }
