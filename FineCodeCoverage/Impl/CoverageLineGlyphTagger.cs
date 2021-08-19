@@ -8,30 +8,33 @@ using System.Linq;
 
 namespace FineCodeCoverage.Impl
 {
-	internal class Tagger<T> : ITagger<T> where T : ITag
+	internal class CoverageLineGlyphTagger : ITagger<CoverageLineGlyphTag>
 	{
 		private readonly ITextBuffer _textBuffer;
         private readonly IFCCEngine fccEngine;
+		private readonly ICoverageColoursProvider coverageColoursProvider;
 
-        public event EventHandler<SnapshotSpanEventArgs> TagsChanged;
+		public event EventHandler<SnapshotSpanEventArgs> TagsChanged;
 
-		public Tagger(ITextBuffer textBuffer,IFCCEngine fccEngine)
+		public CoverageLineGlyphTagger(ITextBuffer textBuffer, IFCCEngine fccEngine, ICoverageColoursProvider coverageColoursProvider)
 		{
 			_textBuffer = textBuffer;
             this.fccEngine = fccEngine;
+            this.coverageColoursProvider = coverageColoursProvider;
             fccEngine.UpdateMarginTags += FCCEngine_UpdateMarginTags;
 		}
 
 		private void FCCEngine_UpdateMarginTags(UpdateMarginTagsEventArgs e)
 		{
+			coverageColoursProvider.UpdateRequired();
 			var span = new SnapshotSpan(_textBuffer.CurrentSnapshot, 0, _textBuffer.CurrentSnapshot.Length);
 			var spanEventArgs = new SnapshotSpanEventArgs(span);
 			TagsChanged?.Invoke(this, spanEventArgs);
 		}
 
-		IEnumerable<ITagSpan<T>> ITagger<T>.GetTags(NormalizedSnapshotSpanCollection spans)
+		IEnumerable<ITagSpan<CoverageLineGlyphTag>> ITagger<CoverageLineGlyphTag>.GetTags(NormalizedSnapshotSpanCollection spans)
 		{
-			var result = new List<ITagSpan<T>>();
+			var result = new List<ITagSpan<CoverageLineGlyphTag>>();
 
 			if (spans == null || fccEngine.CoverageLines == null)
 			{
@@ -51,10 +54,9 @@ namespace FineCodeCoverage.Impl
 
 				foreach (var coverageLine in coverageLines)
 				{
-					var tag = new GlyphTag(coverageLine);
-					var tagSpan = new TagSpan<GlyphTag>(span, tag);
-					var iTagSpan = tagSpan as ITagSpan<T>;
-					result.Add(iTagSpan);
+					var tag = new CoverageLineGlyphTag(coverageLine);
+					var tagSpan = new TagSpan<CoverageLineGlyphTag>(span, tag);
+					result.Add(tagSpan);
 				}
 			}
 

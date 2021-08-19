@@ -111,26 +111,29 @@ If you are using option 1) then project and global options will only be used whe
 
 #### Options
 ```
-Enabled							Specifies whether or not coverage output is enabled
-RunInParallel					By default tests run and then coverage is performed.  Set to true to run coverage immediately
-RunWhenTestsFail				By default coverage runs when tests fail.  Set to false to prevent this.  **Cannot be used in conjunction with RunInParallel**
-RunWhenTestsExceed				Specify a value to only run coverage based upon the number of executing tests. **Cannot be used in conjunction with RunInParallel**
-Exclude							Filter expressions to exclude specific modules and types (multiple values)
-Include							Filter expressions to include specific modules and types (multiple values)
-ExcludeByFile					Glob patterns specifying source files to exclude e.g. **/Migrations/* (multiple values)
-ExcludeByAttribute				Attributes to exclude from code coverage (multiple values)
-IncludeTestAssembly				Specifies whether to report code coverage of the test assembly
+CoverageColoursFromFontsAndColours Specify true to use Environment / Fonts and Colors / Text Editor for editor Coverage colouring.
+                                   Coverage Touched Area / Coverage Not Touched Area / Coverage Partially Touched Area.
+								   When false colours used are Green, Red and Gold.
+Enabled							   Specifies whether or not coverage output is enabled
+RunInParallel					   By default tests run and then coverage is performed.  Set to true to run coverage immediately
+RunWhenTestsFail				   By default coverage runs when tests fail.  Set to false to prevent this.  **Cannot be used in conjunction with RunInParallel**
+RunWhenTestsExceed				   Specify a value to only run coverage based upon the number of executing tests. **Cannot be used in conjunction with RunInParallel**
+Exclude							   Filter expressions to exclude specific modules and types (multiple values)
+Include							   Filter expressions to include specific modules and types (multiple values)
+ExcludeByFile					   Glob patterns specifying source files to exclude e.g. **/Migrations/* (multiple values)
+ExcludeByAttribute				   Attributes to exclude from code coverage (multiple values)
+IncludeTestAssembly				   Specifies whether to report code coverage of the test assembly
 
-ThresholdForCyclomaticComplexity When [cyclomatic complexity](https://en.wikipedia.org/wiki/Cyclomatic_complexity) exceeds this value for a method then the method will be present in the risk hotspots tab. 
-ThresholdForNPathComplexity     When [npath complexity](https://en.wikipedia.org/wiki/Cyclomatic_complexity) exceeds this value for a method then the method will be present in the risk hotspots tab. OpenCover only.
-ThresholdForCrapScore           When [crap score](https://testing.googleblog.com/2011/02/this-code-is-crap.html) exceeds this value for a method then the method will be present in the risk hotspots tab. OpenCover only. 
+ThresholdForCyclomaticComplexity   When [cyclomatic complexity](https://en.wikipedia.org/wiki/Cyclomatic_complexity) exceeds this value for a method then the method will be present in the risk hotspots tab. 
+ThresholdForNPathComplexity        When [npath complexity](https://en.wikipedia.org/wiki/Cyclomatic_complexity) exceeds this value for a method then the method will be present in the risk hotspots tab. OpenCover only.
+ThresholdForCrapScore              When [crap score](https://testing.googleblog.com/2011/02/this-code-is-crap.html) exceeds this value for a method then the method will be present in the risk hotspots tab. OpenCover only. 
 
-RunSettingsOnly					Specify false for global and project options to be used for coverlet data collector configuration elements when not specified in runsettings
-CoverletCollectorDirectoryPath	Specify path to directory containing coverlet collector files if you need functionality that the FCC version does not provide.
+RunSettingsOnly					   Specify false for global and project options to be used for coverlet data collector configuration elements when not specified in runsettings
+CoverletCollectorDirectoryPath	   Specify path to directory containing coverlet collector files if you need functionality that the FCC version does not provide.
 
-CoverletConsoleLocal			Specify true to use your own dotnet tools local install of coverlet console.
-CoverletConsoleCustomPath		Specify path to coverlet console exe if you need functionality that the FCC version does not provide.
-CoverletConsoleGlobal			Specify true to use your own dotnet tools global install of coverlet console.
+CoverletConsoleLocal			   Specify true to use your own dotnet tools local install of coverlet console.
+CoverletConsoleCustomPath		   Specify path to coverlet console exe if you need functionality that the FCC version does not provide.
+CoverletConsoleGlobal			   Specify true to use your own dotnet tools global install of coverlet console.
 
 FCCSolutionOutputDirectoryName  To have fcc output visible in a sub folder of your solution provide this name
 

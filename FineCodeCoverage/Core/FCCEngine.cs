@@ -41,6 +41,7 @@ namespace FineCodeCoverage.Engine
         private readonly ILogger logger;
         private readonly IAppDataFolder appDataFolder;
         private readonly IServiceProvider serviceProvider;
+        
         private IInitializeStatusProvider initializeStatusProvider;
         private readonly ICoverageToolOutputManager coverageOutputManager;
         internal System.Threading.Tasks.Task reloadCoverageTask;
@@ -71,7 +72,6 @@ namespace FineCodeCoverage.Engine
             this.appDataFolder = appDataFolder;
             this.serviceProvider = serviceProvider;
             colorThemeService = serviceProvider.GetService(typeof(SVsColorThemeService));
-
         }
 
         internal string GetLogReloadCoverageStatusMessage(ReloadCoverageStatus reloadCoverageStatus)

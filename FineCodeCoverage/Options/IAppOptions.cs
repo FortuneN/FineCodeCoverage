@@ -21,5 +21,6 @@
         int ThresholdForCyclomaticComplexity { get; }
         int ThresholdForNPathComplexity { get; }
         int ThresholdForCrapScore { get; }
+        bool CoverageColoursFromFontsAndColours { get; }
     }
 }

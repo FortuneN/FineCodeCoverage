@@ -6,15 +6,22 @@ using Microsoft.VisualStudio.Text.Tagging;
 namespace FineCodeCoverage.Impl
 {
 	[ContentType("code")]
-	[TagType(typeof(GlyphTag))]
+	[TagType(typeof(CoverageLineGlyphTag))]
 	[Order(Before = "VsTextMarker")]
 	[Name(Vsix.GlyphFactoryProviderName)]
 	[Export(typeof(IGlyphFactoryProvider))]
-	internal class GlyphFactoryProvider: IGlyphFactoryProvider
+	internal class CoverageLineGlyphFactoryProvider: IGlyphFactoryProvider
 	{
+        private readonly ICoverageColours coverageColours;
+
+        [ImportingConstructor]
+		public CoverageLineGlyphFactoryProvider(ICoverageColours coverageColours)
+		{
+            this.coverageColours = coverageColours;
+        }
 		public IGlyphFactory GetGlyphFactory(IWpfTextView textView, IWpfTextViewMargin textViewMargin)
 		{
-			return new GlyphFactory();
+			return new CoverageLineGlyphFactory(coverageColours);
 		}
 	}
 }
