@@ -53,157 +53,6 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="Core\AppDataFolder.cs" />
-    <Compile Include="Core\Cobertura\Class.cs" />
-    <Compile Include="Core\Cobertura\Classes.cs" />
-    <Compile Include="Core\Cobertura\Condition.cs" />
-    <Compile Include="Core\Cobertura\Conditions.cs" />
-    <Compile Include="Core\Cobertura\CoverageReport.cs" />
-    <Compile Include="Core\Cobertura\CoberturaUtil.cs" />
-    <Compile Include="Core\Cobertura\ICoberturaUtil.cs" />
-    <Compile Include="Core\Cobertura\Line.cs" />
-    <Compile Include="Core\Cobertura\Lines.cs" />
-    <Compile Include="Core\Cobertura\Method.cs" />
-    <Compile Include="Core\Cobertura\Methods.cs" />
-    <Compile Include="Core\Cobertura\Package.cs" />
-    <Compile Include="Core\Cobertura\Packages.cs" />
-    <Compile Include="Core\Cobertura\Sources.cs" />
-    <Compile Include="Impl\CoverageColorProvider.cs" />
-    <Compile Include="Core\CoverageToolOutput\AppOptionsCoverageToolOutputFolderSolutionProvider.cs" />
-    <Compile Include="Core\CoverageToolOutput\CoverageToolOutputFolderFromSolutionProvider.cs" />
-    <Compile Include="Core\CoverageToolOutput\FccOutputExistenceCoverageToolOutputFolderSolutionProvider.cs" />
-    <Compile Include="Core\CoverageToolOutput\ICoverageToolOutputFolderProvider.cs" />
-    <Compile Include="Core\CoverageToolOutput\ICoverageToolOutputFolderSolutionProvider.cs" />
-    <Compile Include="Core\CoverageToolOutput\ISolutionFolderProvider.cs" />
-    <Compile Include="Core\CoverageToolOutput\SolutionFolderProvider.cs" />
-    <Compile Include="Core\CoverageUIEvents.cs" />
-    <Compile Include="Core\CoverageUtilManager.cs" />
-    <Compile Include="Core\Coverlet\Console\CoverletConsoleDotnetToolsGlobalExecutor.cs" />
-    <Compile Include="Core\Coverlet\Console\CoverletConsoleCustomPathExecutor.cs" />
-    <Compile Include="Core\Coverlet\Console\CoverletConsoleDotnetToolsLocalExecutor.cs" />
-    <Compile Include="Core\CoverageToolOutput\ICoverageToolOutputManager.cs" />
-    <Compile Include="Impl\ICoverageColours.cs" />
-    <Compile Include="Impl\ICoverageColoursProvider.cs" />
-    <Compile Include="Core\ICoverageUtilManager.cs" />
-    <Compile Include="Core\MsTestPlatform\IMsTestPlatformUtil.cs" />
-    <Compile Include="Core\Utilities\LinqExtensions.cs" />
-    <Compile Include="Core\Utilities\MEF.cs" />
-    <Compile Include="Core\Utilities\ReflectionExtensions.cs" />
-    <Compile Include="Core\Utilities\ToolZip\IToolFolder.cs" />
-    <Compile Include="Core\Utilities\ToolZip\IToolZipProvider.cs" />
-    <Compile Include="Core\Utilities\ToolZip\ToolFolder.cs" />
-    <Compile Include="Core\Utilities\ToolZip\ToolZipProvider.cs" />
-    <Compile Include="Core\Utilities\DotNet\DotNetConfigFinder.cs" />
-    <Compile Include="Core\Coverlet\Console\DotNetToolListCoverlet.cs" />
-    <Compile Include="Core\Utilities\DotNet\DotNetToolListExecutor.cs" />
-    <Compile Include="Core\Utilities\DotNet\DotNetToolListParser.cs" />
-    <Compile Include="Core\Coverlet\Console\FCCCoverletConsoleExecutor.cs" />
-    <Compile Include="Core\Coverlet\Console\ICoverletConsoleExecutor.cs" />
-    <Compile Include="Core\Utilities\DotNet\IDotNetConfigFinder.cs" />
-    <Compile Include="Core\Coverlet\Console\IDotNetToolListCoverlet.cs" />
-    <Compile Include="Core\Utilities\DotNet\IDotNetToolListExecutor.cs" />
-    <Compile Include="Core\Utilities\DotNet\IDotNetToolListParser.cs" />
-    <Compile Include="Core\Coverlet\Console\IFCCCoverletConsoleExecutor.cs" />
-    <Compile Include="Core\Coverlet\DataCollector\CoverletDataCollectorGeneratedCobertura.cs" />
-    <Compile Include="Core\Coverlet\DataCollector\CoverletDataCollectorUtil.cs" />
-    <Compile Include="Core\Coverlet\Console\CoverletConsoleUtil.cs" />
-    <Compile Include="Core\Coverlet\CoverletUtil.cs" />
-    <Compile Include="Core\Coverlet\DataCollector\DataCollectorSettingsBuilder.cs" />
-    <Compile Include="Core\Coverlet\DataCollector\DataCollectorSettingsBuilderFactory.cs" />
-    <Compile Include="Core\Utilities\FileUtil.cs" />
-    <Compile Include="Core\Coverlet\DataCollector\interfaces\ICoverletDataCollectorGeneratedCobertura.cs" />
-    <Compile Include="Core\Coverlet\DataCollector\interfaces\ICoverletDataCollectorUtil.cs" />
-    <Compile Include="Core\Coverlet\Console\ICoverletConsoleUtil.cs" />
-    <Compile Include="Core\Coverlet\ICoverletUtil.cs" />
-    <Compile Include="Core\Coverlet\DataCollector\interfaces\IDataCollectorSettingsBuilder.cs" />
-    <Compile Include="Core\Coverlet\DataCollector\interfaces\IDataCollectorSettingsBuilderFactory.cs" />
-    <Compile Include="Core\Utilities\IFileUtil.cs" />
-    <Compile Include="Core\Utilities\IZipFile.cs" />
-    <Compile Include="Core\Utilities\ZipFileWrapper.cs" />
-    <Compile Include="Core\Coverlet\DataCollector\interfaces\IRunSettingsCoverletConfiguration.cs" />
-    <Compile Include="Core\Utilities\IAssemblyUtil.cs" />
-    <Compile Include="Core\Utilities\IProcessUtil.cs" />
-    <Compile Include="Core\Utilities\ProcessResponseProcessor.cs" />
-    <Compile Include="Core\Utilities\IProcessResponseProcessor.cs" />
-    <Compile Include="Core\Coverlet\DataCollector\interfaces\IRunSettingsCoverletConfigurationFactory.cs" />
-    <Compile Include="Core\Coverlet\DataCollector\RunSettingsCoverletConfiguration.cs" />
-    <Compile Include="Core\Coverlet\DataCollector\RunSettingsCoverletConfigurationFactory.cs" />
-    <Compile Include="Core\EnvironmentVariable.cs" />
-    <Compile Include="Core\FileSynchronization\FileSynchronization.cs" />
-    <Compile Include="Core\IAppDataFolder.cs" />
-    <Compile Include="Core\IEnvironmentVariable.cs" />
-    <Compile Include="Core\IFCCEngine.cs" />
-    <Compile Include="Core\IMessageBox.cs" />
-    <Compile Include="Core\ISourceFileOpener.cs" />
-    <Compile Include="Core\MessageBoxWrapper.cs" />
-    <Compile Include="Core\Model\CoverageProjectFactory.cs" />
-    <Compile Include="Core\Model\ICoverageProject.cs" />
-    <Compile Include="Core\Model\ICoverageProjectFactory.cs" />
-    <Compile Include="Core\Model\ReferencedProject.cs" />
-    <Compile Include="Core\MsTestPlatform\MsTestPlatformUtil.cs" />
-    <Compile Include="Core\OpenCover\IOpenCoverUtil.cs" />
-    <Compile Include="Core\ReportGenerator\ReportGeneratorUtil.cs" />
-    <Compile Include="Core\SourceFileOpener.cs" />
-    <Compile Include="Core\SVsColorThemeService.cs" />
-    <Compile Include="Core\Utilities\AssemblyUtil.cs" />
-    <Compile Include="Core\Model\CoverageLine.cs" />
-    <Compile Include="Core\Model\CoverageProject.cs" />
-    <Compile Include="Core\FCCEngine.cs" />
-    <Compile Include="Core\Utilities\ComparableFile.cs" />
-    <Compile Include="Core\Utilities\FileComparer.cs" />
-    <Compile Include="Core\Utilities\FileSystemInfoDeleteExtensions.cs" />
-    <Compile Include="Core\Utilities\XElementUtil.cs" />
-    <Compile Include="Core\CoverageToolOutput\CoverageToolOutputManager.cs" />
-    <Compile Include="Impl\ILogger.cs" />
-    <Compile Include="Impl\RunSettingsRetriever.cs" />
-    <Compile Include="Impl\CoverageLineGlyphFactory.cs" />
-    <Compile Include="Impl\CoverageLineGlyphFactoryProvider.cs" />
-    <Compile Include="Impl\CoverageLineGlyphTag.cs" />
-    <Compile Include="Impl\Logger.cs" />
-    <Compile Include="Impl\TestContainerDiscovery\Container.cs" />
-    <Compile Include="Impl\TestContainerDiscovery\ContainerData.cs" />
-    <Compile Include="Impl\TestContainerDiscovery\IInitializer.cs" />
-    <Compile Include="Impl\TestContainerDiscovery\IInitializeStatusProvider.cs" />
-    <Compile Include="Impl\TestContainerDiscovery\Initializer.cs" />
-    <Compile Include="Impl\TestContainerDiscovery\InitializeStatus.cs" />
-    <Compile Include="Impl\TestContainerDiscovery\IPackageInitializer.cs" />
-    <Compile Include="Impl\TestContainerDiscovery\ITestOperation.cs" />
-    <Compile Include="Impl\TestContainerDiscovery\ITestOperationFactory.cs" />
-    <Compile Include="Impl\TestContainerDiscovery\Operation.cs" />
-    <Compile Include="Impl\TestContainerDiscovery\PackageInitializer.cs" />
-    <Compile Include="Impl\TestContainerDiscovery\TestConfiguration.cs" />
-    <Compile Include="Impl\TestContainerDiscovery\TestOperation.cs" />
-    <Compile Include="Impl\TestContainerDiscovery\TestOperationFactory.cs" />
-    <Compile Include="Impl\TestContainerDiscovery\TestRunResponse.cs" />
-    <Compile Include="Impl\Vsix.cs" />
-    <Compile Include="Impl\CoverageLineGlyphTagger.cs" />
-    <Compile Include="Impl\CoverageLineGlyphTaggerProvider.cs" />
-    <Compile Include="Impl\TestContainerDiscovery\TestContainerDiscoverer.cs" />
-    <Compile Include="Core\OpenCover\OpenCoverUtil.cs" />
-    <Compile Include="Options\AppOptions.cs">
-      <SubType>Component</SubType>
-    </Compile>
-    <Compile Include="Options\AppOptionsProvider.cs" />
-    <Compile Include="Options\IAppOptions.cs" />
-    <Compile Include="Options\IAppOptionsProvider.cs" />
-    <Compile Include="Options\IAppOptionsStorageProvider.cs" />
-    <Compile Include="Output\ClearUICommand.cs" />
-    <Compile Include="Output\IProcess.cs" />
-    <Compile Include="Output\OutputToolWindow.cs" />
-    <Compile Include="Output\OutputToolWindowCommand.cs" />
-    <Compile Include="Output\OutputToolWindowContext.cs" />
-    <Compile Include="Output\OutputToolWindowControl.xaml.cs">
-      <DependentUpon>OutputToolWindowControl.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Output\OutputToolWindowPackage.cs" />
-    <Compile Include="Output\OutputToolWindowPackage1.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>OutputToolWindowPackage.vsct</DependentUpon>
-    </Compile>
-    <Compile Include="Core\Utilities\ProcessUtil.cs" />
-    <Compile Include="Output\ProcessWrapper.cs" />
-    <Compile Include="Output\ScriptManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="source.extension.cs">
       <AutoGen>True</AutoGen>
@@ -216,38 +65,17 @@
       <Link>Resources\logo.png</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="..\Art\Options-Global.png">
-      <Link>Resources\Options-Global.png</Link>
-    </Content>
-    <Content Include="..\Art\Options-Project.png">
-      <Link>Resources\Options-Project.png</Link>
-    </Content>
-    <Content Include="..\Art\Output-Coverage.png">
-      <Link>Resources\Output-Coverage.png</Link>
-      <IncludeInVSIX>true</IncludeInVSIX>
-    </Content>
-    <Content Include="..\Art\Output-RiskHotspots.png">
-      <Link>Resources\Output-RiskHotspots.png</Link>
-      <IncludeInVSIX>true</IncludeInVSIX>
-    </Content>
-    <Content Include="..\Art\Output-Summary.png">
-      <Link>Resources\Output-Summary.png</Link>
-      <IncludeInVSIX>true</IncludeInVSIX>
-    </Content>
     <Content Include="..\Art\preview-subject.png">
       <Link>Resources\preview-subject.png</Link>
-      <IncludeInVSIX>true</IncludeInVSIX>
-    </Content>
-    <Content Include="..\Art\preview-test.png">
-      <Link>Resources\preview-test.png</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="..\LICENSE">
       <Link>Resources\LICENSE</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="Output\Resources\ClearUICommand.png" />
-    <Content Include="Output\Resources\OutputToolWindowCommand.png" />
+    <Content Include="ZippedTools\coverlet.collector.3.0.3.zip">
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
     <Content Include="ZippedTools\coverlet.console.3.0.3.zip">
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
@@ -260,19 +88,18 @@
     <Content Include="ZippedTools\reportGenerator.4.7.1.zip">
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <VSCTCompile Include="Output\OutputToolWindowPackage.vsct">
-      <Generator>VsctGenerator</Generator>
+    <VSCTCompile Include="..\Shared Files\OutputToolWindowPackage.vsct">
+      <Link>OutputToolWindowPackage.vsct</Link>
       <ResourceName>Menus.ctmenu</ResourceName>
-      <LastGenOutput>OutputToolWindowPackage1.cs</LastGenOutput>
     </VSCTCompile>
-    <Content Include="ZippedTools\coverlet.collector.3.0.3.zip">
+    <Content Include="..\Shared Files\Resources\ClearUICommand.png">
+      <Link>Resources\ClearUICommand.png</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <None Include="Output\Resources\OutputToolWindowCommand.png.x" />
-    <Content Include="Output\Resources\OutputToolWindowPackage.ico" />
-    <None Include="..\.editorconfig">
-      <Link>.editorconfig</Link>
-    </None>
+    <Content Include="..\Shared Files\Resources\OutputToolWindowCommand.png">
+      <Link>Resources\OutputToolWindowCommand.png</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
     <!--
     <None Include="Key.snk" />
 	-->
@@ -335,25 +162,13 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
-    <Page Include="Output\OutputToolWindowControl.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Output\VSPackage.resx">
-      <MergeWithCTO>true</MergeWithCTO>
-      <ManifestResourceName>VSPackage</ManifestResourceName>
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\ReportGeneratorPlugins\ReportGeneratorPlugins.csproj">
       <Project>{14fb668b-4b70-41e4-964b-405e5c9a6a58}</Project>
       <Name>ReportGeneratorPlugins</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup />
+  <Import Project="..\SharedProject\SharedProject.projitems" Label="Shared" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets" Condition="'$(VSToolsPath)' != ''" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
