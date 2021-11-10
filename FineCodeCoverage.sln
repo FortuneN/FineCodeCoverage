@@ -25,9 +25,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FineCodeCoverageTests", "Fi
 EndProject
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "SharedProject", "SharedProject\SharedProject.shproj", "{9353044C-5D39-4E70-8E78-28213E05217A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FineCodeCoverage2022", "FineCodeCoverage2022\FineCodeCoverage2022.csproj", "{59A22196-A750-4BA4-B30E-BE1422E68B8E}"
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		SharedProject\SharedProject.projitems*{31c104bb-d294-4942-b206-896aa7a5fcb9}*SharedItemsImports = 4
+		SharedProject\SharedProject.projitems*{59a22196-a750-4ba4-b30e-be1422e68b8e}*SharedItemsImports = 4
 		SharedProject\SharedProject.projitems*{9353044c-5d39-4e70-8e78-28213e05217a}*SharedItemsImports = 13
 	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -47,6 +50,10 @@ Global
 		{01F70D01-062D-4391-AF82-8325B22B87AB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{01F70D01-062D-4391-AF82-8325B22B87AB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{01F70D01-062D-4391-AF82-8325B22B87AB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{59A22196-A750-4BA4-B30E-BE1422E68B8E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{59A22196-A750-4BA4-B30E-BE1422E68B8E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{59A22196-A750-4BA4-B30E-BE1422E68B8E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{59A22196-A750-4BA4-B30E-BE1422E68B8E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
