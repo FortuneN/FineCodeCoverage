@@ -75,7 +75,7 @@ jobs:
             name: FineCodeCoverage ( zipped vsix)
             path: ${{env.VSIX}}
 
-        name: upload vsix 2022
+      - name: upload vsix 2022
         if: github.event_name == 'pull_request' && !github.event.pull_request.draft
         uses: actions/upload-artifact@v2
         with:
