@@ -1,0 +1,173 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <MSBuildAllProjects Condition="'$(MSBuildVersion)' == '' Or '$(MSBuildVersion)' &lt; '16.0'">$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <SharedGUID>9353044c-5d39-4e70-8e78-28213e05217a</SharedGUID>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration">
+    <Import_RootNamespace>SharedProject</Import_RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)Core\AppDataFolder.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Cobertura\Class.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Cobertura\Classes.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Cobertura\CoberturaUtil.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Cobertura\Condition.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Cobertura\Conditions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Cobertura\CoverageReport.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Cobertura\ICoberturaUtil.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Cobertura\Line.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Cobertura\Lines.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Cobertura\Method.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Cobertura\Methods.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Cobertura\Package.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Cobertura\Packages.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Cobertura\Sources.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\CoverageToolOutput\AppOptionsCoverageToolOutputFolderSolutionProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\CoverageToolOutput\CoverageToolOutputFolderFromSolutionProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\CoverageToolOutput\CoverageToolOutputManager.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\CoverageToolOutput\FccOutputExistenceCoverageToolOutputFolderSolutionProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\CoverageToolOutput\ICoverageToolOutputFolderProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\CoverageToolOutput\ICoverageToolOutputFolderSolutionProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\CoverageToolOutput\ICoverageToolOutputManager.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\CoverageToolOutput\ISolutionFolderProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\CoverageToolOutput\SolutionFolderProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\CoverageUIEvents.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\CoverageUtilManager.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Coverlet\Console\CoverletConsoleCustomPathExecutor.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Coverlet\Console\CoverletConsoleDotnetToolsGlobalExecutor.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Coverlet\Console\CoverletConsoleDotnetToolsLocalExecutor.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Coverlet\Console\CoverletConsoleUtil.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Coverlet\Console\DotNetToolListCoverlet.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Coverlet\Console\FCCCoverletConsoleExecutor.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Coverlet\Console\ICoverletConsoleExecutor.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Coverlet\Console\ICoverletConsoleUtil.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Coverlet\Console\IDotNetToolListCoverlet.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Coverlet\Console\IFCCCoverletConsoleExecutor.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Coverlet\CoverletUtil.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Coverlet\DataCollector\CoverletDataCollectorGeneratedCobertura.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Coverlet\DataCollector\CoverletDataCollectorUtil.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Coverlet\DataCollector\DataCollectorSettingsBuilder.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Coverlet\DataCollector\DataCollectorSettingsBuilderFactory.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Coverlet\DataCollector\interfaces\ICoverletDataCollectorGeneratedCobertura.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Coverlet\DataCollector\interfaces\ICoverletDataCollectorUtil.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Coverlet\DataCollector\interfaces\IDataCollectorSettingsBuilder.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Coverlet\DataCollector\interfaces\IDataCollectorSettingsBuilderFactory.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Coverlet\DataCollector\interfaces\IRunSettingsCoverletConfiguration.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Coverlet\DataCollector\interfaces\IRunSettingsCoverletConfigurationFactory.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Coverlet\DataCollector\RunSettingsCoverletConfiguration.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Coverlet\DataCollector\RunSettingsCoverletConfigurationFactory.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Coverlet\ICoverletUtil.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\EnvironmentVariable.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\FCCEngine.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\FileSynchronization\FileSynchronization.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\IAppDataFolder.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\ICoverageUtilManager.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\IEnvironmentVariable.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\IFCCEngine.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\IMessageBox.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\ISourceFileOpener.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\MessageBoxWrapper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Model\CoverageLine.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Model\CoverageProject.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Model\CoverageProjectFactory.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Model\ICoverageProject.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Model\ICoverageProjectFactory.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Model\ReferencedProject.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\MsTestPlatform\IMsTestPlatformUtil.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\MsTestPlatform\MsTestPlatformUtil.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\OpenCover\IOpenCoverUtil.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\OpenCover\OpenCoverUtil.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\ReportGenerator\ReportGeneratorUtil.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\SourceFileOpener.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\SVsColorThemeService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\AssemblyUtil.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\ComparableFile.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\DotNet\DotNetConfigFinder.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\DotNet\DotNetToolListExecutor.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\DotNet\DotNetToolListParser.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\DotNet\IDotNetConfigFinder.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\DotNet\IDotNetToolListExecutor.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\DotNet\IDotNetToolListParser.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\FileComparer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\FileSystemInfoDeleteExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\FileUtil.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\IAssemblyUtil.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\IFileUtil.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\IProcessResponseProcessor.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\IProcessUtil.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\IZipFile.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\LinqExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\MEF.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\ProcessResponseProcessor.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\ProcessUtil.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\ReflectionExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\ToolZip\IToolFolder.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\ToolZip\IToolZipProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\ToolZip\ToolFolder.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\ToolZip\ToolZipProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\XElementUtil.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\ZipFileWrapper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColorProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageLineGlyphFactory.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageLineGlyphFactoryProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageLineGlyphTag.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageLineGlyphTagger.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageLineGlyphTaggerProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Impl\ICoverageColours.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Impl\ICoverageColoursProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Impl\ILogger.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Impl\Logger.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Impl\RunSettingsRetriever.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Impl\TestContainerDiscovery\Container.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Impl\TestContainerDiscovery\ContainerData.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Impl\TestContainerDiscovery\IInitializer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Impl\TestContainerDiscovery\IInitializeStatusProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Impl\TestContainerDiscovery\Initializer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Impl\TestContainerDiscovery\InitializeStatus.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Impl\TestContainerDiscovery\IPackageInitializer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Impl\TestContainerDiscovery\ITestOperation.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Impl\TestContainerDiscovery\ITestOperationFactory.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Impl\TestContainerDiscovery\Operation.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Impl\TestContainerDiscovery\PackageInitializer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Impl\TestContainerDiscovery\TestConfiguration.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Impl\TestContainerDiscovery\TestContainerDiscoverer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Impl\TestContainerDiscovery\TestOperation.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Impl\TestContainerDiscovery\TestOperationFactory.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Impl\TestContainerDiscovery\TestRunResponse.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Impl\Vsix.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Options\AppOptions.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="$(MSBuildThisFileDirectory)Options\AppOptionsProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Options\IAppOptions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Options\IAppOptionsProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Options\IAppOptionsStorageProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Output\ClearUICommand.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Output\IProcess.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Output\OutputToolWindow.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Output\OutputToolWindowCommand.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Output\OutputToolWindowContext.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Output\OutputToolWindowControl.xaml.cs">
+      <DependentUpon>OutputToolWindowControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="$(MSBuildThisFileDirectory)Output\OutputToolWindowPackage.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Output\ProcessWrapper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Output\ScriptManager.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Page Include="$(MSBuildThisFileDirectory)Output\OutputToolWindowControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="$(MSBuildThisFileDirectory)Output\VSPackage.resx">
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="$(MSBuildThisFileDirectory)Resources\OutputToolWindowPackage.ico" />
+  </ItemGroup>
+</Project>
