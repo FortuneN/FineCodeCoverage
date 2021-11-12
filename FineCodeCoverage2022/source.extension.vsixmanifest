@@ -2,7 +2,7 @@
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
     <Metadata>
         <Identity Id="FineCodeCoverage2022.ad53fb28-7a11-4465-a27a-3550499ea4a1" Version="1.1.0" Language="en-US" Publisher="Fortune Ngwenya" />
-        <DisplayName>FineCodeCoverage2022</DisplayName>
+        <DisplayName>Fine Code Coverage</DisplayName>
         <Description xml:space="preserve">Visualize unit test code coverage easily for free in Visual Studio Community Edition (and other editions too)</Description>
         <MoreInfo>https://marketplace.visualstudio.com/items?itemName=FortuneNgwenya.FineCodeCoverage</MoreInfo>
         <License>Resources\LICENSE</License>
