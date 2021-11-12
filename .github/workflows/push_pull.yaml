@@ -20,6 +20,7 @@ jobs:
         run: |
             echo "SOLN=${{env.VSIX_PROJECT}}.sln" >> $GITHUB_ENV
             echo "VSIX=${{github.workspace}}\${{env.VSIX_PROJECT}}\bin\${{env.CONFIGURATION}}\${{env.VSIX_PROJECT}}.vsix" >> $GITHUB_ENV # full path required for vsix publish
+            echo "VSIX2022=${{github.workspace}}\${{env.VSIX_PROJECT}}2022\bin\${{env.CONFIGURATION}}\${{env.VSIX_PROJECT}}.vsix" >> $GITHUB_ENV # full path required for vsix publish
       - name: checkout
         uses: actions/checkout@v2
         with:
@@ -43,8 +44,19 @@ jobs:
       - name: Set version for Visual Studio Extension
         uses: cezarypiatek/VsixVersionAction@1.0
         with:
-            version: ${{steps.next-version.outputs.major}}.${{steps.next-version.outputs.minor}}.${{github.run_number}}.${{steps.next-version.outputs.patch}}  
+            version: ${{steps.next-version.outputs.major}}.${{steps.next-version.outputs.minor}}.${{steps.next-version.outputs.patch}}  
             vsix-manifest-file: ${{env.VSIX_PROJECT}}\source.extension.vsixmanifest
+            # want this ${{steps.next-version.outputs.major}}.${{steps.next-version.outputs.minor}}.${{github.run_number}}.${{steps.next-version.outputs.patch}} 
+            # but https://github.com/FortuneN/FineCodeCoverage/issues/178
+
+      - name: Set version for Visual Studio Extension 2022
+        uses: cezarypiatek/VsixVersionAction@1.0
+        with:
+            version: ${{steps.next-version.outputs.major}}.${{steps.next-version.outputs.minor}}.${{steps.next-version.outputs.patch}}  
+            vsix-manifest-file: ${{env.VSIX_PROJECT}}2022\source.extension.vsixmanifest
+            # want this ${{steps.next-version.outputs.major}}.${{steps.next-version.outputs.minor}}.${{github.run_number}}.${{steps.next-version.outputs.patch}} 
+            # but https://github.com/FortuneN/FineCodeCoverage/issues/178
+
             
       - name: build vsix
         run: |
@@ -62,6 +74,13 @@ jobs:
         with:
             name: FineCodeCoverage ( zipped vsix)
             path: ${{env.VSIX}}
+
+        name: upload vsix 2022
+        if: github.event_name == 'pull_request' && !github.event.pull_request.draft
+        uses: actions/upload-artifact@v2
+        with:
+            name: FineCodeCoverage2022 ( zipped vsix)
+            path: ${{env.VSIX2022}}
 
         # push only
       - name: create release
@@ -86,6 +105,19 @@ jobs:
             asset_path: ${{env.VSIX}}
             asset_name: ${{env.VSIX_PROJECT}}.vsix
             asset_content_type: application/zip
+
+      - name: Update release asset 2022
+        if: github.event_name == 'push'
+        id: upload-release-asset
+        uses: actions/upload-release-asset@v1
+        env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+            upload_url: ${{steps.create_release.outputs.upload_url}}
+            asset_path: ${{env.VSIX2022}}
+            asset_name: ${{env.VSIX_PROJECT}}2022.vsix
+            asset_content_type: application/zip
+
       - name: add to marketplace
         if: github.event_name == 'push'
         uses: mrluje/vs-marketplace-publisher@v2
@@ -93,6 +125,15 @@ jobs:
           pat: ${{ secrets.FCC_VS_MARKET_PLACE_PUBLISH_TOKEN }} 
           manifestPath: ${{github.workspace}}\vs-market-place-manifest.json
           vsixPath: ${{env.VSIX}}
+
+      - name: add to marketplace 2022
+        if: github.event_name == 'push'
+        uses: mrluje/vs-marketplace-publisher@v2
+        with:
+          pat: ${{ secrets.FCC_VS_MARKET_PLACE_PUBLISH_TOKEN }} 
+          manifestPath: ${{github.workspace}}\vs-market-place-manifest.json
+          vsixPath: ${{env.VSIX2022}}
+
       - name: comment - released and added to marketplace
         if: github.event_name == 'push'
         uses: tonyhallett/addCommentToPullAndIssuesFromPushAction@v1.0.0

@@ -12,6 +12,7 @@ using Microsoft.VisualStudio.Utilities;
 namespace FineCodeCoverage.Impl
 {
     [Name(Vsix.TestContainerDiscovererName)]
+    // Both exports necessary !
     [Export(typeof(TestContainerDiscoverer))]
     [Export(typeof(ITestContainerDiscoverer))]
     internal class TestContainerDiscoverer : ITestContainerDiscoverer

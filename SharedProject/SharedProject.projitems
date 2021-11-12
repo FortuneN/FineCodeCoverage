@@ -9,9 +9,6 @@
     <Import_RootNamespace>SharedProject</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <Content Include="$(MSBuildThisFileDirectory)Output\Resources\OutputToolWindowPackage.ico" />
-  </ItemGroup>
-  <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)Core\AppDataFolder.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Cobertura\Class.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Cobertura\Classes.cs" />
@@ -169,5 +166,8 @@
     <EmbeddedResource Include="$(MSBuildThisFileDirectory)Output\VSPackage.resx">
       <SubType>Designer</SubType>
     </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="$(MSBuildThisFileDirectory)Resources\OutputToolWindowPackage.ico" />
   </ItemGroup>
 </Project>
