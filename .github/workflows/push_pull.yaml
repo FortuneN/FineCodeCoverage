@@ -108,7 +108,7 @@ jobs:
 
       - name: Update release asset 2022
         if: github.event_name == 'push'
-        id: upload-release-asset
+        id: upload-release-asset-2022
         uses: actions/upload-release-asset@v1
         env:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
