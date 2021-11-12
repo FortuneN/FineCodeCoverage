@@ -20,7 +20,7 @@ jobs:
         run: |
             echo "SOLN=${{env.VSIX_PROJECT}}.sln" >> $GITHUB_ENV
             echo "VSIX=${{github.workspace}}\${{env.VSIX_PROJECT}}\bin\${{env.CONFIGURATION}}\${{env.VSIX_PROJECT}}.vsix" >> $GITHUB_ENV # full path required for vsix publish
-            echo "VSIX2022=${{github.workspace}}\${{env.VSIX_PROJECT}}2022\bin\${{env.CONFIGURATION}}\${{env.VSIX_PROJECT}}.vsix" >> $GITHUB_ENV # full path required for vsix publish
+            echo "VSIX2022=${{github.workspace}}\${{env.VSIX_PROJECT}}2022\bin\${{env.CONFIGURATION}}\${{env.VSIX_PROJECT}}2022.vsix" >> $GITHUB_ENV # full path required for vsix publish
       - name: checkout
         uses: actions/checkout@v2
         with:
