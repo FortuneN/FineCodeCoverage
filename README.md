@@ -9,7 +9,7 @@ or download from [releases](https://github.com/FortuneN/FineCodeCoverage/release
 Prerequisites
 
 Only that the test adapters are nuget packages.  For instance, the NUnit Test Adapter extension is not sufficient.
-
+FCC will copy your test dll and dependencies to a sub folder this may affect your tests.
 ---------------------------------------
 
 Introduction
