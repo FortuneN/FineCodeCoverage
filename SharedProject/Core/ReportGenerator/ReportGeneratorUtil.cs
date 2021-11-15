@@ -5,8 +5,10 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ExCSS;
 using FineCodeCoverage.Core.Utilities;
 using FineCodeCoverage.Options;
+using FineCodeCoverage.Output;
 using Fizzler.Systems.HtmlAgilityPack;
 using HtmlAgilityPack;
 using Newtonsoft.Json;
@@ -18,8 +20,8 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 	interface IReportGeneratorUtil
     {
 		void Initialize(string appDataFolder);
-		string ProcessUnifiedHtml(string htmlForProcessing,string reportOutputFolder, bool darkMode);
-		Task<ReportGeneratorResult> GenerateAsync(IEnumerable<string> coverOutputFiles,string reportOutputFolder, bool darkMode, bool throwError = false);
+		string ProcessUnifiedHtml(string htmlForProcessing,string reportOutputFolder);
+		Task<ReportGeneratorResult> GenerateAsync(IEnumerable<string> coverOutputFiles,string reportOutputFolder, bool throwError = false);
 
 	}
 
@@ -38,10 +40,21 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 		private readonly ILogger logger;
 		private readonly IToolFolder toolFolder;
 		private readonly IToolZipProvider toolZipProvider;
-		private readonly IFileUtil fileUtil;
+        private readonly IReportColoursProvider reportColoursProvider;
+        private readonly IFileUtil fileUtil;
 		private readonly IAppOptionsProvider appOptionsProvider;
 		private const string zipPrefix = "reportGenerator";
 		private const string zipDirectoryName = "reportGenerator";
+
+		private const string ThemeChangedJSFunctionName = "themeChanged";
+		private readonly Base64ReportImage plusBase64ReportImage = new Base64ReportImage(".icon-plus", "PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4KPHN2ZyB3aWR0aD0iMTc5MiIgaGVpZ2h0PSIxNzkyIiB2aWV3Qm94PSIwIDAgMTc5MiAxNzkyIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxwYXRoIGQ9Ik0xNjAwIDczNnYxOTJxMCA0MC0yOCA2OHQtNjggMjhoLTQxNnY0MTZxMCA0MC0yOCA2OHQtNjggMjhoLTE5MnEtNDAgMC02OC0yOHQtMjgtNjh2LTQxNmgtNDE2cS00MCAwLTY4LTI4dC0yOC02OHYtMTkycTAtNDAgMjgtNjh0NjgtMjhoNDE2di00MTZxMC00MCAyOC02OHQ2OC0yOGgxOTJxNDAgMCA2OCAyOHQyOCA2OHY0MTZoNDE2cTQwIDAgNjggMjh0MjggNjh6Ii8+PC9zdmc+");
+		private readonly Base64ReportImage minusBase64ReportImage = new Base64ReportImage(".icon-minus", "PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4NCjxzdmcgd2lkdGg9IjE3OTIiIGhlaWdodD0iMTc5MiIgdmlld0JveD0iMCAwIDE3OTIgMTc5MiIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBmaWxsPSIjMDAwIiBkPSJNMTYwMCA3MzZ2MTkycTAgNDAtMjggNjh0LTY4IDI4aC0xMjE2cS00MCAwLTY4LTI4dC0yOC02OHYtMTkycTAtNDAgMjgtNjh0NjgtMjhoMTIxNnE0MCAwIDY4IDI4dDI4IDY4eiIvPjwvc3ZnPg==");
+		private readonly Base64ReportImage downActiveBase64ReportImage = new Base64ReportImage(".icon-down-dir_active", "PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4NCjxzdmcgd2lkdGg9IjE3OTIiIGhlaWdodD0iMTc5MiIgdmlld0JveD0iMCAwIDE3OTIgMTc5MiIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBmaWxsPSIjMDA3OEQ0IiBkPSJNMTQwOCA3MDRxMCAyNi0xOSA0NWwtNDQ4IDQ0OHEtMTkgMTktNDUgMTl0LTQ1LTE5bC00NDgtNDQ4cS0xOS0xOS0xOS00NXQxOS00NSA0NS0xOWg4OTZxMjYgMCA0NSAxOXQxOSA0NXoiLz48L3N2Zz4=");
+		private readonly Base64ReportImage downInactiveBase64ReportImage = new Base64ReportImage(".icon-down-dir", "PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4KPHN2ZyB3aWR0aD0iMTc5MiIgaGVpZ2h0PSIxNzkyIiB2aWV3Qm94PSIwIDAgMTc5MiAxNzkyIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxwYXRoIGQ9Ik0xNDA4IDcwNHEwIDI2LTE5IDQ1bC00NDggNDQ4cS0xOSAxOS00NSAxOXQtNDUtMTlsLTQ0OC00NDhxLTE5LTE5LTE5LTQ1dDE5LTQ1IDQ1LTE5aDg5NnEyNiAwIDQ1IDE5dDE5IDQ1eiIvPjwvc3ZnPg==");
+		private readonly Base64ReportImage upActiveBase64ReportImage = new Base64ReportImage(".icon-up-dir_active", "PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4NCjxzdmcgd2lkdGg9IjE3OTIiIGhlaWdodD0iMTc5MiIgdmlld0JveD0iMCAwIDE3OTIgMTc5MiIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBmaWxsPSIjMDA3OEQ0IiBkPSJNMTQwOCAxMjE2cTAgMjYtMTkgNDV0LTQ1IDE5aC04OTZxLTI2IDAtNDUtMTl0LTE5LTQ1IDE5LTQ1bDQ0OC00NDhxMTktMTkgNDUtMTl0NDUgMTlsNDQ4IDQ0OHExOSAxOSAxOSA0NXoiLz48L3N2Zz4=");
+        private readonly IScriptInvoker scriptInvoker;
+		private IReportColours reportColours;
+		private readonly bool showBranchCoverage = true;
 
 		public string ReportGeneratorExePath { get; private set; }
 
@@ -53,7 +66,9 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 			IToolFolder toolFolder,
 			IToolZipProvider toolZipProvider,
 			IFileUtil fileUtil,
-			IAppOptionsProvider appOptionsProvider
+			IAppOptionsProvider appOptionsProvider,
+			IReportColoursProvider reportColoursProvider,
+			IScriptInvoker scriptInvoker
 			)
 		{
 			this.fileUtil = fileUtil;
@@ -63,17 +78,21 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 			this.logger = logger;
 			this.toolFolder = toolFolder;
 			this.toolZipProvider = toolZipProvider;
+			this.reportColoursProvider = reportColoursProvider;
+            this.reportColoursProvider.ColoursChanged += ReportColoursProvider_ColoursChanged;
+			this.scriptInvoker = scriptInvoker;
 		}
 
-		public void Initialize(string appDataFolder)
+        public void Initialize(string appDataFolder)
 		{
 			var zipDestination = toolFolder.EnsureUnzipped(appDataFolder, zipDirectoryName, toolZipProvider.ProvideZip(zipPrefix));
 			ReportGeneratorExePath = Directory.GetFiles(zipDestination, "reportGenerator.exe", SearchOption.AllDirectories).FirstOrDefault()
 								  ?? Directory.GetFiles(zipDestination, "*reportGenerator*.exe", SearchOption.AllDirectories).FirstOrDefault();
 		}
 
-		public async Task<ReportGeneratorResult> GenerateAsync(IEnumerable<string> coverOutputFiles, string reportOutputFolder, bool darkMode, bool throwError = false)
+		public async Task<ReportGeneratorResult> GenerateAsync(IEnumerable<string> coverOutputFiles, string reportOutputFolder, bool throwError = false)
 		{
+			var darkMode = false;
 			var title = "ReportGenerator Run";
 
 			var unifiedHtmlFile = Path.Combine(reportOutputFolder, "index.html");
@@ -97,7 +116,7 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 				{
 					reportTypeSettings.Add($@"""-reports:{inputReports}""");
 					reportTypeSettings.Add($@"""-plugins:{typeof(FccLightReportBuilder).Assembly.Location}""");
-					reportTypeSettings.Add($@"""-reporttypes:{(darkMode ? FccDarkReportBuilder.REPORT_TYPE : FccLightReportBuilder.REPORT_TYPE)}""");
+					reportTypeSettings.Add($@"""-reporttypes:{FccLightReportBuilder.REPORT_TYPE}""");
 					var (cyclomaticThreshold, crapScoreThreshold, nPathThreshold) = HotspotThresholds();
 
 					reportTypeSettings.Add($@"""riskHotspotsAnalysisThresholds:metricThresholdForCyclomaticComplexity={cyclomaticThreshold}""");
@@ -162,8 +181,87 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 
 		}
 
-		public string ProcessUnifiedHtml(string htmlForProcessing, string reportOutputFolder, bool darkMode)
+		private void SetInitialStyle(HtmlAgilityPack.HtmlDocument document)
 		{
+			
+			var backgroundColor = ToJsColour(reportColours.BackgroundColour);
+			var fontColour = ToJsColour(reportColours.FontColour);
+			var overviewTableBorderColor = ToJsColour(reportColours.TableBorderColour);
+
+			var style = document.DocumentNode.Descendants("style").First();
+
+			var parser = new StylesheetParser();
+			var stylesheet = parser.Parse(style.InnerHtml);
+			var styleRules = stylesheet.StyleRules;
+
+			var lightRedForCyclomatic = styleRules.First(r => r.SelectorText == ".lightred");
+			lightRedForCyclomatic.Style.BackgroundColor = null;
+			/*
+                Other option
+                lightRedForCyclomatic.Style.BackgroundColor = "rgba(255,255,255,0.3)";
+
+                or 
+                be *dynamic* and be lighten / darken %age of the background color
+            */
+			var grayRule = styleRules.First(r => r.SelectorText == ".gray");
+			grayRule.Style.BackgroundColor = ToJsColour(reportColours.GrayCoverage);
+
+			var htmlRule = styleRules.First(r => r.Selector.Text == "html");
+			var htmlStyle = htmlRule.Style;
+			htmlStyle.BackgroundColor = backgroundColor;
+
+			var containerRule = styleRules.First(r => r.SelectorText == ".container");
+			containerRule.Style.BackgroundColor = backgroundColor;
+
+			var overviewTableBorder = $"1px solid {overviewTableBorderColor}";
+			var overviewThRule = styleRules.First(r => r.SelectorText == ".overview th");
+			overviewThRule.Style.BackgroundColor = backgroundColor;
+			overviewThRule.Style.Border = overviewTableBorder;
+
+			var overviewTdRule = styleRules.First(r => r.SelectorText == ".overview td");
+			overviewTdRule.Style.Border = overviewTableBorder;
+
+			var overviewRule = styleRules.First(r => r.SelectorText == ".overview");
+			overviewRule.Style.Border = overviewTableBorder;
+
+			var overviewHeaderLinks = styleRules.First(r => r.SelectorText == ".overview th a");
+			overviewHeaderLinks.Style.Color = ToJsColour(reportColours.CoverageTableHeaderFontColour);
+
+			var overviewTrHoverRule = styleRules.First(r => r.SelectorText == ".overview tr:hover");
+			overviewTrHoverRule.Style.Background = ToJsColour(reportColours.CoverageTableRowHoverBackgroundColour);
+
+			var expandCollapseIconColor = reportColours.CoverageTableExpandCollapseIconColour;
+			plusBase64ReportImage.FillSvg(styleRules, ToJsColour(expandCollapseIconColor));
+			minusBase64ReportImage.FillSvg(styleRules, ToJsColour(expandCollapseIconColor));
+
+			var coverageTableActiveSortColor = ToJsColour(reportColours.CoverageTableActiveSortColour);
+			var coverageTableInactiveSortColor = ToJsColour(reportColours.CoverageTableInactiveSortColour);
+			downActiveBase64ReportImage.FillSvg(styleRules, coverageTableActiveSortColor);
+			upActiveBase64ReportImage.FillSvg(styleRules, coverageTableActiveSortColor);
+			downInactiveBase64ReportImage.FillSvg(styleRules, coverageTableInactiveSortColor);
+
+			var linkColor = ToJsColour(reportColours.LinkColour);
+			var linkRule = styleRules.First(r => r.SelectorText == "a");
+			var linkHoverRule = styleRules.First(r => r.SelectorText == "a:hover");
+
+			linkRule.Style.Color = linkColor;
+			linkRule.Style.Cursor = "pointer";
+			linkRule.Style.TextDecoration = "none";
+
+			linkHoverRule.Style.Color = linkColor;
+			linkHoverRule.Style.Cursor = "pointer";
+			linkHoverRule.Style.TextDecoration = "none";
+
+			var stringWriter = new StringWriter();
+			var formatter = new CompressedStyleFormatter();
+			stylesheet.ToCss(stringWriter, formatter);
+			var changedCss = stringWriter.ToString();
+			style.InnerHtml = changedCss;
+		}
+
+		public string ProcessUnifiedHtml(string htmlForProcessing, string reportOutputFolder)
+		{
+			reportColours = reportColoursProvider.GetColours();
 			return assemblyUtil.RunInAssemblyResolvingContext(() =>
 			{
 				var (cyclomaticThreshold, crapScoreThreshold, nPathThreshold) = HotspotThresholds();
@@ -171,12 +269,15 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 				var noRiskHotspotsCyclomaticMsg = $"Cyclomatic complexity : {cyclomaticThreshold}";
 				var noRiskHotspotsNpathMsg =$"NPath complexity      : {nPathThreshold}";
 				var noRiskHotspotsCrapMessage = $"Crap score            : {crapScoreThreshold}";
-				var doc = new HtmlDocument();
+				var doc = new HtmlDocument
+				{
+					OptionFixNestedTags = true,
+					OptionAutoCloseOnEnd = true
+				};
 
-				doc.OptionFixNestedTags = true;
-				doc.OptionAutoCloseOnEnd = true;
 
 				doc.LoadHtml(htmlForProcessing);
+				SetInitialStyle(doc);
 				htmlForProcessing = null;
 
 				doc.DocumentNode.QuerySelectorAll(".footer").ToList().ForEach(x => x.SetAttributeValue("style", "display:none"));
@@ -186,14 +287,8 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 
 				// DOM changes
 
-				var table = doc.DocumentNode.QuerySelectorAll("table.overview").First();
-				var tableRows = table.QuerySelectorAll("tr").ToArray();
-				try { tableRows[0].SetAttributeValue("style", "display:none"); } catch { }
-				try { tableRows[1].SetAttributeValue("style", "display:none"); } catch { }
-				try { tableRows[10].SetAttributeValue("style", "display:none"); } catch { }
-				try { tableRows[10].SetAttributeValue("style", "display:none"); } catch { }
-				try { tableRows[11].SetAttributeValue("style", "display:none"); } catch { }
-				try { tableRows[12].SetAttributeValue("style", "display:none"); } catch { }
+				HideRowsFromOverviewTable(doc);
+				
 
 				// TEXT changes
 				var assemblyClassDelimiter = "!";
@@ -268,46 +363,122 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 
 				htmlSb.Replace(".table-fixed", ".table-fixed-ignore-me");
 
+				var fontColour = ToJsColour(reportColours.FontColour);
+				var scrollbarThumbColour = ToJsColour(reportColours.ScrollBarThumbColour);
 				htmlSb.Replace("</head>", $@"
-					<style type=""text/css"">
-						*, body {{ font-size: small; }}
-						table td {{ white-space: nowrap; }}
-						table.coverage {{ width:150px;height:13px }}
-						body {{ padding-left:3px;padding-right:3px;padding-bottom:3px }}
-						table,tr,th,td {{ border: 1px solid #3f3f46; font-size: small; }}
-						a, a:hover {{ color: #0078D4; text-decoration: none; cursor: pointer; }}
-						body {{ -webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;-o-user-select:none;user-select:none }}
-						table.overview th, table.overview td {{ font-size: small; white-space: nowrap; word-break: normal; padding-left:10px;padding-right:10px; }}
-						coverage-info div.customizebox div:nth-child(2) {{ opacity:0;font-size:1px;height:1px;padding:0;border:0;margin:0 }}
-						coverage-info div.customizebox div:nth-child(2) * {{ opacity:0;font-size:1px;height:1px;padding:0;border:0;margin:0 }}
-					</style>
-					</head>
-				");
-
-				if (darkMode)
-				{
-					htmlSb.Replace("</head>", $@"
-						<style type=""text/css"">
-							*, body {{ color: #f1f1f1 }}
-							table.overview.table-fixed {{ border: 1px solid #3f3f46; }}
-							body, html {{ scrollbar-arrow-color:#999;scrollbar-track-color:#3e3e42;scrollbar-face-color:#686868;scrollbar-shadow-color:#686868;scrollbar-highlight-color:#686868;scrollbar-3dlight-color:#686868;scrollbar-darkshadow-Color:#686868; }}
-						</style>
-						</head>
-					");
-				}
-				else
-				{
-					htmlSb.Replace("</head>", $@"
-						<style type=""text/css"">
-							table.overview.table-fixed {{ border-width: 1px }}
-						</style>
-						</head>
-					");
-				}
+				<style id=""fccStyle1"" type=""text/css"">
+					*, body {{ font-size: small;  color: {fontColour}}}
+					table td {{ white-space: nowrap; }}
+					table.coverage {{ width:150px;height:13px }}
+					body {{ padding-left:3px;padding-right:3px;padding-bottom:3px }}
+					table,tr,th,td {{ font-size: small; }}
+					body {{ -webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;-o-user-select:none;user-select:none }}
+					table.overview th, table.overview td {{ font-size: small; white-space: nowrap; word-break: normal; padding-left:10px;padding-right:10px; }}
+					coverage-info div.customizebox div:nth-child(2) {{ opacity:0;font-size:1px;height:1px;padding:0;border:0;margin:0 }} */
+					coverage-info div.customizebox div:nth-child(2) * {{ opacity:0;font-size:1px;height:1px;padding:0;border:0;margin:0 }} */
+					table,tr,th,td {{ border: 1px solid; font-size: small; }}
+					input[type=text] {{ color:{ToJsColour(reportColours.TextBoxTextColour)}; background-color:{ToJsColour(reportColours.TextBoxColour)};border-color:{ToJsColour(reportColours.TextBoxBorderColour)} }}
+					select {{ color:{ToJsColour(reportColours.ComboBoxTextColour)}; background-color:{ToJsColour(reportColours.ComboBoxColour)};border-color:{ToJsColour(reportColours.ComboBoxBorderColour)} }}
+                    body, html {{ scrollbar-arrow-color:{ToJsColour(reportColours.ScrollBarArrowColour)};scrollbar-track-color:{ToJsColour(reportColours.ScrollBarTrackColour)};scrollbar-face-color:{scrollbarThumbColour};scrollbar-shadow-color:{scrollbarThumbColour};scrollbar-highlight-color:{scrollbarThumbColour};scrollbar-3dlight-color:{scrollbarThumbColour};scrollbar-darkshadow-color:{scrollbarThumbColour} }}				
+				</style>
+				</head>
+			");
 
 				htmlSb.Replace("</body>", $@"
 					<script type=""text/javascript"">
-						
+						function getRuleBySelector(cssRules,selector){{
+						for(var i=0;i<cssRules.length;i++){{
+							if(cssRules[i].selectorText == selector){{
+								return cssRules[i];
+							}}
+						}}
+					}}
+					function getStyleBySelector(cssRules,selector){{
+						return getRuleBySelector(cssRules,selector).style;
+					}}
+
+					function getStyleSheetById(id){{
+						for(var i=0;i<document.styleSheets.length;i++){{
+							var styleSheet = document.styleSheets[i];
+							if(styleSheet.ownerNode && styleSheet.ownerNode.id == id){{
+								return styleSheet;
+							}}
+						}}
+					}}
+					function {ThemeChangedJSFunctionName}(colours){{
+							var fccMediaStylesheet = getStyleSheetById('fccMediaStyle');	
+							var highContrastRule = fccMediaStylesheet.cssRules[1]
+							var highContrastRules = highContrastRule.cssRules
+							getStyleBySelector(highContrastRules,'table.coverage > td.gray').setProperty('background-color',colours.{nameof(JsThemeStyling.GrayCoverage)});
+
+							var fccStyleSheet1Rules = getStyleSheetById('fccStyle1').cssRules;		
+					
+							var scrollBarStyle = getStyleBySelector(fccStyleSheet1Rules,'body, html');
+							scrollBarStyle.setProperty('scrollbar-arrow-color',colours.{nameof(JsThemeStyling.ScrollBarArrow)});
+							scrollBarStyle.setProperty('scrollbar-track-color',colours.{nameof(JsThemeStyling.ScrollBarTrack)});
+							scrollBarStyle.setProperty('scrollbar-face-color',colours.{nameof(JsThemeStyling.ScrollBarThumb)});
+							scrollBarStyle.setProperty('scrollbar-shadow-color',colours.{nameof(JsThemeStyling.ScrollBarThumb)});
+							scrollBarStyle.setProperty('scrollbar-highlight-color',colours.{nameof(JsThemeStyling.ScrollBarThumb)});
+							scrollBarStyle.setProperty('scrollbar-3dlight-color',colours.{nameof(JsThemeStyling.ScrollBarThumb)});
+							scrollBarStyle.setProperty('scrollbar-darkshadow-color',colours.{nameof(JsThemeStyling.ScrollBarThumb)});
+
+							getStyleBySelector(fccStyleSheet1Rules,'*, body').setProperty('color',colours.{nameof(JsThemeStyling.FontColour)});
+							var textStyle = getStyleBySelector(fccStyleSheet1Rules,'input[type=text]');
+							textStyle.setProperty('color',colours.{nameof(JsThemeStyling.TextBoxTextColour)});			
+							textStyle.setProperty('background-color',colours.{nameof(JsThemeStyling.TextBoxColour)});								
+							textStyle.setProperty('border-color',colours.{nameof(JsThemeStyling.TextBoxBorderColour)});
+
+							var comboStyle = getStyleBySelector(fccStyleSheet1Rules,'select');
+							comboStyle.setProperty('color',colours.{nameof(JsThemeStyling.ComboBoxText)});		
+							comboStyle.setProperty('background-color',colours.{nameof(JsThemeStyling.ComboBox)});	
+							comboStyle.setProperty('border-color',colours.{nameof(JsThemeStyling.ComboBoxBorder)});
+
+							var fccStyleSheet2Rules = getStyleSheetById('fccStyle2').cssRules;	
+							getStyleBySelector(fccStyleSheet2Rules,'#divHeader').setProperty('background-color',colours.{nameof(JsThemeStyling.DivHeaderBackgroundColour)});							
+							var headerTabsStyle = getStyleBySelector(fccStyleSheet2Rules,'table#headerTabs td');
+							headerTabsStyle.setProperty('color',colours.{nameof(JsThemeStyling.HeaderFontColour)});
+							headerTabsStyle.setProperty('border-color',colours.{nameof(JsThemeStyling.HeaderBorderColour)});
+							getStyleBySelector(fccStyleSheet2Rules,'table#headerTabs td.tab').setProperty('background-color',colours.{nameof(JsThemeStyling.TabBackgroundColour)});		
+
+							var mainStyle = document.styleSheets[0];
+							var mainRules = mainStyle.cssRules;
+
+							getStyleBySelector(mainRules,'.gray').setProperty('background-color',colours.{nameof(JsThemeStyling.GrayCoverage)});
+
+							getStyleBySelector(mainRules,'html').setProperty('background-color',colours.{nameof(JsThemeStyling.BackgroundColour)});
+							getStyleBySelector(mainRules,'.container').setProperty('background-color',colours.{nameof(JsThemeStyling.BackgroundColour)});
+
+							var overviewTableBorder = '1px solid ' + colours.{nameof(JsThemeStyling.TableBorderColour)};
+							var overviewStyle = getStyleBySelector(mainRules,'.overview');
+							overviewStyle.setProperty('border',overviewTableBorder);
+							var overviewThStyle = getStyleBySelector(mainRules,'.overview th');
+							overviewThStyle.setProperty('background-color',colours.{nameof(JsThemeStyling.BackgroundColour)});
+							overviewThStyle.setProperty('border',overviewTableBorder);
+							var overviewTdStyle = getStyleBySelector(mainRules,'.overview td');
+							overviewTdStyle.setProperty('border',overviewTableBorder);
+
+							var overviewHeaderLinksStyle = getStyleBySelector(mainRules,'.overview th a');
+							overviewHeaderLinksStyle.setProperty('color',colours.{nameof(JsThemeStyling.CoverageTableHeaderFontColour)});
+
+							var overviewTrHoverStyle = getStyleBySelector(mainRules,'.overview tr:hover');
+							overviewTrHoverStyle.setProperty('background',colours.{nameof(JsThemeStyling.CoverageTableRowHoverBackgroundColour)});
+
+							var linkStyle = getStyleBySelector(mainRules,'a');
+							var linkHoverStyle = getStyleBySelector(mainRules,'a:hover');
+							linkStyle.setProperty('color',colours.{nameof(JsThemeStyling.LinkColour)});
+							linkHoverStyle.setProperty('color',colours.{nameof(JsThemeStyling.LinkColour)});
+
+							var iconPlusStyle = getStyleBySelector(mainRules,'.icon-plus');
+							iconPlusStyle.setProperty('background-image',colours.{nameof(JsThemeStyling.PlusBase64)});
+							var iconMinusStyle = getStyleBySelector(mainRules,'.icon-minus');
+							iconMinusStyle.setProperty('background-image',colours.{nameof(JsThemeStyling.MinusBase64)});
+							var iconDownActiveStyle = getStyleBySelector(mainRules,'.icon-down-dir_active');
+							iconDownActiveStyle.setProperty('background-image',colours.{nameof(JsThemeStyling.DownActiveBase64)});
+							var iconDownInactiveStyle = getStyleBySelector(mainRules,'.icon-down-dir');
+							iconDownInactiveStyle.setProperty('background-image',colours.{nameof(JsThemeStyling.DownInactiveBase64)});
+							var iconUpActiveStyle = getStyleBySelector(mainRules,'.icon-up-dir_active');
+							iconUpActiveStyle.setProperty('background-image',colours.{nameof(JsThemeStyling.UpActiveBase64)});
+					}}
 						var htmlExtension = '.html';
 						
 						var eventListener = function (element, event, func) {{
@@ -356,47 +527,30 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 				");
 
 				htmlSb.Replace("</head>", $@"
-					<style type=""text/css"">
-						table.overview.table-fixed.stripped > thead > tr > th:nth-of-type(4) > a:nth-of-type(2) {{ display: none; }}
-					</style>
-					</head>
-				");
+				<style type=""text/css"" id='fccMediaStyle'>
+					table.overview.table-fixed.stripped > thead > tr > th:nth-of-type(4) > a:nth-of-type(2) {{ display: none; }}
+					@media screen and (-ms-high-contrast:active){{
+						table.coverage > td.green{{ background-color: windowText }}
+						table.coverage > td.gray{{ 
+							background-color: {ToJsColour(reportColours.GrayCoverage)}
+						}}
+	
+					}}
+				</style>
 
-				if (darkMode)
-				{
-					htmlSb.Replace("<body>", @"
-						<body>
-						<style>
-							#divHeader {
-								background-color: #252526;
-							}
-							table#headerTabs td {
-								color: #969696;
-								border-color:#969696;
-							}
-						</style>
-					");
-				}
-				else
-				{
-					htmlSb.Replace("<body>", @"
-						<body>
-						<style>
-							#divHeader {
-								background-color: #ffffff;
-							}
-							table#headerTabs td {
-								color: #3b3b3b;
-								border-color: #3b3b3b;
-							}
-						</style>
-					");
-				}
+				</head>
+			");
 
 				htmlSb.Replace("<body>", $@"
 					<body oncontextmenu='return false;'>
-					<style>
-						
+					<style id='fccStyle2'>
+						#divHeader {{
+							background-color: {ToJsColour(reportColours.DivHeaderBackgroundColour)};
+						}}
+						table#headerTabs td {{
+							color: {ToJsColour(reportColours.HeaderFontColour)};
+							border-color: {ToJsColour(reportColours.HeaderBorderColour)};
+						}}	
 						table#headerTabs td {{
 							border-width:3px;
 							padding: 3px;
@@ -405,15 +559,15 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 						}}
 						table#headerTabs td.tab {{
 							cursor: pointer;
+							background-color : {ToJsColour(reportColours.TabBackgroundColour)};
 						}}
 						table#headerTabs td.active {{
 							border-bottom: 3px solid transparent;
 							font-weight: bolder;
 						}}
-						
+					
 					</style>
 					<script>
-					
 						var body = document.getElementsByTagName('body')[0];
 						body.style['padding-top'] = '50px';
 					
@@ -549,8 +703,11 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 					</div>
 				");
 
-				htmlSb.Replace("branchCoverageAvailable = true", "branchCoverageAvailable = false");
-
+                if (!showBranchCoverage)
+                {
+					htmlSb.Replace("branchCoverageAvailable = true", "branchCoverageAvailable = false");
+				}
+				
 				var processed = string.Join(
 				Environment.NewLine,
 				htmlSb.ToString().Split('\r', '\n')
@@ -625,6 +782,20 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 			});
 		}
 
+		private void HideRowsFromOverviewTable(HtmlDocument doc)
+        {
+			var table = doc.DocumentNode.QuerySelectorAll("table.overview").First();
+			var tableRows = table.QuerySelectorAll("tr").ToArray();
+			try { tableRows[0].SetAttributeValue("style", "display:none"); } catch { } // generated on
+			try { tableRows[1].SetAttributeValue("style", "display:none"); } catch { } // parser
+			if (!showBranchCoverage)
+			{
+				try { tableRows[10].SetAttributeValue("style", "display:none"); } catch { } // covered branches
+				try { tableRows[11].SetAttributeValue("style", "display:none"); } catch { } // total branches
+				try { tableRows[12].SetAttributeValue("style", "display:none"); } catch { } // branch coverage
+			}
+		}
+
 		private (int cyclomaticThreshold, int crapScoreThreshold, int nPathThreshold) HotspotThresholds()
         {
 			var options = appOptionsProvider.Get();
@@ -635,5 +806,55 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 			);
 
 		}
+
+		private void ReportColoursProvider_ColoursChanged(object sender, IReportColours reportColours)
+		{
+			var coverageTableActiveSortColour = reportColours.CoverageTableActiveSortColour;
+			var coverageTableExpandCollapseIconColour = reportColours.CoverageTableExpandCollapseIconColour;
+			var jsThemeStyling = new JsThemeStyling
+			{
+				BackgroundColour = ToJsColour(reportColours.BackgroundColour),
+
+				CoverageTableHeaderFontColour = ToJsColour(reportColours.CoverageTableHeaderFontColour),
+
+				DownActiveBase64 = downActiveBase64ReportImage.Base64FromColour(ToJsColour(coverageTableActiveSortColour)),
+				UpActiveBase64 = upActiveBase64ReportImage.Base64FromColour(ToJsColour(coverageTableActiveSortColour)),
+
+				DownInactiveBase64 = downInactiveBase64ReportImage.Base64FromColour(ToJsColour(reportColours.CoverageTableInactiveSortColour)),
+
+				MinusBase64 = minusBase64ReportImage.Base64FromColour(ToJsColour(coverageTableExpandCollapseIconColour)),
+				PlusBase64 = plusBase64ReportImage.Base64FromColour(ToJsColour(coverageTableExpandCollapseIconColour)),
+
+				CoverageTableRowHoverBackgroundColour = ToJsColour(reportColours.CoverageTableRowHoverBackgroundColour),
+				DivHeaderBackgroundColour = ToJsColour(reportColours.DivHeaderBackgroundColour),
+				FontColour = ToJsColour(reportColours.FontColour),
+				HeaderBorderColour = ToJsColour(reportColours.HeaderBorderColour),
+				HeaderFontColour = ToJsColour(reportColours.HeaderFontColour),
+				LinkColour = ToJsColour(reportColours.LinkColour),
+				TableBorderColour = ToJsColour(reportColours.TableBorderColour),
+				TextBoxBorderColour = ToJsColour(reportColours.TextBoxBorderColour),
+				TextBoxColour = ToJsColour(reportColours.TextBoxColour),
+				TextBoxTextColour = ToJsColour(reportColours.TextBoxTextColour),
+				TabBackgroundColour = ToJsColour(reportColours.TabBackgroundColour),
+
+				GrayCoverage = ToJsColour(reportColours.GrayCoverage),
+
+				ComboBox = ToJsColour(reportColours.ComboBoxColour),
+				ComboBoxBorder = ToJsColour(reportColours.ComboBoxBorderColour),
+				ComboBoxText = ToJsColour(reportColours.ComboBoxTextColour),
+
+				ScrollBarArrow = ToJsColour(reportColours.ScrollBarArrowColour),
+				ScrollBarTrack = ToJsColour(reportColours.ScrollBarTrackColour),
+				ScrollBarThumb = ToJsColour(reportColours.ScrollBarThumbColour)
+			};
+
+			scriptInvoker.InvokeScript(ThemeChangedJSFunctionName, jsThemeStyling);
+		}
+
+		private string ToJsColour(System.Drawing.Color colour)
+		{
+			return $"rgba({colour.R},{colour.G},{colour.B},{colour.A})";
+		}
+
 	}
 }

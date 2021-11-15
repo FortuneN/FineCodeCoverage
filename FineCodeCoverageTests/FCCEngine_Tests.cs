@@ -262,7 +262,7 @@ namespace Test
             Assert.AreEqual(coverageProjectAfterCoverageOutputManager.CoverageOutputFolder, "Set by ICoverageToolOutputManager");
         }
 
-        [Test] // Not testing dark mode as ui will change
+        [Test]
         public async Task Should_Run_Report_Generator_With_Output_Files_From_Coverage_For_Coverage_Projects_That_Have_Not_Failed()
         {
             var failedProject = CreateSuitableProject();
@@ -277,7 +277,6 @@ namespace Test
                     It.Is<string[]>(
                         coverOutputFiles => coverOutputFiles.Count() == 1 && coverOutputFiles.First() == passedProjectCoverageOutputFile),
                     It.IsAny<string>(),
-                    It.IsAny<bool>(),
                     true).Result).Returns(new ReportGeneratorResult { Success = true });
 
             await ReloadInitializedCoverage(failedProject.Object, passedProject.Object);
@@ -290,7 +289,7 @@ namespace Test
         public async Task Should_Not_Run_ReportGenerator_If_No_Successful_Projects()
         {
             await ReloadInitializedCoverage();
-            mocker.Verify<IReportGeneratorUtil>(rg => rg.GenerateAsync(It.IsAny<IEnumerable<string>>(),It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<bool>()), Times.Never());
+            mocker.Verify<IReportGeneratorUtil>(rg => rg.GenerateAsync(It.IsAny<IEnumerable<string>>(), It.IsAny<string>(), It.IsAny<bool>()), Times.Never());
         }
 
         [Test]
@@ -303,7 +302,6 @@ namespace Test
                 rg.GenerateAsync(
                     It.IsAny<IEnumerable<string>>(),
                     It.IsAny<string>(),
-                    It.IsAny<bool>(),
                     true).Result)
                 .Returns(
                     new ReportGeneratorResult
@@ -314,7 +312,7 @@ namespace Test
                     }
                 );
 
-            mockReportGenerator.Setup(rg => rg.ProcessUnifiedHtml("Unified html",It.IsAny<string>(), It.IsAny<bool>()));
+            mockReportGenerator.Setup(rg => rg.ProcessUnifiedHtml("Unified html", It.IsAny<string>()));
 
             await ReloadInitializedCoverage(passedProject.Object);
             mocker.Verify<ICoberturaUtil>(coberturaUtil => coberturaUtil.ProcessCoberturaXml("Unified xml file"));
@@ -331,7 +329,6 @@ namespace Test
                 rg.GenerateAsync(
                     It.IsAny<IEnumerable<string>>(),
                     It.IsAny<string>(),
-                    It.IsAny<bool>(),
                     true).Result)
                 .Returns(
                     new ReportGeneratorResult
@@ -480,7 +477,6 @@ namespace Test
                 rg.GenerateAsync(
                     It.Is<IEnumerable<string>>(coverOutputFiles => coverOutputFiles.Count() == 1 && coverOutputFiles.First() == coverageProject.CoverageOutputFile),
                     It.IsAny<string>(),
-                    It.IsAny<bool>(),
                     true).Result)
                 .Returns(
                     new ReportGeneratorResult
@@ -491,8 +487,7 @@ namespace Test
                 );
 
             var reportGeneratedHtmlContent = "<somehtml/>";
-            mockReportGenerator.Setup(rg => rg.ProcessUnifiedHtml("Unified", It.IsAny<string>(), It.IsAny<bool>())).Returns(reportGeneratedHtmlContent);
-
+            mockReportGenerator.Setup(rg => rg.ProcessUnifiedHtml("Unified", It.IsAny<string>())).Returns(reportGeneratedHtmlContent);
             List<CoverageLine> coverageLines = new List<CoverageLine>() { new CoverageLine() };
             mocker.GetMock<ICoberturaUtil>().Setup(coberturaUtil => coberturaUtil.CoverageLines).Returns(coverageLines);
             if (noCoverageProjects)
@@ -517,7 +512,6 @@ namespace Test
                 rg.GenerateAsync(
                     It.IsAny<IEnumerable<string>>(),
                     It.IsAny<string>(),
-                    It.IsAny<bool>(),
                     true).Result)
                 .Returns(
                     new ReportGeneratorResult
@@ -527,7 +521,6 @@ namespace Test
                 );
 
             var badPath = "^&$!";
-            //mockReportGenerator.Setup(rg => rg.ProcessUnifiedHtml(It.IsAny<string>(), It.IsAny<bool>(), out badPath));
 
             List<CoverageLine> coverageLines = new List<CoverageLine>() { new CoverageLine() };
             mocker.GetMock<ICoberturaUtil>().Setup(coberturaUtil => coberturaUtil.CoverageLines).Returns(coverageLines);
@@ -572,8 +565,8 @@ namespace Test
                 .Setup(rg => rg.GenerateAsync(
                     It.IsAny<IEnumerable<string>>(),
                     It.IsAny<string>(),
-                    It.IsAny<bool>(),
                     It.IsAny<bool>()
+                    //It.IsAny<bool>()
                     ).Result)
                 .Returns(new ReportGeneratorResult { Success = true });
         }

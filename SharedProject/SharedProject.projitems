@@ -79,6 +79,11 @@
     <Compile Include="$(MSBuildThisFileDirectory)Core\MsTestPlatform\MsTestPlatformUtil.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\OpenCover\IOpenCoverUtil.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\OpenCover\OpenCoverUtil.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\ReportGenerator\Base64ReportImage.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\ReportGenerator\IReportColours.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\ReportGenerator\IReportColoursProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\ReportGenerator\JsThemeStyling.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\ReportGenerator\ReportColoursProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\ReportGenerator\ReportGeneratorUtil.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\SourceFileOpener.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\SVsColorThemeService.cs" />

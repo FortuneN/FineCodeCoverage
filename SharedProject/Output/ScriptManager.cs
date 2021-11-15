@@ -5,9 +5,15 @@ using FineCodeCoverage.Engine;
 
 namespace FineCodeCoverage.Output
 {
+    public interface IScriptInvoker
+    {
+        object InvokeScript(string scriptName, params object[] args);
+    }
+
     [Export]
+    [Export(typeof(IScriptInvoker))]
     [ComVisible(true)] // do not change the accessibility - needs to be public class
-    public class ScriptManager
+    public class ScriptManager : IScriptInvoker
     {
         internal const string payPal = "https://paypal.me/FortuneNgwenya";
         internal const string githubIssues = "https://github.com/FortuneN/FineCodeCoverage/issues";
@@ -15,7 +21,7 @@ namespace FineCodeCoverage.Output
         private readonly ISourceFileOpener sourceFileOpener;
         private readonly IProcess process;
         internal System.Threading.Tasks.Task openFileTask;
-
+        public IScriptInvoker ScriptInvoker { get; set; }
         public Action FocusCallback { get; set; }
 
         [ImportingConstructor]
@@ -48,6 +54,15 @@ namespace FineCodeCoverage.Output
         public void DocumentFocused()
         {
             FocusCallback();
+        }
+
+        public object InvokeScript(string scriptName, params object[] args)
+        {
+            if(ScriptInvoker != null)
+            {
+                return ScriptInvoker.InvokeScript(scriptName, args);
+            }
+            return null;
         }
     }
 }

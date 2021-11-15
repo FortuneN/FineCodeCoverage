@@ -1,0 +1,26 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ReportParts>
+  <ReportPart Name="ScrollBarArrowColour" SelectedThemeColourName="EnvironmentColors.ScrollBarArrowBackgroundColorKey" />
+  <ReportPart Name="ScrollBarTrackColour" SelectedThemeColourName="EnvironmentColors.ScrollBarBackgroundColorKey" />
+  <ReportPart Name="ScrollBarThumbColour" SelectedThemeColourName="EnvironmentColors.ScrollBarThumbBackgroundColorKey" />
+  <ReportPart Name="ComboBoxColour" SelectedThemeColourName="CommonControlsColors.ComboBoxBackgroundColorKey" />
+  <ReportPart Name="ComboBoxBorderColour" SelectedThemeColourName="CommonControlsColors.ComboBoxBorderColorKey" />
+  <ReportPart Name="ComboBoxTextColour" SelectedThemeColourName="CommonControlsColors.ComboBoxTextColorKey" />
+  <ReportPart Name="GrayCoverage" SelectedThemeColourName="EnvironmentColors.SystemGrayTextColorKey" />
+  <ReportPart Name="BackgroundColour" SelectedThemeColourName="EnvironmentColors.ToolWindowBackgroundColorKey" />
+  <ReportPart Name="FontColour" SelectedThemeColourName="EnvironmentColors.ToolWindowTextColorKey" />
+  <ReportPart Name="TableBorderColour" SelectedThemeColourName="EnvironmentColors.GridLineColorKey" />
+  <ReportPart Name="LinkColour" SelectedThemeColourName="EnvironmentColors.ControlLinkTextColorKey" />
+  <ReportPart Name="CoverageTableHeaderFontColour" SelectedThemeColourName="EnvironmentColors.ToolWindowTextColorKey" />
+  <ReportPart Name="CoverageTableActiveSortColour" SelectedThemeColourName="EnvironmentColors.SystemHighlightColorKey" />
+  <ReportPart Name="CoverageTableInactiveSortColour" SelectedThemeColourName="EnvironmentColors.ToolWindowTextColorKey" />
+  <ReportPart Name="CoverageTableExpandCollapseIconColour" SelectedThemeColourName="EnvironmentColors.ToolWindowTextColorKey" />
+  <ReportPart Name="CoverageTableRowHoverBackgroundColour" SelectedThemeColourName="EnvironmentColors.ToolWindowBackgroundColorKey" />
+  <ReportPart Name="TabBackgroundColour" SelectedThemeColourName="EnvironmentColors.FileTabBackgroundColorKey" />
+  <ReportPart Name="DivHeaderBackgroundColour" SelectedThemeColourName="EnvironmentColors.ToolWindowBackgroundColorKey" />
+  <ReportPart Name="HeaderFontColour" SelectedThemeColourName="EnvironmentColors.FileTabTextColorKey" />
+  <ReportPart Name="HeaderBorderColour" SelectedThemeColourName="EnvironmentColors.CommandBarBorderColorKey" />
+  <ReportPart Name="TextBoxColour" SelectedThemeColourName="CommonControlsColors.TextBoxBackgroundColorKey" />
+  <ReportPart Name="TextBoxTextColour" SelectedThemeColourName="CommonControlsColors.TextBoxTextColorKey" />
+  <ReportPart Name="TextBoxBorderColour" SelectedThemeColourName="CommonControlsColors.TextBoxBorderColorKey" />
+</ReportParts>
