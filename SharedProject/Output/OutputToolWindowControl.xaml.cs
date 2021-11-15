@@ -10,7 +10,7 @@ namespace FineCodeCoverage.Output
     /// <summary>
     /// Interaction logic for OutputToolWindowControl.
     /// </summary>
-    internal partial class OutputToolWindowControl : UserControl
+    internal partial class OutputToolWindowControl : UserControl, IScriptInvoker
 	{
         private DTE Dte;
 		private Events Events;
@@ -35,6 +35,7 @@ namespace FineCodeCoverage.Output
 			});
 
 			FCCOutputBrowser.ObjectForScripting = scriptManager;
+			scriptManager.ScriptInvoker = this;
 			
 			fccEngine.UpdateOutputWindow += (args) =>
 			{
@@ -54,7 +55,16 @@ namespace FineCodeCoverage.Output
 			};
         }
 
-		private void Clear()
+        public object InvokeScript(string scriptName, params object[] args)
+        {
+			if (FCCOutputBrowser.Document != null)
+			{
+				return FCCOutputBrowser.InvokeScript(scriptName, args);
+			}
+			return null;
+		}
+
+        private void Clear()
 		{
 			FCCOutputBrowser.Visibility = Visibility.Hidden;
 		}

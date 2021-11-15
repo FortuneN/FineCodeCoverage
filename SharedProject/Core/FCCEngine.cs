@@ -22,8 +22,6 @@ namespace FineCodeCoverage.Engine
         internal int InitializeWait { get; set; } = 5000;
         internal const string initializationFailedMessagePrefix = "Initialization failed.  Please check the following error which may be resolved by reopening visual studio which will start the initialization process again.";
         private readonly object colorThemeService;
-        private string CurrentTheme => $"{((dynamic)colorThemeService)?.CurrentTheme?.Name}".Trim();
-
         private CancellationTokenSource cancellationTokenSource;
         
         public event UpdateMarginTagsDelegate UpdateMarginTags;
@@ -162,9 +160,7 @@ namespace FineCodeCoverage.Engine
             List<CoverageLine> coverageLines = null;
             string processedReport = null;
             
-            var darkMode = CurrentTheme.Equals("Dark", StringComparison.OrdinalIgnoreCase);
-
-            var result = await reportGeneratorUtil.GenerateAsync(coverOutputFiles,reportOutputFolder, darkMode, true);
+            var result = await reportGeneratorUtil.GenerateAsync(coverOutputFiles,reportOutputFolder, true);
 
             if (result.Success)
             {
@@ -173,7 +169,7 @@ namespace FineCodeCoverage.Engine
                 coverageLines = coberturaUtil.CoverageLines;
 
                 logger.Log("Processing report");
-                processedReport = reportGeneratorUtil.ProcessUnifiedHtml(result.UnifiedHtml,reportOutputFolder, darkMode);
+                processedReport = reportGeneratorUtil.ProcessUnifiedHtml(result.UnifiedHtml,reportOutputFolder);
             }
             return (coverageLines, processedReport);
         }
