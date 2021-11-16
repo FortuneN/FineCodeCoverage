@@ -180,7 +180,7 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 
 		}
 
-		private void SetInitialStyle(HtmlAgilityPack.HtmlDocument document)
+		private void SetInitialTheme(HtmlAgilityPack.HtmlDocument document)
 		{
 			
 			var backgroundColor = ToJsColour(reportColours.BackgroundColour);
@@ -276,7 +276,7 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 
 
 				doc.LoadHtml(htmlForProcessing);
-				SetInitialStyle(doc);
+				SetInitialTheme(doc);
 				htmlForProcessing = null;
 
 				doc.DocumentNode.QuerySelectorAll(".footer").ToList().ForEach(x => x.SetAttributeValue("style", "display:none"));
