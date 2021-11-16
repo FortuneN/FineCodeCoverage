@@ -881,7 +881,7 @@ stickytheadapply(elements, { fixedOffset: document.getElementById('divHeader') }
 					}}
 					function {ThemeChangedJSFunctionName}(theme){{
 							var fccMediaStylesheet = getStyleSheetById('fccMediaStyle');	
-							var highContrastRule = fccMediaStylesheet.cssRules[1]
+							var highContrastRule = fccMediaStylesheet.cssRules[0]
 							var highContrastRules = highContrastRule.cssRules
 							getStyleBySelector(highContrastRules,'table.coverage > td.gray').setProperty('background-color',theme.{nameof(JsThemeStyling.GrayCoverage)});
 
