@@ -92,7 +92,6 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 
 		public async Task<ReportGeneratorResult> GenerateAsync(IEnumerable<string> coverOutputFiles, string reportOutputFolder, bool throwError = false)
 		{
-			var darkMode = false;
 			var title = "ReportGenerator Run";
 
 			var unifiedHtmlFile = Path.Combine(reportOutputFolder, "index.html");
