@@ -82,9 +82,12 @@
     <Compile Include="$(MSBuildThisFileDirectory)Core\ReportGenerator\Base64ReportImage.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\ReportGenerator\IReportColours.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\ReportGenerator\IReportColoursProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\ReportGenerator\IThemeResourceKeyProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\ReportGenerator\JsThemeStyling.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\ReportGenerator\ReportColours.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\ReportGenerator\ReportColoursProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\ReportGenerator\ReportGeneratorUtil.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\ReportGenerator\ThemeResourceKeyProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\SourceFileOpener.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\SVsColorThemeService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\AssemblyUtil.cs" />

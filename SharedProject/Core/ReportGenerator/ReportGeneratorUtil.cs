@@ -92,7 +92,6 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 
 		public async Task<ReportGeneratorResult> GenerateAsync(IEnumerable<string> coverOutputFiles, string reportOutputFolder, bool throwError = false)
 		{
-			var darkMode = false;
 			var title = "ReportGenerator Run";
 
 			var unifiedHtmlFile = Path.Combine(reportOutputFolder, "index.html");
@@ -181,7 +180,7 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 
 		}
 
-		private void SetInitialStyle(HtmlAgilityPack.HtmlDocument document)
+		private void SetInitialTheme(HtmlAgilityPack.HtmlDocument document)
 		{
 			
 			var backgroundColor = ToJsColour(reportColours.BackgroundColour);
@@ -277,7 +276,7 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 
 
 				doc.LoadHtml(htmlForProcessing);
-				SetInitialStyle(doc);
+				SetInitialTheme(doc);
 				htmlForProcessing = null;
 
 				doc.DocumentNode.QuerySelectorAll(".footer").ToList().ForEach(x => x.SetAttributeValue("style", "display:none"));
@@ -374,8 +373,8 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 					table,tr,th,td {{ font-size: small; }}
 					body {{ -webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;-o-user-select:none;user-select:none }}
 					table.overview th, table.overview td {{ font-size: small; white-space: nowrap; word-break: normal; padding-left:10px;padding-right:10px; }}
-					coverage-info div.customizebox div:nth-child(2) {{ opacity:0;font-size:1px;height:1px;padding:0;border:0;margin:0 }} */
-					coverage-info div.customizebox div:nth-child(2) * {{ opacity:0;font-size:1px;height:1px;padding:0;border:0;margin:0 }} */
+					coverage-info div.customizebox div:nth-child(2) {{ visibility:hidden;font-size:1px;height:1px;padding:0;border:0;margin:0 }}
+					coverage-info div.customizebox div:nth-child(2) * {{ visibility:hidden;font-size:1px;height:1px;padding:0;border:0;margin:0 }}
 					table,tr,th,td {{ border: 1px solid; font-size: small; }}
 					input[type=text] {{ color:{ToJsColour(reportColours.TextBoxTextColour)}; background-color:{ToJsColour(reportColours.TextBoxColour)};border-color:{ToJsColour(reportColours.TextBoxBorderColour)} }}
 					select {{ color:{ToJsColour(reportColours.ComboBoxTextColour)}; background-color:{ToJsColour(reportColours.ComboBoxColour)};border-color:{ToJsColour(reportColours.ComboBoxBorderColour)} }}
@@ -405,79 +404,79 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 							}}
 						}}
 					}}
-					function {ThemeChangedJSFunctionName}(colours){{
+					function {ThemeChangedJSFunctionName}(theme){{
 							var fccMediaStylesheet = getStyleSheetById('fccMediaStyle');	
 							var highContrastRule = fccMediaStylesheet.cssRules[1]
 							var highContrastRules = highContrastRule.cssRules
-							getStyleBySelector(highContrastRules,'table.coverage > td.gray').setProperty('background-color',colours.{nameof(JsThemeStyling.GrayCoverage)});
+							getStyleBySelector(highContrastRules,'table.coverage > td.gray').setProperty('background-color',theme.{nameof(JsThemeStyling.GrayCoverage)});
 
 							var fccStyleSheet1Rules = getStyleSheetById('fccStyle1').cssRules;		
 					
 							var scrollBarStyle = getStyleBySelector(fccStyleSheet1Rules,'body, html');
-							scrollBarStyle.setProperty('scrollbar-arrow-color',colours.{nameof(JsThemeStyling.ScrollBarArrow)});
-							scrollBarStyle.setProperty('scrollbar-track-color',colours.{nameof(JsThemeStyling.ScrollBarTrack)});
-							scrollBarStyle.setProperty('scrollbar-face-color',colours.{nameof(JsThemeStyling.ScrollBarThumb)});
-							scrollBarStyle.setProperty('scrollbar-shadow-color',colours.{nameof(JsThemeStyling.ScrollBarThumb)});
-							scrollBarStyle.setProperty('scrollbar-highlight-color',colours.{nameof(JsThemeStyling.ScrollBarThumb)});
-							scrollBarStyle.setProperty('scrollbar-3dlight-color',colours.{nameof(JsThemeStyling.ScrollBarThumb)});
-							scrollBarStyle.setProperty('scrollbar-darkshadow-color',colours.{nameof(JsThemeStyling.ScrollBarThumb)});
+							scrollBarStyle.setProperty('scrollbar-arrow-color',theme.{nameof(JsThemeStyling.ScrollBarArrow)});
+							scrollBarStyle.setProperty('scrollbar-track-color',theme.{nameof(JsThemeStyling.ScrollBarTrack)});
+							scrollBarStyle.setProperty('scrollbar-face-color',theme.{nameof(JsThemeStyling.ScrollBarThumb)});
+							scrollBarStyle.setProperty('scrollbar-shadow-color',theme.{nameof(JsThemeStyling.ScrollBarThumb)});
+							scrollBarStyle.setProperty('scrollbar-highlight-color',theme.{nameof(JsThemeStyling.ScrollBarThumb)});
+							scrollBarStyle.setProperty('scrollbar-3dlight-color',theme.{nameof(JsThemeStyling.ScrollBarThumb)});
+							scrollBarStyle.setProperty('scrollbar-darkshadow-color',theme.{nameof(JsThemeStyling.ScrollBarThumb)});
 
-							getStyleBySelector(fccStyleSheet1Rules,'*, body').setProperty('color',colours.{nameof(JsThemeStyling.FontColour)});
+							getStyleBySelector(fccStyleSheet1Rules,'*, body').setProperty('color',theme.{nameof(JsThemeStyling.FontColour)});
 							var textStyle = getStyleBySelector(fccStyleSheet1Rules,'input[type=text]');
-							textStyle.setProperty('color',colours.{nameof(JsThemeStyling.TextBoxTextColour)});			
-							textStyle.setProperty('background-color',colours.{nameof(JsThemeStyling.TextBoxColour)});								
-							textStyle.setProperty('border-color',colours.{nameof(JsThemeStyling.TextBoxBorderColour)});
+							textStyle.setProperty('color',theme.{nameof(JsThemeStyling.TextBoxTextColour)});			
+							textStyle.setProperty('background-color',theme.{nameof(JsThemeStyling.TextBoxColour)});								
+							textStyle.setProperty('border-color',theme.{nameof(JsThemeStyling.TextBoxBorderColour)});
 
 							var comboStyle = getStyleBySelector(fccStyleSheet1Rules,'select');
-							comboStyle.setProperty('color',colours.{nameof(JsThemeStyling.ComboBoxText)});		
-							comboStyle.setProperty('background-color',colours.{nameof(JsThemeStyling.ComboBox)});	
-							comboStyle.setProperty('border-color',colours.{nameof(JsThemeStyling.ComboBoxBorder)});
+							comboStyle.setProperty('color',theme.{nameof(JsThemeStyling.ComboBoxText)});		
+							comboStyle.setProperty('background-color',theme.{nameof(JsThemeStyling.ComboBox)});	
+							comboStyle.setProperty('border-color',theme.{nameof(JsThemeStyling.ComboBoxBorder)});
 
 							var fccStyleSheet2Rules = getStyleSheetById('fccStyle2').cssRules;	
-							getStyleBySelector(fccStyleSheet2Rules,'#divHeader').setProperty('background-color',colours.{nameof(JsThemeStyling.DivHeaderBackgroundColour)});							
+							getStyleBySelector(fccStyleSheet2Rules,'#divHeader').setProperty('background-color',theme.{nameof(JsThemeStyling.DivHeaderBackgroundColour)});							
 							var headerTabsStyle = getStyleBySelector(fccStyleSheet2Rules,'table#headerTabs td');
-							headerTabsStyle.setProperty('color',colours.{nameof(JsThemeStyling.HeaderFontColour)});
-							headerTabsStyle.setProperty('border-color',colours.{nameof(JsThemeStyling.HeaderBorderColour)});
-							getStyleBySelector(fccStyleSheet2Rules,'table#headerTabs td.tab').setProperty('background-color',colours.{nameof(JsThemeStyling.TabBackgroundColour)});		
+							headerTabsStyle.setProperty('color',theme.{nameof(JsThemeStyling.HeaderFontColour)});
+							headerTabsStyle.setProperty('border-color',theme.{nameof(JsThemeStyling.HeaderBorderColour)});
+							getStyleBySelector(fccStyleSheet2Rules,'table#headerTabs td.tab').setProperty('background-color',theme.{nameof(JsThemeStyling.TabBackgroundColour)});		
 
 							var mainStyle = document.styleSheets[0];
 							var mainRules = mainStyle.cssRules;
 
-							getStyleBySelector(mainRules,'.gray').setProperty('background-color',colours.{nameof(JsThemeStyling.GrayCoverage)});
+							getStyleBySelector(mainRules,'.gray').setProperty('background-color',theme.{nameof(JsThemeStyling.GrayCoverage)});
 
-							getStyleBySelector(mainRules,'html').setProperty('background-color',colours.{nameof(JsThemeStyling.BackgroundColour)});
-							getStyleBySelector(mainRules,'.container').setProperty('background-color',colours.{nameof(JsThemeStyling.BackgroundColour)});
+							getStyleBySelector(mainRules,'html').setProperty('background-color',theme.{nameof(JsThemeStyling.BackgroundColour)});
+							getStyleBySelector(mainRules,'.container').setProperty('background-color',theme.{nameof(JsThemeStyling.BackgroundColour)});
 
-							var overviewTableBorder = '1px solid ' + colours.{nameof(JsThemeStyling.TableBorderColour)};
+							var overviewTableBorder = '1px solid ' + theme.{nameof(JsThemeStyling.TableBorderColour)};
 							var overviewStyle = getStyleBySelector(mainRules,'.overview');
 							overviewStyle.setProperty('border',overviewTableBorder);
 							var overviewThStyle = getStyleBySelector(mainRules,'.overview th');
-							overviewThStyle.setProperty('background-color',colours.{nameof(JsThemeStyling.BackgroundColour)});
+							overviewThStyle.setProperty('background-color',theme.{nameof(JsThemeStyling.BackgroundColour)});
 							overviewThStyle.setProperty('border',overviewTableBorder);
 							var overviewTdStyle = getStyleBySelector(mainRules,'.overview td');
 							overviewTdStyle.setProperty('border',overviewTableBorder);
 
 							var overviewHeaderLinksStyle = getStyleBySelector(mainRules,'.overview th a');
-							overviewHeaderLinksStyle.setProperty('color',colours.{nameof(JsThemeStyling.CoverageTableHeaderFontColour)});
+							overviewHeaderLinksStyle.setProperty('color',theme.{nameof(JsThemeStyling.CoverageTableHeaderFontColour)});
 
 							var overviewTrHoverStyle = getStyleBySelector(mainRules,'.overview tr:hover');
-							overviewTrHoverStyle.setProperty('background',colours.{nameof(JsThemeStyling.CoverageTableRowHoverBackgroundColour)});
+							overviewTrHoverStyle.setProperty('background',theme.{nameof(JsThemeStyling.CoverageTableRowHoverBackgroundColour)});
 
 							var linkStyle = getStyleBySelector(mainRules,'a');
 							var linkHoverStyle = getStyleBySelector(mainRules,'a:hover');
-							linkStyle.setProperty('color',colours.{nameof(JsThemeStyling.LinkColour)});
-							linkHoverStyle.setProperty('color',colours.{nameof(JsThemeStyling.LinkColour)});
+							linkStyle.setProperty('color',theme.{nameof(JsThemeStyling.LinkColour)});
+							linkHoverStyle.setProperty('color',theme.{nameof(JsThemeStyling.LinkColour)});
 
 							var iconPlusStyle = getStyleBySelector(mainRules,'.icon-plus');
-							iconPlusStyle.setProperty('background-image',colours.{nameof(JsThemeStyling.PlusBase64)});
+							iconPlusStyle.setProperty('background-image',theme.{nameof(JsThemeStyling.PlusBase64)});
 							var iconMinusStyle = getStyleBySelector(mainRules,'.icon-minus');
-							iconMinusStyle.setProperty('background-image',colours.{nameof(JsThemeStyling.MinusBase64)});
+							iconMinusStyle.setProperty('background-image',theme.{nameof(JsThemeStyling.MinusBase64)});
 							var iconDownActiveStyle = getStyleBySelector(mainRules,'.icon-down-dir_active');
-							iconDownActiveStyle.setProperty('background-image',colours.{nameof(JsThemeStyling.DownActiveBase64)});
+							iconDownActiveStyle.setProperty('background-image',theme.{nameof(JsThemeStyling.DownActiveBase64)});
 							var iconDownInactiveStyle = getStyleBySelector(mainRules,'.icon-down-dir');
-							iconDownInactiveStyle.setProperty('background-image',colours.{nameof(JsThemeStyling.DownInactiveBase64)});
+							iconDownInactiveStyle.setProperty('background-image',theme.{nameof(JsThemeStyling.DownInactiveBase64)});
 							var iconUpActiveStyle = getStyleBySelector(mainRules,'.icon-up-dir_active');
-							iconUpActiveStyle.setProperty('background-image',colours.{nameof(JsThemeStyling.UpActiveBase64)});
+							iconUpActiveStyle.setProperty('background-image',theme.{nameof(JsThemeStyling.UpActiveBase64)});
 					}}
 						var htmlExtension = '.html';
 						
@@ -528,7 +527,6 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 
 				htmlSb.Replace("</head>", $@"
 				<style type=""text/css"" id='fccMediaStyle'>
-					table.overview.table-fixed.stripped > thead > tr > th:nth-of-type(4) > a:nth-of-type(2) {{ display: none; }}
 					@media screen and (-ms-high-contrast:active){{
 						table.coverage > td.green{{ background-color: windowText }}
 						table.coverage > td.gray{{ 
