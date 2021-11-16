@@ -374,8 +374,8 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 					table,tr,th,td {{ font-size: small; }}
 					body {{ -webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;-o-user-select:none;user-select:none }}
 					table.overview th, table.overview td {{ font-size: small; white-space: nowrap; word-break: normal; padding-left:10px;padding-right:10px; }}
-					coverage-info div.customizebox div:nth-child(2) {{ opacity:0;font-size:1px;height:1px;padding:0;border:0;margin:0 }} */
-					coverage-info div.customizebox div:nth-child(2) * {{ opacity:0;font-size:1px;height:1px;padding:0;border:0;margin:0 }} */
+					coverage-info div.customizebox div:nth-child(2) {{ visibility:hidden;font-size:1px;height:1px;padding:0;border:0;margin:0 }}
+					coverage-info div.customizebox div:nth-child(2) * {{ visibility:hidden;font-size:1px;height:1px;padding:0;border:0;margin:0 }}
 					table,tr,th,td {{ border: 1px solid; font-size: small; }}
 					input[type=text] {{ color:{ToJsColour(reportColours.TextBoxTextColour)}; background-color:{ToJsColour(reportColours.TextBoxColour)};border-color:{ToJsColour(reportColours.TextBoxBorderColour)} }}
 					select {{ color:{ToJsColour(reportColours.ComboBoxTextColour)}; background-color:{ToJsColour(reportColours.ComboBoxColour)};border-color:{ToJsColour(reportColours.ComboBoxBorderColour)} }}
