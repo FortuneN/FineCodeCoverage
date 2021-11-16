@@ -22,5 +22,6 @@
         int ThresholdForNPathComplexity { get; }
         int ThresholdForCrapScore { get; }
         bool CoverageColoursFromFontsAndColours { get; }
+        bool StickyCoverageTable { get; }
     }
 }
