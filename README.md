@@ -129,6 +129,7 @@ ThresholdForNPathComplexity        When [npath complexity](https://en.wikipedia.
 ThresholdForCrapScore              When [crap score](https://testing.googleblog.com/2011/02/this-code-is-crap.html) exceeds this value for a method then the method will be present in the risk hotspots tab. OpenCover only. 
 
 StickyCoverageTable                Set to true for coverage table to have a sticky thead.
+NamespacedClasses                  Set to false to show classes in report in short form. Affects grouping.
 
 RunSettingsOnly					   Specify false for global and project options to be used for coverlet data collector configuration elements when not specified in runsettings
 CoverletCollectorDirectoryPath	   Specify path to directory containing coverlet collector files if you need functionality that the FCC version does not provide.
