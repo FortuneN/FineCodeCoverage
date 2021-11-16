@@ -80,7 +80,6 @@ namespace FineCodeCoverage.Engine.ReportGenerator
             {
                 throw new Exception($"Cannot find report part {reportPart}");
             }
-            return null;
         }
     }
 

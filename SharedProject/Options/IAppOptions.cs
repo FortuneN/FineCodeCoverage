@@ -23,5 +23,6 @@
         int ThresholdForCrapScore { get; }
         bool CoverageColoursFromFontsAndColours { get; }
         bool StickyCoverageTable { get; }
+        bool NamespacedClasses { get; }
     }
 }

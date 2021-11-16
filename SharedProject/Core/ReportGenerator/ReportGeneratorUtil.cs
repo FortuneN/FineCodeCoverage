@@ -732,8 +732,38 @@ stickytheadapply(elements, { fixedOffset: document.getElementById('divHeader') }
 ";
 		}
 
+		private string GetGroupingCss(bool namespacedClasses)
+        {
+            if (namespacedClasses)
+            {
+				return "";
+            }
+			return HideGroupingCss();
+
+		}
+
+		private string HideGroupingCss()
+        {
+			return @"
+coverage-info div.customizebox div:nth-child(2) { visibility:hidden;font-size:1px;height:1px;padding:0;border:0;margin:0 }
+coverage-info div.customizebox div:nth-child(2) * { visibility:hidden;font-size:1px;height:1px;padding:0;border:0;margin:0 }
+";
+		}
+
+		private string HackGroupingToAllowAll()
+        {
+			return @"
+				var customizeBox = document.getElementsByClassName('customizebox')[0];
+				var groupingInput = customizeBox.querySelector('input');
+				groupingInput.max = 1;
+";
+
+		}
+
 		public string ProcessUnifiedHtml(string htmlForProcessing, string reportOutputFolder)
 		{
+			var appOptions = appOptionsProvider.Get();
+			var namespacedClasses = appOptions.NamespacedClasses;
 			reportColours = reportColoursProvider.GetColours();
 			return assemblyUtil.RunInAssemblyResolvingContext(() =>
 			{
@@ -792,10 +822,12 @@ stickytheadapply(elements, { fixedOffset: document.getElementById('divHeader') }
 						}
 						else
 						{
-							// simplify name
-							var lastIndexOfDotInName = className.LastIndexOf('.');
-							if (lastIndexOfDotInName != -1) @class["name"] = className.Substring(lastIndexOfDotInName).Trim('.');
-
+							if (!namespacedClasses)
+							{
+								// simplify name
+								var lastIndexOfDotInName = className.LastIndexOf('.');
+								if (lastIndexOfDotInName != -1) @class["name"] = className.Substring(lastIndexOfDotInName).Trim('.');
+							}
 							//mark with # and add the assembly name
 							var rp = @class["rp"].ToString();
 							var htmlIndex = rp.IndexOf(".html");
@@ -825,9 +857,12 @@ stickytheadapply(elements, { fixedOffset: document.getElementById('divHeader') }
 				{
 					var assembly = riskHotspot["assembly"].ToString();
 					var qualifiedClassName = riskHotspot["class"].ToString();
-					// simplify name
-					var lastIndexOfDotInName = qualifiedClassName.LastIndexOf('.');
-					if (lastIndexOfDotInName != -1) riskHotspot["class"] = qualifiedClassName.Substring(lastIndexOfDotInName).Trim('.');
+					if (!namespacedClasses)
+					{
+						// simplify name
+						var lastIndexOfDotInName = qualifiedClassName.LastIndexOf('.');
+						if (lastIndexOfDotInName != -1) riskHotspot["class"] = qualifiedClassName.Substring(lastIndexOfDotInName).Trim('.');
+					}
 					var newReportPath = $"#{assembly}{assemblyClassDelimiter}{qualifiedClassName}.html";
 					riskHotspot["reportPath"] = newReportPath;
 				}
@@ -847,12 +882,27 @@ stickytheadapply(elements, { fixedOffset: document.getElementById('divHeader') }
 					table,tr,th,td {{ font-size: small; }}
 					body {{ -webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;-o-user-select:none;user-select:none }}
 					table.overview th, table.overview td {{ font-size: small; white-space: nowrap; word-break: normal; padding-left:10px;padding-right:10px; }}
-					coverage-info div.customizebox div:nth-child(2) {{ visibility:hidden;font-size:1px;height:1px;padding:0;border:0;margin:0 }}
-					coverage-info div.customizebox div:nth-child(2) * {{ visibility:hidden;font-size:1px;height:1px;padding:0;border:0;margin:0 }}
+					{GetGroupingCss(namespacedClasses)}
 					table,tr,th,td {{ border: 1px solid; font-size: small; }}
 					input[type=text] {{ color:{ToJsColour(reportColours.TextBoxTextColour)}; background-color:{ToJsColour(reportColours.TextBoxColour)};border-color:{ToJsColour(reportColours.TextBoxBorderColour)} }}
 					select {{ color:{ToJsColour(reportColours.ComboBoxTextColour)}; background-color:{ToJsColour(reportColours.ComboBoxColour)};border-color:{ToJsColour(reportColours.ComboBoxBorderColour)} }}
                     body, html {{ scrollbar-arrow-color:{ToJsColour(reportColours.ScrollBarArrowColour)};scrollbar-track-color:{ToJsColour(reportColours.ScrollBarTrackColour)};scrollbar-face-color:{scrollbarThumbColour};scrollbar-shadow-color:{scrollbarThumbColour};scrollbar-highlight-color:{scrollbarThumbColour};scrollbar-3dlight-color:{scrollbarThumbColour};scrollbar-darkshadow-color:{scrollbarThumbColour} }}				
+					input[type=range]::-ms-thumb {{
+					  background: {scrollbarThumbColour};
+					  border: {scrollbarThumbColour}
+					}}
+					input[type=range]::-ms-track {{
+						color: transparent;
+						border-color: transparent;
+						background: transparent;
+					}}
+					
+					input[type=range]::-ms-fill-lower {{
+					  background: {ToJsColour(reportColours.ScrollBarTrackColour)};  
+					}}
+					input[type=range]::-ms-fill-upper {{
+					  background: {ToJsColour(reportColours.ScrollBarTrackColour)}; 
+					}}
 				</style>
 				</head>
 			");
@@ -860,6 +910,7 @@ stickytheadapply(elements, { fixedOffset: document.getElementById('divHeader') }
 				htmlSb.Replace("</body>", $@"
 					<script type=""text/javascript"">
 						{GetStickyTableHead()}
+						{HackGroupingToAllowAll()}
 						function getRuleBySelector(cssRules,selector){{
 						for(var i=0;i<cssRules.length;i++){{
 							if(cssRules[i].selectorText == selector){{
@@ -887,6 +938,14 @@ stickytheadapply(elements, { fixedOffset: document.getElementById('divHeader') }
 
 							var fccStyleSheet1Rules = getStyleSheetById('fccStyle1').cssRules;		
 					
+							var rangeInputFillLower = getStyleBySelector(fccStyleSheet1Rules, 'input[type=range]::-ms-fill-lower');
+							rangeInputFillLower.setProperty('background',theme.{nameof(JsThemeStyling.ScrollBarTrack)});
+							var rangeInputFillUpper = getStyleBySelector(fccStyleSheet1Rules, 'input[type=range]::-ms-fill-upper');
+							rangeInputFillUpper.setProperty('background',theme.{nameof(JsThemeStyling.ScrollBarTrack)});
+							var rangeInputThumb = getStyleBySelector(fccStyleSheet1Rules, 'input[type=range]::-ms-thumb');
+							rangeInputThumb.setProperty('background',theme.{nameof(JsThemeStyling.ScrollBarThumb)});
+							rangeInputThumb.setProperty('border',theme.{nameof(JsThemeStyling.ScrollBarThumb)});
+
 							var scrollBarStyle = getStyleBySelector(fccStyleSheet1Rules,'body, html');
 							scrollBarStyle.setProperty('scrollbar-arrow-color',theme.{nameof(JsThemeStyling.ScrollBarArrow)});
 							scrollBarStyle.setProperty('scrollbar-track-color',theme.{nameof(JsThemeStyling.ScrollBarTrack)});

@@ -159,6 +159,10 @@ namespace FineCodeCoverage.Options
         [Description("Set to true for coverage table to have a sticky thead.")]
         public bool StickyCoverageTable { get; set; }
 
+        [Category(reportCategory)]
+        [Description("Set to false to show classes in report in short form.")]
+        public bool NamespacedClasses { get; set; } = true;
+
         [SuppressMessage("Usage", "VSTHRD010:Invoke single-threaded types on Main thread")]
         public override void SaveSettingsToStorage()
         {
