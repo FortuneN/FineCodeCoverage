@@ -155,6 +155,10 @@ namespace FineCodeCoverage.Options
         [Description("Use Environment / Fonts and Colors for editor Coverage colouring")]
         public bool CoverageColoursFromFontsAndColours { get; set; }
 
+        [Category(reportCategory)]
+        [Description("Set to true for coverage table to have a sticky thead.")]
+        public bool StickyCoverageTable { get; set; }
+
         [SuppressMessage("Usage", "VSTHRD010:Invoke single-threaded types on Main thread")]
         public override void SaveSettingsToStorage()
         {

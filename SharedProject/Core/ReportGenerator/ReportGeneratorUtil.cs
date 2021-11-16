@@ -258,6 +258,480 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 			style.InnerHtml = changedCss;
 		}
 
+		private string GetStickyTableHead()
+		{
+            if (!appOptionsProvider.Get().StickyCoverageTable)
+            {
+				return "";
+            }
+			return @"
+function CustomEventPolyfill() {
+  if ( typeof window.CustomEvent === 'function' ) return false;
+
+  function CustomEvent( event, params ) {
+      params = params || { bubbles: false, cancelable: false, detail: null };
+			var evt = document.createEvent('CustomEvent');
+			evt.initCustomEvent( event, params.bubbles, params.cancelable, params.detail );
+      return evt;
+		}
+
+		window.CustomEvent = CustomEvent;
+}
+
+	function DataStore()
+	{
+		return {
+		_storage: new WeakMap(),
+    put: function(element, key, obj) {
+				if (!this._storage.has(element))
+				{
+					this._storage.set(element, new Map());
+				}
+				this._storage.get(element).set(key, obj);
+			},
+    get: function(element, key) {
+				let data = this._storage.get(element)
+
+	  return data && data.get(key);
+			},
+    remove: function(element, key) {
+				let data = this._storage.get(element)
+
+	  if (!data) { return }
+				let ret = data.delete(key);
+				if (!data.size === 0)
+				{
+					this._storage.delete(element);
+				}
+				return ret;
+			}
+		}
+	}
+
+	function extendObj(defaultObj, overrideObj)
+	{
+		var newObj = defaultObj
+	  Object.keys(overrideObj || { }).forEach(function(k) {
+			newObj[k] = overrideObj[k]
+  });
+
+		return newObj
+	}
+
+	function getOffset(el)
+	{
+		var rect = el.getBoundingClientRect();
+		return {
+		top: rect.top + window.pageYOffset,
+    left: rect.left + window.pageXOffset,
+  };
+	}
+
+	function getHeight(el)
+	{
+		if (el == window)
+		{
+			return window.innerHeight
+	    }
+		if (el == document)
+		{
+			return Math.max(
+			  document.documentElement['clientHeight'],
+			  document.body['scrollHeight'],
+			  document.documentElement['scrollHeight'],
+			  document.body['offsetHeight'],
+			  document.documentElement['offsetHeight']
+			);
+		}
+		var height = parseFloat(getComputedStyle(el, null).height.replace('px', ''))
+	  return height ? height : el.offsetHeight
+	}
+
+	function getWidth(el)
+	{
+		if (el == window)
+		{
+			return window.innerWidth
+	    }
+		if (el == document)
+		{
+			return Math.max(
+			  document.documentElement['clientWidth'],
+			  document.body['scrollWidth'],
+			  document.documentElement['scrollWidth'],
+			  document.body['offsetWidth'],
+			  document.documentElement['offsetWidth']
+			);
+		}
+		var width = parseFloat(getComputedStyle(el, null).width.replace('px', ''))
+	  return width ? width : el.offsetWidth
+	}
+
+	function setStyles(el, propertyObject)
+	{
+  for (var property in propertyObject)
+			el.style[property] = propertyObject[property];
+	}
+
+	function fireEvent(name, el, data)
+	{
+		var details = data ? { } : { details: data }
+		var evt = new CustomEvent(name, details)
+	  el.dispatchEvent(evt)
+	}
+
+	var dataStore = DataStore();
+	window.dataStore = dataStore
+	CustomEventPolyfill()
+
+function stickytheadapply(elements, options)
+	{
+		var name = 'stickyThead',
+		  id = 0,
+		  defaults = {
+	  fixedOffset: 0,
+      leftOffset: 0,
+      marginTop: 0,
+      objDocument: document,
+      objHead: document.head,
+      objWindow: window,
+      scrollableArea: window,
+      cacheHeaderHeight: false,
+      zIndex: 3
+
+	};
+
+	function Plugin(el, options)
+	{
+		// To avoid scope issues, use 'base' instead of 'this'
+		// to reference this class from internal events and functions.
+		var base = this;
+
+		// Access to jQuery and DOM versions of element
+		// base.$el = $(el);
+		base.el = el;
+		base.id = id++;
+
+		// Cache DOM refs for performance reasons
+		base.$clonedHeader = null;
+		base.$originalHeader = null;
+
+		// Cache header height for performance reasons
+		base.cachedHeaderHeight = null;
+
+		// Keep track of state
+		base.isSticky = false;
+		base.hasBeenSticky = false;
+		base.leftOffset = null;
+		base.topOffset = null;
+
+		base.init = function() {
+			base.setOptions(options);
+
+			// base.$el.each(function () {
+			// var $this = $(this);
+
+			// remove padding on <table> to fix issue #7
+			base.el.style.padding = '0px';
+
+			base.$originalHeader = base.el.querySelector('thead');
+			base.$clonedHeader = base.$originalHeader.cloneNode(true);
+			// dispatchEvent
+			fireEvent('clonedHeader.' + name, base.el, base.$clonedHeader)
+   
+
+	  base.$clonedHeader.setAttribute('class', 'tableFloatingHeader');
+			setStyles(base.$clonedHeader, { display: 'none', opacity: 0 })
+
+      base.$originalHeader.setAttribute('class', 'tableFloatingHeaderOriginal');
+
+			base.$originalHeader.insertAdjacentElement('afterend', base.$clonedHeader);
+
+			var style = document.createElement('style')
+   
+	  style.setAttribute('type', 'text/css')
+   
+	  style.setAttribute('media', 'print')
+   
+	  style.innerHTML = '.tableFloatingHeader{display:none !important;}' +
+		'.tableFloatingHeaderOriginal{position:static !important;}'
+   
+	  base.$printStyle = style
+   
+	  base.$head.appendChild(base.$printStyle);
+
+
+			base.$clonedHeader.querySelectorAll('input, select').forEach(function(el) {
+				el.setAttribute('disabled', true);
+			})
+
+      base.updateWidth();
+			base.toggleHeaders();
+			base.bind();
+		};
+
+		base.destroy = function() {
+			base.el && base.el.removeEventListener('destroyed', base.teardown);
+			base.teardown();
+		};
+
+		base.teardown = function() {
+			if (base.isSticky)
+			{
+				setStyles(base.$originalHeader, { position: 'static' });
+			}
+			dataStore.remove(base.el, name)
+   
+	  base.unbind();
+
+			base.$clonedHeader.parentNode.removeChild(base.$clonedHeader);
+			base.$originalHeader.classList.remove('tableFloatingHeaderOriginal');
+			setStyles(base.$originalHeader, { visibility: 'visible' });
+			base.$printStyle.parentNode.removeChild(base.$printStyle);
+
+			base.el = null;
+			base.$el = null;
+		};
+
+		base.bind = function() {
+			base.$scrollableArea.addEventListener('scroll', base.toggleHeaders);
+			if (!base.isWindowScrolling)
+			{
+				base.$window.addEventListener('scroll', base.setPositionValues);
+				base.$window.addEventListener('resize', base.toggleHeaders);
+			}
+			base.$scrollableArea.addEventListener('resize', base.toggleHeaders);
+			base.$scrollableArea.addEventListener('resize', base.updateWidth);
+		};
+
+		base.unbind = function() {
+			// unbind window events by specifying handle so we don't remove too much
+			base.$scrollableArea.removeEventListener('scroll', base.toggleHeaders);
+			if (!base.isWindowScrolling)
+			{
+				base.$window.removeEventListener('scroll', base.setPositionValues);
+				base.$window.removeEventListener('resize', base.toggleHeaders);
+			}
+			base.$scrollableArea.removeEventListener('resize', base.updateWidth);
+		};
+
+		base.toggleHeaders = function() {
+			if (base.el)
+			{
+				var newLeft,
+				  newTopOffset = base.isWindowScrolling ? (
+					isNaN(base.options.fixedOffset) ?
+					  base.options.fixedOffset.offsetHeight :
+					  base.options.fixedOffset
+				  ) :
+					getOffset(base.$scrollableArea).top + (!isNaN(base.options.fixedOffset) ? base.options.fixedOffset : 0),
+				  offset = getOffset(base.el),
+
+				  scrollTop = base.$scrollableArea.pageYOffset + newTopOffset,
+          scrollLeft = base.$scrollableArea.pageXOffset,
+          headerHeight,
+
+          scrolledPastTop = base.isWindowScrolling ?
+			scrollTop > offset.top :
+			newTopOffset > offset.top,
+          notScrolledPastBottom;
+
+				if (scrolledPastTop)
+				{
+					headerHeight = base.options.cacheHeaderHeight ? base.cachedHeaderHeight : getHeight(base.$originalHeader);
+					notScrolledPastBottom = (base.isWindowScrolling ? scrollTop : 0) <
+					  (offset.top + getHeight(base.el) - headerHeight - (base.isWindowScrolling ? 0 : newTopOffset));
+				}
+
+				if (scrolledPastTop && notScrolledPastBottom)
+				{
+					newLeft = offset.left - scrollLeft + base.options.leftOffset;
+					setStyles(base.$originalHeader, {
+					position: 'fixed',
+            marginTop: base.options.marginTop + 'px',
+            top: 0,
+            left: newLeft + 'px',
+            zIndex: base.options.zIndex
+		  
+		  });
+					base.leftOffset = newLeft;
+					base.topOffset = newTopOffset;
+					base.$clonedHeader.style.display = '';
+					if (!base.isSticky)
+					{
+						base.isSticky = true;
+						// make sure the width is correct: the user might have resized the browser while in static mode
+						base.updateWidth();
+						fireEvent('enabledStickiness.' + name, base.el)
+		  
+		  }
+					base.setPositionValues();
+				}
+				else if (base.isSticky)
+				{
+					base.$originalHeader.style.position = 'static';
+					base.$clonedHeader.style.display = 'none';
+					base.isSticky = false;
+					base.resetWidth(base.$clonedHeader.querySelectorAll('td,th'), base.$originalHeader.querySelectorAll('td,th'));
+					fireEvent('disabledStickiness.' + name, base.el)
+	  
+		}
+			}
+		};
+
+		base.setPositionValues = function() {
+			var winScrollTop = base.$window.pageYOffset,
+        winScrollLeft = base.$window.pageXOffset;
+
+			/*if (!base.isSticky ||
+			  winScrollTop < 0 || winScrollTop + getHeight(base.$window) > getHeight(base.$document) ||
+			  winScrollLeft < 0 || winScrollLeft + getWidth(base.$window) > getWidth(base.$document)) {
+			  return;
+			}*/
+			setStyles(base.$originalHeader, {
+			top: base.topOffset - (base.isWindowScrolling ? 0 : winScrollTop) + 'px',
+        left: base.leftOffset - (base.isWindowScrolling ? 0 : winScrollLeft) + 'px'
+	  
+	  });
+		};
+
+		base.updateWidth = function() {
+			if (!base.isSticky)
+			{
+				return;
+			}
+			// Copy cell widths from clone
+			if (!base.$originalHeaderCells) {
+				base.$originalHeaderCells = base.$originalHeader.querySelectorAll('th,td');
+			}
+			if (!base.$clonedHeaderCells) {
+				base.$clonedHeaderCells = base.$clonedHeader.querySelectorAll('th,td');
+			}
+			var cellWidths = base.getWidth(base.$clonedHeaderCells);
+			base.setWidth(cellWidths, base.$clonedHeaderCells, base.$originalHeaderCells);
+
+			// Copy row width from whole table
+			base.$originalHeader.style.width = getWidth(base.$clonedHeader);
+
+			// If we're caching the height, we need to update the cached value when the width changes
+			if (base.options.cacheHeaderHeight)
+			{
+				base.cachedHeaderHeight = getHeight(base.$clonedHeader);
+			}
+		};
+
+		base.getWidth = function($clonedHeaders) {
+			var widths = [];
+      $clonedHeaders.forEach(function(el, index) {
+				var width;
+
+				if (getComputedStyle(el).boxSizing === 'border-box')
+				{
+					var boundingClientRect = el.getBoundingClientRect();
+					if (boundingClientRect.width)
+					{
+						width = boundingClientRect.width; // #39: border-box bug
+					}
+					else
+					{
+						width = boundingClientRect.right - boundingClientRect.left; // ie8 bug: getBoundingClientRect() does not have a width property
+					}
+				}
+				else
+				{
+					var $origTh = base.$originalHeader.querySelector('th');
+					if ($origTh.style.borderCollapse === 'collapse') {
+						if (window.getComputedStyle)
+						{
+							width = parseFloat(window.getComputedStyle(el, null).width);
+						}
+						else
+						{
+							// ie8 only
+							var leftPadding = parseFloat(el.style.paddingLeft);
+							var rightPadding = parseFloat(el.style.paddingRight);
+							// Needs more investigation - this is assuming constant border around this cell and it's neighbours.
+							var border = parseFloat(el.style.borderWidth);
+							width = el.offsetWidth - leftPadding - rightPadding - border;
+						}
+					} else
+					{
+						width = getWidth(el);
+					}
+				}
+
+				widths[index] = width;
+			});
+			return widths;
+		};
+
+		base.setWidth = function(widths, $clonedHeaders, $origHeaders) {
+      $clonedHeaders.forEach(function(_, index) {
+				var width = widths[index];
+				setStyles($origHeaders[index], {
+				minWidth: width + 'px',
+          maxWidth: width + 'px'
+		
+		});
+			});
+		};
+
+		base.resetWidth = function($clonedHeaders, $origHeaders) {
+      $clonedHeaders.forEach(function(_, index) {
+				setStyles($origHeaders[index], {
+				minWidth: el.style.minWidth,
+          maxWidth: el.style.maxWidth
+		
+		});
+			});
+		};
+
+		base.setOptions = function(options) {
+			base.options = extendObj(defaults, options);
+			base.$window = base.options.objWindow;
+			base.$head = base.options.objHead;
+			base.$document = base.options.objDocument;
+			base.$scrollableArea = base.options.scrollableArea;
+			base.isWindowScrolling = base.$scrollableArea === base.$window;
+		};
+
+		base.updateOptions = function(options) {
+			base.setOptions(options);
+			// scrollableArea might have changed
+			base.unbind();
+			base.bind();
+			base.updateWidth();
+			base.toggleHeaders();
+		};
+
+		// Listen for destroyed, call teardown
+		base.el.addEventListener('destroyed', base.teardown.bind(base));
+
+		// Run initializer
+		base.init();
+	}
+
+  return elements.forEach(function (element) {
+    var instance = dataStore.get(element, name)
+    if (instance) {
+      if (typeof options === 'string') {
+        instance[options].apply(instance);
+} else
+{
+	instance.updateOptions(options);
+}
+    } else if (options !== 'destroy')
+{
+	dataStore.put(element, name, new Plugin(element, options));
+}
+  });
+}
+
+let elements = document.querySelectorAll('table.overview.table-fixed.stripped')
+stickytheadapply(elements, { fixedOffset: document.getElementById('divHeader') });
+";
+		}
+
 		public string ProcessUnifiedHtml(string htmlForProcessing, string reportOutputFolder)
 		{
 			reportColours = reportColoursProvider.GetColours();
@@ -385,6 +859,7 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 
 				htmlSb.Replace("</body>", $@"
 					<script type=""text/javascript"">
+						{GetStickyTableHead()}
 						function getRuleBySelector(cssRules,selector){{
 						for(var i=0;i<cssRules.length;i++){{
 							if(cssRules[i].selectorText == selector){{
