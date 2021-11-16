@@ -527,7 +527,6 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 
 				htmlSb.Replace("</head>", $@"
 				<style type=""text/css"" id='fccMediaStyle'>
-					table.overview.table-fixed.stripped > thead > tr > th:nth-of-type(4) > a:nth-of-type(2) {{ display: none; }}
 					@media screen and (-ms-high-contrast:active){{
 						table.coverage > td.green{{ background-color: windowText }}
 						table.coverage > td.gray{{ 
