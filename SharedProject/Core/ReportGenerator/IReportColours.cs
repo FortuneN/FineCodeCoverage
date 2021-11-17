@@ -29,7 +29,7 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 
         Color FontColour { get; }
 
-        Color GrayCoverage { get; }
+        Color GrayCoverageColour { get; }
 
         Color HeaderBorderColour { get; }
 
@@ -52,6 +52,12 @@ namespace FineCodeCoverage.Engine.ReportGenerator
         Color TextBoxColour { get; }
 
         Color TextBoxTextColour { get; }
+
+        Color SliderLeftColour { get; }
+
+        Color SliderRightColour { get; }
+
+        Color SliderThumbColour { get; }
     }
 
 }

@@ -29,14 +29,17 @@ namespace FineCodeCoverage.Engine.ReportGenerator
         public string DownActiveBase64;
         public string DownInactiveBase64;
         public string UpActiveBase64;
-        public string GrayCoverage;
-        public string ComboBox;
-        public string ComboBoxBorder;
-        public string ComboBoxText;
-        public string ScrollBarArrow;
-        public string ScrollBarTrack;
-        public string ScrollBarThumb;
-//#pragma warning restore SA1401 // Fields should be private
-//#pragma warning restore IDE0079 // Remove unnecessary suppression
+        public string GrayCoverageColour;
+        public string ComboBoxColour;
+        public string ComboBoxBorderColour;
+        public string ComboBoxTextColour;
+        public string ScrollBarArrowColour;
+        public string ScrollBarTrackColour;
+        public string ScrollBarThumbColour;
+        public string SliderLeftColour;
+        public string SliderRightColour;
+        public string SliderThumbColour;
+        //#pragma warning restore SA1401 // Fields should be private
+        //#pragma warning restore IDE0079 // Remove unnecessary suppression
     }
 }

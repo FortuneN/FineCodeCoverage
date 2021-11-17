@@ -12,7 +12,7 @@ namespace FineCodeCoverage.Engine.ReportGenerator
     [Export(typeof(IThemeResourceKeyProvider))]
     internal class ThemeResourceKeyProvider : IThemeResourceKeyProvider
     {
-        private XElement root;
+        private readonly XElement root;
         public ThemeResourceKeyProvider()
         {
             var fccExtensionsDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
