@@ -24,5 +24,6 @@
         bool CoverageColoursFromFontsAndColours { get; }
         bool StickyCoverageTable { get; }
         bool NamespacedClasses { get; }
+        bool HideFullyCovered { get; }
     }
 }
