@@ -163,6 +163,10 @@ namespace FineCodeCoverage.Options
         [Description("Set to false to show classes in report in short form.")]
         public bool NamespacedClasses { get; set; } = true;
 
+        [Category(reportCategory)]
+        [Description("Set to true to hide classes, namespaces and assemblies that are fully covered.")]
+        public bool HideFullyCovered { get; set; }
+
         [SuppressMessage("Usage", "VSTHRD010:Invoke single-threaded types on Main thread")]
         public override void SaveSettingsToStorage()
         {

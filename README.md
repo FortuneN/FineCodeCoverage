@@ -130,6 +130,7 @@ ThresholdForCrapScore              When [crap score](https://testing.googleblog.
 
 StickyCoverageTable                Set to true for coverage table to have a sticky thead.
 NamespacedClasses                  Set to false to show classes in report in short form. Affects grouping.
+HideFullyCovered                   Set to true to hide classes, namespaces and assemblies that are fully covered.
 
 RunSettingsOnly					   Specify false for global and project options to be used for coverlet data collector configuration elements when not specified in runsettings
 CoverletCollectorDirectoryPath	   Specify path to directory containing coverlet collector files if you need functionality that the FCC version does not provide.
