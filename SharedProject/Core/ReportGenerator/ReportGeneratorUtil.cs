@@ -54,10 +54,26 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 		private readonly Base64ReportImage upActiveBase64ReportImage = new Base64ReportImage(".icon-up-dir_active", "PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4NCjxzdmcgd2lkdGg9IjE3OTIiIGhlaWdodD0iMTc5MiIgdmlld0JveD0iMCAwIDE3OTIgMTc5MiIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBmaWxsPSIjMDA3OEQ0IiBkPSJNMTQwOCAxMjE2cTAgMjYtMTkgNDV0LTQ1IDE5aC04OTZxLTI2IDAtNDUtMTl0LTE5LTQ1IDE5LTQ1bDQ0OC00NDhxMTktMTkgNDUtMTl0NDUgMTlsNDQ4IDQ0OHExOSAxOSAxOSA0NXoiLz48L3N2Zz4=");
         private readonly IScriptInvoker scriptInvoker;
 		private IReportColours reportColours;
+		private JsThemeStyling jsReportColours;
+		private IReportColours ReportColours
+        {
+			get => reportColours;
+            set
+            {
+				reportColours = value;
+				jsReportColours = reportColours.Convert();
+            }
+        }
 		private readonly bool showBranchCoverage = true;
 
 		public string ReportGeneratorExePath { get; private set; }
 
+		
+		static ReportGeneratorUtil()
+        {
+			
+			
+        }
 		[ImportingConstructor]
 		public ReportGeneratorUtil(
 			IAssemblyUtil assemblyUtil,
@@ -182,10 +198,9 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 
 		private void SetInitialTheme(HtmlAgilityPack.HtmlDocument document)
 		{
-			
-			var backgroundColor = ToJsColour(reportColours.BackgroundColour);
-			var fontColour = ToJsColour(reportColours.FontColour);
-			var overviewTableBorderColor = ToJsColour(reportColours.TableBorderColour);
+			var backgroundColor = jsReportColours.BackgroundColour;
+			var fontColour = jsReportColours.FontColour;
+			var overviewTableBorderColor = jsReportColours.TableBorderColour;
 
 			var style = document.DocumentNode.Descendants("style").First();
 
@@ -203,7 +218,7 @@ namespace FineCodeCoverage.Engine.ReportGenerator
                 be *dynamic* and be lighten / darken %age of the background color
             */
 			var grayRule = styleRules.First(r => r.SelectorText == ".gray");
-			grayRule.Style.BackgroundColor = ToJsColour(reportColours.GrayCoverage);
+			grayRule.Style.BackgroundColor = jsReportColours.GrayCoverageColour;
 
 			var htmlRule = styleRules.First(r => r.Selector.Text == "html");
 			var htmlStyle = htmlRule.Style;
@@ -224,22 +239,22 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 			overviewRule.Style.Border = overviewTableBorder;
 
 			var overviewHeaderLinks = styleRules.First(r => r.SelectorText == ".overview th a");
-			overviewHeaderLinks.Style.Color = ToJsColour(reportColours.CoverageTableHeaderFontColour);
+			overviewHeaderLinks.Style.Color = jsReportColours.CoverageTableHeaderFontColour;
 
 			var overviewTrHoverRule = styleRules.First(r => r.SelectorText == ".overview tr:hover");
-			overviewTrHoverRule.Style.Background = ToJsColour(reportColours.CoverageTableRowHoverBackgroundColour);
+			overviewTrHoverRule.Style.Background = jsReportColours.CoverageTableRowHoverBackgroundColour;
 
-			var expandCollapseIconColor = reportColours.CoverageTableExpandCollapseIconColour;
-			plusBase64ReportImage.FillSvg(styleRules, ToJsColour(expandCollapseIconColor));
-			minusBase64ReportImage.FillSvg(styleRules, ToJsColour(expandCollapseIconColor));
+			var expandCollapseIconColor = ReportColours.CoverageTableExpandCollapseIconColour;
+			plusBase64ReportImage.FillSvg(styleRules, expandCollapseIconColor.ToJsColour());
+			minusBase64ReportImage.FillSvg(styleRules, expandCollapseIconColor.ToJsColour());
 
-			var coverageTableActiveSortColor = ToJsColour(reportColours.CoverageTableActiveSortColour);
-			var coverageTableInactiveSortColor = ToJsColour(reportColours.CoverageTableInactiveSortColour);
+			var coverageTableActiveSortColor = ReportColours.CoverageTableActiveSortColour.ToJsColour();
+			var coverageTableInactiveSortColor = ReportColours.CoverageTableInactiveSortColour.ToJsColour();
 			downActiveBase64ReportImage.FillSvg(styleRules, coverageTableActiveSortColor);
 			upActiveBase64ReportImage.FillSvg(styleRules, coverageTableActiveSortColor);
 			downInactiveBase64ReportImage.FillSvg(styleRules, coverageTableInactiveSortColor);
 
-			var linkColor = ToJsColour(reportColours.LinkColour);
+			var linkColor = jsReportColours.LinkColour;
 			var linkRule = styleRules.First(r => r.SelectorText == "a");
 			var linkHoverRule = styleRules.First(r => r.SelectorText == "a:hover");
 
@@ -750,12 +765,12 @@ coverage-info div.customizebox div:nth-child(2) * { visibility:hidden;font-size:
 ";
 		}
 
-		private string HackGroupingToAllowAll()
+		private string HackGroupingToAllowAll(int groupingLevel)
         {
-			return @"
+			return $@"
 				var customizeBox = document.getElementsByClassName('customizebox')[0];
 				var groupingInput = customizeBox.querySelector('input');
-				groupingInput.max = 1;
+				groupingInput.max = {groupingLevel};
 ";
 
 		}
@@ -764,7 +779,7 @@ coverage-info div.customizebox div:nth-child(2) * { visibility:hidden;font-size:
 		{
 			var appOptions = appOptionsProvider.Get();
 			var namespacedClasses = appOptions.NamespacedClasses;
-			reportColours = reportColoursProvider.GetColours();
+			ReportColours = reportColoursProvider.GetColours();
 			return assemblyUtil.RunInAssemblyResolvingContext(() =>
 			{
 				var (cyclomaticThreshold, crapScoreThreshold, nPathThreshold) = HotspotThresholds();
@@ -807,6 +822,7 @@ coverage-info div.customizebox div:nth-child(2) * { visibility:hidden;font-size:
 				assembliesToReplace = assembliesToReplace.Substring(0, endIndex + 1);
 
 				var assemblies = JArray.Parse(assembliesToReplace);
+				var groupingLevel = 0;
 				foreach (JObject assembly in assemblies)
 				{
 					var assemblyName = assembly["name"];
@@ -822,6 +838,11 @@ coverage-info div.customizebox div:nth-child(2) * { visibility:hidden;font-size:
 						}
 						else
 						{
+							var namespaces = className.Split('.').Length - 1;
+							if (namespaces > groupingLevel)
+							{
+								groupingLevel = namespaces;
+							}
 							if (!namespacedClasses)
 							{
 								// simplify name
@@ -871,8 +892,9 @@ coverage-info div.customizebox div:nth-child(2) * { visibility:hidden;font-size:
 
 				htmlSb.Replace(".table-fixed", ".table-fixed-ignore-me");
 
-				var fontColour = ToJsColour(reportColours.FontColour);
-				var scrollbarThumbColour = ToJsColour(reportColours.ScrollBarThumbColour);
+				var fontColour = jsReportColours.FontColour;
+				var scrollbarThumbColour = jsReportColours.ScrollBarThumbColour;
+				var sliderThumbColour = jsReportColours.SliderThumbColour;
 				htmlSb.Replace("</head>", $@"
 				<style id=""fccStyle1"" type=""text/css"">
 					*, body {{ font-size: small;  color: {fontColour}}}
@@ -884,12 +906,12 @@ coverage-info div.customizebox div:nth-child(2) * { visibility:hidden;font-size:
 					table.overview th, table.overview td {{ font-size: small; white-space: nowrap; word-break: normal; padding-left:10px;padding-right:10px; }}
 					{GetGroupingCss(namespacedClasses)}
 					table,tr,th,td {{ border: 1px solid; font-size: small; }}
-					input[type=text] {{ color:{ToJsColour(reportColours.TextBoxTextColour)}; background-color:{ToJsColour(reportColours.TextBoxColour)};border-color:{ToJsColour(reportColours.TextBoxBorderColour)} }}
-					select {{ color:{ToJsColour(reportColours.ComboBoxTextColour)}; background-color:{ToJsColour(reportColours.ComboBoxColour)};border-color:{ToJsColour(reportColours.ComboBoxBorderColour)} }}
-                    body, html {{ scrollbar-arrow-color:{ToJsColour(reportColours.ScrollBarArrowColour)};scrollbar-track-color:{ToJsColour(reportColours.ScrollBarTrackColour)};scrollbar-face-color:{scrollbarThumbColour};scrollbar-shadow-color:{scrollbarThumbColour};scrollbar-highlight-color:{scrollbarThumbColour};scrollbar-3dlight-color:{scrollbarThumbColour};scrollbar-darkshadow-color:{scrollbarThumbColour} }}				
+					input[type=text] {{ color:{jsReportColours.TextBoxTextColour}; background-color:{jsReportColours.TextBoxColour};border-color:{jsReportColours.TextBoxBorderColour} }}
+					select {{ color:{jsReportColours.ComboBoxTextColour}; background-color:{jsReportColours.ComboBoxColour};border-color:{jsReportColours.ComboBoxBorderColour} }}
+                    body, html {{ scrollbar-arrow-color:{jsReportColours.ScrollBarArrowColour};scrollbar-track-color:{jsReportColours.ScrollBarTrackColour};scrollbar-face-color:{scrollbarThumbColour};scrollbar-shadow-color:{scrollbarThumbColour};scrollbar-highlight-color:{scrollbarThumbColour};scrollbar-3dlight-color:{scrollbarThumbColour};scrollbar-darkshadow-color:{scrollbarThumbColour} }}				
 					input[type=range]::-ms-thumb {{
-					  background: {scrollbarThumbColour};
-					  border: {scrollbarThumbColour}
+					  background: {sliderThumbColour};
+					  border: {sliderThumbColour}
 					}}
 					input[type=range]::-ms-track {{
 						color: transparent;
@@ -898,10 +920,10 @@ coverage-info div.customizebox div:nth-child(2) * { visibility:hidden;font-size:
 					}}
 					
 					input[type=range]::-ms-fill-lower {{
-					  background: {ToJsColour(reportColours.ScrollBarTrackColour)};  
+					  background: {jsReportColours.SliderLeftColour};  
 					}}
 					input[type=range]::-ms-fill-upper {{
-					  background: {ToJsColour(reportColours.ScrollBarTrackColour)}; 
+					  background: {jsReportColours.SliderRightColour}; 
 					}}
 				</style>
 				</head>
@@ -910,7 +932,7 @@ coverage-info div.customizebox div:nth-child(2) * { visibility:hidden;font-size:
 				htmlSb.Replace("</body>", $@"
 					<script type=""text/javascript"">
 						{GetStickyTableHead()}
-						{HackGroupingToAllowAll()}
+						{HackGroupingToAllowAll(groupingLevel)}
 						function getRuleBySelector(cssRules,selector){{
 						for(var i=0;i<cssRules.length;i++){{
 							if(cssRules[i].selectorText == selector){{
@@ -934,26 +956,26 @@ coverage-info div.customizebox div:nth-child(2) * { visibility:hidden;font-size:
 							var fccMediaStylesheet = getStyleSheetById('fccMediaStyle');	
 							var highContrastRule = fccMediaStylesheet.cssRules[0]
 							var highContrastRules = highContrastRule.cssRules
-							getStyleBySelector(highContrastRules,'table.coverage > td.gray').setProperty('background-color',theme.{nameof(JsThemeStyling.GrayCoverage)});
+							getStyleBySelector(highContrastRules,'table.coverage > td.gray').setProperty('background-color',theme.{nameof(JsThemeStyling.GrayCoverageColour)});
 
 							var fccStyleSheet1Rules = getStyleSheetById('fccStyle1').cssRules;		
 					
 							var rangeInputFillLower = getStyleBySelector(fccStyleSheet1Rules, 'input[type=range]::-ms-fill-lower');
-							rangeInputFillLower.setProperty('background',theme.{nameof(JsThemeStyling.ScrollBarTrack)});
+							rangeInputFillLower.setProperty('background',theme.{nameof(JsThemeStyling.SliderLeftColour)});
 							var rangeInputFillUpper = getStyleBySelector(fccStyleSheet1Rules, 'input[type=range]::-ms-fill-upper');
-							rangeInputFillUpper.setProperty('background',theme.{nameof(JsThemeStyling.ScrollBarTrack)});
+							rangeInputFillUpper.setProperty('background',theme.{nameof(JsThemeStyling.SliderRightColour)});
 							var rangeInputThumb = getStyleBySelector(fccStyleSheet1Rules, 'input[type=range]::-ms-thumb');
-							rangeInputThumb.setProperty('background',theme.{nameof(JsThemeStyling.ScrollBarThumb)});
-							rangeInputThumb.setProperty('border',theme.{nameof(JsThemeStyling.ScrollBarThumb)});
+							rangeInputThumb.setProperty('background',theme.{nameof(JsThemeStyling.SliderThumbColour)});
+							rangeInputThumb.setProperty('border',theme.{nameof(JsThemeStyling.SliderThumbColour)});
 
 							var scrollBarStyle = getStyleBySelector(fccStyleSheet1Rules,'body, html');
-							scrollBarStyle.setProperty('scrollbar-arrow-color',theme.{nameof(JsThemeStyling.ScrollBarArrow)});
-							scrollBarStyle.setProperty('scrollbar-track-color',theme.{nameof(JsThemeStyling.ScrollBarTrack)});
-							scrollBarStyle.setProperty('scrollbar-face-color',theme.{nameof(JsThemeStyling.ScrollBarThumb)});
-							scrollBarStyle.setProperty('scrollbar-shadow-color',theme.{nameof(JsThemeStyling.ScrollBarThumb)});
-							scrollBarStyle.setProperty('scrollbar-highlight-color',theme.{nameof(JsThemeStyling.ScrollBarThumb)});
-							scrollBarStyle.setProperty('scrollbar-3dlight-color',theme.{nameof(JsThemeStyling.ScrollBarThumb)});
-							scrollBarStyle.setProperty('scrollbar-darkshadow-color',theme.{nameof(JsThemeStyling.ScrollBarThumb)});
+							scrollBarStyle.setProperty('scrollbar-arrow-color',theme.{nameof(JsThemeStyling.ScrollBarArrowColour)});
+							scrollBarStyle.setProperty('scrollbar-track-color',theme.{nameof(JsThemeStyling.ScrollBarTrackColour)});
+							scrollBarStyle.setProperty('scrollbar-face-color',theme.{nameof(JsThemeStyling.ScrollBarThumbColour)});
+							scrollBarStyle.setProperty('scrollbar-shadow-color',theme.{nameof(JsThemeStyling.ScrollBarThumbColour)});
+							scrollBarStyle.setProperty('scrollbar-highlight-color',theme.{nameof(JsThemeStyling.ScrollBarThumbColour)});
+							scrollBarStyle.setProperty('scrollbar-3dlight-color',theme.{nameof(JsThemeStyling.ScrollBarThumbColour)});
+							scrollBarStyle.setProperty('scrollbar-darkshadow-color',theme.{nameof(JsThemeStyling.ScrollBarThumbColour)});
 
 							getStyleBySelector(fccStyleSheet1Rules,'*, body').setProperty('color',theme.{nameof(JsThemeStyling.FontColour)});
 							var textStyle = getStyleBySelector(fccStyleSheet1Rules,'input[type=text]');
@@ -962,9 +984,9 @@ coverage-info div.customizebox div:nth-child(2) * { visibility:hidden;font-size:
 							textStyle.setProperty('border-color',theme.{nameof(JsThemeStyling.TextBoxBorderColour)});
 
 							var comboStyle = getStyleBySelector(fccStyleSheet1Rules,'select');
-							comboStyle.setProperty('color',theme.{nameof(JsThemeStyling.ComboBoxText)});		
-							comboStyle.setProperty('background-color',theme.{nameof(JsThemeStyling.ComboBox)});	
-							comboStyle.setProperty('border-color',theme.{nameof(JsThemeStyling.ComboBoxBorder)});
+							comboStyle.setProperty('color',theme.{nameof(JsThemeStyling.ComboBoxTextColour)});		
+							comboStyle.setProperty('background-color',theme.{nameof(JsThemeStyling.ComboBoxColour)});	
+							comboStyle.setProperty('border-color',theme.{nameof(JsThemeStyling.ComboBoxBorderColour)});
 
 							var fccStyleSheet2Rules = getStyleSheetById('fccStyle2').cssRules;	
 							getStyleBySelector(fccStyleSheet2Rules,'#divHeader').setProperty('background-color',theme.{nameof(JsThemeStyling.DivHeaderBackgroundColour)});							
@@ -976,7 +998,7 @@ coverage-info div.customizebox div:nth-child(2) * { visibility:hidden;font-size:
 							var mainStyle = document.styleSheets[0];
 							var mainRules = mainStyle.cssRules;
 
-							getStyleBySelector(mainRules,'.gray').setProperty('background-color',theme.{nameof(JsThemeStyling.GrayCoverage)});
+							getStyleBySelector(mainRules,'.gray').setProperty('background-color',theme.{nameof(JsThemeStyling.GrayCoverageColour)});
 
 							getStyleBySelector(mainRules,'html').setProperty('background-color',theme.{nameof(JsThemeStyling.BackgroundColour)});
 							getStyleBySelector(mainRules,'.container').setProperty('background-color',theme.{nameof(JsThemeStyling.BackgroundColour)});
@@ -1064,7 +1086,7 @@ coverage-info div.customizebox div:nth-child(2) * { visibility:hidden;font-size:
 					@media screen and (-ms-high-contrast:active){{
 						table.coverage > td.green{{ background-color: windowText }}
 						table.coverage > td.gray{{ 
-							background-color: {ToJsColour(reportColours.GrayCoverage)}
+							background-color: {jsReportColours.GrayCoverageColour}
 						}}
 	
 					}}
@@ -1077,11 +1099,11 @@ coverage-info div.customizebox div:nth-child(2) * { visibility:hidden;font-size:
 					<body oncontextmenu='return false;'>
 					<style id='fccStyle2'>
 						#divHeader {{
-							background-color: {ToJsColour(reportColours.DivHeaderBackgroundColour)};
+							background-color: {jsReportColours.DivHeaderBackgroundColour};
 						}}
 						table#headerTabs td {{
-							color: {ToJsColour(reportColours.HeaderFontColour)};
-							border-color: {ToJsColour(reportColours.HeaderBorderColour)};
+							color: {jsReportColours.HeaderFontColour};
+							border-color: {jsReportColours.HeaderBorderColour};
 						}}	
 						table#headerTabs td {{
 							border-width:3px;
@@ -1091,7 +1113,7 @@ coverage-info div.customizebox div:nth-child(2) * { visibility:hidden;font-size:
 						}}
 						table#headerTabs td.tab {{
 							cursor: pointer;
-							background-color : {ToJsColour(reportColours.TabBackgroundColour)};
+							background-color : {jsReportColours.TabBackgroundColour};
 						}}
 						table#headerTabs td.active {{
 							border-bottom: 3px solid transparent;
@@ -1341,52 +1363,23 @@ coverage-info div.customizebox div:nth-child(2) * { visibility:hidden;font-size:
 
 		private void ReportColoursProvider_ColoursChanged(object sender, IReportColours reportColours)
 		{
-			var coverageTableActiveSortColour = reportColours.CoverageTableActiveSortColour;
-			var coverageTableExpandCollapseIconColour = reportColours.CoverageTableExpandCollapseIconColour;
-			var jsThemeStyling = new JsThemeStyling
-			{
-				BackgroundColour = ToJsColour(reportColours.BackgroundColour),
+			var jsThemeStyling = reportColours.Convert();
 
-				CoverageTableHeaderFontColour = ToJsColour(reportColours.CoverageTableHeaderFontColour),
-
-				DownActiveBase64 = downActiveBase64ReportImage.Base64FromColour(ToJsColour(coverageTableActiveSortColour)),
-				UpActiveBase64 = upActiveBase64ReportImage.Base64FromColour(ToJsColour(coverageTableActiveSortColour)),
-
-				DownInactiveBase64 = downInactiveBase64ReportImage.Base64FromColour(ToJsColour(reportColours.CoverageTableInactiveSortColour)),
-
-				MinusBase64 = minusBase64ReportImage.Base64FromColour(ToJsColour(coverageTableExpandCollapseIconColour)),
-				PlusBase64 = plusBase64ReportImage.Base64FromColour(ToJsColour(coverageTableExpandCollapseIconColour)),
-
-				CoverageTableRowHoverBackgroundColour = ToJsColour(reportColours.CoverageTableRowHoverBackgroundColour),
-				DivHeaderBackgroundColour = ToJsColour(reportColours.DivHeaderBackgroundColour),
-				FontColour = ToJsColour(reportColours.FontColour),
-				HeaderBorderColour = ToJsColour(reportColours.HeaderBorderColour),
-				HeaderFontColour = ToJsColour(reportColours.HeaderFontColour),
-				LinkColour = ToJsColour(reportColours.LinkColour),
-				TableBorderColour = ToJsColour(reportColours.TableBorderColour),
-				TextBoxBorderColour = ToJsColour(reportColours.TextBoxBorderColour),
-				TextBoxColour = ToJsColour(reportColours.TextBoxColour),
-				TextBoxTextColour = ToJsColour(reportColours.TextBoxTextColour),
-				TabBackgroundColour = ToJsColour(reportColours.TabBackgroundColour),
-
-				GrayCoverage = ToJsColour(reportColours.GrayCoverage),
-
-				ComboBox = ToJsColour(reportColours.ComboBoxColour),
-				ComboBoxBorder = ToJsColour(reportColours.ComboBoxBorderColour),
-				ComboBoxText = ToJsColour(reportColours.ComboBoxTextColour),
-
-				ScrollBarArrow = ToJsColour(reportColours.ScrollBarArrowColour),
-				ScrollBarTrack = ToJsColour(reportColours.ScrollBarTrackColour),
-				ScrollBarThumb = ToJsColour(reportColours.ScrollBarThumbColour)
-			};
-
+			var coverageTableActiveSortColour = reportColours.CoverageTableActiveSortColour.ToJsColour();
+			var coverageTableExpandCollapseIconColour = reportColours.CoverageTableExpandCollapseIconColour.ToJsColour();
+			jsThemeStyling.DownActiveBase64 = downActiveBase64ReportImage.Base64FromColour(coverageTableActiveSortColour);
+			jsThemeStyling.UpActiveBase64 = upActiveBase64ReportImage.Base64FromColour(coverageTableActiveSortColour);
+			jsThemeStyling.DownInactiveBase64 = downInactiveBase64ReportImage.Base64FromColour(reportColours.CoverageTableInactiveSortColour.ToJsColour());
+			jsThemeStyling.MinusBase64 = minusBase64ReportImage.Base64FromColour(coverageTableExpandCollapseIconColour);
+			jsThemeStyling.PlusBase64 = plusBase64ReportImage.Base64FromColour(coverageTableExpandCollapseIconColour);
+			
 			scriptInvoker.InvokeScript(ThemeChangedJSFunctionName, jsThemeStyling);
 		}
 
-		private string ToJsColour(System.Drawing.Color colour)
-		{
-			return $"rgba({colour.R},{colour.G},{colour.B},{colour.A})";
-		}
+		//private string ToJsColour(System.Drawing.Color colour)
+		//{
+		//	return $"rgba({colour.R},{colour.G},{colour.B},{colour.A})";
+		//}
 
 	}
 }

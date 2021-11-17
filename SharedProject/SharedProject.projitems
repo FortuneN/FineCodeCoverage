@@ -85,6 +85,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Core\ReportGenerator\IThemeResourceKeyProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\ReportGenerator\JsThemeStyling.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\ReportGenerator\ReportColours.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\ReportGenerator\ReportColoursExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\ReportGenerator\ReportColoursProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\ReportGenerator\ReportGeneratorUtil.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\ReportGenerator\ThemeResourceKeyProvider.cs" />

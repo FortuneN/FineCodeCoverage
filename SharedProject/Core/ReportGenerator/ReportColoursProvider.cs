@@ -13,7 +13,7 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 
         public event EventHandler<IReportColours> ColoursChanged;
 
-        private static PropertyInfo[] propertyInfos;
+        private static readonly PropertyInfo[] propertyInfos;
         static ReportColoursProvider()
         {
             propertyInfos = typeof(ReportColours).GetProperties();

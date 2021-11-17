@@ -1,12 +1,15 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <ReportParts>
+  <ReportPart Name="SliderLeftColour" SelectedThemeColourName="EnvironmentColors.ToolWindowTextColorKey" />
+  <ReportPart Name="SliderRightColour" SelectedThemeColourName="EnvironmentColors.ToolWindowTextColorKey" />
+  <ReportPart Name="SliderThumbColour" SelectedThemeColourName="EnvironmentColors.ScrollBarThumbBackgroundColorKey" />
   <ReportPart Name="ScrollBarArrowColour" SelectedThemeColourName="EnvironmentColors.ScrollBarArrowBackgroundColorKey" />
   <ReportPart Name="ScrollBarTrackColour" SelectedThemeColourName="EnvironmentColors.ScrollBarBackgroundColorKey" />
   <ReportPart Name="ScrollBarThumbColour" SelectedThemeColourName="EnvironmentColors.ScrollBarThumbBackgroundColorKey" />
   <ReportPart Name="ComboBoxColour" SelectedThemeColourName="CommonControlsColors.ComboBoxBackgroundColorKey" />
   <ReportPart Name="ComboBoxBorderColour" SelectedThemeColourName="CommonControlsColors.ComboBoxBorderColorKey" />
   <ReportPart Name="ComboBoxTextColour" SelectedThemeColourName="CommonControlsColors.ComboBoxTextColorKey" />
-  <ReportPart Name="GrayCoverage" SelectedThemeColourName="EnvironmentColors.SystemGrayTextColorKey" />
+  <ReportPart Name="GrayCoverageColour" SelectedThemeColourName="EnvironmentColors.SystemGrayTextColorKey" />
   <ReportPart Name="BackgroundColour" SelectedThemeColourName="EnvironmentColors.ToolWindowBackgroundColorKey" />
   <ReportPart Name="FontColour" SelectedThemeColourName="EnvironmentColors.ToolWindowTextColorKey" />
   <ReportPart Name="TableBorderColour" SelectedThemeColourName="EnvironmentColors.GridLineColorKey" />
