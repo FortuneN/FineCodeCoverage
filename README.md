@@ -120,6 +120,7 @@ RunWhenTestsFail				   By default coverage runs when tests fail.  Set to false t
 RunWhenTestsExceed				   Specify a value to only run coverage based upon the number of executing tests. **Cannot be used in conjunction with RunInParallel**
 Exclude							   Filter expressions to exclude specific modules and types (multiple values)
 Include							   Filter expressions to include specific modules and types (multiple values)
+IncludeReferencedProjects          Set to true to add all referenced projects to Include.
 ExcludeByFile					   Glob patterns specifying source files to exclude e.g. **/Migrations/* (multiple values)
 ExcludeByAttribute				   Attributes to exclude from code coverage (multiple values)
 IncludeTestAssembly				   Specifies whether to report code coverage of the test assembly

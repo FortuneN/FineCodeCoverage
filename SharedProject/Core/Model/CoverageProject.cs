@@ -351,6 +351,7 @@ namespace FineCodeCoverage.Engine.Model
             }
         }
         public List<string> ExcludedReferencedProjects { get; } = new List<string>();
+        public List<string> IncludedReferencedProjects { get; set; } = new List<string>();
         public bool Is64Bit { get; set; }
         public string RunSettingsFile { get; set; }
 
@@ -384,17 +385,25 @@ namespace FineCodeCoverage.Engine.Model
             EnsureDirectories();
             CleanFCCDirectory();
             SynchronizeBuildOutput();
-            await SetExcludedReferencedProjectsAsync();
+            await SetIncludedExcludedReferencedProjectsAsync();
         }
 
-        private async System.Threading.Tasks.Task SetExcludedReferencedProjectsAsync()
+        private async System.Threading.Tasks.Task SetIncludedExcludedReferencedProjectsAsync()
         {
-            List<ReferencedProject> referencedProjects = await SafeGetReferencedProjectsFromDteAsync();
+            List<ReferencedProject> referencedProjects = await GetReferencedProjectsAsync();
+            SetExcludedReferencedProjects(referencedProjects);
+            SetIncludedReferencedProjects(referencedProjects);
+        }
 
-            if (referencedProjects == null)
+        private void SetIncludedReferencedProjects(List<ReferencedProject> referencedProjects)
+        {
+            if (settings.IncludeReferencedProjects)
             {
-                referencedProjects = await GetReferencedProjectsFromProjectFileAsync();
+                IncludedReferencedProjects = referencedProjects.Select(referencedProject => referencedProject.AssemblyName).ToList();
             }
+        }
+        private void SetExcludedReferencedProjects(List<ReferencedProject> referencedProjects)
+        {
             foreach (var referencedProject in referencedProjects)
             {
                 if (referencedProject.ExcludeFromCodeCoverage)
@@ -403,6 +412,18 @@ namespace FineCodeCoverage.Engine.Model
                 }
             }
         }
+
+        private async Task<List<ReferencedProject>> GetReferencedProjectsAsync()
+        {
+            List<ReferencedProject> referencedProjects = await SafeGetReferencedProjectsFromDteAsync();
+
+            if (referencedProjects == null)
+            {
+                referencedProjects = await GetReferencedProjectsFromProjectFileAsync();
+            }
+            return referencedProjects;
+        }
+
         private async Task<List<ReferencedProject>> SafeGetReferencedProjectsFromDteAsync()
         {
             try

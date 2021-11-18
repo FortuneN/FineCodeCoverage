@@ -135,7 +135,7 @@ namespace FineCodeCoverage.Engine.Coverlet
             dataCollectorSettingsBuilder
                 .WithResultsDirectory(coverageProject.CoverageOutputFolder);
 
-            string[] projectExcludes = coverageProject.ExcludedReferencedProjects.ToArray();
+            string[] projectExcludes = coverageProject.ExcludedReferencedProjects.Select(erp => $"[{erp}]*").ToArray();
             if(coverageProject.Settings.Exclude != null)
             {
                 projectExcludes = projectExcludes.Concat(coverageProject.Settings.Exclude).ToArray();
@@ -148,8 +148,15 @@ namespace FineCodeCoverage.Engine.Coverlet
                 .WithExcludeByFile(coverageProject.Settings.ExcludeByFile, runSettingsCoverletConfiguration.ExcludeByFile);
             dataCollectorSettingsBuilder
                 .WithExcludeByAttribute(coverageProject.Settings.ExcludeByAttribute, runSettingsCoverletConfiguration.ExcludeByAttribute);
+
+            string[] projectIncludes = coverageProject.IncludedReferencedProjects.Select(irp => $"[{irp}]*").ToArray();
+            if(coverageProject.Settings.Include != null)
+            {
+                projectIncludes = projectIncludes.Concat(coverageProject.Settings.Include).ToArray();
+            }
+            
             dataCollectorSettingsBuilder
-                .WithInclude(coverageProject.Settings.Include, runSettingsCoverletConfiguration.Include);
+                .WithInclude(projectIncludes, runSettingsCoverletConfiguration.Include);
             dataCollectorSettingsBuilder
                 .WithIncludeTestAssembly(coverageProject.Settings.IncludeTestAssembly, runSettingsCoverletConfiguration.IncludeTestAssembly);
 

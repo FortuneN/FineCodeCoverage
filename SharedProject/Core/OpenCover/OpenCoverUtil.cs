@@ -94,6 +94,11 @@ namespace FineCodeCoverage.Engine.OpenCover
 					filters.Add($@"+{value.Replace("\"", "\\\"").Trim(' ', '\'')}");
 				}
 
+				foreach (var includedReferencedProject in project.IncludedReferencedProjects)
+				{
+					filters.Add($@"+[{includedReferencedProject}]*");
+				}
+
 				if (!filters.Any())
 				{
 					filters.Add(defaultFilter);

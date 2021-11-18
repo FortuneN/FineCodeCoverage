@@ -85,6 +85,11 @@ namespace FineCodeCoverage.Engine.Coverlet
 				coverletSettings.Add($@"--include ""{value.Replace("\"", "\\\"").Trim(' ', '\'')}""");
 			}
 
+			foreach (var includedReferencedProject in project.IncludedReferencedProjects)
+			{
+				coverletSettings.Add($@"--include ""[{includedReferencedProject}]*""");
+			}
+
 			foreach (var value in (project.Settings.ExcludeByFile ?? new string[0]).Where(x => !string.IsNullOrWhiteSpace(x)))
 			{
 				coverletSettings.Add($@"--exclude-by-file ""{value.Replace("\"", "\\\"").Trim(' ', '\'')}""");
