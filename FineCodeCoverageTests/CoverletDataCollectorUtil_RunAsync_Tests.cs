@@ -36,6 +36,7 @@ namespace Test
             mockCoverageProject.Setup(cp => cp.Settings).Returns(new Mock<IAppOptions>().Object);
             mockCoverageProject.Setup(cp => cp.CoverageOutputFolder).Returns("");
             mockCoverageProject.Setup(cp => cp.ExcludedReferencedProjects).Returns(new List<string>());
+            mockCoverageProject.Setup(cp => cp.IncludedReferencedProjects).Returns(new List<string>());
             mockRunSettingsCoverletConfiguration = new Mock<IRunSettingsCoverletConfiguration>();
             coverletDataCollectorUtil.runSettingsCoverletConfiguration = mockRunSettingsCoverletConfiguration.Object;
             coverletDataCollectorUtil.coverageProject = mockCoverageProject.Object;
@@ -78,7 +79,7 @@ namespace Test
             mockCoverageProject.Setup(cp => cp.ExcludedReferencedProjects).Returns(referencedExcluded);
             mockRunSettingsCoverletConfiguration.Setup(rsc => rsc.Exclude).Returns("rsexclude");
             await coverletDataCollectorUtil.RunAsync(false);
-            mockDataCollectorSettingsBuilder.Verify(b => b.WithExclude(new string[] { "referencedExcluded","excluded"},"rsexclude"));
+            mockDataCollectorSettingsBuilder.Verify(b => b.WithExclude(new string[] { "[referencedExcluded]*","excluded"},"rsexclude"));
         }
 
         [Test]
@@ -89,7 +90,7 @@ namespace Test
             mockCoverageProject.Setup(cp => cp.CoverageOutputFolder).Returns("");
             mockRunSettingsCoverletConfiguration.Setup(rsc => rsc.Exclude).Returns("rsexclude");
             await coverletDataCollectorUtil.RunAsync(false);
-            mockDataCollectorSettingsBuilder.Verify(b => b.WithExclude(new string[] { "referencedExcluded"}, "rsexclude"));
+            mockDataCollectorSettingsBuilder.Verify(b => b.WithExclude(new string[] { "[referencedExcluded]*"}, "rsexclude"));
         }
 
         [Test]
