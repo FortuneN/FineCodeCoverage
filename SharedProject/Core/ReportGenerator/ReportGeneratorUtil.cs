@@ -825,8 +825,11 @@ observer.observe(targetNode, config);
         {
 			return $@"
 				var customizeBox = document.getElementsByClassName('customizebox')[0];
-				var groupingInput = customizeBox.querySelector('input');
-				groupingInput.max = {groupingLevel};
+				if(customizeBox){{
+					var groupingInput = customizeBox.querySelector('input');
+					groupingInput.max = {groupingLevel};
+				}}
+				
 ";
 
 		}
