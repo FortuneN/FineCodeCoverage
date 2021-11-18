@@ -26,5 +26,6 @@
         bool NamespacedClasses { get; }
         bool HideFullyCovered { get; }
         bool AdjacentBuildOutput { get; }
+        bool IncludeReferencedProjects { get; }
     }
 }

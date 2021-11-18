@@ -76,6 +76,10 @@ namespace FineCodeCoverage.Options
         public string[] Include { get; set; }
 
         [Category(excludeIncludeCategory)]
+        [Description("Set to true to add all referenced projects to Include.")]
+        public bool IncludeReferencedProjects { get; set; }
+
+        [Category(excludeIncludeCategory)]
         [Description(
         @"Glob patterns specifying source files to exclude (multiple)
 		Use file path or directory path with globbing (e.g. **/Migrations/*)
