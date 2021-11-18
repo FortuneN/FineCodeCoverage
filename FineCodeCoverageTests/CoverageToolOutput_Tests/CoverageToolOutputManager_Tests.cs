@@ -17,6 +17,7 @@ namespace FineCodeCoverageTests
         private Mock<ICoverageProject> mockProject2;
         private List<ICoverageProject> coverageProjects;
         private List<int> callOrder;
+        private const string DefaultCoverageFolder = "defaultFolder";
 
         [SetUp]
         public void SetUp()
@@ -26,9 +27,11 @@ namespace FineCodeCoverageTests
             mockProject1.Setup(p => p.FCCOutputFolder).Returns("p1output");
             mockProject1.Setup(p => p.ProjectName).Returns("project1");
             mockProject1.SetupProperty(p => p.CoverageOutputFolder);
+            mockProject1.Setup(p => p.DefaultCoverageOutputFolder).Returns(DefaultCoverageFolder);
             mockProject2 = new Mock<ICoverageProject>();
             mockProject2.Setup(p => p.FCCOutputFolder).Returns("p2output");
             mockProject2.Setup(p => p.ProjectName).Returns("project2");
+            mockProject2.Setup(p => p.DefaultCoverageOutputFolder).Returns(DefaultCoverageFolder);
             coverageProjects = new List<ICoverageProject> { mockProject1.Object, mockProject2.Object };
         }
         
@@ -105,16 +108,15 @@ namespace FineCodeCoverageTests
         }
 
         [Test]
-        public void Should_Set_CoverageOutputFolder_To_Sub_Folder_Of_CoverageProject_FCCOutputFolder_For_All_When_Not_Provided()
+        public void Should_Set_CoverageOutputFolder_To_Default_For_All_When_Not_Provided()
         {
             SetUpProviders(true, null, null);
             var coverageToolOutputManager = mocker.Create<CoverageToolOutputManager>();
             coverageToolOutputManager.SetProjectCoverageOutputFolder(coverageProjects);
 
-            var expectedProject1OutputFolder = Path.Combine(mockProject1.Object.FCCOutputFolder, "coverage-tool-output");
-            var expectedProject2OutputFolder = Path.Combine(mockProject2.Object.FCCOutputFolder, "coverage-tool-output");
-            mockProject1.VerifySet(p => p.CoverageOutputFolder = expectedProject1OutputFolder);
-            mockProject2.VerifySet(p => p.CoverageOutputFolder = expectedProject2OutputFolder);
+            
+            mockProject1.VerifySet(p => p.CoverageOutputFolder = DefaultCoverageFolder);
+            mockProject2.VerifySet(p => p.CoverageOutputFolder = DefaultCoverageFolder);
         }
     
         [Test]
