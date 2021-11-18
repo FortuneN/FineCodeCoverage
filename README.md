@@ -9,7 +9,7 @@ or download from [releases](https://github.com/FortuneN/FineCodeCoverage/release
 Prerequisites
 
 Only that the test adapters are nuget packages.  For instance, the NUnit Test Adapter extension is not sufficient.
-FCC will copy your test dll and dependencies to a sub folder this may affect your tests.
+FCC will copy your test dll and dependencies to a sub folder this may affect your tests.  The alternative is to set the option AdjacentBuildOutput to true.
 ---------------------------------------
 
 Introduction
@@ -139,7 +139,8 @@ CoverletConsoleLocal			   Specify true to use your own dotnet tools local instal
 CoverletConsoleCustomPath		   Specify path to coverlet console exe if you need functionality that the FCC version does not provide.
 CoverletConsoleGlobal			   Specify true to use your own dotnet tools global install of coverlet console.
 
-FCCSolutionOutputDirectoryName  To have fcc output visible in a sub folder of your solution provide this name
+FCCSolutionOutputDirectoryName     To have fcc output visible in a sub folder of your solution provide this name
+AdjacentBuildOutput                If your tests are dependent upon their path set this to true.
 
 The "CoverletConsole" settings have precedence Local / CustomPath / Global.
 

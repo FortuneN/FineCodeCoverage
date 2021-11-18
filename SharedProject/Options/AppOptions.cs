@@ -139,6 +139,10 @@ namespace FineCodeCoverage.Options
         [Category(outputCategory)]
         public string FCCSolutionOutputDirectoryName { get; set; }
 
+        [Description("If your tests are dependent upon their path set this to true.")]
+        [Category(outputCategory)]
+        public bool AdjacentBuildOutput { get; set; }
+
         [Category(reportCategory)]
         [Description("When cyclomatic complexity exceeds this value for a method then the method will be present in the risk hotspots tab.")]
         public int ThresholdForCyclomaticComplexity { get; set; } = 30;
