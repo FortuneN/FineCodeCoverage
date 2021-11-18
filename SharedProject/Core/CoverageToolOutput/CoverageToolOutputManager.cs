@@ -13,7 +13,6 @@ namespace FineCodeCoverage.Engine
     {
         private readonly ILogger logger;
         private readonly IFileUtil fileUtil;
-        private const string projectCoverageToolOutputFolderName = "coverage-tool-output";
         private string outputFolderForAllProjects;
         private List<ICoverageProject> coverageProjects;
         private readonly IOrderedEnumerable<Lazy<ICoverageToolOutputFolderProvider, IOrderMetadata>> outputFolderProviders;
@@ -29,12 +28,12 @@ namespace FineCodeCoverage.Engine
         public void SetProjectCoverageOutputFolder(List<ICoverageProject> coverageProjects)
         {
             this.coverageProjects = coverageProjects;
-            DetermineOutputFolder();
+            DetermineOutputFolderForAllProjects();
             if (outputFolderForAllProjects == null)
             {
                 foreach(var coverageProject in coverageProjects)
                 {
-                    coverageProject.CoverageOutputFolder = Path.Combine(coverageProject.FCCOutputFolder, projectCoverageToolOutputFolderName);
+                    coverageProject.CoverageOutputFolder = coverageProject.DefaultCoverageOutputFolder;
                 }
             }
             else
@@ -49,7 +48,7 @@ namespace FineCodeCoverage.Engine
 
         
 
-        private void DetermineOutputFolder()
+        private void DetermineOutputFolderForAllProjects()
         {
             outputFolderForAllProjects = outputFolderProviders.SelectFirstNonNull(p => p.Value.Provide(coverageProjects));
             if(outputFolderForAllProjects != null)

@@ -25,5 +25,6 @@
         bool StickyCoverageTable { get; }
         bool NamespacedClasses { get; }
         bool HideFullyCovered { get; }
+        bool AdjacentBuildOutput { get; }
     }
 }

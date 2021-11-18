@@ -26,7 +26,32 @@ namespace FineCodeCoverage.Engine.Model
         private IAppOptions settings;
         private readonly string fccFolderName = "fine-code-coverage";
         private readonly string buildOutputFolderName = "build-output";
-        private string BuildOutputPath => Path.Combine(FCCOutputFolder, buildOutputFolderName);
+        private string buildOutputPath;
+        private string BuildOutputPath
+        {
+            get
+            {
+                if(buildOutputPath == null)
+                {
+                    var adjacentBuildOutput = appOptionsProvider.Get().AdjacentBuildOutput;
+                    if (adjacentBuildOutput)
+                    {
+                        // Net framework - Debug | Debug-NET45
+                        // SDK style - Debug/netcoreapp3.1 etc
+                        var projectOutputDirectory = new DirectoryInfo(ProjectOutputFolder);
+                        var projectOutputDirectoryName = projectOutputDirectory.Name;
+                        var containingDirectoryPath = projectOutputDirectory.Parent.FullName;
+                        buildOutputPath = Path.Combine(containingDirectoryPath, $"{fccFolderName}-{projectOutputDirectoryName}");
+                    }
+                    else
+                    {
+                        buildOutputPath = Path.Combine(FCCOutputFolder, buildOutputFolderName);
+                    }
+                }
+                return buildOutputPath;
+                
+            }
+        }
         private readonly string coverageToolOutputFolderName = "coverage-tool-output";
 
         public CoverageProject(IAppOptionsProvider appOptionsProvider, IFileSynchronizationUtil fileSynchronizationUtil, ILogger logger, DTE dte, bool canUseMsBuildWorkspace)
@@ -311,7 +336,7 @@ namespace FineCodeCoverage.Engine.Model
             }
         }
         public string CoverageOutputFolder { get; set; }
-
+        public string DefaultCoverageOutputFolder => Path.Combine(FCCOutputFolder, coverageToolOutputFolderName);
 
         public XElement ProjectFileXElement
         {
@@ -357,7 +382,7 @@ namespace FineCodeCoverage.Engine.Model
         public async System.Threading.Tasks.Task PrepareForCoverageAsync()
         {
             EnsureDirectories();
-            CleanDirectory();
+            CleanFCCDirectory();
             SynchronizeBuildOutput();
             await SetExcludedReferencedProjectsAsync();
         }
@@ -535,7 +560,7 @@ namespace FineCodeCoverage.Engine.Model
                 Directory.CreateDirectory(CoverageOutputFolder);
             }
         }
-        private void CleanDirectory()
+        private void CleanFCCDirectory()
         {
             var exclusions = new List<string> { buildOutputFolderName, coverageToolOutputFolderName };
             var fccDirectory = new DirectoryInfo(FCCOutputFolder);
