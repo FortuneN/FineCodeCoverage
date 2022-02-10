@@ -15,6 +15,8 @@ namespace FineCodeCoverage.Engine
         void ReloadCoverage(Func<System.Threading.Tasks.Task<List<ICoverageProject>>> coverageRequestCallback);
         void ClearUI();
         List<CoverageLine> CoverageLines { get; }
+
+        string BlankReport(bool withHistory);
     }
 
 }

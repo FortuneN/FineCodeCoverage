@@ -380,12 +380,13 @@ namespace FineCodeCoverage.Engine.Model
             }
         }
 
-        public async System.Threading.Tasks.Task PrepareForCoverageAsync()
+        public async System.Threading.Tasks.Task<CoverageProjectFileSynchronizationDetails> PrepareForCoverageAsync()
         {
             EnsureDirectories();
             CleanFCCDirectory();
-            SynchronizeBuildOutput();
+            var synchronizationDetails = SynchronizeBuildOutput();
             await SetIncludedExcludedReferencedProjectsAsync();
+            return synchronizationDetails;
         }
 
         private async System.Threading.Tasks.Task SetIncludedExcludedReferencedProjectsAsync()
@@ -606,10 +607,17 @@ namespace FineCodeCoverage.Engine.Model
                });
 
         }
-        private void SynchronizeBuildOutput()
+        private CoverageProjectFileSynchronizationDetails SynchronizeBuildOutput()
         {
-            fileSynchronizationUtil.Synchronize(ProjectOutputFolder, BuildOutputPath, fccFolderName);
+            var start = DateTime.Now;
+            var logs = fileSynchronizationUtil.Synchronize(ProjectOutputFolder, BuildOutputPath, fccFolderName);
+            var duration = DateTime.Now - start;
             TestDllFile = Path.Combine(BuildOutputPath, Path.GetFileName(TestDllFile));
+            return new CoverageProjectFileSynchronizationDetails
+            {
+                Logs = logs,
+                Duration = duration
+            };
         }
 
     }

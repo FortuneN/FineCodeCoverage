@@ -73,6 +73,10 @@
       <Link>Resources\LICENSE</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
+    <Content Include="..\Shared Files\Resources\dummyReportToProcess.html">
+      <Link>Resources\dummyReportToProcess.html</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
     <Content Include="..\Shared Files\Resources\reportparts.xml">
       <Link>Resources\reportparts.xml</Link>
       <IncludeInVSIX>true</IncludeInVSIX>

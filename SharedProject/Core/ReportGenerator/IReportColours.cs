@@ -58,6 +58,22 @@ namespace FineCodeCoverage.Engine.ReportGenerator
         Color SliderRightColour { get; }
 
         Color SliderThumbColour { get; }
+
+        Color ButtonBorderColour { get; }
+        Color ButtonBorderDisabledColour { get; }
+        Color ButtonBorderFocusedColour { get; }
+        Color ButtonBorderHoverColour { get; }
+        Color ButtonBorderPressedColour { get; }
+        Color ButtonColour { get; }
+        Color ButtonDisabledColour { get; }
+        Color ButtonFocusedColour { get; }
+        Color ButtonHoverColour { get; }
+        Color ButtonPressedColour { get; }
+        Color ButtonTextColour { get; }
+        Color ButtonDisabledTextColour { get; }
+        Color ButtonFocusedTextColour { get; }
+        Color ButtonHoverTextColour { get; }
+        Color ButtonPressedTextColour { get; }
     }
 
 }

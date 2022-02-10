@@ -11,6 +11,7 @@ using FineCodeCoverage.Options;
 using FineCodeCoverage.Output;
 using Fizzler.Systems.HtmlAgilityPack;
 using HtmlAgilityPack;
+using Microsoft.VisualStudio.Shell;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using ReportGeneratorPlugins;
@@ -22,10 +23,12 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 		void Initialize(string appDataFolder);
 		string ProcessUnifiedHtml(string htmlForProcessing,string reportOutputFolder);
 		Task<ReportGeneratorResult> GenerateAsync(IEnumerable<string> coverOutputFiles,string reportOutputFolder, bool throwError = false);
+        string BlankReport(bool withHistory);
+        System.Threading.Tasks.Task LogCoverageProcessAsync(string message);
+		System.Threading.Tasks.Task EndOfCoverageRunAsync();
+    }
 
-	}
-
-	internal class ReportGeneratorResult
+    internal class ReportGeneratorResult
 	{
 		public string UnifiedHtml { get; set; }
 		public string UnifiedXmlFile { get; set; }
@@ -43,17 +46,22 @@ namespace FineCodeCoverage.Engine.ReportGenerator
         private readonly IReportColoursProvider reportColoursProvider;
         private readonly IFileUtil fileUtil;
 		private readonly IAppOptionsProvider appOptionsProvider;
+		private readonly IResourceProvider resourceProvider;
 		private const string zipPrefix = "reportGenerator";
 		private const string zipDirectoryName = "reportGenerator";
 
 		private const string ThemeChangedJSFunctionName = "themeChanged";
+		private const string CoverageLogJSFunctionName = "coverageLog";
+		private const string CoverageLogTabName = "Coverage Log";
+		private const string ShowFCCWorkingFunctionName = "showFCCWorking";
 		private readonly Base64ReportImage plusBase64ReportImage = new Base64ReportImage(".icon-plus", "PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4KPHN2ZyB3aWR0aD0iMTc5MiIgaGVpZ2h0PSIxNzkyIiB2aWV3Qm94PSIwIDAgMTc5MiAxNzkyIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxwYXRoIGQ9Ik0xNjAwIDczNnYxOTJxMCA0MC0yOCA2OHQtNjggMjhoLTQxNnY0MTZxMCA0MC0yOCA2OHQtNjggMjhoLTE5MnEtNDAgMC02OC0yOHQtMjgtNjh2LTQxNmgtNDE2cS00MCAwLTY4LTI4dC0yOC02OHYtMTkycTAtNDAgMjgtNjh0NjgtMjhoNDE2di00MTZxMC00MCAyOC02OHQ2OC0yOGgxOTJxNDAgMCA2OCAyOHQyOCA2OHY0MTZoNDE2cTQwIDAgNjggMjh0MjggNjh6Ii8+PC9zdmc+");
 		private readonly Base64ReportImage minusBase64ReportImage = new Base64ReportImage(".icon-minus", "PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4NCjxzdmcgd2lkdGg9IjE3OTIiIGhlaWdodD0iMTc5MiIgdmlld0JveD0iMCAwIDE3OTIgMTc5MiIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBmaWxsPSIjMDAwIiBkPSJNMTYwMCA3MzZ2MTkycTAgNDAtMjggNjh0LTY4IDI4aC0xMjE2cS00MCAwLTY4LTI4dC0yOC02OHYtMTkycTAtNDAgMjgtNjh0NjgtMjhoMTIxNnE0MCAwIDY4IDI4dDI4IDY4eiIvPjwvc3ZnPg==");
 		private readonly Base64ReportImage downActiveBase64ReportImage = new Base64ReportImage(".icon-down-dir_active", "PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4NCjxzdmcgd2lkdGg9IjE3OTIiIGhlaWdodD0iMTc5MiIgdmlld0JveD0iMCAwIDE3OTIgMTc5MiIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBmaWxsPSIjMDA3OEQ0IiBkPSJNMTQwOCA3MDRxMCAyNi0xOSA0NWwtNDQ4IDQ0OHEtMTkgMTktNDUgMTl0LTQ1LTE5bC00NDgtNDQ4cS0xOS0xOS0xOS00NXQxOS00NSA0NS0xOWg4OTZxMjYgMCA0NSAxOXQxOSA0NXoiLz48L3N2Zz4=");
 		private readonly Base64ReportImage downInactiveBase64ReportImage = new Base64ReportImage(".icon-down-dir", "PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4KPHN2ZyB3aWR0aD0iMTc5MiIgaGVpZ2h0PSIxNzkyIiB2aWV3Qm94PSIwIDAgMTc5MiAxNzkyIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxwYXRoIGQ9Ik0xNDA4IDcwNHEwIDI2LTE5IDQ1bC00NDggNDQ4cS0xOSAxOS00NSAxOXQtNDUtMTlsLTQ0OC00NDhxLTE5LTE5LTE5LTQ1dDE5LTQ1IDQ1LTE5aDg5NnEyNiAwIDQ1IDE5dDE5IDQ1eiIvPjwvc3ZnPg==");
 		private readonly Base64ReportImage upActiveBase64ReportImage = new Base64ReportImage(".icon-up-dir_active", "PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4NCjxzdmcgd2lkdGg9IjE3OTIiIGhlaWdodD0iMTc5MiIgdmlld0JveD0iMCAwIDE3OTIgMTc5MiIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBmaWxsPSIjMDA3OEQ0IiBkPSJNMTQwOCAxMjE2cTAgMjYtMTkgNDV0LTQ1IDE5aC04OTZxLTI2IDAtNDUtMTl0LTE5LTQ1IDE5LTQ1bDQ0OC00NDhxMTktMTkgNDUtMTl0NDUgMTlsNDQ4IDQ0OHExOSAxOSAxOSA0NXoiLz48L3N2Zz4=");
-        private readonly IScriptInvoker scriptInvoker;
-		private IReportColours reportColours;
+        private readonly IScriptManager scriptManager;
+        
+        private IReportColours reportColours;
 		private JsThemeStyling jsReportColours;
 		private IReportColours ReportColours
         {
@@ -65,15 +73,10 @@ namespace FineCodeCoverage.Engine.ReportGenerator
             }
         }
 		private readonly bool showBranchCoverage = true;
+		private List<string> logs = new List<string>();
 
 		public string ReportGeneratorExePath { get; private set; }
 
-		
-		static ReportGeneratorUtil()
-        {
-			
-			
-        }
 		[ImportingConstructor]
 		public ReportGeneratorUtil(
 			IAssemblyUtil assemblyUtil,
@@ -84,7 +87,8 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 			IFileUtil fileUtil,
 			IAppOptionsProvider appOptionsProvider,
 			IReportColoursProvider reportColoursProvider,
-			IScriptInvoker scriptInvoker
+			IScriptManager scriptManager,
+			IResourceProvider resourceProvider
 			)
 		{
 			this.fileUtil = fileUtil;
@@ -96,8 +100,15 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 			this.toolZipProvider = toolZipProvider;
 			this.reportColoursProvider = reportColoursProvider;
             this.reportColoursProvider.ColoursChanged += ReportColoursProvider_ColoursChanged;
-			this.scriptInvoker = scriptInvoker;
-		}
+			this.scriptManager = scriptManager;
+            this.resourceProvider = resourceProvider;
+            scriptManager.ClearFCCWindowLogsEvent += ScriptManager_ClearFCCWindowLogsEvent;
+        }
+
+        private void ScriptManager_ClearFCCWindowLogsEvent(object sender, EventArgs e)
+        {
+			logs.Clear();
+        }
 
         public void Initialize(string appDataFolder)
 		{
@@ -145,7 +156,7 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 				}
 
 				logger.Log($"{title} Arguments [reporttype:{outputReportType}] {Environment.NewLine}{string.Join($"{Environment.NewLine}", reportTypeSettings)}");
-
+				
 				var result = await processUtil
 					.ExecuteAsync(new ExecuteRequest
 					{
@@ -179,18 +190,29 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 
 			var reportGeneratorResult = new ReportGeneratorResult { Success = false, UnifiedHtml = null, UnifiedXmlFile = unifiedXmlFile };
 
+			var startTime = DateTime.Now;
+			await LogCoverageProcessAsync("Generating cobertura report");
 			var coberturaResult = await run("Cobertura", string.Join(";", coverOutputFiles));
+			var duration = DateTime.Now - startTime;
 
 			if (coberturaResult)
 			{
+				var coberturaDurationMesage = $"Cobertura report generation duration - {duration}";
+				await LogCoverageProcessAsync(coberturaDurationMesage); // result output includes duration for normal log
+
+				startTime = DateTime.Now;
+				await LogCoverageProcessAsync("Generating html report");
 				var htmlResult = await run("HtmlInline_AzurePipelines", unifiedXmlFile);
+				duration = DateTime.Now - startTime;
 				if (htmlResult)
 				{
+					var htmlReportDurationMessage = $"Html report generation duration - {duration}";
+					await LogCoverageProcessAsync(htmlReportDurationMessage); // result output includes duration for normal log
 					reportGeneratorResult.UnifiedHtml = fileUtil.ReadAllText(unifiedHtmlFile);
 					reportGeneratorResult.Success = true;
 				}
 
-			}
+            }
 
 			return reportGeneratorResult;
 
@@ -836,6 +858,7 @@ observer.observe(targetNode, config);
 
 		public string ProcessUnifiedHtml(string htmlForProcessing, string reportOutputFolder)
 		{
+			var previousLogMessages = $"[{string.Join(",",logs.Select(l => $"'{l}'"))}]";
 			var appOptions = appOptionsProvider.Get();
 			var namespacedClasses = appOptions.NamespacedClasses;
 			ReportColours = reportColoursProvider.GetColours();
@@ -858,7 +881,7 @@ observer.observe(targetNode, config);
 				htmlForProcessing = null;
 
 				doc.DocumentNode.QuerySelectorAll(".footer").ToList().ForEach(x => x.SetAttributeValue("style", "display:none"));
-				doc.DocumentNode.QuerySelectorAll(".container").ToList().ForEach(x => x.SetAttributeValue("style", "margin:0;padding:0;border:0"));
+				doc.DocumentNode.QuerySelectorAll(".container").ToList().ForEach(x => x.SetAttributeValue("style", "margin:0;padding:25px;border:0"));
 				doc.DocumentNode.QuerySelectorAll(".containerleft").ToList().ForEach(x => x.SetAttributeValue("style", "margin:0;padding:0;border:0"));
 				doc.DocumentNode.QuerySelectorAll(".containerleft > h1 , .containerleft > p").ToList().ForEach(x => x.SetAttributeValue("style", "display:none"));
 
@@ -957,6 +980,9 @@ observer.observe(targetNode, config);
 				htmlSb.Replace("</head>", $@"
 				<style id=""fccStyle1"" type=""text/css"">
 					*, body {{ font-size: small;  color: {fontColour}}}
+					button {{ cursor:pointer; padding:25px; color: {jsReportColours.ButtonTextColour}; background:{jsReportColours.ButtonColour}; border-color:{jsReportColours.ButtonBorderColour}}}
+					button:hover {{ color : {jsReportColours.ButtonHoverTextColour}; background:{jsReportColours.ButtonHoverColour}; border-color:{jsReportColours.ButtonBorderHoverColour}}}
+					button:active {{ color : {jsReportColours.ButtonPressedTextColour}; background:{jsReportColours.ButtonPressedColour}; border-color:{jsReportColours.ButtonBorderPressedColour}}}
 					table td {{ white-space: nowrap; }}
 					table.coverage {{ width:150px;height:13px }}
 					body {{ padding-left:3px;padding-right:3px;padding-bottom:3px }}
@@ -1019,7 +1045,20 @@ observer.observe(targetNode, config);
 							getStyleBySelector(highContrastRules,'table.coverage > td.gray').setProperty('background-color',theme.{nameof(JsThemeStyling.GrayCoverageColour)});
 
 							var fccStyleSheet1Rules = getStyleSheetById('fccStyle1').cssRules;		
-					
+							var buttonStyle = getStyleBySelector(fccStyleSheet1Rules,'button');
+							buttonStyle.setProperty('color',theme.{nameof(JsThemeStyling.ButtonTextColour)});
+							buttonStyle.setProperty('background',theme.{nameof(JsThemeStyling.ButtonColour)});
+							buttonStyle.setProperty('border-color',theme.{nameof(JsThemeStyling.ButtonBorderColour)});
+							var buttonHoverStyle = getStyleBySelector(fccStyleSheet1Rules,'button:hover');
+							buttonHoverStyle.setProperty('color',theme.{nameof(JsThemeStyling.ButtonHoverTextColour)});
+							buttonHoverStyle.setProperty('background',theme.{nameof(JsThemeStyling.ButtonHoverColour)});
+							buttonHoverStyle.setProperty('border-color',theme.{nameof(JsThemeStyling.ButtonBorderHoverColour)});
+							var buttonPressedStyle = getStyleBySelector(fccStyleSheet1Rules,'button:active');
+							buttonPressedStyle.setProperty('color',theme.{nameof(JsThemeStyling.ButtonPressedTextColour)});
+							buttonPressedStyle.setProperty('background',theme.{nameof(JsThemeStyling.ButtonPressedColour)});
+							buttonPressedStyle.setProperty('border-color',theme.{nameof(JsThemeStyling.ButtonBorderPressedColour)});
+
+
 							var rangeInputFillLower = getStyleBySelector(fccStyleSheet1Rules, 'input[type=range]::-ms-fill-lower');
 							rangeInputFillLower.setProperty('background',theme.{nameof(JsThemeStyling.SliderLeftColour)});
 							var rangeInputFillUpper = getStyleBySelector(fccStyleSheet1Rules, 'input[type=range]::-ms-fill-upper');
@@ -1105,7 +1144,7 @@ observer.observe(targetNode, config);
 								element['on' + event] = func;
 						}};
 
-						eventListener(window,'focus',function(){{window.external.DocumentFocused()}});
+						eventListener(window,'focus',function(){{window.external.{nameof(ScriptManager.DocumentFocused)}}});
 
 						eventListener(document, 'click', function (event) {{
 							
@@ -1189,6 +1228,7 @@ observer.observe(targetNode, config);
 							{{ button: 'btnCoverage', content: 'coverage-info' }}, 
 							{{ button: 'btnSummary', content: 'table-fixed' }},
 							{{ button: 'btnRiskHotspots', content: 'risk-hotspots' }},
+							{{ button: 'btnCoverageLog', content: 'coverage-log' }},
 						];
 
 						var riskHotspotsTable;
@@ -1287,9 +1327,49 @@ observer.observe(targetNode, config);
 						}};
 					
 						window.addEventListener('load', function() {{
+							addCoverageLogElements();
 							openTab(0);
 						}});
-					
+
+						var previousLogMessages = {previousLogMessages}
+						var coverageLogElement;
+
+						function clearFCCWindowLogs(){{
+							coverageLogElement.textContent = '';
+							window.external.{nameof(ScriptManager.ClearFCCWindowLogs)}();
+						}}
+	
+						function addCoverageLogElements(){{
+							var container = document.getElementsByClassName('container')[0];
+							var coverageLogContainer = document.createElement('div');
+							
+							coverageLogContainer.className = 'coverage-log';
+							var clearFCCWindowLogsButton = document.createElement('button');
+							clearFCCWindowLogsButton.textContent = 'Clear';
+							clearFCCWindowLogsButton.onclick = clearFCCWindowLogs;
+							coverageLogContainer.appendChild(clearFCCWindowLogsButton);
+                            coverageLogElement = document.createElement('div');
+							coverageLogElement.style.marginTop = '25px';
+							for(var i =0 ; i< previousLogMessages.length;i++){{
+								addLogMessageElement(previousLogMessages[i]);
+							}}
+							coverageLogContainer.appendChild(coverageLogElement);
+							container.appendChild(coverageLogContainer);
+						}}
+						function addLogMessageElement(message){{
+							var logElement = document.createElement('div');
+							logElement.innerText = message;
+							coverageLogElement.insertBefore(logElement, coverageLogElement.firstChild);
+						}}
+						function {ShowFCCWorkingFunctionName}(isWorking){{
+							var coverageLogTab = document.getElementById('btnCoverageLog');
+							coverageLogTab.innerText = isWorking ? '{CoverageLogTabName} *' : '{CoverageLogTabName}';
+						}}
+
+						function {CoverageLogJSFunctionName}(message){{
+							showFCCWorking(true);
+							addLogMessageElement(message);
+						}}
 					</script>
 					<div id='divHeader' style='border-collapse:collapse;padding:0;padding-top:3px;margin:0;border:0;position:fixed;top:0;left:0;width:100%;z-index:100' cellpadding='0' cellspacing='0'>
 						<table id='headerTabs' style='border-collapse:collapse;padding:0;margin:0;border:0' cellpadding='0' cellspacing='0'>
@@ -1305,12 +1385,15 @@ observer.observe(targetNode, config);
 								<td id='btnRiskHotspots' onclick='return openTab(2);' class='tab' style='width:1%;white-space:no-wrap'>
 									Risk Hotspots
 								</td>
+								<td id='btnCoverageLog' onclick='return openTab(3);' class='tab' style='width:1%;white-space:no-wrap'>
+									{CoverageLogTabName}
+								</td>
 								<td style='border-top:transparent;border-right:transparent;padding-top:0px' align='center'>
-									<a href='#' onclick='return window.external.RateAndReview();' style='margin-right:7px'>Rate & Review</a>
-									<a href='#' onclick='return window.external.LogIssueOrSuggestion();' style='margin-left:7px'>Log Issue/Suggestion</a>
+									<a href='#' onclick='return window.external.{nameof(ScriptManager.RateAndReview)}();' style='margin-right:7px'>Rate & Review</a>
+									<a href='#' onclick='return window.external.{nameof(ScriptManager.LogIssueOrSuggestion)}();' style='margin-left:7px'>Log Issue/Suggestion</a>
 								</td>
 								<td style='width:1%;white-space:no-wrap;border-top:transparent;border-right:transparent;border-left:transparent;padding-top:0px'>
-									<a href='#' onclick='return window.external.BuyMeACoffee();'>Buy me a coffee</a>
+									<a href='#' onclick='return window.external.{nameof(ScriptManager.BuyMeACoffee)}();'>Buy me a coffee</a>
 								</td>
 							</tr>
 						</table>
@@ -1388,8 +1471,11 @@ observer.observe(targetNode, config);
 					return line;
 				}));
 
-				var processedHtmlFile = Path.Combine(reportOutputFolder, "index-processed.html");
-				File.WriteAllText(processedHtmlFile, processed);
+				if (reportOutputFolder != null)
+				{
+					var processedHtmlFile = Path.Combine(reportOutputFolder, "index-processed.html");
+					File.WriteAllText(processedHtmlFile, processed);
+				}
 
 				return processed;
 
@@ -1433,13 +1519,35 @@ observer.observe(targetNode, config);
 			jsThemeStyling.MinusBase64 = minusBase64ReportImage.Base64FromColour(coverageTableExpandCollapseIconColour);
 			jsThemeStyling.PlusBase64 = plusBase64ReportImage.Base64FromColour(coverageTableExpandCollapseIconColour);
 			
-			scriptInvoker.InvokeScript(ThemeChangedJSFunctionName, jsThemeStyling);
+			scriptManager.InvokeScript(ThemeChangedJSFunctionName, jsThemeStyling);
 		}
 
-		//private string ToJsColour(System.Drawing.Color colour)
-		//{
-		//	return $"rgba({colour.R},{colour.G},{colour.B},{colour.A})";
-		//}
+        public string BlankReport(bool withHistory)
+        {
+            if (!withHistory)
+            {
+				logs.Clear();
+            }
+			return ProcessUnifiedHtml(resourceProvider.ReadResource("dummyReportToProcess.html"),null);
+        }
 
-	}
+        public async System.Threading.Tasks.Task LogCoverageProcessAsync(string message)
+        {
+			await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+			scriptManager.InvokeScript(CoverageLogJSFunctionName, message);
+			logs.Add(message);
+		}
+
+        public async System.Threading.Tasks.Task EndOfCoverageRunAsync()
+        {
+			await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+			scriptManager.InvokeScript(ShowFCCWorkingFunctionName, false);
+        }
+
+        //private string ToJsColour(System.Drawing.Color colour)
+        //{
+        //	return $"rgba({colour.R},{colour.G},{colour.B},{colour.A})";
+        //}
+
+    }
 }

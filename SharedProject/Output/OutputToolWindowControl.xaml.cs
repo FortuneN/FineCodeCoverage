@@ -4,6 +4,7 @@ using FineCodeCoverage.Engine;
 using System.Windows.Controls;
 using Microsoft.VisualStudio.Shell;
 using Microsoft;
+using System;
 
 namespace FineCodeCoverage.Output
 {
@@ -12,17 +13,19 @@ namespace FineCodeCoverage.Output
     /// </summary>
     internal partial class OutputToolWindowControl : UserControl, IScriptInvoker
 	{
+        private readonly IFCCEngine fccEngine;
         private DTE Dte;
 		private Events Events;
 		private SolutionEvents SolutionEvents;
+		private bool hasLoaded;
 
-		/// <summary>
-		/// Initializes a new instance of the <see cref="OutputToolWindowControl"/> class.
-		/// </summary>
-		public OutputToolWindowControl(ScriptManager scriptManager,IFCCEngine fccEngine)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="OutputToolWindowControl"/> class.
+        /// </summary>
+        public OutputToolWindowControl(ScriptManager scriptManager,IFCCEngine fccEngine)
 		{
 			InitializeComponent();
-
+            this.Loaded += OutputToolWindowControl_Loaded;
 			ThreadHelper.JoinableTaskFactory.Run(async () =>
 			{
 				await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
@@ -30,10 +33,8 @@ namespace FineCodeCoverage.Output
 				Assumes.Present(Dte);
 				Events = Dte.Events;
 				SolutionEvents = Events.SolutionEvents;
-				SolutionEvents.Opened += () => Clear();
-				SolutionEvents.AfterClosing += () => Clear();
+				SolutionEvents.AfterClosing += () => Clear(false);
 			});
-
 			FCCOutputBrowser.ObjectForScripting = scriptManager;
 			scriptManager.ScriptInvoker = this;
 			
@@ -45,14 +46,26 @@ namespace FineCodeCoverage.Output
 
 					if (string.IsNullOrWhiteSpace(args?.HtmlContent))
 					{
-						Clear();
+						Clear(true);
 						return;
 					}
 					
 					FCCOutputBrowser.NavigateToString(args.HtmlContent);
-					FCCOutputBrowser.Visibility = Visibility.Visible;
 				});
 			};
+			
+			
+            this.fccEngine = fccEngine;
+        }
+
+        private void OutputToolWindowControl_Loaded(object sender, RoutedEventArgs e)
+        {
+            if (!hasLoaded)
+            {
+				Clear(true);
+				hasLoaded = true;
+				FCCOutputBrowser.Visibility = Visibility.Visible;
+            }
         }
 
         public object InvokeScript(string scriptName, params object[] args)
@@ -61,12 +74,13 @@ namespace FineCodeCoverage.Output
 			{
 				return FCCOutputBrowser.InvokeScript(scriptName, args);
 			}
-			return null;
+            return null;
 		}
 
-        private void Clear()
+        private void Clear(bool withHistory)
 		{
-			FCCOutputBrowser.Visibility = Visibility.Hidden;
+			var report = fccEngine.BlankReport(withHistory);
+			FCCOutputBrowser.NavigateToString(report);
 		}
 	}
 }

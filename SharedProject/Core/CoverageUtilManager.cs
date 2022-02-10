@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using FineCodeCoverage.Engine.Coverlet;
 using FineCodeCoverage.Engine.Model;
 using FineCodeCoverage.Engine.OpenCover;
+using FineCodeCoverage.Engine.ReportGenerator;
 
 namespace FineCodeCoverage.Engine
 {
@@ -20,23 +21,30 @@ namespace FineCodeCoverage.Engine
             this.openCoverUtil = openCoverUtil;
             this.coverletUtil = coverletUtil;
         }
-        
+
+        public string CoverageToolName(ICoverageProject project)
+        {
+            return project.IsDotNetSdkStyle() ? "Coverlet" : "OpenCover";
+        }
+
         public void Initialize(string appDataFolder)
         {
             openCoverUtil.Initialize(appDataFolder);
             coverletUtil.Initialize(appDataFolder);
         }
 
-        public Task<bool> RunCoverageAsync(ICoverageProject project, bool throwError = false)
+        public async Task<bool> RunCoverageAsync(ICoverageProject project, bool throwError = false)
         {
+            bool result;
             if (project.IsDotNetSdkStyle())
             {
-                return coverletUtil.RunCoverletAsync(project, throwError);
+                result =await coverletUtil.RunCoverletAsync(project, throwError);
             }
             else
             {
-                return openCoverUtil.RunOpenCoverAsync(project, throwError);
+                result = await openCoverUtil.RunOpenCoverAsync(project, throwError);
             }
+            return result;
         }
     }
 }

@@ -2,22 +2,25 @@
 
 [![Build status](https://ci.appveyor.com/api/projects/status/yq8s0ridnphpx4ig?svg=true)](https://ci.appveyor.com/project/FortuneN/finecodecoverage)
 
-Download this extension from the [Visual Studio Market Place](https://marketplace.visualstudio.com/items?itemName=FortuneNgwenya.FineCodeCoverage)
+Download this extension from the [Visual Studio Market Place ( vs 2019 )](https://marketplace.visualstudio.com/items?itemName=FortuneNgwenya.FineCodeCoverage), [Visual Studio Market Place ( vs 2022 )](https://marketplace.visualstudio.com/items?itemName=FortuneNgwenya.FineCodeCoverage2022)
 or download from [releases](https://github.com/FortuneN/FineCodeCoverage/releases).  Older versions can be obtained from [here](https://ci.appveyor.com/project/FortuneN/finecodecoverage/history).
 
----------------------------------------
+---
 Prerequisites
 
 Only that the test adapters are nuget packages.  For instance, the NUnit Test Adapter extension is not sufficient.
 FCC will copy your test dll and dependencies to a sub folder this may affect your tests.  The alternative is to set the option AdjacentBuildOutput to true.
----------------------------------------
+
+---
 
 Introduction
 
 Fine Code Coverage works by reacting to the visual studio test explorer, providing coverage from each test project containing tests that you have selected 
-to run.  This coverage is presented as a single unified report as well as coloured margins alongside your code.
+to run.  This coverage is presented as a single unified report in the Fine Code Coverage Tool Window as well as coloured margins alongside your code.
 This coverage is not dynamic and represents the coverage obtained from the last time you executed tests.
 When the coverage becomes outdated, you can click the 'FCC Clear UI' button in Tools or run coverage again.
+
+Details of how FCC is progressing with code coverage can be found in the Coverage Log tab in the Fine Code Coverage Tool Window with more detailed logs in the FCC Output Window Pane.  If you experience issues then providing the logs from the output window will help to understand the nature of the problem.
 
 The coverage is provided by either [OpenCover](https://github.com/OpenCover/opencover) for old style projects and [Coverlet](https://github.com/coverlet-coverage/coverlet) 
 for new style sdk projects.  FCC provides an abstraction over both so that it is possible to ignore the differences between the two but there are circumstances where 
@@ -28,7 +31,7 @@ but there may be a preview version that you want to use.  This can be configured
 Configuration is available with Visual Studio settings and project msbuild properties.  All visual studio settings can be overridden from test project settings and some settings 
 can only be set in project files.
 
----------------------------------------
+---
 
 ### <a href="https://www.youtube.com/watch?v=Rae5bTE2D3o" target="_blank">Watch Introduction Video</a>
 

@@ -9,11 +9,15 @@ namespace FineCodeCoverage.Output
     {
         object InvokeScript(string scriptName, params object[] args);
     }
+    public interface IScriptManager : IScriptInvoker
+    {
+        event EventHandler ClearFCCWindowLogsEvent;
+    }
 
     [Export]
-    [Export(typeof(IScriptInvoker))]
+    [Export(typeof(IScriptManager))]
     [ComVisible(true)] // do not change the accessibility - needs to be public class
-    public class ScriptManager : IScriptInvoker
+    public class ScriptManager : IScriptManager
     {
         internal const string payPal = "https://paypal.me/FortuneNgwenya";
         internal const string githubIssues = "https://github.com/FortuneN/FineCodeCoverage/issues";
@@ -21,6 +25,7 @@ namespace FineCodeCoverage.Output
         private readonly ISourceFileOpener sourceFileOpener;
         private readonly IProcess process;
         internal System.Threading.Tasks.Task openFileTask;
+        public event EventHandler ClearFCCWindowLogsEvent;
         public IScriptInvoker ScriptInvoker { get; set; }
         public Action FocusCallback { get; set; }
 
@@ -54,6 +59,11 @@ namespace FineCodeCoverage.Output
         public void DocumentFocused()
         {
             FocusCallback();
+        }
+
+        public void ClearFCCWindowLogs()
+        {
+            ClearFCCWindowLogsEvent?.Invoke(this, EventArgs.Empty);
         }
 
         public object InvokeScript(string scriptName, params object[] args)

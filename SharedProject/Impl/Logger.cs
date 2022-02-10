@@ -16,7 +16,6 @@ public class Logger : ILogger
     private IVsOutputWindowPane _pane;
     private IVsOutputWindow _outputWindow;
     private readonly IServiceProvider _serviceProvider;
-    private Guid _paneGuid = VSConstants.GUID_BuildOutputWindowPane;
     private Guid fccPaneGuid = Guid.Parse("3B3C775A-0050-445D-9022-0230957805B2");
 
     [ImportingConstructor]
@@ -36,7 +35,6 @@ public class Logger : ILogger
         ThreadHelper.ThrowIfNotOnUIThread();
         _outputWindow = (IVsOutputWindow)_serviceProvider.GetService(typeof(SVsOutputWindow));
         Assumes.Present(_outputWindow);
-        IVsOutputWindowPane pane;
 
         // Create a new pane.
         _outputWindow.CreatePane(
@@ -46,7 +44,7 @@ public class Logger : ILogger
             Convert.ToInt32(clearWithSolution));
 
         // Retrieve the new pane.
-        _outputWindow.GetPane(ref paneGuid, out pane);
+        _outputWindow.GetPane(ref paneGuid, out IVsOutputWindowPane pane);
         return pane;
     }
 

@@ -26,4 +26,22 @@
   <ReportPart Name="TextBoxColour" SelectedThemeColourName="CommonControlsColors.TextBoxBackgroundColorKey" />
   <ReportPart Name="TextBoxTextColour" SelectedThemeColourName="CommonControlsColors.TextBoxTextColorKey" />
   <ReportPart Name="TextBoxBorderColour" SelectedThemeColourName="CommonControlsColors.TextBoxBorderColorKey" />
+
+  <ReportPart Name="ButtonBorderColour" SelectedThemeColourName="CommonControlsColors.ButtonBorderColorKey" />
+  <ReportPart Name="ButtonBorderDisabledColour" SelectedThemeColourName="CommonControlsColors.ButtonBorderDisabledColorKey" />
+  <ReportPart Name="ButtonBorderFocusedColour" SelectedThemeColourName="CommonControlsColors.ButtonBorderFocusedColorKey" />
+  <ReportPart Name="ButtonBorderHoverColour" SelectedThemeColourName="CommonControlsColors.ButtonBorderHoverColorKey" />
+  <ReportPart Name="ButtonBorderPressedColour" SelectedThemeColourName="CommonControlsColors.ButtonBorderPressedColorKey" />
+
+  <ReportPart Name="ButtonColour" SelectedThemeColourName="CommonControlsColors.ButtonColorKey" />
+  <ReportPart Name="ButtonDisabledColour" SelectedThemeColourName="CommonControlsColors.ButtonDisabledColorKey" />
+  <ReportPart Name="ButtonFocusedColour" SelectedThemeColourName="CommonControlsColors.ButtonFocusedColorKey" />
+  <ReportPart Name="ButtonHoverColour" SelectedThemeColourName="CommonControlsColors.ButtonHoverColorKey" />
+  <ReportPart Name="ButtonPressedColour" SelectedThemeColourName="CommonControlsColors.ButtonPressedColorKey" />
+
+  <ReportPart Name="ButtonTextColour" SelectedThemeColourName="CommonControlsColors.ButtonTextColorKey" />
+  <ReportPart Name="ButtonDisabledTextColour" SelectedThemeColourName="CommonControlsColors.ButtonDisabledTextColorKey" />
+  <ReportPart Name="ButtonFocusedTextColour" SelectedThemeColourName="CommonControlsColors.ButtonFocusedTextColorKey" />
+  <ReportPart Name="ButtonHoverTextColour" SelectedThemeColourName="CommonControlsColors.ButtonHoverTextColorKey" />
+  <ReportPart Name="ButtonPressedTextColour" SelectedThemeColourName="CommonControlsColors.ButtonPressedTextColorKey" />
 </ReportParts>

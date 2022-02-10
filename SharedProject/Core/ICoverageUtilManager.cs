@@ -7,5 +7,6 @@ namespace FineCodeCoverage.Engine
     {
         void Initialize(string appDataFolder);
         Task<bool> RunCoverageAsync(ICoverageProject project, bool throwError = false);
+        string CoverageToolName(ICoverageProject project);
     }
 }
