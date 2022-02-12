@@ -9,9 +9,13 @@ using System.Diagnostics.CodeAnalysis;
 using Microsoft.VisualStudio.Shell.Interop;
 using System.ComponentModel.Composition;
 using Microsoft;
-
+interface IShowFCCOutputPane
+{
+    System.Threading.Tasks.Task ShowAsync();
+}
+[Export(typeof(IShowFCCOutputPane))]
 [Export(typeof(ILogger))]
-public class Logger : ILogger
+public class Logger : ILogger, IShowFCCOutputPane
 {
     private IVsOutputWindowPane _pane;
     private IVsOutputWindow _outputWindow;
@@ -143,5 +147,20 @@ public class Logger : ILogger
     public void LogWithoutTitle(IEnumerable<string> message)
     {
         LogImpl(message.ToArray(), false);
+    }
+
+    public async System.Threading.Tasks.Task ShowAsync()
+    {
+        await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+
+        if (_pane == null)
+        {
+            SetPane();
+        }
+
+        if (_pane != null)
+        {
+            _pane.Activate();
+        }
     }
 }

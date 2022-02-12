@@ -18,6 +18,7 @@ using ReportGeneratorPlugins;
 
 namespace FineCodeCoverage.Engine.ReportGenerator
 {
+	
 	interface IReportGeneratorUtil
     {
 		void Initialize(string appDataFolder);
@@ -47,7 +48,8 @@ namespace FineCodeCoverage.Engine.ReportGenerator
         private readonly IFileUtil fileUtil;
 		private readonly IAppOptionsProvider appOptionsProvider;
 		private readonly IResourceProvider resourceProvider;
-		private const string zipPrefix = "reportGenerator";
+        private readonly IShowFCCOutputPane showFCCOutputPane;
+        private const string zipPrefix = "reportGenerator";
 		private const string zipDirectoryName = "reportGenerator";
 
 		private const string ThemeChangedJSFunctionName = "themeChanged";
@@ -88,7 +90,8 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 			IAppOptionsProvider appOptionsProvider,
 			IReportColoursProvider reportColoursProvider,
 			IScriptManager scriptManager,
-			IResourceProvider resourceProvider
+			IResourceProvider resourceProvider,
+			IShowFCCOutputPane showFCCOutputPane
 			)
 		{
 			this.fileUtil = fileUtil;
@@ -102,7 +105,14 @@ namespace FineCodeCoverage.Engine.ReportGenerator
             this.reportColoursProvider.ColoursChanged += ReportColoursProvider_ColoursChanged;
 			this.scriptManager = scriptManager;
             this.resourceProvider = resourceProvider;
+            this.showFCCOutputPane = showFCCOutputPane;
             scriptManager.ClearFCCWindowLogsEvent += ScriptManager_ClearFCCWindowLogsEvent;
+            scriptManager.ShowFCCOutputPaneEvent += ScriptManager_ShowFCCOutputPaneEvent;
+        }
+
+        private async void ScriptManager_ShowFCCOutputPaneEvent(object sender, EventArgs e)
+        {
+			await showFCCOutputPane.ShowAsync();
         }
 
         private void ScriptManager_ClearFCCWindowLogsEvent(object sender, EventArgs e)
@@ -1358,7 +1368,33 @@ observer.observe(targetNode, config);
 						}}
 						function addLogMessageElement(message){{
 							var logElement = document.createElement('div');
-							logElement.innerText = message;
+							var fccOutputPanePart = 'FCC Output Pane';
+							var fccOutputPaneStartIndex = message.indexOf(fccOutputPanePart);
+							if(fccOutputPaneStartIndex != -1){{
+								if(fccOutputPaneStartIndex != 0){{
+									var before = message.substring(0,fccOutputPaneStartIndex);
+									var beforeEl = document.createElement('span');
+									beforeEl.innerText = before;
+									logElement.appendChild(beforeEl);
+								}}
+								var openFccPanelLink = document.createElement('a');
+								openFccPanelLink.innerText = fccOutputPanePart;
+								openFccPanelLink.href = '#';
+								openFccPanelLink.onclick = function(){{
+									window.external.{nameof(ScriptManager.ShowFCCOutputPane)}();
+									return false; 
+								}}
+								logElement.appendChild(openFccPanelLink);
+								var after = message.substring(fccOutputPaneStartIndex + fccOutputPanePart.length);
+								if(after != ''){{
+									var afterEl = document.createElement('span');
+									afterEl.innerText = after;
+									logElement.appendChild(afterEl);
+								}}
+							}}else{{
+								logElement.innerText = message;
+							}}
+							
 							coverageLogElement.insertBefore(logElement, coverageLogElement.firstChild);
 						}}
 						function {ShowFCCWorkingFunctionName}(isWorking){{

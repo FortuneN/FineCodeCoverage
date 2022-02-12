@@ -12,6 +12,7 @@ namespace FineCodeCoverage.Output
     public interface IScriptManager : IScriptInvoker
     {
         event EventHandler ClearFCCWindowLogsEvent;
+        event EventHandler ShowFCCOutputPaneEvent;
     }
 
     [Export]
@@ -26,6 +27,7 @@ namespace FineCodeCoverage.Output
         private readonly IProcess process;
         internal System.Threading.Tasks.Task openFileTask;
         public event EventHandler ClearFCCWindowLogsEvent;
+        public event EventHandler ShowFCCOutputPaneEvent;
         public IScriptInvoker ScriptInvoker { get; set; }
         public Action FocusCallback { get; set; }
 
@@ -64,6 +66,11 @@ namespace FineCodeCoverage.Output
         public void ClearFCCWindowLogs()
         {
             ClearFCCWindowLogsEvent?.Invoke(this, EventArgs.Empty);
+        }
+
+        public void ShowFCCOutputPane()
+        {
+            ShowFCCOutputPaneEvent?.Invoke(this, EventArgs.Empty);
         }
 
         public object InvokeScript(string scriptName, params object[] args)
