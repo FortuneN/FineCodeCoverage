@@ -14,9 +14,6 @@ namespace FineCodeCoverage.Output
     internal partial class OutputToolWindowControl : UserControl, IScriptInvoker
 	{
         private readonly IFCCEngine fccEngine;
-        private DTE Dte;
-		private Events Events;
-		private SolutionEvents SolutionEvents;
 		private bool hasLoaded;
 
         /// <summary>
@@ -26,15 +23,7 @@ namespace FineCodeCoverage.Output
 		{
 			InitializeComponent();
             this.Loaded += OutputToolWindowControl_Loaded;
-			ThreadHelper.JoinableTaskFactory.Run(async () =>
-			{
-				await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-				Dte = (DTE)await OutputToolWindowCommand.Instance.ServiceProvider.GetServiceAsync(typeof(DTE));
-				Assumes.Present(Dte);
-				Events = Dte.Events;
-				SolutionEvents = Events.SolutionEvents;
-				SolutionEvents.AfterClosing += () => Clear(false);
-			});
+
 			FCCOutputBrowser.ObjectForScripting = scriptManager;
 			scriptManager.ScriptInvoker = this;
 			
@@ -44,12 +33,6 @@ namespace FineCodeCoverage.Output
 				{
 					await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 
-					if (string.IsNullOrWhiteSpace(args?.HtmlContent))
-					{
-						Clear(true);
-						return;
-					}
-					
 					FCCOutputBrowser.NavigateToString(args.HtmlContent);
 				});
 			};
@@ -62,7 +45,7 @@ namespace FineCodeCoverage.Output
         {
             if (!hasLoaded)
             {
-				Clear(true);
+				fccEngine.ReadyForReport();
 				hasLoaded = true;
 				FCCOutputBrowser.Visibility = Visibility.Visible;
             }
@@ -75,12 +58,6 @@ namespace FineCodeCoverage.Output
 				return FCCOutputBrowser.InvokeScript(scriptName, args);
 			}
             return null;
-		}
-
-        private void Clear(bool withHistory)
-		{
-			var report = fccEngine.BlankReport(withHistory);
-			FCCOutputBrowser.NavigateToString(report);
 		}
 	}
 }

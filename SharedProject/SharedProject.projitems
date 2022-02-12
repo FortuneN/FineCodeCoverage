@@ -108,6 +108,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\IProcessResponseProcessor.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\IProcessUtil.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\IResourceProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\ISolutionEvents.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\IZipFile.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\LinqExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\MEF.cs" />
@@ -115,6 +116,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\ProcessUtil.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\ReflectionExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\ResourceProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\SolutionEvents.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\ToolZip\IToolFolder.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\ToolZip\IToolZipProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\ToolZip\ToolFolder.cs" />

@@ -16,7 +16,7 @@ namespace FineCodeCoverage.Engine
         void ClearUI();
         List<CoverageLine> CoverageLines { get; }
 
-        string BlankReport(bool withHistory);
+        void ReadyForReport();
     }
 
 }

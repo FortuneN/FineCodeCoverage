@@ -49,7 +49,6 @@ namespace FineCodeCoverage.Impl
 
         )
         {
-            appOptionsProvider.OptionsChanged += AppOptionsEvents_OptionsChanged;
             this.appOptionsProvider = appOptionsProvider;
             this.reportGeneratorUtil = reportGeneratorUtil;
             this.fccEngine = fccEngine;
@@ -65,14 +64,6 @@ namespace FineCodeCoverage.Impl
             
         }
 
-        private void AppOptionsEvents_OptionsChanged(IAppOptions appOptions)
-        {
-            if (!appOptions.Enabled)
-            {
-                fccEngine.ClearUI();
-            }
-        }
-
         private async System.Threading.Tasks.Task TestExecutionStartingAsync(IOperation operation)
         {
             fccEngine.StopCoverage();
@@ -80,6 +71,8 @@ namespace FineCodeCoverage.Impl
             var settings = appOptionsProvider.Get();
             if (!settings.Enabled)
             {
+                await CombinedLogAsync("Coverage not collected as FCC disabled.");
+                await reportGeneratorUtil.EndOfCoverageRunAsync();
                 return;
             }
             if (settings.RunInParallel)
@@ -106,11 +99,7 @@ namespace FineCodeCoverage.Impl
         private async System.Threading.Tasks.Task TestExecutionFinishedAsync(IOperation operation)
         {
             var settings = appOptionsProvider.Get();
-            if (!settings.Enabled)
-            {
-                return;
-            }
-            if (settings.RunInParallel)
+            if (!settings.Enabled || settings.RunInParallel)
             {
                 return;
             }

@@ -10,7 +10,6 @@ using FineCodeCoverage.Engine.MsTestPlatform;
 using FineCodeCoverage.Engine.ReportGenerator;
 using FineCodeCoverage.Impl;
 using FineCodeCoverage.Options;
-using Microsoft.VisualStudio.Shell;
 
 namespace FineCodeCoverage.Engine
 {
@@ -40,6 +39,7 @@ namespace FineCodeCoverage.Engine
         private IInitializeStatusProvider initializeStatusProvider;
         private readonly ICoverageToolOutputManager coverageOutputManager;
         internal System.Threading.Tasks.Task reloadCoverageTask;
+        private ISolutionEvents solutionEvents; // keep alive
 
         [ImportingConstructor]
         public FCCEngine(
@@ -50,9 +50,20 @@ namespace FineCodeCoverage.Engine
             IProcessUtil processUtil,
             ILogger logger,
             IAppDataFolder appDataFolder,
-            ICoverageToolOutputManager coverageOutputManager
+            ICoverageToolOutputManager coverageOutputManager,
+            ISolutionEvents solutionEvents,
+            IAppOptionsProvider appOptionsProvider
             )
         {
+            this.solutionEvents = solutionEvents;
+            solutionEvents.AfterClosing += (s,args) => ClearOutputWindow(false);
+            appOptionsProvider.OptionsChanged += (appOptions) =>
+            {
+                if (!appOptions.Enabled)
+                {
+                    ClearUI();
+                }
+            };
             this.coverageOutputManager = coverageOutputManager;
             this.coverageUtilManager = coverageUtilManager;
             this.coberturaUtil = coberturaUtil;
@@ -88,7 +99,12 @@ namespace FineCodeCoverage.Engine
         {
             CoverageLines = null;
             UpdateMarginTags?.Invoke(new UpdateMarginTagsEventArgs());
-            UpdateOutputWindow?.Invoke(new UpdateOutputWindowEventArgs { });
+            ClearOutputWindow(true);
+        }
+
+        private void ClearOutputWindow(bool withHistory)
+        {
+            RaiseUpdateOutputWindow(reportGeneratorUtil.BlankReport(withHistory));
         }
 
         public void StopCoverage()
@@ -163,10 +179,15 @@ namespace FineCodeCoverage.Engine
             UpdateOutputWindowEventArgs updateOutputWindowEventArgs = new UpdateOutputWindowEventArgs { HtmlContent = reportHtml};
             UpdateOutputWindow?.Invoke(updateOutputWindowEventArgs);
         }
+
         private void UpdateUI(List<CoverageLine> coverageLines, string reportHtml)
         {
             CoverageLines = coverageLines;
             UpdateMarginTags?.Invoke(new UpdateMarginTagsEventArgs());
+            if (reportHtml == null)
+            {
+                reportHtml = reportGeneratorUtil.BlankReport(true);
+            }
             RaiseUpdateOutputWindow(reportHtml);
         }
 
@@ -308,9 +329,9 @@ namespace FineCodeCoverage.Engine
 
         }
 
-        public string BlankReport(bool withHistory)
+        public void ReadyForReport()
         {
-            return reportGeneratorUtil.BlankReport(withHistory);
+            ClearOutputWindow(false);
         }
     }
 
