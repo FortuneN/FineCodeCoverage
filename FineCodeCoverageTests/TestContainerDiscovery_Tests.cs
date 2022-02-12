@@ -227,16 +227,5 @@ namespace Test
             RaiseTestExecutionCancelling();
             mocker.Verify<ILogger>(logger => logger.Log("Error processing unit test events", exception));
         }
-
-        [TestCase(true)]
-        [TestCase(false)]
-        public void Should_Clear_UI_When_Enabled_Setting_Is_Set_To_False(bool newEnabled)
-        {
-            var mockAppOptions = new Mock<IAppOptions>();
-            mockAppOptions.Setup(o => o.Enabled).Returns(newEnabled);
-            mocker.GetMock<IAppOptionsProvider>().Raise(optionsProvider => optionsProvider.OptionsChanged += null, mockAppOptions.Object);
-            mocker.Verify<IFCCEngine>(engine => engine.ClearUI(), newEnabled ? Times.Never() : Times.Once());
-
-        }
     }
 }
