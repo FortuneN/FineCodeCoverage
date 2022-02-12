@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
+using System.Windows;
 using FineCodeCoverage.Core.Utilities;
 using FineCodeCoverage.Engine.Cobertura;
 using FineCodeCoverage.Engine.Model;
@@ -10,6 +11,7 @@ using FineCodeCoverage.Engine.MsTestPlatform;
 using FineCodeCoverage.Engine.ReportGenerator;
 using FineCodeCoverage.Impl;
 using FineCodeCoverage.Options;
+using FineCodeCoverage.Output;
 
 namespace FineCodeCoverage.Engine
 {
@@ -28,6 +30,28 @@ namespace FineCodeCoverage.Engine
         public string AppDataFolderPath { get; private set; }
         public List<CoverageLine> CoverageLines { get; internal set; }
 
+        private DpiScale dpiScale;
+        public DpiScale Dpi
+        {
+            get => dpiScale; 
+            set
+            {
+                reportGeneratorUtil.DpiScale = value;
+                dpiScale = value;
+                UpdateReportWithDpiFontChanges();
+                
+            }
+        }
+        private FontDetails environmentFontDetails;
+        public FontDetails EnvironmentFontDetails {
+            get => environmentFontDetails;
+            set {
+                environmentFontDetails = value;
+                reportGeneratorUtil.EnvironmentFontDetails = value;
+                UpdateReportWithDpiFontChanges();
+            } 
+        }
+
         private readonly ICoverageUtilManager coverageUtilManager;
         private readonly ICoberturaUtil coberturaUtil;
         private readonly IMsTestPlatformUtil msTestPlatformUtil;
@@ -40,6 +64,7 @@ namespace FineCodeCoverage.Engine
         private readonly ICoverageToolOutputManager coverageOutputManager;
         internal System.Threading.Tasks.Task reloadCoverageTask;
         private ISolutionEvents solutionEvents; // keep alive
+        private bool hasGeneratedReport;
 
         [ImportingConstructor]
         public FCCEngine(
@@ -105,6 +130,14 @@ namespace FineCodeCoverage.Engine
         private void ClearOutputWindow(bool withHistory)
         {
             RaiseUpdateOutputWindow(reportGeneratorUtil.BlankReport(withHistory));
+        }
+
+        private void UpdateReportWithDpiFontChanges()
+        {
+            if (hasGeneratedReport)
+            {
+                reportGeneratorUtil.UpdateReportWithDpiFontChanges();
+            }
         }
 
         public void StopCoverage()
@@ -178,6 +211,7 @@ namespace FineCodeCoverage.Engine
         {
             UpdateOutputWindowEventArgs updateOutputWindowEventArgs = new UpdateOutputWindowEventArgs { HtmlContent = reportHtml};
             UpdateOutputWindow?.Invoke(updateOutputWindowEventArgs);
+            hasGeneratedReport = true;
         }
 
         private void UpdateUI(List<CoverageLine> coverageLines, string reportHtml)

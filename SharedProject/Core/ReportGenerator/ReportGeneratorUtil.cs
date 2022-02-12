@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 using ExCSS;
 using FineCodeCoverage.Core.Utilities;
 using FineCodeCoverage.Options;
@@ -21,12 +22,17 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 	
 	interface IReportGeneratorUtil
     {
-		void Initialize(string appDataFolder);
+        DpiScale DpiScale { get; set; }
+
+        void Initialize(string appDataFolder);
 		string ProcessUnifiedHtml(string htmlForProcessing,string reportOutputFolder);
 		Task<ReportGeneratorResult> GenerateAsync(IEnumerable<string> coverOutputFiles,string reportOutputFolder, bool throwError = false);
         string BlankReport(bool withHistory);
         System.Threading.Tasks.Task LogCoverageProcessAsync(string message);
 		System.Threading.Tasks.Task EndOfCoverageRunAsync();
+        void UpdateReportWithDpiFontChanges();
+
+        FontDetails EnvironmentFontDetails { get; set; }
     }
 
     internal class ReportGeneratorResult
@@ -55,7 +61,8 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 		private const string ThemeChangedJSFunctionName = "themeChanged";
 		private const string CoverageLogJSFunctionName = "coverageLog";
 		private const string CoverageLogTabName = "Coverage Log";
-		private const string ShowFCCWorkingFunctionName = "showFCCWorking";
+		private const string ShowFCCWorkingJSFunctionName = "showFCCWorking";
+		private const string FontChangedJSFunctionName = "fontChanged";
 		private readonly Base64ReportImage plusBase64ReportImage = new Base64ReportImage(".icon-plus", "PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4KPHN2ZyB3aWR0aD0iMTc5MiIgaGVpZ2h0PSIxNzkyIiB2aWV3Qm94PSIwIDAgMTc5MiAxNzkyIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxwYXRoIGQ9Ik0xNjAwIDczNnYxOTJxMCA0MC0yOCA2OHQtNjggMjhoLTQxNnY0MTZxMCA0MC0yOCA2OHQtNjggMjhoLTE5MnEtNDAgMC02OC0yOHQtMjgtNjh2LTQxNmgtNDE2cS00MCAwLTY4LTI4dC0yOC02OHYtMTkycTAtNDAgMjgtNjh0NjgtMjhoNDE2di00MTZxMC00MCAyOC02OHQ2OC0yOGgxOTJxNDAgMCA2OCAyOHQyOCA2OHY0MTZoNDE2cTQwIDAgNjggMjh0MjggNjh6Ii8+PC9zdmc+");
 		private readonly Base64ReportImage minusBase64ReportImage = new Base64ReportImage(".icon-minus", "PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4NCjxzdmcgd2lkdGg9IjE3OTIiIGhlaWdodD0iMTc5MiIgdmlld0JveD0iMCAwIDE3OTIgMTc5MiIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBmaWxsPSIjMDAwIiBkPSJNMTYwMCA3MzZ2MTkycTAgNDAtMjggNjh0LTY4IDI4aC0xMjE2cS00MCAwLTY4LTI4dC0yOC02OHYtMTkycTAtNDAgMjgtNjh0NjgtMjhoMTIxNnE0MCAwIDY4IDI4dDI4IDY4eiIvPjwvc3ZnPg==");
 		private readonly Base64ReportImage downActiveBase64ReportImage = new Base64ReportImage(".icon-down-dir_active", "PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4NCjxzdmcgd2lkdGg9IjE3OTIiIGhlaWdodD0iMTc5MiIgdmlld0JveD0iMCAwIDE3OTIgMTc5MiIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBmaWxsPSIjMDA3OEQ0IiBkPSJNMTQwOCA3MDRxMCAyNi0xOSA0NWwtNDQ4IDQ0OHEtMTkgMTktNDUgMTl0LTQ1LTE5bC00NDgtNDQ4cS0xOS0xOS0xOS00NXQxOS00NSA0NS0xOWg4OTZxMjYgMCA0NSAxOXQxOSA0NXoiLz48L3N2Zz4=");
@@ -78,6 +85,11 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 		private List<string> logs = new List<string>();
 
 		public string ReportGeneratorExePath { get; private set; }
+        public DpiScale DpiScale { get; set; }
+        public FontDetails EnvironmentFontDetails { get; set; }
+
+		private string FontSize => $"{EnvironmentFontDetails.Size * DpiScale.DpiScaleX}px";
+		private string FontName => EnvironmentFontDetails.Family.Source;
 
 		[ImportingConstructor]
 		public ReportGeneratorUtil(
@@ -989,18 +1001,18 @@ observer.observe(targetNode, config);
 				var sliderThumbColour = jsReportColours.SliderThumbColour;
 				htmlSb.Replace("</head>", $@"
 				<style id=""fccStyle1"" type=""text/css"">
-					*, body {{ font-size: small;  color: {fontColour}}}
-					button {{ cursor:pointer; padding:25px; color: {jsReportColours.ButtonTextColour}; background:{jsReportColours.ButtonColour}; border-color:{jsReportColours.ButtonBorderColour}}}
+					*, body {{ font-family:{FontName};font-size: {FontSize}; color: {fontColour}}}
+					button {{ cursor:pointer; padding:10px; color: {jsReportColours.ButtonTextColour}; background:{jsReportColours.ButtonColour}; border-color:{jsReportColours.ButtonBorderColour}}}
 					button:hover {{ color : {jsReportColours.ButtonHoverTextColour}; background:{jsReportColours.ButtonHoverColour}; border-color:{jsReportColours.ButtonBorderHoverColour}}}
 					button:active {{ color : {jsReportColours.ButtonPressedTextColour}; background:{jsReportColours.ButtonPressedColour}; border-color:{jsReportColours.ButtonBorderPressedColour}}}
 					table td {{ white-space: nowrap; }}
 					table.coverage {{ width:150px;height:13px }}
 					body {{ padding-left:3px;padding-right:3px;padding-bottom:3px }}
-					table,tr,th,td {{ font-size: small; }}
+					
 					body {{ -webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;-o-user-select:none;user-select:none }}
-					table.overview th, table.overview td {{ font-size: small; white-space: nowrap; word-break: normal; padding-left:10px;padding-right:10px; }}
+					table.overview th, table.overview td {{ white-space: nowrap; word-break: normal; padding-left:10px;padding-right:10px; }}
 					{GetGroupingCss(namespacedClasses)}
-					table,tr,th,td {{ border: 1px solid; font-size: small; }}
+					table,tr,th,td {{ border: 1px solid;}}
 					input[type=text] {{ color:{jsReportColours.TextBoxTextColour}; background-color:{jsReportColours.TextBoxColour};border-color:{jsReportColours.TextBoxBorderColour} }}
 					select {{ color:{jsReportColours.ComboBoxTextColour}; background-color:{jsReportColours.ComboBoxColour};border-color:{jsReportColours.ComboBoxBorderColour} }}
                     body, html {{ scrollbar-arrow-color:{jsReportColours.ScrollBarArrowColour};scrollbar-track-color:{jsReportColours.ScrollBarTrackColour};scrollbar-face-color:{scrollbarThumbColour};scrollbar-shadow-color:{scrollbarThumbColour};scrollbar-highlight-color:{scrollbarThumbColour};scrollbar-3dlight-color:{scrollbarThumbColour};scrollbar-darkshadow-color:{scrollbarThumbColour} }}				
@@ -1047,6 +1059,13 @@ observer.observe(targetNode, config);
 								return styleSheet;
 							}}
 						}}
+					}}
+					function {FontChangedJSFunctionName}(fontNameAndSize){{
+						var parts = fontNameAndSize.split(':');
+						var fccStyleSheet1Rules = getStyleSheetById('fccStyle1').cssRules;
+						var generalStyle = getStyleBySelector(fccStyleSheet1Rules,'*, body');
+						generalStyle.setProperty('font-family',parts[0]);
+						generalStyle.setProperty('font-size',parts[1]);
 					}}
 					function {ThemeChangedJSFunctionName}(theme){{
 							var fccMediaStylesheet = getStyleSheetById('fccMediaStyle');	
@@ -1397,7 +1416,7 @@ observer.observe(targetNode, config);
 							
 							coverageLogElement.insertBefore(logElement, coverageLogElement.firstChild);
 						}}
-						function {ShowFCCWorkingFunctionName}(isWorking){{
+						function {ShowFCCWorkingJSFunctionName}(isWorking){{
 							var coverageLogTab = document.getElementById('btnCoverageLog');
 							coverageLogTab.innerText = isWorking ? '{CoverageLogTabName} *' : '{CoverageLogTabName}';
 						}}
@@ -1577,7 +1596,12 @@ observer.observe(targetNode, config);
         public async System.Threading.Tasks.Task EndOfCoverageRunAsync()
         {
 			await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-			scriptManager.InvokeScript(ShowFCCWorkingFunctionName, false);
+			scriptManager.InvokeScript(ShowFCCWorkingJSFunctionName, false);
+        }
+
+        public void UpdateReportWithDpiFontChanges()
+        {
+			scriptManager.InvokeScript(FontChangedJSFunctionName, $"{FontName}:{FontSize}");
         }
 
         //private string ToJsColour(System.Drawing.Color colour)
