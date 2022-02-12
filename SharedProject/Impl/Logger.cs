@@ -9,6 +9,8 @@ using System.Diagnostics.CodeAnalysis;
 using Microsoft.VisualStudio.Shell.Interop;
 using System.ComponentModel.Composition;
 using Microsoft;
+using EnvDTE;
+
 interface IShowFCCOutputPane
 {
     System.Threading.Tasks.Task ShowAsync();
@@ -19,6 +21,7 @@ public class Logger : ILogger, IShowFCCOutputPane
 {
     private IVsOutputWindowPane _pane;
     private IVsOutputWindow _outputWindow;
+    private DTE dte;
     private readonly IServiceProvider _serviceProvider;
     private Guid fccPaneGuid = Guid.Parse("3B3C775A-0050-445D-9022-0230957805B2");
 
@@ -39,6 +42,8 @@ public class Logger : ILogger, IShowFCCOutputPane
         ThreadHelper.ThrowIfNotOnUIThread();
         _outputWindow = (IVsOutputWindow)_serviceProvider.GetService(typeof(SVsOutputWindow));
         Assumes.Present(_outputWindow);
+        dte = (EnvDTE.DTE)_serviceProvider.GetService(typeof(EnvDTE.DTE));
+        Assumes.Present(dte);
 
         // Create a new pane.
         _outputWindow.CreatePane(
@@ -160,6 +165,8 @@ public class Logger : ILogger, IShowFCCOutputPane
 
         if (_pane != null)
         {
+            EnvDTE.Window window = dte.Windows.Item(EnvDTE.Constants.vsWindowKindOutput);
+            window.Activate();
             _pane.Activate();
         }
     }
