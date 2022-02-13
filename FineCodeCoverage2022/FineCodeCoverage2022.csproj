@@ -65,6 +65,10 @@
       <Link>OutputToolWindowPackage.vsct</Link>
       <ResourceName>Menus.ctmenu</ResourceName>
     </VSCTCompile>
+    <Content Include="..\Shared Files\Resources\dummyReportToProcess.html">
+      <Link>Resources\dummyReportToProcess.html</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
     <Content Include="..\Shared Files\Resources\reportparts.xml">
       <Link>Resources\reportparts.xml</Link>
       <IncludeInVSIX>true</IncludeInVSIX>

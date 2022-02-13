@@ -343,44 +343,6 @@ namespace Test
         }
 
         [Test]
-        public async Task Should_Clear_UI_Then_Update_UI_When_ReloadCoverage_Completes_Fully()
-        {
-            fccEngine.CoverageLines = new List<CoverageLine>();
-            var (reportGeneratedHtmlContent, updatedCoverageLines) = await RunToCompletion(false);
-
-            VerifyLogsReloadCoverageStatus(ReloadCoverageStatus.Done);
-
-            VerifyClearUIEvents(0);
-
-            Assert.AreSame(updatedCoverageLines, updateMarginTagsCoverageLines[1]);
-            Assert.AreEqual(reportGeneratedHtmlContent, updateOutputWindowEvents[1].HtmlContent);
-
-        }
-
-        [Test]
-        public async Task Should_Clear_UI_When_ReloadCoverage_And_No_CoverageProjects()
-        {
-            fccEngine.CoverageLines = new List<CoverageLine>();
-
-            await RunToCompletion(true);
-            
-            VerifyLogsReloadCoverageStatus(ReloadCoverageStatus.Done);
-            
-            Assert.Null(updateMarginTagsCoverageLines[1]);
-            Assert.Null(updateOutputWindowEvents[1].HtmlContent);
-        }
-        
-        [Test]
-        public async Task Should_Update_OutputWindow_With_Null_HtmlContent_When_Reading_Report_Html_Throws()
-        {
-            await ThrowReadingReportHtml();
-            
-            Assert.AreEqual(updateMarginTagsCoverageLines[1].Count, 1);
-            Assert.Null(updateOutputWindowEvents[1].HtmlContent);
-
-        }
-        
-        [Test]
         public async Task Should_Log_Single_Exception_From_Aggregate_Exception()
         {
             Exception exception = null;
@@ -390,27 +352,10 @@ namespace Test
         }
 
         [Test]
-        public async Task Should_Clear_UI_When_There_Is_An_Exception()
-        {
-            fccEngine.CoverageLines = new List<CoverageLine>();
-            await ThrowException();
-            VerifyClearUIEvents(1);
-        }
-
-        [Test]
         public async Task Should_Cancel_Running_Coverage_Logging_Cancelled_When_StopCoverage()
         {
             await StopCoverage();
             VerifyLogsReloadCoverageStatus(ReloadCoverageStatus.Cancelled);
-        }
-
-        [Test]
-        public async Task Should_Not_Update_UI_When_ReloadCoverage_Is_Cancelled()
-        {
-            await StopCoverage();
-            Assert.AreEqual(1, updateMarginTagsEvents.Count);
-            Assert.AreEqual(1, updateOutputWindowEvents.Count);
-
         }
 
         [Test]
@@ -450,7 +395,7 @@ namespace Test
                 Thread.Sleep(1000);
                 t.Start();
 
-            }).Returns(Task.CompletedTask);
+            }).Returns(Task.FromResult(new CoverageProjectFileSynchronizationDetails()));
 
             await ReloadInitializedCoverage(mockSuitableCoverageProject.Object);
             VerifyLogsReloadCoverageStatus(ReloadCoverageStatus.Cancelled);
@@ -554,7 +499,7 @@ namespace Test
             {
                 fccEngine.StopCoverage();
 
-            }).Returns(Task.CompletedTask);
+            }).Returns(Task.FromResult(new CoverageProjectFileSynchronizationDetails()));
 
             await ReloadInitializedCoverage(mockSuitableCoverageProject.Object);
         }
@@ -585,7 +530,7 @@ namespace Test
             var mockSuitableCoverageProject = new Mock<ICoverageProject>();
             mockSuitableCoverageProject.Setup(p => p.ProjectFile).Returns("Defined.csproj");
             mockSuitableCoverageProject.Setup(p => p.Settings.Enabled).Returns(true);
-            mockSuitableCoverageProject.Setup(p => p.PrepareForCoverageAsync()).Returns(Task.CompletedTask);
+            mockSuitableCoverageProject.Setup(p => p.PrepareForCoverageAsync()).Returns(Task.FromResult(new CoverageProjectFileSynchronizationDetails()));
             mockSuitableCoverageProject.Setup(p => p.StepAsync("Run Coverage Tool", It.IsAny<Func<ICoverageProject, Task>>())).Returns(Task.CompletedTask);
             return mockSuitableCoverageProject;
         }

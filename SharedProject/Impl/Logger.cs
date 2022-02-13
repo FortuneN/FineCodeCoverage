@@ -9,14 +9,20 @@ using System.Diagnostics.CodeAnalysis;
 using Microsoft.VisualStudio.Shell.Interop;
 using System.ComponentModel.Composition;
 using Microsoft;
+using EnvDTE;
 
+interface IShowFCCOutputPane
+{
+    System.Threading.Tasks.Task ShowAsync();
+}
+[Export(typeof(IShowFCCOutputPane))]
 [Export(typeof(ILogger))]
-public class Logger : ILogger
+public class Logger : ILogger, IShowFCCOutputPane
 {
     private IVsOutputWindowPane _pane;
     private IVsOutputWindow _outputWindow;
+    private DTE dte;
     private readonly IServiceProvider _serviceProvider;
-    private Guid _paneGuid = VSConstants.GUID_BuildOutputWindowPane;
     private Guid fccPaneGuid = Guid.Parse("3B3C775A-0050-445D-9022-0230957805B2");
 
     [ImportingConstructor]
@@ -36,7 +42,8 @@ public class Logger : ILogger
         ThreadHelper.ThrowIfNotOnUIThread();
         _outputWindow = (IVsOutputWindow)_serviceProvider.GetService(typeof(SVsOutputWindow));
         Assumes.Present(_outputWindow);
-        IVsOutputWindowPane pane;
+        dte = (EnvDTE.DTE)_serviceProvider.GetService(typeof(EnvDTE.DTE));
+        Assumes.Present(dte);
 
         // Create a new pane.
         _outputWindow.CreatePane(
@@ -46,7 +53,7 @@ public class Logger : ILogger
             Convert.ToInt32(clearWithSolution));
 
         // Retrieve the new pane.
-        _outputWindow.GetPane(ref paneGuid, out pane);
+        _outputWindow.GetPane(ref paneGuid, out IVsOutputWindowPane pane);
         return pane;
     }
 
@@ -145,5 +152,22 @@ public class Logger : ILogger
     public void LogWithoutTitle(IEnumerable<string> message)
     {
         LogImpl(message.ToArray(), false);
+    }
+
+    public async System.Threading.Tasks.Task ShowAsync()
+    {
+        await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+
+        if (_pane == null)
+        {
+            SetPane();
+        }
+
+        if (_pane != null)
+        {
+            EnvDTE.Window window = dte.Windows.Item(EnvDTE.Constants.vsWindowKindOutput);
+            window.Activate();
+            _pane.Activate();
+        }
     }
 }

@@ -17,7 +17,7 @@
 		VerticalAlignment="Stretch"
 		HorizontalAlignment="Stretch"
 		Opacity="0"
-		Visibility="Hidden"
+        Visibility="Hidden"
 		/>
 	
 </UserControl>

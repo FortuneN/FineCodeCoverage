@@ -28,6 +28,6 @@ namespace FineCodeCoverage.Engine.Model
 
         bool IsDotNetSdkStyle();
         Task StepAsync(string stepName, Func<ICoverageProject, Task> action);
-        Task PrepareForCoverageAsync();
+        Task<CoverageProjectFileSynchronizationDetails> PrepareForCoverageAsync();
     }
 }

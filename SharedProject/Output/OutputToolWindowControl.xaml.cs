@@ -4,35 +4,90 @@ using FineCodeCoverage.Engine;
 using System.Windows.Controls;
 using Microsoft.VisualStudio.Shell;
 using Microsoft;
+using System;
+using System.Windows.Media;
 
 namespace FineCodeCoverage.Output
 {
-    /// <summary>
-    /// Interaction logic for OutputToolWindowControl.
-    /// </summary>
-    internal partial class OutputToolWindowControl : UserControl, IScriptInvoker
+	public class FontDetails
 	{
-        private DTE Dte;
-		private Events Events;
-		private SolutionEvents SolutionEvents;
+		public FontDetails(double size, FontFamily fontFamily)
+		{
+			Size = size;
+			Family = fontFamily;
+		}
+		public double Size { get; }
 
-		/// <summary>
-		/// Initializes a new instance of the <see cref="OutputToolWindowControl"/> class.
-		/// </summary>
-		public OutputToolWindowControl(ScriptManager scriptManager,IFCCEngine fccEngine)
+		public FontFamily Family { get; }
+	}
+
+	public class EnvironmentFont : DependencyObject
+	{
+		
+		private static DependencyProperty EnvironmentFontSizeProperty;
+
+		private static DependencyProperty EnvironmentFontFamilyProperty;
+
+		private double Size { get; set; }
+
+		private FontFamily Family { get; set; }
+
+
+		public event EventHandler<FontDetails> Changed;
+
+		public void Initialize(FrameworkElement frameworkElement)
+		{
+			RegisterDependencyProperties(frameworkElement.GetType());
+			frameworkElement.SetResourceReference(EnvironmentFontSizeProperty, VsFonts.EnvironmentFontSizeKey);
+			frameworkElement.SetResourceReference(EnvironmentFontFamilyProperty, VsFonts.EnvironmentFontFamilyKey);
+		}
+
+		private void RegisterDependencyProperties(Type controlType)
+		{
+			EnvironmentFontSizeProperty = DependencyProperty.Register("EnvironmentFontSize", typeof(double), controlType, new PropertyMetadata((obj, args) =>
+			{
+				Size = (double)args.NewValue;
+				ValueChanged();
+			}));
+
+			EnvironmentFontFamilyProperty = DependencyProperty.Register("EnvironmentFontFamily", typeof(FontFamily), controlType, new PropertyMetadata((obj, args) =>
+			{
+				Family = (FontFamily)args.NewValue;
+				ValueChanged();
+			}));
+		}
+
+		private void ValueChanged()
+		{
+			if (Family != null && Size != default)
+			{
+				Changed?.Invoke(this, new FontDetails(Size, Family));
+			}
+		}
+	}
+	
+	/// <summary>
+	/// Interaction logic for OutputToolWindowControl.
+	/// </summary>
+	internal partial class OutputToolWindowControl : UserControl, IScriptInvoker
+	{
+        private readonly IFCCEngine fccEngine;
+		private bool hasLoaded;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="OutputToolWindowControl"/> class.
+        /// </summary>
+        public OutputToolWindowControl(ScriptManager scriptManager,IFCCEngine fccEngine)
 		{
 			InitializeComponent();
-
-			ThreadHelper.JoinableTaskFactory.Run(async () =>
+			fccEngine.Dpi = VisualTreeHelper.GetDpi(this);
+			var environmentFont = new EnvironmentFont();
+			environmentFont.Changed += (sender, fontDetails) =>
 			{
-				await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-				Dte = (DTE)await OutputToolWindowCommand.Instance.ServiceProvider.GetServiceAsync(typeof(DTE));
-				Assumes.Present(Dte);
-				Events = Dte.Events;
-				SolutionEvents = Events.SolutionEvents;
-				SolutionEvents.Opened += () => Clear();
-				SolutionEvents.AfterClosing += () => Clear();
-			});
+				fccEngine.EnvironmentFontDetails = fontDetails;
+			};
+			environmentFont.Initialize(this);
+			this.Loaded += OutputToolWindowControl_Loaded;
 
 			FCCOutputBrowser.ObjectForScripting = scriptManager;
 			scriptManager.ScriptInvoker = this;
@@ -43,16 +98,32 @@ namespace FineCodeCoverage.Output
 				{
 					await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 
-					if (string.IsNullOrWhiteSpace(args?.HtmlContent))
-					{
-						Clear();
-						return;
-					}
-					
 					FCCOutputBrowser.NavigateToString(args.HtmlContent);
-					FCCOutputBrowser.Visibility = Visibility.Visible;
 				});
 			};
+			
+			
+            this.fccEngine = fccEngine;
+        }
+
+        protected override void OnDpiChanged(DpiScale oldDpi, DpiScale newDpi)
+		{
+			base.OnDpiChanged(oldDpi, newDpi);
+			fccEngine.Dpi = newDpi;
+		}
+
+		private void OutputToolWindowControl_Loaded(object sender, RoutedEventArgs e)
+        {
+            if (!hasLoaded)
+            {
+				if(FCCOutputBrowser.Document == null)
+                {
+					fccEngine.ReadyForReport();
+				}
+				
+				hasLoaded = true;
+				FCCOutputBrowser.Visibility = Visibility.Visible;
+            }
         }
 
         public object InvokeScript(string scriptName, params object[] args)
@@ -61,12 +132,7 @@ namespace FineCodeCoverage.Output
 			{
 				return FCCOutputBrowser.InvokeScript(scriptName, args);
 			}
-			return null;
-		}
-
-        private void Clear()
-		{
-			FCCOutputBrowser.Visibility = Visibility.Hidden;
+            return null;
 		}
 	}
 }
