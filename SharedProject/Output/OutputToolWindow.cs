@@ -28,6 +28,16 @@ namespace FineCodeCoverage.Output
 		/// </summary>
 		public OutputToolWindow(OutputToolWindowContext context) : base(null)
 		{
+			Initialize(context);
+		}
+
+		public OutputToolWindow()
+        {
+			Initialize(OutputToolWindowPackage.GetOutputToolWindowContext());
+		}
+
+		private void Initialize(OutputToolWindowContext context)
+        {
 			//to see if OutputToolWindow can be internal ( and thus IScriptManager )
 			Caption = Vsix.Name;
 			context.ScriptManager.FocusCallback = () =>
@@ -46,7 +56,7 @@ namespace FineCodeCoverage.Output
 			try
 			{
 				AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
-				Content = new OutputToolWindowControl(context.ScriptManager,context.FccEngine);
+				Content = new OutputToolWindowControl(context.ScriptManager, context.FccEngine);
 			}
 			finally
 			{
