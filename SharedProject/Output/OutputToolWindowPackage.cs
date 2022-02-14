@@ -40,7 +40,7 @@ namespace FineCodeCoverage.Output
 	[ProvideToolWindow(typeof(OutputToolWindow), Style = VsDockStyle.Tabbed, DockedHeight = 300, Window = EnvDTE.Constants.vsWindowKindOutput)]
 	public sealed class OutputToolWindowPackage : AsyncPackage
 	{
-		private Microsoft.VisualStudio.ComponentModelHost.IComponentModel componentModel;
+		private static Microsoft.VisualStudio.ComponentModelHost.IComponentModel componentModel;
 		/// <summary>
 		/// OutputToolWindowPackage GUID string.
 		/// </summary>
@@ -55,6 +55,19 @@ namespace FineCodeCoverage.Output
 			// any Visual Studio service because at this point the package object is created but
 			// not sited yet inside Visual Studio environment. The place to do all the other
 			// initialization is the Initialize method.
+		}
+
+		/*
+			Hack necessary for debugging in 2022 !
+			https://developercommunity.visualstudio.com/t/vsix-tool-window-vs2022-different-instantiation-wh/1663280
+		*/
+		internal static OutputToolWindowContext GetOutputToolWindowContext()
+        {
+			return new OutputToolWindowContext
+			{
+				FccEngine = componentModel.GetService<IFCCEngine>(),
+				ScriptManager = componentModel.GetService<ScriptManager>()
+			};
 		}
 
 		/// <summary>
@@ -80,12 +93,7 @@ namespace FineCodeCoverage.Output
 
         protected override System.Threading.Tasks.Task<object> InitializeToolWindowAsync(Type toolWindowType, int id, CancellationToken cancellationToken)
         {
-			var context = new OutputToolWindowContext
-			{
-				FccEngine = componentModel.GetService<IFCCEngine>(),
-				ScriptManager = componentModel.GetService<ScriptManager>()
-			};
-			return System.Threading.Tasks.Task.FromResult<object>(context);
+			return System.Threading.Tasks.Task.FromResult<object>(GetOutputToolWindowContext());
 		}
         public override IVsAsyncToolWindowFactory GetAsyncToolWindowFactory(Guid toolWindowType)
 		{

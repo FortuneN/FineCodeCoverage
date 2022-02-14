@@ -2,6 +2,7 @@
 using System.ComponentModel.Composition;
 using System.Linq;
 using EnvDTE;
+using EnvDTE80;
 using FineCodeCoverage.Engine.Cobertura;
 using Microsoft;
 using Microsoft.VisualStudio.Shell;
@@ -15,6 +16,7 @@ namespace FineCodeCoverage.Engine
         private readonly IMessageBox messageBox;
         private readonly ILogger logger;
         private readonly IServiceProvider serviceProvider;
+        private readonly DTE2 dte;
 
         [ImportingConstructor]
         public SourceFileOpener(
@@ -27,6 +29,9 @@ namespace FineCodeCoverage.Engine
             this.messageBox = messageBox;
             this.logger = logger;
             this.serviceProvider = serviceProvider;
+            ThreadHelper.ThrowIfNotOnUIThread();
+            dte = (DTE2)serviceProvider.GetService(typeof(DTE));
+            Assumes.Present(dte);
         }
         public async System.Threading.Tasks.Task OpenFileAsync(string assemblyName, string qualifiedClassName, int file, int line)
         {
@@ -43,17 +48,15 @@ namespace FineCodeCoverage.Engine
             }
 
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-            var Dte = (DTE)serviceProvider.GetService(typeof(DTE));
-            Assumes.Present(Dte);
-            Dte.MainWindow.Activate();
+            dte.MainWindow.Activate();
 
             foreach (var sourceFile in sourceFiles)
             {
-                Dte.ItemOperations.OpenFile(sourceFile, Constants.vsViewKindCode);
+                dte.ItemOperations.OpenFile(sourceFile, Constants.vsViewKindCode);
 
                 if (line != 0)
                 {
-                    ((TextSelection)Dte.ActiveDocument.Selection).GotoLine(line, false);
+                    ((TextSelection)dte.ActiveDocument.Selection).GotoLine(line, false);
                 }
             }
 
