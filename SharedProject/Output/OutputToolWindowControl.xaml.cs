@@ -102,9 +102,8 @@ namespace FineCodeCoverage.Output
 				});
 			};
 			
-			
             this.fccEngine = fccEngine;
-        }
+		}
 
         protected override void OnDpiChanged(DpiScale oldDpi, DpiScale newDpi)
 		{
@@ -114,23 +113,27 @@ namespace FineCodeCoverage.Output
 
 		private void OutputToolWindowControl_Loaded(object sender, RoutedEventArgs e)
         {
-            if (!hasLoaded)
-            {
-				if(FCCOutputBrowser.Document == null)
-                {
-					fccEngine.ReadyForReport();
-				}
-				
-				hasLoaded = true;
+			if (!hasLoaded)
+			{
+				fccEngine.ReadyForReport();
 				FCCOutputBrowser.Visibility = Visibility.Visible;
-            }
+				hasLoaded = false;
+			}
         }
 
         public object InvokeScript(string scriptName, params object[] args)
         {
 			if (FCCOutputBrowser.Document != null)
 			{
-				return FCCOutputBrowser.InvokeScript(scriptName, args);
+				try
+				{
+					// Can use FCCOutputBrowser.IsLoaded but 
+					// it is possible for this to be successful when IsLoaded false.
+					return FCCOutputBrowser.InvokeScript(scriptName, args);
+				}
+				catch { 
+					// todo what to do about missed 
+				}
 			}
             return null;
 		}
