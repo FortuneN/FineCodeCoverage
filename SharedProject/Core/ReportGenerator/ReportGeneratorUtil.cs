@@ -69,7 +69,7 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 		private readonly Base64ReportImage downInactiveBase64ReportImage = new Base64ReportImage(".icon-down-dir", "PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4KPHN2ZyB3aWR0aD0iMTc5MiIgaGVpZ2h0PSIxNzkyIiB2aWV3Qm94PSIwIDAgMTc5MiAxNzkyIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxwYXRoIGQ9Ik0xNDA4IDcwNHEwIDI2LTE5IDQ1bC00NDggNDQ4cS0xOSAxOS00NSAxOXQtNDUtMTlsLTQ0OC00NDhxLTE5LTE5LTE5LTQ1dDE5LTQ1IDQ1LTE5aDg5NnEyNiAwIDQ1IDE5dDE5IDQ1eiIvPjwvc3ZnPg==");
 		private readonly Base64ReportImage upActiveBase64ReportImage = new Base64ReportImage(".icon-up-dir_active", "PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4NCjxzdmcgd2lkdGg9IjE3OTIiIGhlaWdodD0iMTc5MiIgdmlld0JveD0iMCAwIDE3OTIgMTc5MiIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBmaWxsPSIjMDA3OEQ0IiBkPSJNMTQwOCAxMjE2cTAgMjYtMTkgNDV0LTQ1IDE5aC04OTZxLTI2IDAtNDUtMTl0LTE5LTQ1IDE5LTQ1bDQ0OC00NDhxMTktMTkgNDUtMTl0NDUgMTlsNDQ4IDQ0OHExOSAxOSAxOSA0NXoiLz48L3N2Zz4=");
         private readonly IScriptManager scriptManager;
-        
+		private string previousFontSizeName;
         private IReportColours reportColours;
 		private JsThemeStyling jsReportColours;
 		private IReportColours ReportColours
@@ -878,8 +878,14 @@ observer.observe(targetNode, config);
 
 		}
 
+		private string GetFontNameSize()
+        {
+			return $"{FontSize}{FontName}";
+		}
+
 		public string ProcessUnifiedHtml(string htmlForProcessing, string reportOutputFolder)
 		{
+			previousFontSizeName = GetFontNameSize();
 			var previousLogMessages = $"[{string.Join(",",logs.Select(l => $"'{l}'"))}]";
 			var appOptions = appOptionsProvider.Get();
 			var namespacedClasses = appOptions.NamespacedClasses;
@@ -1601,7 +1607,10 @@ observer.observe(targetNode, config);
 
         public void UpdateReportWithDpiFontChanges()
         {
-			scriptManager.InvokeScript(FontChangedJSFunctionName, $"{FontName}:{FontSize}");
+			if (previousFontSizeName != GetFontNameSize())
+			{
+				scriptManager.InvokeScript(FontChangedJSFunctionName, $"{FontName}:{FontSize}");
+			}
         }
 
         //private string ToJsColour(System.Drawing.Color colour)
