@@ -117,7 +117,7 @@ namespace FineCodeCoverage.Output
 			{
 				fccEngine.ReadyForReport();
 				FCCOutputBrowser.Visibility = Visibility.Visible;
-				hasLoaded = false;
+				hasLoaded = true;
 			}
         }
 

@@ -134,7 +134,7 @@ namespace FineCodeCoverage.Impl
                 if(e.State == TestOperationStates.TestExecutionCanceling)
                 {
                     await CombinedLogAsync("Test execution cancelling - running coverage will be cancelled.");
-                    await reportGeneratorUtil .EndOfCoverageRunAsync(); // not necessarily true but get desired result
+                    await reportGeneratorUtil.EndOfCoverageRunAsync(); // not necessarily true but get desired result
                     fccEngine.StopCoverage();
                 }
 
@@ -147,6 +147,13 @@ namespace FineCodeCoverage.Impl
                 if (e.State == TestOperationStates.TestExecutionFinished)
                 {
                     await TestExecutionFinishedAsync(e.Operation);
+                }
+
+                if (e.State == TestOperationStates.TestExecutionCancelAndFinished)
+                {
+                    await CombinedLogAsync("There has been an issue running tests. See the Tests output window pane.");
+                    await reportGeneratorUtil.EndOfCoverageRunAsync(); // not necessarily true but get desired result
+                    fccEngine.StopCoverage();
                 }
             }
             catch (Exception exception)
