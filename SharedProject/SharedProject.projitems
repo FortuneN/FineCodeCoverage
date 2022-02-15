@@ -100,6 +100,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\DotNet\IDotNetConfigFinder.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\DotNet\IDotNetToolListExecutor.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\DotNet\IDotNetToolListParser.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\EventAggregator.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\FileComparer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\FileSystemInfoDeleteExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\FileUtil.cs" />
@@ -159,7 +160,13 @@
     <Compile Include="$(MSBuildThisFileDirectory)Options\IAppOptionsProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\IAppOptionsStorageProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Output\ClearUICommand.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Output\DpiChangedMessage.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Output\EnvironmentFont.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Output\EnvironmentFontDetailsChangedMessage.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Output\InvokeScriptMessage.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Output\IProcess.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Output\NewReportMessage.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Output\ObjectForScriptingMessage.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Output\OutputToolWindow.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Output\OutputToolWindowCommand.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Output\OutputToolWindowContext.cs" />
@@ -168,6 +175,7 @@
     </Compile>
     <Compile Include="$(MSBuildThisFileDirectory)Output\OutputToolWindowPackage.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Output\ProcessWrapper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Output\ReadyForReportMessage.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Output\ScriptManager.cs" />
   </ItemGroup>
   <ItemGroup>

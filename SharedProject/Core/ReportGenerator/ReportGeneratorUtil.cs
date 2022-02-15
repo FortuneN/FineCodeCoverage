@@ -19,20 +19,14 @@ using ReportGeneratorPlugins;
 
 namespace FineCodeCoverage.Engine.ReportGenerator
 {
-	
 	interface IReportGeneratorUtil
     {
-        DpiScale DpiScale { get; set; }
-
         void Initialize(string appDataFolder);
 		string ProcessUnifiedHtml(string htmlForProcessing,string reportOutputFolder);
 		Task<ReportGeneratorResult> GenerateAsync(IEnumerable<string> coverOutputFiles,string reportOutputFolder, bool throwError = false);
         string BlankReport(bool withHistory);
         System.Threading.Tasks.Task LogCoverageProcessAsync(string message);
 		System.Threading.Tasks.Task EndOfCoverageRunAsync();
-        void UpdateReportWithDpiFontChanges();
-
-        FontDetails EnvironmentFontDetails { get; set; }
     }
 
     internal class ReportGeneratorResult
@@ -43,7 +37,9 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 	}
 
 	[Export(typeof(IReportGeneratorUtil))]
-	internal partial class ReportGeneratorUtil : IReportGeneratorUtil
+	internal partial class ReportGeneratorUtil : 
+		IReportGeneratorUtil, 
+		IListener<EnvironmentFontDetailsChangedMessage>, IListener<DpiChangedMessage>, IListener<ReadyForReportMessage>
 	{
 		private readonly IAssemblyUtil assemblyUtil;
 		private readonly IProcessUtil processUtil;
@@ -55,6 +51,7 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 		private readonly IAppOptionsProvider appOptionsProvider;
 		private readonly IResourceProvider resourceProvider;
         private readonly IShowFCCOutputPane showFCCOutputPane;
+        private readonly IEventAggregator eventAggregator;
         private const string zipPrefix = "reportGenerator";
 		private const string zipDirectoryName = "reportGenerator";
 
@@ -69,7 +66,11 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 		private readonly Base64ReportImage downInactiveBase64ReportImage = new Base64ReportImage(".icon-down-dir", "PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4KPHN2ZyB3aWR0aD0iMTc5MiIgaGVpZ2h0PSIxNzkyIiB2aWV3Qm94PSIwIDAgMTc5MiAxNzkyIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxwYXRoIGQ9Ik0xNDA4IDcwNHEwIDI2LTE5IDQ1bC00NDggNDQ4cS0xOSAxOS00NSAxOXQtNDUtMTlsLTQ0OC00NDhxLTE5LTE5LTE5LTQ1dDE5LTQ1IDQ1LTE5aDg5NnEyNiAwIDQ1IDE5dDE5IDQ1eiIvPjwvc3ZnPg==");
 		private readonly Base64ReportImage upActiveBase64ReportImage = new Base64ReportImage(".icon-up-dir_active", "PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4NCjxzdmcgd2lkdGg9IjE3OTIiIGhlaWdodD0iMTc5MiIgdmlld0JveD0iMCAwIDE3OTIgMTc5MiIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBmaWxsPSIjMDA3OEQ0IiBkPSJNMTQwOCAxMjE2cTAgMjYtMTkgNDV0LTQ1IDE5aC04OTZxLTI2IDAtNDUtMTl0LTE5LTQ1IDE5LTQ1bDQ0OC00NDhxMTktMTkgNDUtMTl0NDUgMTlsNDQ4IDQ0OHExOSAxOSAxOSA0NXoiLz48L3N2Zz4=");
         private readonly IScriptManager scriptManager;
+		private DpiScale dpiScale;
+		private FontDetails environmentFontDetails;
 		private string previousFontSizeName;
+		private string unprocessedReport;
+		private string previousReportOutputFolder;
         private IReportColours reportColours;
 		private JsThemeStyling jsReportColours;
 		private IReportColours ReportColours
@@ -85,11 +86,9 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 		private List<string> logs = new List<string>();
 
 		public string ReportGeneratorExePath { get; private set; }
-        public DpiScale DpiScale { get; set; }
-        public FontDetails EnvironmentFontDetails { get; set; }
 
-		private string FontSize => $"{EnvironmentFontDetails.Size * DpiScale.DpiScaleX}px";
-		private string FontName => EnvironmentFontDetails.Family.Source;
+		private string FontSize => $"{environmentFontDetails.Size * dpiScale.DpiScaleX}px";
+		private string FontName => environmentFontDetails.Family.Source;
 
 		[ImportingConstructor]
 		public ReportGeneratorUtil(
@@ -103,7 +102,8 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 			IReportColoursProvider reportColoursProvider,
 			IScriptManager scriptManager,
 			IResourceProvider resourceProvider,
-			IShowFCCOutputPane showFCCOutputPane
+			IShowFCCOutputPane showFCCOutputPane,
+			IEventAggregator eventAggregator
 			)
 		{
 			this.fileUtil = fileUtil;
@@ -118,6 +118,8 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 			this.scriptManager = scriptManager;
             this.resourceProvider = resourceProvider;
             this.showFCCOutputPane = showFCCOutputPane;
+            this.eventAggregator = eventAggregator;
+			this.eventAggregator.AddListener(this);
             scriptManager.ClearFCCWindowLogsEvent += ScriptManager_ClearFCCWindowLogsEvent;
             scriptManager.ShowFCCOutputPaneEvent += ScriptManager_ShowFCCOutputPaneEvent;
         }
@@ -886,6 +888,8 @@ observer.observe(targetNode, config);
 		public string ProcessUnifiedHtml(string htmlForProcessing, string reportOutputFolder)
 		{
 			previousFontSizeName = GetFontNameSize();
+			unprocessedReport = htmlForProcessing;
+			previousReportOutputFolder = reportOutputFolder;
 			var previousLogMessages = $"[{string.Join(",",logs.Select(l => $"'{l}'"))}]";
 			var appOptions = appOptionsProvider.Get();
 			var namespacedClasses = appOptions.NamespacedClasses;
@@ -1570,17 +1574,7 @@ observer.observe(targetNode, config);
 
 		private void ReportColoursProvider_ColoursChanged(object sender, IReportColours reportColours)
 		{
-			var jsThemeStyling = reportColours.Convert();
-
-			var coverageTableActiveSortColour = reportColours.CoverageTableActiveSortColour.ToJsColour();
-			var coverageTableExpandCollapseIconColour = reportColours.CoverageTableExpandCollapseIconColour.ToJsColour();
-			jsThemeStyling.DownActiveBase64 = downActiveBase64ReportImage.Base64FromColour(coverageTableActiveSortColour);
-			jsThemeStyling.UpActiveBase64 = upActiveBase64ReportImage.Base64FromColour(coverageTableActiveSortColour);
-			jsThemeStyling.DownInactiveBase64 = downInactiveBase64ReportImage.Base64FromColour(reportColours.CoverageTableInactiveSortColour.ToJsColour());
-			jsThemeStyling.MinusBase64 = minusBase64ReportImage.Base64FromColour(coverageTableExpandCollapseIconColour);
-			jsThemeStyling.PlusBase64 = plusBase64ReportImage.Base64FromColour(coverageTableExpandCollapseIconColour);
-			
-			scriptManager.InvokeScript(ThemeChangedJSFunctionName, jsThemeStyling);
+			ReprocessReport();
 		}
 
         public string BlankReport(bool withHistory)
@@ -1595,28 +1589,47 @@ observer.observe(targetNode, config);
         public async System.Threading.Tasks.Task LogCoverageProcessAsync(string message)
         {
 			await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-			scriptManager.InvokeScript(CoverageLogJSFunctionName, message);
+			eventAggregator.SendMessage(new InvokeScriptMessage(CoverageLogJSFunctionName, message));
 			logs.Add(message);
 		}
 
         public async System.Threading.Tasks.Task EndOfCoverageRunAsync()
         {
 			await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-			scriptManager.InvokeScript(ShowFCCWorkingJSFunctionName, false);
-        }
-
-        public void UpdateReportWithDpiFontChanges()
+			eventAggregator.SendMessage(new InvokeScriptMessage(ShowFCCWorkingJSFunctionName, false));
+		}
+		
+		public void UpdateReportWithDpiFontChanges()
         {
-			if (previousFontSizeName != GetFontNameSize())
+			if (unprocessedReport !=null && previousFontSizeName != GetFontNameSize())
 			{
-				scriptManager.InvokeScript(FontChangedJSFunctionName, $"{FontName}:{FontSize}");
+				ReprocessReport();
 			}
         }
 
-        //private string ToJsColour(System.Drawing.Color colour)
-        //{
-        //	return $"rgba({colour.R},{colour.G},{colour.B},{colour.A})";
-        //}
+		private void ReprocessReport()
+        {
+			var newReport = ProcessUnifiedHtml(unprocessedReport, previousReportOutputFolder);
+			eventAggregator.SendMessage(new NewReportMessage { Report = newReport });
+		}
 
-    }
+		public void Handle(EnvironmentFontDetailsChangedMessage message)
+		{
+			environmentFontDetails = message.FontDetails;
+			UpdateReportWithDpiFontChanges();
+		}
+
+		public void Handle(DpiChangedMessage message)
+		{
+			dpiScale = message.DpiScale;
+			UpdateReportWithDpiFontChanges();
+		}
+
+		public void Handle(ReadyForReportMessage message)
+		{
+			var newReport = BlankReport(false);
+			eventAggregator.SendMessage(new ObjectForScriptingMessage { ObjectForScripting = scriptManager });
+			eventAggregator.SendMessage(new NewReportMessage { Report = newReport });
+		}
+	}
 }

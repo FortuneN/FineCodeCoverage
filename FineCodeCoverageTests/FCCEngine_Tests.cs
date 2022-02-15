@@ -35,11 +35,6 @@ namespace Test
                 updatedMarginTags = true;
             };
 
-
-            fccEngine.UpdateOutputWindow += (UpdateOutputWindowEventArgs e) =>
-            {
-                htmlContent = e.HtmlContent;
-            };
         }
 
         [Test]
@@ -104,7 +99,6 @@ namespace Test
         private FCCEngine fccEngine;
         private List<UpdateMarginTagsEventArgs> updateMarginTagsEvents;
         private List<List<CoverageLine>> updateMarginTagsCoverageLines;
-        private List<UpdateOutputWindowEventArgs> updateOutputWindowEvents;
 
         [SetUp]
         public void SetUp()
@@ -114,17 +108,11 @@ namespace Test
 
             updateMarginTagsEvents = new List<UpdateMarginTagsEventArgs>();
             updateMarginTagsCoverageLines = new List<List<CoverageLine>>();
-            updateOutputWindowEvents = new List<UpdateOutputWindowEventArgs>();
 
             fccEngine.UpdateMarginTags += (UpdateMarginTagsEventArgs e) =>
             {
                 updateMarginTagsEvents.Add(e);
                 updateMarginTagsCoverageLines.Add(fccEngine.CoverageLines);
-            };
-            
-            fccEngine.UpdateOutputWindow += (UpdateOutputWindowEventArgs e) =>
-            {
-                updateOutputWindowEvents.Add(e);
             };
         }
 
@@ -411,7 +399,6 @@ namespace Test
         private void VerifyClearUIEvents(int eventNumber)
         {
             Assert.Null(updateMarginTagsCoverageLines[eventNumber]);
-            Assert.Null(updateOutputWindowEvents[eventNumber].HtmlContent);
         }
 
         private async Task<(string reportGeneratedHtmlContent, List<CoverageLine> updatedCoverageLines)> RunToCompletion(bool noCoverageProjects)
