@@ -10,6 +10,7 @@ using Microsoft.VisualStudio.Shell.Interop;
 using EnvDTE80;
 using Microsoft;
 using FineCodeCoverage.Engine;
+using FineCodeCoverage.Core.Utilities;
 
 namespace FineCodeCoverage.Output
 {
@@ -65,8 +66,7 @@ namespace FineCodeCoverage.Output
         {
 			return new OutputToolWindowContext
 			{
-				FccEngine = componentModel.GetService<IFCCEngine>(),
-				ScriptManager = componentModel.GetService<ScriptManager>()
+				EventAggregator = componentModel.GetService<IEventAggregator>()
 			};
 		}
 

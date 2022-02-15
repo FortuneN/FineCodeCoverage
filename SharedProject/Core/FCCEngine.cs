@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
-using System.Windows;
 using FineCodeCoverage.Core.Utilities;
 using FineCodeCoverage.Engine.Cobertura;
 using FineCodeCoverage.Engine.Model;
@@ -25,32 +24,9 @@ namespace FineCodeCoverage.Engine
         private CancellationTokenSource cancellationTokenSource;
         
         public event UpdateMarginTagsDelegate UpdateMarginTags;
-        public event UpdateOutputWindowDelegate UpdateOutputWindow;
         
         public string AppDataFolderPath { get; private set; }
         public List<CoverageLine> CoverageLines { get; internal set; }
-
-        private DpiScale dpiScale;
-        public DpiScale Dpi
-        {
-            get => dpiScale; 
-            set
-            {
-                reportGeneratorUtil.DpiScale = value;
-                dpiScale = value;
-                UpdateReportWithDpiFontChanges();
-                
-            }
-        }
-        private FontDetails environmentFontDetails;
-        public FontDetails EnvironmentFontDetails {
-            get => environmentFontDetails;
-            set {
-                environmentFontDetails = value;
-                reportGeneratorUtil.EnvironmentFontDetails = value;
-                UpdateReportWithDpiFontChanges();
-            } 
-        }
 
         private readonly ICoverageUtilManager coverageUtilManager;
         private readonly ICoberturaUtil coberturaUtil;
@@ -64,7 +40,7 @@ namespace FineCodeCoverage.Engine
         private readonly ICoverageToolOutputManager coverageOutputManager;
         internal System.Threading.Tasks.Task reloadCoverageTask;
         private ISolutionEvents solutionEvents; // keep alive
-        private bool hasGeneratedReport;
+        private readonly IEventAggregator eventAggregator;
 
         [ImportingConstructor]
         public FCCEngine(
@@ -77,10 +53,12 @@ namespace FineCodeCoverage.Engine
             IAppDataFolder appDataFolder,
             ICoverageToolOutputManager coverageOutputManager,
             ISolutionEvents solutionEvents,
-            IAppOptionsProvider appOptionsProvider
+            IAppOptionsProvider appOptionsProvider,
+            IEventAggregator eventAggregator
             )
         {
             this.solutionEvents = solutionEvents;
+            this.eventAggregator = eventAggregator;
             solutionEvents.AfterClosing += (s,args) => ClearOutputWindow(false);
             appOptionsProvider.OptionsChanged += (appOptions) =>
             {
@@ -130,14 +108,6 @@ namespace FineCodeCoverage.Engine
         private void ClearOutputWindow(bool withHistory)
         {
             RaiseUpdateOutputWindow(reportGeneratorUtil.BlankReport(withHistory));
-        }
-
-        private void UpdateReportWithDpiFontChanges()
-        {
-            if (hasGeneratedReport)
-            {
-                reportGeneratorUtil.UpdateReportWithDpiFontChanges();
-            }
         }
 
         public void StopCoverage()
@@ -209,9 +179,7 @@ namespace FineCodeCoverage.Engine
 
         private void RaiseUpdateOutputWindow(string reportHtml)
         {
-            UpdateOutputWindowEventArgs updateOutputWindowEventArgs = new UpdateOutputWindowEventArgs { HtmlContent = reportHtml};
-            UpdateOutputWindow?.Invoke(updateOutputWindowEventArgs);
-            hasGeneratedReport = true;
+            eventAggregator.SendMessage(new NewReportMessage { Report = reportHtml });
         }
 
         private void UpdateUI(List<CoverageLine> coverageLines, string reportHtml)
@@ -361,11 +329,6 @@ namespace FineCodeCoverage.Engine
 
               }, System.Threading.Tasks.TaskScheduler.Default);
 
-        }
-
-        public void ReadyForReport()
-        {
-            ClearOutputWindow(false);
         }
     }
 

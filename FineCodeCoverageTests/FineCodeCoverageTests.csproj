@@ -94,6 +94,7 @@
     <Compile Include="CoverageToolOutput_Tests\FccOutputExistenceCoverageToolOutputFolderSolutionProvider_Tests.cs" />
     <Compile Include="CoverageToolOutput_Tests\SolutionFolderProvider_Tests.cs" />
     <Compile Include="CoverageUtilManager_Tests.cs" />
+    <Compile Include="Events\EventAggregator.cs" />
     <Compile Include="Test helpers\MefOrderAssertions.cs" />
     <Compile Include="ToolFolder_Tests.cs" />
     <Compile Include="ToolZipProvider_Tests.cs" />

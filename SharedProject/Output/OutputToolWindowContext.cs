@@ -1,10 +1,9 @@
-﻿using FineCodeCoverage.Engine;
+﻿using FineCodeCoverage.Core.Utilities;
 
 namespace FineCodeCoverage.Output
 {
     internal class OutputToolWindowContext
     {
-		public ScriptManager ScriptManager { get; set; }
-		public IFCCEngine FccEngine { get; set; }
+		public IEventAggregator EventAggregator { get; set; }
 	}
 }
