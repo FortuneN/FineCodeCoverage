@@ -927,6 +927,7 @@ observer.observe(targetNode, config);
 
 				var outerHtml = doc.DocumentNode.OuterHtml;
 				var htmlSb = new StringBuilder(outerHtml);
+				PreventBrowserHistory(htmlSb);
 
 				var assembliesSearch = "var assemblies = [";
 				var startIndex = outerHtml.IndexOf(assembliesSearch) + assembliesSearch.Length - 1;
@@ -1547,6 +1548,12 @@ observer.observe(targetNode, config);
 			});
 		}
 
+		private void PreventBrowserHistory(StringBuilder documentStringBuilder)
+        {
+			documentStringBuilder.Replace(
+				@"{key:""onDonBeforeUnlodad"",value:function(){if(this.saveCollapseState(),void 0!==this.window.history&&void 0!==this.window.history.replaceState){console.log(""Coverage info: Updating history"",this.settings);var e=null;(e=null!==window.history.state?JSON.parse(JSON.stringify(this.window.history.state)):new Gc).coverageInfoSettings=JSON.parse(JSON.stringify(this.settings)),window.history.replaceState(e,null)}}},",
+				@"{key:""onDonBeforeUnlodad"",value: function(){}},");
+        }
 		private void HideRowsFromOverviewTable(HtmlDocument doc)
         {
 			var table = doc.DocumentNode.QuerySelectorAll("table.overview").First();
