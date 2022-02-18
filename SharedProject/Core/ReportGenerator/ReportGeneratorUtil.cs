@@ -927,6 +927,8 @@ observer.observe(targetNode, config);
 
 				var outerHtml = doc.DocumentNode.OuterHtml;
 				var htmlSb = new StringBuilder(outerHtml);
+				FixGroupingMax(htmlSb);
+				FixCollapse(htmlSb);
 
 				var assembliesSearch = "var assemblies = [";
 				var startIndex = outerHtml.IndexOf(assembliesSearch) + assembliesSearch.Length - 1;
@@ -1377,7 +1379,7 @@ observer.observe(targetNode, config);
 							coverageLogElement.textContent = '';
 							window.external.{nameof(ScriptManager.ClearFCCWindowLogs)}();
 						}}
-	
+
 						function addCoverageLogElements(){{
 							var container = document.getElementsByClassName('container')[0];
 							var coverageLogContainer = document.createElement('div');
@@ -1546,6 +1548,94 @@ observer.observe(targetNode, config);
 
 			});
 		}
+
+		private void PreventBrowserHistory(StringBuilder documentStringBuilder)
+        {
+			documentStringBuilder.Replace(
+				@"{key:""onDonBeforeUnlodad"",value:function(){if(this.saveCollapseState(),void 0!==this.window.history&&void 0!==this.window.history.replaceState){console.log(""Coverage info: Updating history"",this.settings);var e=null;(e=null!==window.history.state?JSON.parse(JSON.stringify(this.window.history.state)):new Gc).coverageInfoSettings=JSON.parse(JSON.stringify(this.settings)),window.history.replaceState(e,null)}}},",
+				@"{key:""onDonBeforeUnlodad"",value: function(){}},");
+        }
+
+		private void FixCollapse(StringBuilder documentStringBuilder)
+        {
+			documentStringBuilder.Replace(
+				@"{key:""saveCollapseState"",value:function(){var e=this;this.settings.collapseStates=[],function t(n){for(var r=0;r<n.length;r++)e.settings.collapseStates.push(n[r].collapsed),t(n[r].subElements)}(this.codeElements)}},{key:""restoreCollapseState"",value:function(){var e=this,t=0;!function n(r){for(var i=0;i<r.length;i++)e.settings.collapseStates.length>t&&(r[i].collapsed=e.settings.collapseStates[t]),t++,n(r[i].subElements)}(this.codeElements)}}",
+				@"{
+					key:""saveCollapseState"",
+					value:function(){
+						var e=this;
+						this.settings.collapseStates=[];
+						function t(level,n){
+							for(var r=0;r<n.length;r++){
+								console.log(n[r].name);
+								
+								e.settings.collapseStates.push(n[r].name + ':' + level.toString() + ':' + n[r].collapsed.toString())
+								t(level+1,n[r].subElements)
+							}
+						}
+						t(0,this.codeElements);
+					}
+				},{
+					key:""restoreCollapseState"",
+					value:function(){
+						var e=this;
+						var collapsedStates = e.settings.collapseStates;
+						function n(level,r){
+							for(var i=0;i<r.length;i++){
+								var codeElement = r[i];
+								for(var j=0;j<collapsedStates.length;j++){
+									var collapsedState = collapsedStates[j];
+									var parts = collapsedState.split(':');
+									var name = parts[0];
+									var stateLevel = parts[1];
+									var isCollapsed = (parts[2] === 'true');
+									if(name == codeElement.name && stateLevel == level.toString()){
+										codeElement.collapsed = isCollapsed;
+										break;
+									}
+								}
+								n(level + 1, r[i].subElements);// conditional on collapsed ?
+								
+							}
+						}
+						n(0,this.codeElements);
+					}
+				}");
+        }
+
+		private void FixGroupingMax(StringBuilder documentStringBuilder)
+        {
+			documentStringBuilder.Replace(
+				@"{key:""ngOnInit"",value:function(){this.historicCoverageExecutionTimes=this.window.historicCoverageExecutionTimes,this.branchCoverageAvailable=this.window.branchCoverageAvailable,this.translations=this.window.translations;var e=!1;if(void 0!==this.window.history&&void 0!==this.window.history.replaceState&&null!==this.window.history.state&&null!=this.window.history.state.coverageInfoSettings)console.log(""Coverage info: Restoring from history"",this.window.history.state.coverageInfoSettings),e=!0,this.settings=JSON.parse(JSON.stringify(this.window.history.state.coverageInfoSettings));else{for(var t=0,n=this.window.assemblies,r=0;r<n.length;r++)for(var i=0;i<n[r].classes.length;i++)t=Math.max(t,(n[r].classes[i].name.match(/\./g)||[]).length);this.settings.groupingMaximum=t,console.log(""Grouping maximum: ""+t)}var o=window.location.href.indexOf(""?"");o>-1&&(this.queryString=window.location.href.substr(o)),this.updateCoverageInfo(),e&&this.restoreCollapseState()}}",
+				@"{key:""ngOnInit"",value:function(){
+					this.historicCoverageExecutionTimes=this.window.historicCoverageExecutionTimes;
+                    this.branchCoverageAvailable=this.window.branchCoverageAvailable;
+                    this.translations=this.window.translations;
+                    var restoredFromHistory = false;
+				    if(void 0!==this.window.history&&void 0!==this.window.history.replaceState&&null!==this.window.history.state&&null!=this.window.history.state.coverageInfoSettings){
+						restoredFromHistory = true;
+						this.settings=JSON.parse(JSON.stringify(this.window.history.state.coverageInfoSettings));
+						
+					}
+
+					for(var t=0,n=this.window.assemblies,r=0;r<n.length;r++){
+						for(var i=0;i<n[r].classes.length;i++){
+							t=Math.max(t,(n[r].classes[i].name.match(/\./g)||[]).length);
+						}
+					}
+					this.settings.groupingMaximum=t;
+					if(this.settings.grouping > this.settings.groupingMaximum){
+						this.settings.grouping = this.settings.groupingMaximum;
+					}
+					
+					this.updateCoverageInfo();
+					if(restoredFromHistory){
+						this.restoreCollapseState()
+					}
+					
+				}}");
+
+        }
 
 		private void HideRowsFromOverviewTable(HtmlDocument doc)
         {
