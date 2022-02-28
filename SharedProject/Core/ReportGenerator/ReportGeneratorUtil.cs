@@ -885,6 +885,16 @@ observer.observe(targetNode, config);
 			return $"{FontSize}{FontName}";
 		}
 
+		private string HideCyclomaticComplexityLink()
+        {
+			return @"
+risk-hotspots > div > table > thead > tr > th:last-of-type > a:last-of-type {
+		display:none
+}
+";
+
+		}
+
 		public string ProcessUnifiedHtml(string htmlForProcessing, string reportOutputFolder)
 		{
 			previousFontSizeName = GetFontNameSize();
@@ -1020,7 +1030,7 @@ observer.observe(targetNode, config);
 					table td {{ white-space: nowrap; }}
 					table.coverage {{ width:150px;height:13px }}
 					body {{ padding-left:3px;padding-right:3px;padding-bottom:3px }}
-					
+					{HideCyclomaticComplexityLink()}
 					body {{ -webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;-o-user-select:none;user-select:none }}
 					table.overview th, table.overview td {{ white-space: nowrap; word-break: normal; padding-left:10px;padding-right:10px; }}
 					{GetGroupingCss(namespacedClasses)}
