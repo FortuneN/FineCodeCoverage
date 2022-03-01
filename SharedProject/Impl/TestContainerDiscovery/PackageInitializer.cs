@@ -25,7 +25,6 @@ namespace FineCodeCoverage.Impl
             this.serviceProvider = serviceProvider;
         }
 
-        [SuppressMessage("Usage", "VSTHRD102:Implement internal logic asynchronously")]
         public void Initialize()
         {
             ThreadHelper.JoinableTaskFactory.Run(async () =>
