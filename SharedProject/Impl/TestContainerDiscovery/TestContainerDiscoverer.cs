@@ -7,6 +7,7 @@ using System.Threading;
 using FineCodeCoverage.Engine;
 using FineCodeCoverage.Engine.ReportGenerator;
 using FineCodeCoverage.Options;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.TestWindow.Extensibility;
 using Microsoft.VisualStudio.Utilities;
 
@@ -125,41 +126,43 @@ namespace FineCodeCoverage.Impl
             fccEngine.ReloadCoverage(testOperation.GetCoverageProjectsAsync);
         }
 
-#pragma warning disable VSTHRD100 // Avoid async void methods
-        private async void OperationState_StateChanged(object sender, OperationStateChangedEventArgs e)
-#pragma warning restore VSTHRD100 // Avoid async void methods
+        private void OperationState_StateChanged(object sender, OperationStateChangedEventArgs e)
         {
-            try
+            _ = ThreadHelper.JoinableTaskFactory.RunAsync(async () =>
             {
-                if(e.State == TestOperationStates.TestExecutionCanceling)
+                try
                 {
-                    await CombinedLogAsync("Test execution cancelling - running coverage will be cancelled.");
-                    await reportGeneratorUtil.EndOfCoverageRunAsync(); // not necessarily true but get desired result
+                    if (e.State == TestOperationStates.TestExecutionCanceling)
+                    {
+                        await CombinedLogAsync("Test execution cancelling - running coverage will be cancelled.");
+                        await reportGeneratorUtil.EndOfCoverageRunAsync(); // not necessarily true but get desired result
+                        fccEngine.StopCoverage();
+                    }
+
+
+                    if (e.State == TestOperationStates.TestExecutionStarting)
+                    {
+                        await TestExecutionStartingAsync(e.Operation);
+                    }
+
+                    if (e.State == TestOperationStates.TestExecutionFinished)
+                    {
+                        await TestExecutionFinishedAsync(e.Operation);
+                    }
+
+                    if (e.State == TestOperationStates.TestExecutionCancelAndFinished)
+                    {
+                        await CombinedLogAsync("There has been an issue running tests. See the Tests output window pane.");
+                        await reportGeneratorUtil.EndOfCoverageRunAsync(); // not necessarily true but get desired result
                     fccEngine.StopCoverage();
+                    }
                 }
-
-                
-                if (e.State == TestOperationStates.TestExecutionStarting)
+                catch (Exception exception)
                 {
-                    await TestExecutionStartingAsync(e.Operation);
+                    logger.Log("Error processing unit test events", exception);
                 }
-
-                if (e.State == TestOperationStates.TestExecutionFinished)
-                {
-                    await TestExecutionFinishedAsync(e.Operation);
-                }
-
-                if (e.State == TestOperationStates.TestExecutionCancelAndFinished)
-                {
-                    await CombinedLogAsync("There has been an issue running tests. See the Tests output window pane.");
-                    await reportGeneratorUtil.EndOfCoverageRunAsync(); // not necessarily true but get desired result
-                    fccEngine.StopCoverage();
-                }
-            }
-            catch (Exception exception)
-            {
-                logger.Log("Error processing unit test events", exception);
-            }
+            });
+            
         }
     }
 }
