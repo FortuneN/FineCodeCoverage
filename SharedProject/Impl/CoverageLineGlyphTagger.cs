@@ -5,6 +5,7 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
 using FineCodeCoverage.Engine.Model;
 using System.Linq;
+using Microsoft.VisualStudio.Shell;
 
 namespace FineCodeCoverage.Impl
 {
@@ -26,10 +27,14 @@ namespace FineCodeCoverage.Impl
 
 		private void FCCEngine_UpdateMarginTags(UpdateMarginTagsEventArgs e)
 		{
-			coverageColoursProvider.UpdateRequired();
-			var span = new SnapshotSpan(_textBuffer.CurrentSnapshot, 0, _textBuffer.CurrentSnapshot.Length);
-			var spanEventArgs = new SnapshotSpanEventArgs(span);
-			TagsChanged?.Invoke(this, spanEventArgs);
+			_ = ThreadHelper.JoinableTaskFactory.RunAsync(async () =>
+			{
+				await coverageColoursProvider.PrepareAsync();
+				var span = new SnapshotSpan(_textBuffer.CurrentSnapshot, 0, _textBuffer.CurrentSnapshot.Length);
+				var spanEventArgs = new SnapshotSpanEventArgs(span);
+				TagsChanged?.Invoke(this, spanEventArgs);
+			});
+			
 		}
 
 		IEnumerable<ITagSpan<CoverageLineGlyphTag>> ITagger<CoverageLineGlyphTag>.GetTags(NormalizedSnapshotSpanCollection spans)

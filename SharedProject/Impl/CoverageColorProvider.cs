@@ -5,6 +5,7 @@ using Microsoft;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Task = System.Threading.Tasks.Task;
 
 namespace FineCodeCoverage.Impl
 {
@@ -18,47 +19,13 @@ namespace FineCodeCoverage.Impl
         private System.Windows.Media.Color defaultCoverageTouchedArea = System.Windows.Media.Colors.Green;
         private System.Windows.Media.Color defaultCoverageNotTouchedArea = System.Windows.Media.Colors.Red;
         private System.Windows.Media.Color defaultCoveragePartiallyTouchedArea = System.Windows.Media.Color.FromRgb(255, 165, 0);
-        private System.Windows.Media.Color coverageTouchedArea;
-        private System.Windows.Media.Color coverageNotTouchedArea;
-        private System.Windows.Media.Color coveragePartiallyTouchedArea;
-        public System.Windows.Media.Color CoverageTouchedArea { 
-            get {
-                UpdateFromFontsAndColorsIfNecessary();
-                return coverageTouchedArea;
-            }
-            private set
-            {
-                coverageTouchedArea = value;
-            }
-        }
+        public System.Windows.Media.Color CoverageTouchedArea { get; set; }
 
-        public System.Windows.Media.Color CoverageNotTouchedArea {
-            get
-            {
-                UpdateFromFontsAndColorsIfNecessary();
-                return coverageNotTouchedArea;
-            }
-            private set
-            {
-                coverageNotTouchedArea = value;
-            }
-        }
+        public System.Windows.Media.Color CoverageNotTouchedArea { get; set; }
 
-        public System.Windows.Media.Color CoveragePartiallyTouchedArea {
-            get
-            {
-                UpdateFromFontsAndColorsIfNecessary();
-                return coveragePartiallyTouchedArea;
-            }
-            private set
-            {
-                coveragePartiallyTouchedArea = value;
-            }
-
-        }
+        public System.Windows.Media.Color CoveragePartiallyTouchedArea { get; set; }
 
         private bool coverageColoursFromFontsAndColours;
-        private bool requiresFromFontsAndColours;
 
         [ImportingConstructor]
         public CoverageColorProvider([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider, IAppOptionsProvider appOptionsProvider)
@@ -87,48 +54,41 @@ namespace FineCodeCoverage.Impl
             }
         }
 
-        public void UpdateRequired()
+        public async Task PrepareAsync()
         {
-            requiresFromFontsAndColours = true;
-        }
-
-        private void UpdateFromFontsAndColorsIfNecessary()
-        {
-            if(coverageColoursFromFontsAndColours && requiresFromFontsAndColours)
+            if (coverageColoursFromFontsAndColours)
             {
-                UpdateColoursFromFontsAndColors();
+                await UpdateColoursFromFontsAndColorsAsync();
             }
         }
 
-        private void UpdateColoursFromFontsAndColors()
+        private async Task UpdateColoursFromFontsAndColorsAsync()
         {
-            ThreadHelper.JoinableTaskFactory.Run(async () =>
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+            var success = fontAndColorStorage.OpenCategory(ref categoryWithCoverage, storeFlags);
+            if (success == VSConstants.S_OK)
             {
-                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-                var success = fontAndColorStorage.OpenCategory(ref categoryWithCoverage, storeFlags);
-                if (success == VSConstants.S_OK)
+                // https://github.com/microsoft/vs-threading/issues/993
+                System.Windows.Media.Color GetColor(string displayName)
                 {
-                    // https://github.com/microsoft/vs-threading/issues/993
-                    System.Windows.Media.Color GetColor(string displayName)
+                    var touchAreaInfo = new ColorableItemInfo[1];
+                    var getItemSuccess = fontAndColorStorage.GetItem(displayName, touchAreaInfo);
+                    if (getItemSuccess == VSConstants.S_OK)
                     {
-                        var touchAreaInfo = new ColorableItemInfo[1];
-                        var getItemSuccess = fontAndColorStorage.GetItem(displayName, touchAreaInfo);
-                        if (getItemSuccess == VSConstants.S_OK)
-                        {
-                            return ParseColor(touchAreaInfo[0].crBackground);
-                        }
-                        throw new Exception("Failed to get color");
+                        return ParseColor(touchAreaInfo[0].crBackground);
                     }
-
-                    CoverageTouchedArea = GetColor("Coverage Touched Area");
-                    CoverageNotTouchedArea = GetColor("Coverage Not Touched Area");
-                    CoveragePartiallyTouchedArea = GetColor("Coverage Partially Touched Area");
+                    throw new Exception("Failed to get color");
                 }
-                fontAndColorStorage.CloseCategory();
+
+                CoverageTouchedArea = GetColor("Coverage Touched Area");
+                CoverageNotTouchedArea = GetColor("Coverage Not Touched Area");
+                CoveragePartiallyTouchedArea = GetColor("Coverage Partially Touched Area");
+            }
+            else
+            {
                 //throw ?
-                requiresFromFontsAndColours = false;
-            });
-            
+            }
+            fontAndColorStorage.CloseCategory(); // only for success ?
         }
 
         private System.Windows.Media.Color ParseColor(uint color)
