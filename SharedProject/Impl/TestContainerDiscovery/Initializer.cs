@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel.Composition;
+using System.Threading.Tasks;
 using FineCodeCoverage.Engine;
 using FineCodeCoverage.Engine.Model;
 
@@ -29,7 +30,7 @@ namespace FineCodeCoverage.Impl
             this.coverageProjectFactory = coverageProjectFactory;
             this.packageInitializer = packageInitializer;
         }
-        public void Initialize()
+        public async Task InitializeAsync()
         {
             try
             {
@@ -37,7 +38,7 @@ namespace FineCodeCoverage.Impl
 
                 coverageProjectFactory.Initialize();
                 fccEngine.Initialize(this);
-                packageInitializer.Initialize();
+                await packageInitializer.InitializeAsync();
 
                 logger.Log($"Initialized");
             }

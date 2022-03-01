@@ -59,7 +59,7 @@ namespace FineCodeCoverage.Impl
             initializeThread = new Thread(() =>
             {
                 operationState.StateChanged += OperationState_StateChanged;
-                initializer.Initialize();
+                _ = initializer.InitializeAsync();
             });
             initializeThread.Start();
             

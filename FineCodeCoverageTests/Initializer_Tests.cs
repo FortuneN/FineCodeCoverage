@@ -31,7 +31,7 @@ namespace Test
 		[Test]
 		public void Should_Log_Initializing_When_Initialize()
         {
-			initializer.Initialize();
+			initializer.InitializeAsync();
 			mocker.Verify<ILogger>(l => l.Log("Initializing"));
         }
 
@@ -40,7 +40,7 @@ namespace Test
 			var initializeException = new Exception("initialize exception");
 			mocker.Setup<ICoverageProjectFactory>(a => a.Initialize()).Throws(initializeException);
 			
-			initializer.Initialize();
+			initializer.InitializeAsync();
 			callback?.Invoke(initializeException);
 
 		}
@@ -69,14 +69,14 @@ namespace Test
 		[Test]
 		public void Should_Set_InitializeStatus_To_Initialized_When_Successfully_Completed()
 		{
-			initializer.Initialize();
+			initializer.InitializeAsync();
 			Assert.AreEqual(InitializeStatus.Initialized, initializer.InitializeStatus);
 		}
 
 		[Test]
 		public void Should_Log_Initialized_When_Successfully_Completed()
 		{
-			initializer.Initialize();
+			initializer.InitializeAsync();
 			mocker.Verify<ILogger>(l => l.Log("Initialized"));
 		}
 
@@ -93,19 +93,19 @@ namespace Test
 				callOrder.Add(2);
 			});
 
-			mocker.GetMock<IPackageInitializer>().Setup(p => p.Initialize()).Callback(() =>
+			mocker.GetMock<IPackageInitializer>().Setup(p => p.InitializeAsync()).Callback(() =>
 			{
 				callOrder.Add(3);
 			});
 
-			initializer.Initialize();
+			initializer.InitializeAsync();
 			Assert.AreEqual(new List<int> { 1, 2, 3 }, callOrder);
 		}
 
 		[Test]
 		public void Should_Pass_Itself_To_FCCEngine_For_InitializeStatus()
         {
-			initializer.Initialize();
+			initializer.InitializeAsync();
 			mocker.Verify<IFCCEngine>(engine => engine.Initialize(initializer));
         }
 

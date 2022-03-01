@@ -68,7 +68,7 @@ namespace Test
         [Test]
         public void It_Should_Initialize_As_Is_The_Entrance()
         {
-            mocker.Verify<IInitializer>(i => i.Initialize());
+            mocker.Verify<IInitializer>(i => i.InitializeAsync());
         }
 
         [Test]
@@ -82,7 +82,7 @@ namespace Test
                 order.Add(1);
             });
             var mockInitializer = mocker.GetMock<IInitializer>();
-            mockInitializer.Setup(i => i.Initialize()).Callback(() =>
+            mockInitializer.Setup(i => i.InitializeAsync()).Callback(() =>
             {
                 order.Add(2);
             });
