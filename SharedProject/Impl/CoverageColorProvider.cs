@@ -26,6 +26,7 @@ namespace FineCodeCoverage.Impl
         public System.Windows.Media.Color CoveragePartiallyTouchedArea { get; set; }
 
         private bool coverageColoursFromFontsAndColours;
+        private bool dirty = true;
 
         [ImportingConstructor]
         public CoverageColorProvider([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider, IAppOptionsProvider appOptionsProvider)
@@ -42,6 +43,7 @@ namespace FineCodeCoverage.Impl
         {
             coverageColoursFromFontsAndColours = appOptions.CoverageColoursFromFontsAndColours;
             UseDefaultColoursIfNotFontsAndColours();
+            dirty = true;
         }
 
         private void UseDefaultColoursIfNotFontsAndColours()
@@ -56,10 +58,11 @@ namespace FineCodeCoverage.Impl
 
         public async Task PrepareAsync()
         {
-            if (coverageColoursFromFontsAndColours)
+            if (coverageColoursFromFontsAndColours && dirty)
             {
                 await UpdateColoursFromFontsAndColorsAsync();
             }
+            dirty = false;
         }
 
         private async Task UpdateColoursFromFontsAndColorsAsync()
