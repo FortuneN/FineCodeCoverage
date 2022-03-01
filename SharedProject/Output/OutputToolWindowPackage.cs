@@ -5,6 +5,7 @@ using Microsoft.VisualStudio.Shell;
 using System.Runtime.InteropServices;
 using System.Diagnostics.CodeAnalysis;
 using System.ComponentModel.Composition;
+using System.Threading.Tasks;
 using Task = System.Threading.Tasks.Task;
 using Microsoft.VisualStudio.Shell.Interop;
 using EnvDTE80;
@@ -91,9 +92,9 @@ namespace FineCodeCoverage.Output
 			await ClearUICommand.InitializeAsync(this, componentModel.GetService<IFCCEngine>());
 		}
 
-        protected override System.Threading.Tasks.Task<object> InitializeToolWindowAsync(Type toolWindowType, int id, CancellationToken cancellationToken)
+        protected override Task<object> InitializeToolWindowAsync(Type toolWindowType, int id, CancellationToken cancellationToken)
         {
-			return System.Threading.Tasks.Task.FromResult<object>(GetOutputToolWindowContext());
+			return Task.FromResult<object>(GetOutputToolWindowContext());
 		}
         public override IVsAsyncToolWindowFactory GetAsyncToolWindowFactory(Guid toolWindowType)
 		{

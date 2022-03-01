@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Task = System.Threading.Tasks.Task;
 using System.Windows;
 using ExCSS;
 using FineCodeCoverage.Core.Utilities;
@@ -25,8 +26,8 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 		string ProcessUnifiedHtml(string htmlForProcessing,string reportOutputFolder);
 		Task<ReportGeneratorResult> GenerateAsync(IEnumerable<string> coverOutputFiles,string reportOutputFolder, bool throwError = false);
         string BlankReport(bool withHistory);
-        System.Threading.Tasks.Task LogCoverageProcessAsync(string message);
-		System.Threading.Tasks.Task EndOfCoverageRunAsync();
+        Task LogCoverageProcessAsync(string message);
+		Task EndOfCoverageRunAsync();
     }
 
     internal class ReportGeneratorResult
@@ -124,12 +125,12 @@ namespace FineCodeCoverage.Engine.ReportGenerator
             scriptManager.ShowFCCOutputPaneEvent += ScriptManager_ShowFCCOutputPaneEvent;
         }
 
-        private async void ScriptManager_ShowFCCOutputPaneEvent(object sender, EventArgs e)
+        private void ScriptManager_ShowFCCOutputPaneEvent(object sender, EventArgs e)
         {
-			await showFCCOutputPane.ShowAsync();
+            _ = ThreadHelper.JoinableTaskFactory.RunAsync(() => showFCCOutputPane.ShowAsync());
         }
 
-        private void ScriptManager_ClearFCCWindowLogsEvent(object sender, EventArgs e)
+		private void ScriptManager_ClearFCCWindowLogsEvent(object sender, EventArgs e)
         {
 			logs.Clear();
         }
@@ -1686,14 +1687,14 @@ risk-hotspots > div > table > thead > tr > th:last-of-type > a:last-of-type {
 			return ProcessUnifiedHtml(resourceProvider.ReadResource("dummyReportToProcess.html"),null);
         }
 
-        public async System.Threading.Tasks.Task LogCoverageProcessAsync(string message)
+        public async Task LogCoverageProcessAsync(string message)
         {
 			await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 			eventAggregator.SendMessage(new InvokeScriptMessage(CoverageLogJSFunctionName, message));
 			logs.Add(message);
 		}
 
-        public async System.Threading.Tasks.Task EndOfCoverageRunAsync()
+        public async Task EndOfCoverageRunAsync()
         {
 			await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 			eventAggregator.SendMessage(new InvokeScriptMessage(ShowFCCWorkingJSFunctionName, false));
