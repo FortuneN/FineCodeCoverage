@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Task = System.Threading.Tasks.Task;
 using System.Xml.Linq;
 using System.Xml.XPath;
 using EnvDTE;
@@ -355,7 +356,7 @@ namespace FineCodeCoverage.Engine.Model
         public bool Is64Bit { get; set; }
         public string RunSettingsFile { get; set; }
 
-        public async System.Threading.Tasks.Task StepAsync(string stepName, Func<ICoverageProject, System.Threading.Tasks.Task> action)
+        public async Task StepAsync(string stepName, Func<ICoverageProject, Task> action)
         {
             if (HasFailed)
             {
@@ -380,7 +381,7 @@ namespace FineCodeCoverage.Engine.Model
             }
         }
 
-        public async System.Threading.Tasks.Task<CoverageProjectFileSynchronizationDetails> PrepareForCoverageAsync()
+        public async Task<CoverageProjectFileSynchronizationDetails> PrepareForCoverageAsync()
         {
             EnsureDirectories();
             CleanFCCDirectory();
@@ -389,7 +390,7 @@ namespace FineCodeCoverage.Engine.Model
             return synchronizationDetails;
         }
 
-        private async System.Threading.Tasks.Task SetIncludedExcludedReferencedProjectsAsync()
+        private async Task SetIncludedExcludedReferencedProjectsAsync()
         {
             List<ReferencedProject> referencedProjects = await GetReferencedProjectsAsync();
             SetExcludedReferencedProjects(referencedProjects);

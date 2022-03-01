@@ -10,10 +10,11 @@ using Microsoft.VisualStudio.Shell.Interop;
 using System.ComponentModel.Composition;
 using Microsoft;
 using EnvDTE;
+using Task = System.Threading.Tasks.Task;
 
 interface IShowFCCOutputPane
 {
-    System.Threading.Tasks.Task ShowAsync();
+    Task ShowAsync();
 }
 [Export(typeof(IShowFCCOutputPane))]
 [Export(typeof(ILogger))]
@@ -154,7 +155,7 @@ public class Logger : ILogger, IShowFCCOutputPane
         LogImpl(message.ToArray(), false);
     }
 
-    public async System.Threading.Tasks.Task ShowAsync()
+    public async Task ShowAsync()
     {
         await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 
