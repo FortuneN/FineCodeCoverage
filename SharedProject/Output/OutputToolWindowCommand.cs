@@ -1,6 +1,7 @@
 ﻿using System;
 using System.ComponentModel.Design;
 using Microsoft.VisualStudio.Shell;
+using System.Threading.Tasks;
 using Task = System.Threading.Tasks.Task;
 
 namespace FineCodeCoverage.Output
@@ -82,39 +83,29 @@ namespace FineCodeCoverage.Output
 		/// <param name="e">The event args.</param>
 		public void Execute(object sender, EventArgs e)
 		{
-			ShowToolWindow();
+            _ = ThreadHelper.JoinableTaskFactory.RunAsync(ShowToolWindowAsync);
 		}
 
-		public ToolWindowPane ShowToolWindow()
+		public async Task<ToolWindowPane> ShowToolWindowAsync()
 		{
-			ToolWindowPane window = null;
+            ToolWindowPane window = await package.ShowToolWindowAsync(typeof(OutputToolWindow), 0, true, package.DisposalToken);
 
-			package.JoinableTaskFactory.RunAsync(async delegate
+            if ((null == window) || (null == window.Frame))
 			{
-				window = await package.ShowToolWindowAsync(typeof(OutputToolWindow), 0, true, package.DisposalToken);
-
-				if ((null == window) || (null == window.Frame))
-				{
-					throw new NotSupportedException($"Cannot create '{Vsix.Name}' output window");
-				}
-			});
+				throw new NotSupportedException($"Cannot create '{Vsix.Name}' output window");
+			}
 
 			return window;
 		}
 
-		public ToolWindowPane FindToolWindow()
+		public async Task<ToolWindowPane> FindToolWindowAsync()
 		{
-			ToolWindowPane window = null;
+            ToolWindowPane window = await package.FindToolWindowAsync(typeof(OutputToolWindow), 0, true, package.DisposalToken);
 
-			package.JoinableTaskFactory.RunAsync(async delegate
+            if ((null == window) || (null == window.Frame))
 			{
-				window = await package.FindToolWindowAsync(typeof(OutputToolWindow), 0, true, package.DisposalToken);
-
-				if ((null == window) || (null == window.Frame))
-				{
-					throw new NotSupportedException($"Cannot create '{Vsix.Name}' output window");
-				}
-			});
+				throw new NotSupportedException($"Cannot create '{Vsix.Name}' output window");
+			}
 
 			return window;
 		}

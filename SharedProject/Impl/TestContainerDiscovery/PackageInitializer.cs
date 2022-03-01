@@ -41,12 +41,12 @@ namespace FineCodeCoverage.Impl
 
                     if (File.Exists(outputWindowInitializedFile))
                     {
-                        OutputToolWindowCommand.Instance.FindToolWindow();
+                        await OutputToolWindowCommand.Instance.FindToolWindowAsync();
                     }
                     else
                     {
                         // for first time users, the window is automatically docked 
-                        OutputToolWindowCommand.Instance.ShowToolWindow();
+                        await OutputToolWindowCommand.Instance.ShowToolWindowAsync();
                         File.WriteAllText(outputWindowInitializedFile, string.Empty);
                     }
                 }
