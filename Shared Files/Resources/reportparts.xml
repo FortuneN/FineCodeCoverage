@@ -1,0 +1,47 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ReportParts>
+  <ReportPart Name="SliderLeftColour" SelectedThemeColourName="EnvironmentColors.ToolWindowTextColorKey" />
+  <ReportPart Name="SliderRightColour" SelectedThemeColourName="EnvironmentColors.ToolWindowTextColorKey" />
+  <ReportPart Name="SliderThumbColour" SelectedThemeColourName="EnvironmentColors.ScrollBarThumbBackgroundColorKey" />
+  <ReportPart Name="ScrollBarArrowColour" SelectedThemeColourName="EnvironmentColors.ScrollBarArrowBackgroundColorKey" />
+  <ReportPart Name="ScrollBarTrackColour" SelectedThemeColourName="EnvironmentColors.ScrollBarBackgroundColorKey" />
+  <ReportPart Name="ScrollBarThumbColour" SelectedThemeColourName="EnvironmentColors.ScrollBarThumbBackgroundColorKey" />
+  <ReportPart Name="ComboBoxColour" SelectedThemeColourName="CommonControlsColors.ComboBoxBackgroundColorKey" />
+  <ReportPart Name="ComboBoxBorderColour" SelectedThemeColourName="CommonControlsColors.ComboBoxBorderColorKey" />
+  <ReportPart Name="ComboBoxTextColour" SelectedThemeColourName="CommonControlsColors.ComboBoxTextColorKey" />
+  <ReportPart Name="GrayCoverageColour" SelectedThemeColourName="EnvironmentColors.SystemGrayTextColorKey" />
+  <ReportPart Name="BackgroundColour" SelectedThemeColourName="EnvironmentColors.ToolWindowBackgroundColorKey" />
+  <ReportPart Name="FontColour" SelectedThemeColourName="EnvironmentColors.ToolWindowTextColorKey" />
+  <ReportPart Name="TableBorderColour" SelectedThemeColourName="EnvironmentColors.GridLineColorKey" />
+  <ReportPart Name="LinkColour" SelectedThemeColourName="EnvironmentColors.ControlLinkTextColorKey" />
+  <ReportPart Name="CoverageTableHeaderFontColour" SelectedThemeColourName="EnvironmentColors.ToolWindowTextColorKey" />
+  <ReportPart Name="CoverageTableActiveSortColour" SelectedThemeColourName="EnvironmentColors.SystemHighlightColorKey" />
+  <ReportPart Name="CoverageTableInactiveSortColour" SelectedThemeColourName="EnvironmentColors.ToolWindowTextColorKey" />
+  <ReportPart Name="CoverageTableExpandCollapseIconColour" SelectedThemeColourName="EnvironmentColors.ToolWindowTextColorKey" />
+  <ReportPart Name="CoverageTableRowHoverBackgroundColour" SelectedThemeColourName="EnvironmentColors.ToolWindowBackgroundColorKey" />
+  <ReportPart Name="TabBackgroundColour" SelectedThemeColourName="EnvironmentColors.FileTabBackgroundColorKey" />
+  <ReportPart Name="DivHeaderBackgroundColour" SelectedThemeColourName="EnvironmentColors.ToolWindowBackgroundColorKey" />
+  <ReportPart Name="HeaderFontColour" SelectedThemeColourName="EnvironmentColors.FileTabTextColorKey" />
+  <ReportPart Name="HeaderBorderColour" SelectedThemeColourName="EnvironmentColors.CommandBarBorderColorKey" />
+  <ReportPart Name="TextBoxColour" SelectedThemeColourName="CommonControlsColors.TextBoxBackgroundColorKey" />
+  <ReportPart Name="TextBoxTextColour" SelectedThemeColourName="CommonControlsColors.TextBoxTextColorKey" />
+  <ReportPart Name="TextBoxBorderColour" SelectedThemeColourName="CommonControlsColors.TextBoxBorderColorKey" />
+
+  <ReportPart Name="ButtonBorderColour" SelectedThemeColourName="CommonControlsColors.ButtonBorderColorKey" />
+  <ReportPart Name="ButtonBorderDisabledColour" SelectedThemeColourName="CommonControlsColors.ButtonBorderDisabledColorKey" />
+  <ReportPart Name="ButtonBorderFocusedColour" SelectedThemeColourName="CommonControlsColors.ButtonBorderFocusedColorKey" />
+  <ReportPart Name="ButtonBorderHoverColour" SelectedThemeColourName="CommonControlsColors.ButtonBorderHoverColorKey" />
+  <ReportPart Name="ButtonBorderPressedColour" SelectedThemeColourName="CommonControlsColors.ButtonBorderPressedColorKey" />
+
+  <ReportPart Name="ButtonColour" SelectedThemeColourName="CommonControlsColors.ButtonColorKey" />
+  <ReportPart Name="ButtonDisabledColour" SelectedThemeColourName="CommonControlsColors.ButtonDisabledColorKey" />
+  <ReportPart Name="ButtonFocusedColour" SelectedThemeColourName="CommonControlsColors.ButtonFocusedColorKey" />
+  <ReportPart Name="ButtonHoverColour" SelectedThemeColourName="CommonControlsColors.ButtonHoverColorKey" />
+  <ReportPart Name="ButtonPressedColour" SelectedThemeColourName="CommonControlsColors.ButtonPressedColorKey" />
+
+  <ReportPart Name="ButtonTextColour" SelectedThemeColourName="CommonControlsColors.ButtonTextColorKey" />
+  <ReportPart Name="ButtonDisabledTextColour" SelectedThemeColourName="CommonControlsColors.ButtonDisabledTextColorKey" />
+  <ReportPart Name="ButtonFocusedTextColour" SelectedThemeColourName="CommonControlsColors.ButtonFocusedTextColorKey" />
+  <ReportPart Name="ButtonHoverTextColour" SelectedThemeColourName="CommonControlsColors.ButtonHoverTextColorKey" />
+  <ReportPart Name="ButtonPressedTextColour" SelectedThemeColourName="CommonControlsColors.ButtonPressedTextColorKey" />
+</ReportParts>

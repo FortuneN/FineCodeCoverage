@@ -1,0 +1,25 @@
+name: Add vsix link comment to issues
+on:
+  workflow_run:
+    workflows: [Push vsix artifact pull release and comment]
+    types: [completed]
+  
+
+jobs:
+  vsix-comments:
+    if: github.event.workflow_run.conclusion=='success' && github.event.workflow_run.event=='pull_request'
+    name: Add vsix link comment to issues
+    runs-on: windows-2019
+    steps:
+      - name: Add vsix link comment to issues
+        uses: tonyhallett/artifacts-url-comments@v1.1.0
+        env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+            prefix: Please try 
+            suffix: Does this resolve your issue ?
+            format: name
+            addTo: pullandissues
+      
+      
+

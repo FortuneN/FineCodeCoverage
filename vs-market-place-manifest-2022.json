@@ -1,0 +1,13 @@
+{
+  "$schema": "http://json.schemastore.org/vsix-publish",
+  "categories": [ "coding", "reporting", "testing" ],
+  "identity": {
+    "internalName": "FineCodeCoverage2022"
+  },
+  "overview": "vs-market-place-overview.md",
+  "priceCategory": "free",
+  "publisher": "FortuneNgwenya",
+  "private": false,
+  "qna": true,
+  "repo": "https://github.com/FortuneN/FineCodeCoverage"
+}

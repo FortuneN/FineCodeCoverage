@@ -17,6 +17,7 @@ namespace FineCodeCoverageTests
         private Mock<ICoverageProject> mockProject2;
         private List<ICoverageProject> coverageProjects;
         private List<int> callOrder;
+        private const string DefaultCoverageFolder = "defaultFolder";
 
         [SetUp]
         public void SetUp()
@@ -26,17 +27,19 @@ namespace FineCodeCoverageTests
             mockProject1.Setup(p => p.FCCOutputFolder).Returns("p1output");
             mockProject1.Setup(p => p.ProjectName).Returns("project1");
             mockProject1.SetupProperty(p => p.CoverageOutputFolder);
+            mockProject1.Setup(p => p.DefaultCoverageOutputFolder).Returns(DefaultCoverageFolder);
             mockProject2 = new Mock<ICoverageProject>();
             mockProject2.Setup(p => p.FCCOutputFolder).Returns("p2output");
             mockProject2.Setup(p => p.ProjectName).Returns("project2");
+            mockProject2.Setup(p => p.DefaultCoverageOutputFolder).Returns(DefaultCoverageFolder);
             coverageProjects = new List<ICoverageProject> { mockProject1.Object, mockProject2.Object };
         }
-
-        private void SetUpProviders(bool provider1First, string provider1Provides, string provider2Provides)
+        
+        private void SetUpProviders(bool provider1First,string provider1Provides, string provider2Provides)
         {
             callOrder = new List<int>();
             var mockOrderMetadata1 = new Mock<IOrderMetadata>();
-            mockOrderMetadata1.Setup(o => o.Order).Returns(provider1First ? 1 : 2);
+            mockOrderMetadata1.Setup(o => o.Order).Returns(provider1First? 1 : 2);
             var mockOrderMetadata2 = new Mock<IOrderMetadata>();
             mockOrderMetadata2.Setup(o => o.Order).Returns(provider1First ? 2 : 1);
 
@@ -52,7 +55,7 @@ namespace FineCodeCoverageTests
             mocker.SetInstance<IEnumerable<Lazy<ICoverageToolOutputFolderProvider, IOrderMetadata>>>(lazyOrderedProviders);
         }
 
-        [TestCase(true, 1, 2)]
+        [TestCase(true,1, 2)]
         [TestCase(false, 2, 1)]
         public void Should_Use_Providers_In_Order_When_Determining_CoverageProject_Output_Folder(bool provider1First, int expectedFirst, int expectedSecond)
         {
@@ -105,18 +108,17 @@ namespace FineCodeCoverageTests
         }
 
         [Test]
-        public void Should_Set_CoverageOutputFolder_To_Sub_Folder_Of_CoverageProject_FCCOutputFolder_For_All_When_Not_Provided()
+        public void Should_Set_CoverageOutputFolder_To_Default_For_All_When_Not_Provided()
         {
             SetUpProviders(true, null, null);
             var coverageToolOutputManager = mocker.Create<CoverageToolOutputManager>();
             coverageToolOutputManager.SetProjectCoverageOutputFolder(coverageProjects);
 
-            var expectedProject1OutputFolder = Path.Combine(mockProject1.Object.FCCOutputFolder, "coverage-tool-output");
-            var expectedProject2OutputFolder = Path.Combine(mockProject2.Object.FCCOutputFolder, "coverage-tool-output");
-            mockProject1.VerifySet(p => p.CoverageOutputFolder = expectedProject1OutputFolder);
-            mockProject2.VerifySet(p => p.CoverageOutputFolder = expectedProject2OutputFolder);
+            
+            mockProject1.VerifySet(p => p.CoverageOutputFolder = DefaultCoverageFolder);
+            mockProject2.VerifySet(p => p.CoverageOutputFolder = DefaultCoverageFolder);
         }
-
+    
         [Test]
         public void Should_Output_Reports_To_First_Project_CoverageOutputFolder_When_Not_Provided()
         {
@@ -124,28 +126,21 @@ namespace FineCodeCoverageTests
             var coverageToolOutputManager = mocker.Create<CoverageToolOutputManager>();
             coverageToolOutputManager.SetProjectCoverageOutputFolder(coverageProjects);
 
-            coverageToolOutputManager.OutputReports("unified html", "processed report", "unified xml");
-
             var firstProjectOutputFolder = mockProject1.Object.CoverageOutputFolder;
-
-            mocker.Verify<IFileUtil>(f => f.WriteAllText(Path.Combine(firstProjectOutputFolder, "index.html"), "unified html"));
-            mocker.Verify<IFileUtil>(f => f.WriteAllText(Path.Combine(firstProjectOutputFolder, "index-processed.html"), "processed report"));
-            mocker.Verify<IFileUtil>(f => f.WriteAllText(Path.Combine(firstProjectOutputFolder, "Cobertura.xml"), "unified xml"));
-
+            
+            Assert.AreEqual(coverageToolOutputManager.GetReportOutputFolder(), firstProjectOutputFolder);
         }
 
         [Test]
-        public void Should_Output_Reports_To_Provided_When_Not_Provided()
+        public void Should_Output_Reports_To_Provided_When_Provided()
         {
             SetUpProviders(true, "Provided", null);
             var coverageToolOutputManager = mocker.Create<CoverageToolOutputManager>();
             coverageToolOutputManager.SetProjectCoverageOutputFolder(coverageProjects);
 
-            coverageToolOutputManager.OutputReports("unified html", "processed report", "unified xml");
+            var outputFolder = coverageToolOutputManager.GetReportOutputFolder();
 
-            mocker.Verify<IFileUtil>(f => f.WriteAllText(Path.Combine("Provided", "index.html"), "unified html"));
-            mocker.Verify<IFileUtil>(f => f.WriteAllText(Path.Combine("Provided", "index-processed.html"), "processed report"));
-            mocker.Verify<IFileUtil>(f => f.WriteAllText(Path.Combine("Provided", "Cobertura.xml"), "unified xml"));
+            Assert.AreEqual(outputFolder, "Provided");
 
         }
 
