@@ -127,7 +127,7 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 
         private void ScriptManager_ShowFCCOutputPaneEvent(object sender, EventArgs e)
         {
-			ThreadHelper.JoinableTaskFactory.RunAsync(() => showFCCOutputPane.ShowAsync());
+            _ = ThreadHelper.JoinableTaskFactory.RunAsync(() => showFCCOutputPane.ShowAsync());
         }
 
 		private void ScriptManager_ClearFCCWindowLogsEvent(object sender, EventArgs e)
