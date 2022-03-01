@@ -27,7 +27,9 @@ namespace FineCodeCoverage.Impl
 
 		private void FCCEngine_UpdateMarginTags(UpdateMarginTagsEventArgs e)
 		{
-			_ = ThreadHelper.JoinableTaskFactory.RunAsync(async () =>
+#pragma warning disable VSTHRD102 // Implement internal logic asynchronously
+			ThreadHelper.JoinableTaskFactory.Run(async () =>
+#pragma warning restore VSTHRD102 // Implement internal logic asynchronously
 			{
 				await coverageColoursProvider.PrepareAsync();
 				var span = new SnapshotSpan(_textBuffer.CurrentSnapshot, 0, _textBuffer.CurrentSnapshot.Length);
