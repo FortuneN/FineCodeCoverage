@@ -35,9 +35,9 @@ namespace FineCodeCoverage.Options
             return options;
         }
 
-        [SuppressMessage("Usage", "VSTHRD010:Invoke single-threaded types on Main thread")]
         private WritableSettingsStore EnsureStore()
         {
+            ThreadHelper.ThrowIfNotOnUIThread();
             var settingsManager = new ShellSettingsManager(ServiceProvider.GlobalProvider);
             var settingsStore = settingsManager.GetWritableSettingsStore(SettingsScope.UserSettings);
 
@@ -53,7 +53,6 @@ namespace FineCodeCoverage.Options
             return AppOptionsType.GetProperties(BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.Instance);
         }
 
-        [SuppressMessage("Usage", "VSTHRD010:Invoke single-threaded types on Main thread")]
         public void LoadSettingsFromStorage(AppOptions instance)
         {
             var settingsStore = EnsureStore();
@@ -85,7 +84,7 @@ namespace FineCodeCoverage.Options
                 }
             }
         }
-        [SuppressMessage("Usage", "VSTHRD010:Invoke single-threaded types on Main thread")]
+
         public void SaveSettingsToStorage(AppOptions appOptions)
         {
             var settingsStore = EnsureStore();
