@@ -31,21 +31,25 @@ namespace FineCodeCoverage.Options
         public IAppOptions Get()
         {
             var options = new AppOptions(true);
-            ThreadHelper.ThrowIfNotOnUIThread();
             LoadSettingsFromStorage(options);
             return options;
         }
 
         private WritableSettingsStore EnsureStore()
         {
-            ThreadHelper.ThrowIfNotOnUIThread();
-            var settingsManager = new ShellSettingsManager(ServiceProvider.GlobalProvider);
-            var settingsStore = settingsManager.GetWritableSettingsStore(SettingsScope.UserSettings);
-
-            if (!settingsStore.CollectionExists(Vsix.Code))
+            WritableSettingsStore settingsStore = null;
+            ThreadHelper.JoinableTaskFactory.Run(async () =>
             {
-                settingsStore.CreateCollection(Vsix.Code);
-            }
+                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                var settingsManager = new ShellSettingsManager(ServiceProvider.GlobalProvider);
+                settingsStore = settingsManager.GetWritableSettingsStore(SettingsScope.UserSettings);
+
+                if (!settingsStore.CollectionExists(Vsix.Code))
+                {
+                    settingsStore.CreateCollection(Vsix.Code);
+                }
+            });
+            
             return settingsStore;
         }
 
@@ -56,7 +60,6 @@ namespace FineCodeCoverage.Options
 
         public void LoadSettingsFromStorage(AppOptions instance)
         {
-            ThreadHelper.ThrowIfNotOnUIThread();
             var settingsStore = EnsureStore();
 
 
@@ -89,7 +92,6 @@ namespace FineCodeCoverage.Options
 
         public void SaveSettingsToStorage(AppOptions appOptions)
         {
-            ThreadHelper.ThrowIfNotOnUIThread();
             var settingsStore = EnsureStore();
 
             foreach (var property in ReflectProperties())
