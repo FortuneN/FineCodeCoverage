@@ -125,12 +125,12 @@ namespace FineCodeCoverage.Engine.ReportGenerator
             scriptManager.ShowFCCOutputPaneEvent += ScriptManager_ShowFCCOutputPaneEvent;
         }
 
-        private async void ScriptManager_ShowFCCOutputPaneEvent(object sender, EventArgs e)
+        private void ScriptManager_ShowFCCOutputPaneEvent(object sender, EventArgs e)
         {
-			await showFCCOutputPane.ShowAsync();
+			ThreadHelper.JoinableTaskFactory.RunAsync(() => showFCCOutputPane.ShowAsync());
         }
 
-        private void ScriptManager_ClearFCCWindowLogsEvent(object sender, EventArgs e)
+		private void ScriptManager_ClearFCCWindowLogsEvent(object sender, EventArgs e)
         {
 			logs.Clear();
         }
