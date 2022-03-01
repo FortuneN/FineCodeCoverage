@@ -36,33 +36,27 @@ public class Logger : ILogger, IShowFCCOutputPane
         staticLogger = this;
     }
 
-    IVsOutputWindowPane CreatePane(Guid paneGuid, string title,
-        bool visible, bool clearWithSolution)
-    {
-        
-        ThreadHelper.ThrowIfNotOnUIThread();
-        _outputWindow = (IVsOutputWindow)_serviceProvider.GetService(typeof(SVsOutputWindow));
-        Assumes.Present(_outputWindow);
-        dte = (EnvDTE.DTE)_serviceProvider.GetService(typeof(EnvDTE.DTE));
-        Assumes.Present(dte);
-
-        // Create a new pane.
-        _outputWindow.CreatePane(
-            ref paneGuid,
-            title,
-            Convert.ToInt32(visible),
-            Convert.ToInt32(clearWithSolution));
-
-        // Retrieve the new pane.
-        _outputWindow.GetPane(ref paneGuid, out IVsOutputWindowPane pane);
-        return pane;
-    }
-
     private void SetPane()
     {
-        ThreadHelper.ThrowIfNotOnUIThread();
-        // do not clear with solution otherwise will not get initialize methods
-        _pane = CreatePane(fccPaneGuid, "FCC", true, false);
+        ThreadHelper.JoinableTaskFactory.Run(async () =>
+        {
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+            _outputWindow = (IVsOutputWindow)_serviceProvider.GetService(typeof(SVsOutputWindow));
+            Assumes.Present(_outputWindow);
+            dte = (EnvDTE.DTE)_serviceProvider.GetService(typeof(EnvDTE.DTE));
+            Assumes.Present(dte);
+
+            // Create a new pane.
+            _outputWindow.CreatePane(
+                ref fccPaneGuid,
+                "FCC",
+                Convert.ToInt32(true),
+                Convert.ToInt32(false)); // do not clear with solution otherwise will not get initialize methods
+
+            // Retrieve the new pane.
+            _outputWindow.GetPane(ref fccPaneGuid, out IVsOutputWindowPane pane);
+            _pane = pane;
+        });
     }
 
     [SuppressMessage("Usage", "VSTHRD102:Implement internal logic asynchronously")]
