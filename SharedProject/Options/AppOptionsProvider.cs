@@ -31,6 +31,7 @@ namespace FineCodeCoverage.Options
         public IAppOptions Get()
         {
             var options = new AppOptions(true);
+            ThreadHelper.ThrowIfNotOnUIThread();
             LoadSettingsFromStorage(options);
             return options;
         }
@@ -55,6 +56,7 @@ namespace FineCodeCoverage.Options
 
         public void LoadSettingsFromStorage(AppOptions instance)
         {
+            ThreadHelper.ThrowIfNotOnUIThread();
             var settingsStore = EnsureStore();
 
 
@@ -87,6 +89,7 @@ namespace FineCodeCoverage.Options
 
         public void SaveSettingsToStorage(AppOptions appOptions)
         {
+            ThreadHelper.ThrowIfNotOnUIThread();
             var settingsStore = EnsureStore();
 
             foreach (var property in ReflectProperties())
