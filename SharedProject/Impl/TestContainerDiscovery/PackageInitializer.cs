@@ -32,7 +32,7 @@ namespace FineCodeCoverage.Impl
             if (serviceProvider.GetService(typeof(SVsShell)) is IVsShell shell)
             {
                 var packageToBeLoadedGuid = new Guid(OutputToolWindowPackage.PackageGuidString);
-                shell.LoadPackage(ref packageToBeLoadedGuid, out var package);
+                shell.LoadPackage(ref packageToBeLoadedGuid, out var _);
 
                 var outputWindowInitializedFile = Path.Combine(fccEngine.AppDataFolderPath, "outputWindowInitialized");
 

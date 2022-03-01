@@ -21,7 +21,6 @@ namespace Test
     {
         private AutoMoqer mocker;
         private FCCEngine fccEngine;
-        private string htmlContent;
         private bool updatedMarginTags;
 
         [SetUp]
@@ -70,13 +69,6 @@ namespace Test
             Assert.AreEqual("some path", fccEngine.AppDataFolderPath);
         }
     
-        [Test]
-        public void Should_Update_The_Output_Window_With_Null_HtmlContent_When_ClearUI()
-        {
-            fccEngine.ClearUI();
-            Assert.Null(htmlContent);
-        }
-
         [Test]
         public void Should_UpdateMarginTags_And_Set_Null_CoverageLines_When_ClearUI()
         {
@@ -452,7 +444,6 @@ namespace Test
                     }
                 );
 
-            var badPath = "^&$!";
 
             List<CoverageLine> coverageLines = new List<CoverageLine>() { new CoverageLine() };
             mocker.GetMock<ICoberturaUtil>().Setup(coberturaUtil => coberturaUtil.CoverageLines).Returns(coverageLines);

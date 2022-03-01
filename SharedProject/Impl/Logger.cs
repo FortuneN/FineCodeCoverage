@@ -35,27 +35,24 @@ public class Logger : ILogger, IShowFCCOutputPane
         staticLogger = this;
     }
 
-    private void SetPane()
+    private async Task SetPaneAsync()
     {
-        ThreadHelper.JoinableTaskFactory.Run(async () =>
-        {
-            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-            _outputWindow = (IVsOutputWindow)_serviceProvider.GetService(typeof(SVsOutputWindow));
-            Assumes.Present(_outputWindow);
-            dte = (DTE2)_serviceProvider.GetService(typeof(EnvDTE.DTE));
-            Assumes.Present(dte);
+        await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+        _outputWindow = (IVsOutputWindow)_serviceProvider.GetService(typeof(SVsOutputWindow));
+        Assumes.Present(_outputWindow);
+        dte = (DTE2)_serviceProvider.GetService(typeof(EnvDTE.DTE));
+        Assumes.Present(dte);
 
-            // Create a new pane.
-            _outputWindow.CreatePane(
-                ref fccPaneGuid,
-                "FCC",
-                Convert.ToInt32(true),
-                Convert.ToInt32(false)); // do not clear with solution otherwise will not get initialize methods
+        // Create a new pane.
+        _outputWindow.CreatePane(
+            ref fccPaneGuid,
+            "FCC",
+            Convert.ToInt32(true),
+            Convert.ToInt32(false)); // do not clear with solution otherwise will not get initialize methods
 
-            // Retrieve the new pane.
-            _outputWindow.GetPane(ref fccPaneGuid, out IVsOutputWindowPane pane);
-            _pane = pane;
-        });
+        // Retrieve the new pane.
+        _outputWindow.GetPane(ref fccPaneGuid, out IVsOutputWindowPane pane);
+        _pane = pane;
     }
 
     [SuppressMessage("Usage", "VSTHRD102:Implement internal logic asynchronously")]
@@ -76,7 +73,7 @@ public class Logger : ILogger, IShowFCCOutputPane
 
                 if(_pane == null)
                 {
-                    SetPane();
+                    await SetPaneAsync();
                 }
 
                 if(_pane == null)
@@ -154,7 +151,7 @@ public class Logger : ILogger, IShowFCCOutputPane
 
         if (_pane == null)
         {
-            SetPane();
+            await SetPaneAsync();
         }
 
         if (_pane != null)

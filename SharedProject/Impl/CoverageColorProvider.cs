@@ -14,7 +14,7 @@ namespace FineCodeCoverage.Impl
     {
         private readonly IVsFontAndColorStorage fontAndColorStorage;
         private Guid categoryWithCoverage = Guid.Parse("ff349800-ea43-46c1-8c98-878e78f46501");
-        private uint storeFlags = (uint)(__FCSTORAGEFLAGS.FCSF_READONLY | __FCSTORAGEFLAGS.FCSF_LOADDEFAULTS | __FCSTORAGEFLAGS.FCSF_NOAUTOCOLORS | __FCSTORAGEFLAGS.FCSF_PROPAGATECHANGES);
+        private readonly uint storeFlags = (uint)(__FCSTORAGEFLAGS.FCSF_READONLY | __FCSTORAGEFLAGS.FCSF_LOADDEFAULTS | __FCSTORAGEFLAGS.FCSF_NOAUTOCOLORS | __FCSTORAGEFLAGS.FCSF_PROPAGATECHANGES);
         private System.Windows.Media.Color defaultCoverageTouchedArea = System.Windows.Media.Colors.Green;
         private System.Windows.Media.Color defaultCoverageNotTouchedArea = System.Windows.Media.Colors.Red;
         private System.Windows.Media.Color defaultCoveragePartiallyTouchedArea = System.Windows.Media.Color.FromRgb(255, 165, 0);

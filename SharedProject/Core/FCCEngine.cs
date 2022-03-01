@@ -39,7 +39,7 @@ namespace FineCodeCoverage.Engine
         private IInitializeStatusProvider initializeStatusProvider;
         private readonly ICoverageToolOutputManager coverageOutputManager;
         internal System.Threading.Tasks.Task reloadCoverageTask;
-        private ISolutionEvents solutionEvents; // keep alive
+        private readonly ISolutionEvents solutionEvents; // keep alive
         private readonly IEventAggregator eventAggregator;
 
         [ImportingConstructor]

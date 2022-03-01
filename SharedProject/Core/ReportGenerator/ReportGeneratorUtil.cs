@@ -84,7 +84,7 @@ namespace FineCodeCoverage.Engine.ReportGenerator
             }
         }
 		private readonly bool showBranchCoverage = true;
-		private List<string> logs = new List<string>();
+		private readonly List<string> logs = new List<string>();
 
 		public string ReportGeneratorExePath { get; private set; }
 
