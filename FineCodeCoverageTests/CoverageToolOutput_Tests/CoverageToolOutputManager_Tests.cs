@@ -34,12 +34,12 @@ namespace FineCodeCoverageTests
             mockProject2.Setup(p => p.DefaultCoverageOutputFolder).Returns(DefaultCoverageFolder);
             coverageProjects = new List<ICoverageProject> { mockProject1.Object, mockProject2.Object };
         }
-        
-        private void SetUpProviders(bool provider1First,string provider1Provides, string provider2Provides)
+
+        private void SetUpProviders(bool provider1First, string provider1Provides, string provider2Provides)
         {
             callOrder = new List<int>();
             var mockOrderMetadata1 = new Mock<IOrderMetadata>();
-            mockOrderMetadata1.Setup(o => o.Order).Returns(provider1First? 1 : 2);
+            mockOrderMetadata1.Setup(o => o.Order).Returns(provider1First ? 1 : 2);
             var mockOrderMetadata2 = new Mock<IOrderMetadata>();
             mockOrderMetadata2.Setup(o => o.Order).Returns(provider1First ? 2 : 1);
 
@@ -55,7 +55,7 @@ namespace FineCodeCoverageTests
             mocker.SetInstance<IEnumerable<Lazy<ICoverageToolOutputFolderProvider, IOrderMetadata>>>(lazyOrderedProviders);
         }
 
-        [TestCase(true,1, 2)]
+        [TestCase(true, 1, 2)]
         [TestCase(false, 2, 1)]
         public void Should_Use_Providers_In_Order_When_Determining_CoverageProject_Output_Folder(bool provider1First, int expectedFirst, int expectedSecond)
         {
@@ -114,11 +114,11 @@ namespace FineCodeCoverageTests
             var coverageToolOutputManager = mocker.Create<CoverageToolOutputManager>();
             coverageToolOutputManager.SetProjectCoverageOutputFolder(coverageProjects);
 
-            
+
             mockProject1.VerifySet(p => p.CoverageOutputFolder = DefaultCoverageFolder);
             mockProject2.VerifySet(p => p.CoverageOutputFolder = DefaultCoverageFolder);
         }
-    
+
         [Test]
         public void Should_Output_Reports_To_First_Project_CoverageOutputFolder_When_Not_Provided()
         {
@@ -127,7 +127,7 @@ namespace FineCodeCoverageTests
             coverageToolOutputManager.SetProjectCoverageOutputFolder(coverageProjects);
 
             var firstProjectOutputFolder = mockProject1.Object.CoverageOutputFolder;
-            
+
             Assert.AreEqual(coverageToolOutputManager.GetReportOutputFolder(), firstProjectOutputFolder);
         }
 

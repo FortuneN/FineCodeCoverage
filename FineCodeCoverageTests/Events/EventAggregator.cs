@@ -200,7 +200,7 @@ namespace FineCodeCoverageTests.Events
 
         public IEventSubscriptionManager AddListener<T>(IListener<T> listener, bool? holdStrongReference)
         {
-            AddListener((object) listener, holdStrongReference);
+            AddListener((object)listener, holdStrongReference);
 
             return this;
         }
@@ -319,7 +319,7 @@ namespace FineCodeCoverageTests.Events
         {
             private const string HandleMethodName = "Handle";
             private readonly Action<ListenerWrapper> _onRemoveCallback;
-            private readonly List<HandleMethodWrapper> _handlers = new List<HandleMethodWrapper>(); 
+            private readonly List<HandleMethodWrapper> _handlers = new List<HandleMethodWrapper>();
             private readonly IReference _reference;
 
             public ListenerWrapper(object listener, Action<ListenerWrapper> onRemoveCallback, bool holdReferences, bool supportMessageInheritance)
@@ -332,14 +332,14 @@ namespace FineCodeCoverageTests.Events
                     _reference = new WeakReferenceImpl(listener);
 
                 var listenerInterfaces = TypeHelper.GetBaseInterfaceType(listener.GetType())
-                                                   .Where(w => TypeHelper.DirectlyClosesGeneric(w, typeof (IListener<>)));
+                                                   .Where(w => TypeHelper.DirectlyClosesGeneric(w, typeof(IListener<>)));
 
                 foreach (var listenerInterface in listenerInterfaces)
                 {
                     var messageType = TypeHelper.GetFirstGenericType(listenerInterface);
                     var handleMethod = TypeHelper.GetMethod(listenerInterface, HandleMethodName);
 
-                    HandleMethodWrapper handler = new HandleMethodWrapper(handleMethod, listenerInterface, messageType,supportMessageInheritance );
+                    HandleMethodWrapper handler = new HandleMethodWrapper(handleMethod, listenerInterface, messageType, supportMessageInheritance);
                     _handlers.Add(handler);
                 }
             }
@@ -390,7 +390,7 @@ namespace FineCodeCoverageTests.Events
             private readonly Type _messageType;
             private readonly MethodInfo _handlerMethod;
             private readonly bool _supportMessageInheritance;
-            private readonly Dictionary<Type, bool> supportedMessageTypes = new Dictionary<Type, bool>(); 
+            private readonly Dictionary<Type, bool> supportedMessageTypes = new Dictionary<Type, bool>();
 
             public HandleMethodWrapper(MethodInfo handlerMethod, Type listenerInterface, Type messageType, bool supportMessageInheritance)
             {
@@ -403,7 +403,7 @@ namespace FineCodeCoverageTests.Events
 
             public bool Handles<TListener>() where TListener : class
             {
-                return _listenerInterface == typeof (TListener);
+                return _listenerInterface == typeof(TListener);
             }
 
             public bool HandlesMessage(object message)
@@ -435,7 +435,7 @@ namespace FineCodeCoverageTests.Events
 
                 if (!Handles<TListener>() && !HandlesMessage(message)) return;
 
-                _handlerMethod.Invoke(target, new[] {message});
+                _handlerMethod.Invoke(target, new[] { message });
                 wasHandled = true;
             }
         }
@@ -488,7 +488,7 @@ namespace FineCodeCoverageTests.Events
 
             internal static Type GetFirstGenericType<T>() where T : class
             {
-                return GetFirstGenericType(typeof (T));
+                return GetFirstGenericType(typeof(T));
             }
 
             internal static Type GetFirstGenericType(Type type)

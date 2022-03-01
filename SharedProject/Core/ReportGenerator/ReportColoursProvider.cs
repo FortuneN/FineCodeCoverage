@@ -38,18 +38,18 @@ namespace FineCodeCoverage.Engine.ReportGenerator
         private void VSColorTheme_ThemeChanged(ThemeChangedEventArgs e)
         {
             var newColours = GetReportColours();
-            if(lastReportColours == null || !SameColours(lastReportColours, newColours))
+            if (lastReportColours == null || !SameColours(lastReportColours, newColours))
             {
                 lastReportColours = newColours;
                 ColoursChanged?.Invoke(this, newColours);
             }
-            
+
         }
 
         private static bool SameColours(ReportColours oldColours, ReportColours newColours)
         {
             var same = true;
-            foreach(var propertyInfo in propertyInfos)
+            foreach (var propertyInfo in propertyInfos)
             {
                 var oldColor = (Color)propertyInfo.GetValue(oldColours);
                 var newColor = (Color)propertyInfo.GetValue(newColours);

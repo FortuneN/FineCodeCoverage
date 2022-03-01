@@ -38,7 +38,7 @@ namespace FineCodeCoverage.Engine
             bool result;
             if (project.IsDotNetSdkStyle())
             {
-                result =await coverletUtil.RunCoverletAsync(project, throwError);
+                result = await coverletUtil.RunCoverletAsync(project, throwError);
             }
             else
             {

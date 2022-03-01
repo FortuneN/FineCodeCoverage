@@ -33,12 +33,12 @@ namespace FineCodeCoverage.Engine.ReportGenerator
                 // probably should change the attribute name
                 var themeResourceKeyString = matchingElement.Attribute("SelectedThemeColourName").Value;
                 var parts = themeResourceKeyString.Split('.');
-                if(parts.Length != 2 || String.IsNullOrWhiteSpace(parts[1]))
+                if (parts.Length != 2 || String.IsNullOrWhiteSpace(parts[1]))
                 {
                     throw new Exception($"report part {reportPart} not of format ClassName.PropertyName");
                 }
-                
-                
+
+
                 var @class = parts[0];
                 Type classType = null;
                 switch (@class)
@@ -56,7 +56,7 @@ namespace FineCodeCoverage.Engine.ReportGenerator
                     if (themeResourceKeyProperty != null)
                     {
                         var themeResourceKey = themeResourceKeyProperty.GetValue(null);
-                        if(themeResourceKey is ThemeResourceKey)
+                        if (themeResourceKey is ThemeResourceKey)
                         {
                             return themeResourceKey as ThemeResourceKey;
                         }
@@ -74,7 +74,7 @@ namespace FineCodeCoverage.Engine.ReportGenerator
                 {
                     throw new Exception($"report part {reportPart} class name should be EnvironmentColors | CommonControlsColors");
                 }
-                
+
             }
             else
             {

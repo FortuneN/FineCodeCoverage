@@ -31,7 +31,7 @@ namespace FineCodeCoverage.Engine.Model
         {
             get
             {
-                if(buildOutputPath == null)
+                if (buildOutputPath == null)
                 {
                     var adjacentBuildOutput = appOptionsProvider.Get().AdjacentBuildOutput;
                     if (adjacentBuildOutput)
@@ -49,7 +49,7 @@ namespace FineCodeCoverage.Engine.Model
                     }
                 }
                 return buildOutputPath;
-                
+
             }
         }
         private readonly string coverageToolOutputFolderName = "coverage-tool-output";

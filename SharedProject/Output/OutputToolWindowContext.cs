@@ -4,6 +4,6 @@ namespace FineCodeCoverage.Output
 {
     internal class OutputToolWindowContext
     {
-		public IEventAggregator EventAggregator { get; set; }
-	}
+        public IEventAggregator EventAggregator { get; set; }
+    }
 }

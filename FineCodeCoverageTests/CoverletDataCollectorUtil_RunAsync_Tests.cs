@@ -45,7 +45,7 @@ namespace Test
         [TearDown]
         public void DeleteTempDirectory()
         {
-            if(tempDirectory != null && Directory.Exists(tempDirectory))
+            if (tempDirectory != null && Directory.Exists(tempDirectory))
             {
                 Directory.Delete(tempDirectory);
             }
@@ -79,7 +79,7 @@ namespace Test
             mockCoverageProject.Setup(cp => cp.ExcludedReferencedProjects).Returns(referencedExcluded);
             mockRunSettingsCoverletConfiguration.Setup(rsc => rsc.Exclude).Returns("rsexclude");
             await coverletDataCollectorUtil.RunAsync(false);
-            mockDataCollectorSettingsBuilder.Verify(b => b.WithExclude(new string[] { "[referencedExcluded]*","excluded"},"rsexclude"));
+            mockDataCollectorSettingsBuilder.Verify(b => b.WithExclude(new string[] { "[referencedExcluded]*", "excluded" }, "rsexclude"));
         }
 
         [Test]
@@ -90,7 +90,7 @@ namespace Test
             mockCoverageProject.Setup(cp => cp.CoverageOutputFolder).Returns("");
             mockRunSettingsCoverletConfiguration.Setup(rsc => rsc.Exclude).Returns("rsexclude");
             await coverletDataCollectorUtil.RunAsync(false);
-            mockDataCollectorSettingsBuilder.Verify(b => b.WithExclude(new string[] { "[referencedExcluded]*"}, "rsexclude"));
+            mockDataCollectorSettingsBuilder.Verify(b => b.WithExclude(new string[] { "[referencedExcluded]*" }, "rsexclude"));
         }
 
         [Test]
@@ -118,7 +118,7 @@ namespace Test
         [Test]
         public async Task Should_Get_Settings_With_Include_From_CoverageProject_And_RunSettings()
         {
-            var projectInclude= new string[] { "included" };
+            var projectInclude = new string[] { "included" };
             mockCoverageProject.Setup(cp => cp.Settings.Include).Returns(projectInclude);
             mockCoverageProject.Setup(cp => cp.CoverageOutputFolder).Returns("");
 
@@ -127,7 +127,7 @@ namespace Test
             mockDataCollectorSettingsBuilder.Verify(b => b.WithInclude(projectInclude, "rsincluded"));
         }
 
-        [TestCase(true,"true")]
+        [TestCase(true, "true")]
         [TestCase(false, "false")]
         public async Task Should_Get_Settings_With_IncludeTestAssembly_From_CoverageProject_And_RunSettings(bool projectIncludeTestAssembly, string runSettingsIncludeTestAssembly)
         {
@@ -145,10 +145,10 @@ namespace Test
             mockCoverageProject.Setup(cp => cp.RunSettingsFile).Returns(".runsettings");
             mockCoverageProject.Setup(cp => cp.CoverageOutputFolder).Returns("output");
             mockCoverageProject.Setup(cp => cp.Settings).Returns(settings);
-            
+
             await coverletDataCollectorUtil.RunAsync(false);
-            mockDataCollectorSettingsBuilder.Verify(b => b.Initialize(settings, ".runsettings",Path.Combine("output","FCC.runsettings")));
-            
+            mockDataCollectorSettingsBuilder.Verify(b => b.Initialize(settings, ".runsettings", Path.Combine("output", "FCC.runsettings")));
+
             var invocations = mockDataCollectorSettingsBuilder.Invocations.GetEnumerator().ToIEnumerable().ToList();
             Assert.AreEqual(invocations.First().Method.Name, nameof(IDataCollectorSettingsBuilder.Initialize));
         }
@@ -261,13 +261,13 @@ namespace Test
             mocker.Verify<ILogger>(l => l.Log($"Using custom coverlet data collector : {tempDirectory}"));
         }
 
-        [TestCase(true,true)]
-        [TestCase(false,false)]
-        public async Task Should_Use_The_ProcessResponseProcessor(bool throwOnError,bool processResponseProcessorResult)
+        [TestCase(true, true)]
+        [TestCase(false, false)]
+        public async Task Should_Use_The_ProcessResponseProcessor(bool throwOnError, bool processResponseProcessorResult)
         {
             mockCoverageProject.Setup(cp => cp.ProjectName).Returns("TestProject");
             mockCoverageProject.Setup(cp => cp.CoverageOutputFolder).Returns("");
-            
+
             var mockProcesUtil = mocker.GetMock<IProcessUtil>();
             var executeResponse = new ExecuteResponse();
             mockProcesUtil.Setup(p => p.ExecuteAsync(It.IsAny<ExecuteRequest>()).Result).Returns(executeResponse);
@@ -275,12 +275,12 @@ namespace Test
 
             var logTitle = "Coverlet Collector Run (TestProject)";
             mockProcessResponseProcessor.Setup(rp => rp.Process(executeResponse, It.IsAny<Func<int, bool>>(), throwOnError, logTitle, It.IsAny<Action>())).Returns(processResponseProcessorResult);
-            
+
             Assert.AreEqual(processResponseProcessorResult, await coverletDataCollectorUtil.RunAsync(throwOnError));
         }
 
         [TestCase(2, false)]
-        [TestCase(1,true)]
+        [TestCase(1, true)]
         [TestCase(0, true)]
         public async Task Should_Only_Be_Successful_With_ExitCode_0_Or_1(int exitCode, bool expectedSuccess)
         {
@@ -313,13 +313,15 @@ namespace Test
         }
     }
 
-    public static class IEnumeratorExtensions {
+    public static class IEnumeratorExtensions
+    {
         public static IEnumerable<T> ToIEnumerable<T>(this IEnumerator<T> enumerator)
         {
             while (enumerator.MoveNext())
             {
                 yield return enumerator.Current;
             }
-        } }
+        }
+    }
 
 }

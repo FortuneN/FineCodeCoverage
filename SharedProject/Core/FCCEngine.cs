@@ -22,9 +22,9 @@ namespace FineCodeCoverage.Engine
         internal int InitializeWait { get; set; } = 5000;
         internal const string initializationFailedMessagePrefix = "Initialization failed.  Please check the following error which may be resolved by reopening visual studio which will start the initialization process again.";
         private CancellationTokenSource cancellationTokenSource;
-        
+
         public event UpdateMarginTagsDelegate UpdateMarginTags;
-        
+
         public string AppDataFolderPath { get; private set; }
         public List<CoverageLine> CoverageLines { get; internal set; }
 
@@ -35,7 +35,7 @@ namespace FineCodeCoverage.Engine
         private readonly IProcessUtil processUtil;
         private readonly ILogger logger;
         private readonly IAppDataFolder appDataFolder;
-        
+
         private IInitializeStatusProvider initializeStatusProvider;
         private readonly ICoverageToolOutputManager coverageOutputManager;
         internal System.Threading.Tasks.Task reloadCoverageTask;
@@ -59,7 +59,7 @@ namespace FineCodeCoverage.Engine
         {
             this.solutionEvents = solutionEvents;
             this.eventAggregator = eventAggregator;
-            solutionEvents.AfterClosing += (s,args) => ClearOutputWindow(false);
+            solutionEvents.AfterClosing += (s, args) => ClearOutputWindow(false);
             appOptionsProvider.OptionsChanged += (appOptions) =>
             {
                 if (!appOptions.Enabled)
@@ -117,7 +117,7 @@ namespace FineCodeCoverage.Engine
                 cancellationTokenSource.Cancel();
             }
         }
-        
+
         private CancellationToken Reset()
         {
             CoverageLines = null;
@@ -132,7 +132,7 @@ namespace FineCodeCoverage.Engine
             return cancellationToken;
         }
 
-        private async System.Threading.Tasks.Task<string[]> RunCoverageAsync(List<ICoverageProject> coverageProjects,CancellationToken cancellationToken)
+        private async System.Threading.Tasks.Task<string[]> RunCoverageAsync(List<ICoverageProject> coverageProjects, CancellationToken cancellationToken)
         {
             // process pipeline
 
@@ -154,7 +154,8 @@ namespace FineCodeCoverage.Engine
                         var coverageTool = coverageUtilManager.CoverageToolName(project);
                         await reportGeneratorUtil.LogCoverageProcessAsync($"Starting {coverageTool} coverage for {project.ProjectName}");
                         await coverageUtilManager.RunCoverageAsync(project, true);
-                    }catch(Exception exc)
+                    }
+                    catch (Exception exc)
                     {
                         await reportGeneratorUtil.LogCoverageProcessAsync($"{coverageProject.ProjectName} failed : {exc}");
                         throw exc;
@@ -193,14 +194,14 @@ namespace FineCodeCoverage.Engine
             RaiseUpdateOutputWindow(reportHtml);
         }
 
-        private async System.Threading.Tasks.Task<(List<CoverageLine> coverageLines,string reportFilePath)> RunAndProcessReportAsync(string[] coverOutputFiles,string reportOutputFolder,CancellationToken cancellationToken)
+        private async System.Threading.Tasks.Task<(List<CoverageLine> coverageLines, string reportFilePath)> RunAndProcessReportAsync(string[] coverOutputFiles, string reportOutputFolder, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
             List<CoverageLine> coverageLines = null;
             string processedReport = null;
 
-            var result = await reportGeneratorUtil.GenerateAsync(coverOutputFiles,reportOutputFolder, true);
+            var result = await reportGeneratorUtil.GenerateAsync(coverOutputFiles, reportOutputFolder, true);
 
             if (result.Success)
             {
@@ -209,7 +210,7 @@ namespace FineCodeCoverage.Engine
                 coverageLines = coberturaUtil.CoverageLines;
 
                 logger.Log("Processing report");
-                processedReport = reportGeneratorUtil.ProcessUnifiedHtml(result.UnifiedHtml,reportOutputFolder);
+                processedReport = reportGeneratorUtil.ProcessUnifiedHtml(result.UnifiedHtml, reportOutputFolder);
             }
             return (coverageLines, processedReport);
         }
@@ -235,7 +236,7 @@ namespace FineCodeCoverage.Engine
                 var logs = fileSynchronizationDetails.Logs;
                 if (logs.Any())
                 {
-                    foreach(var log in logs)
+                    foreach (var log in logs)
                     {
                         logger.Log(log);
                     }
@@ -280,7 +281,7 @@ namespace FineCodeCoverage.Engine
                 {
                     case InitializeStatus.Initialized:
                         return;
-                    
+
                     case InitializeStatus.Initializing:
                         await reportGeneratorUtil.LogCoverageProcessAsync("Initializing");
                         LogReloadCoverageStatus(ReloadCoverageStatus.Initializing);
@@ -315,19 +316,19 @@ namespace FineCodeCoverage.Engine
 
                 if (coverOutputFiles.Any())
                 {
-                    var (lines, report) = await RunAndProcessReportAsync(coverOutputFiles,reportOutputFolder,cancellationToken);
+                    var (lines, report) = await RunAndProcessReportAsync(coverOutputFiles, reportOutputFolder, cancellationToken);
                     coverageLines = lines;
                     reportHtml = report;
                 }
 
                 return (coverageLines, reportHtml);
-                 
+
             }, cancellationToken)
             .ContinueWith(t =>
             {
                 _ = ReloadCoverageTaskContinuationAsync(t);
 
-              }, System.Threading.Tasks.TaskScheduler.Default);
+            }, System.Threading.Tasks.TaskScheduler.Default);
 
         }
     }

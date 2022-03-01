@@ -21,8 +21,10 @@ namespace FineCodeCoverage.Impl
         private System.Windows.Media.Color coverageTouchedArea;
         private System.Windows.Media.Color coverageNotTouchedArea;
         private System.Windows.Media.Color coveragePartiallyTouchedArea;
-        public System.Windows.Media.Color CoverageTouchedArea { 
-            get {
+        public System.Windows.Media.Color CoverageTouchedArea
+        {
+            get
+            {
                 UpdateFromFontsAndColorsIfNecessary();
                 return coverageTouchedArea;
             }
@@ -32,7 +34,8 @@ namespace FineCodeCoverage.Impl
             }
         }
 
-        public System.Windows.Media.Color CoverageNotTouchedArea {
+        public System.Windows.Media.Color CoverageNotTouchedArea
+        {
             get
             {
                 UpdateFromFontsAndColorsIfNecessary();
@@ -44,7 +47,8 @@ namespace FineCodeCoverage.Impl
             }
         }
 
-        public System.Windows.Media.Color CoveragePartiallyTouchedArea {
+        public System.Windows.Media.Color CoveragePartiallyTouchedArea
+        {
             get
             {
                 UpdateFromFontsAndColorsIfNecessary();
@@ -94,7 +98,7 @@ namespace FineCodeCoverage.Impl
 
         private void UpdateFromFontsAndColorsIfNecessary()
         {
-            if(coverageColoursFromFontsAndColours && requiresFromFontsAndColours)
+            if (coverageColoursFromFontsAndColours && requiresFromFontsAndColours)
             {
                 UpdateColoursFromFontsAndColors();
             }

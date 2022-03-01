@@ -9,28 +9,28 @@ using FineCodeCoverage.Engine.Model;
 namespace FineCodeCoverage.Engine.Coverlet
 {
     [Export(typeof(ICoverletConsoleUtil))]
-	internal class CoverletConsoleUtil : ICoverletConsoleUtil
-	{
-		private readonly IProcessUtil processUtil;
-		private readonly ILogger logger;
+    internal class CoverletConsoleUtil : ICoverletConsoleUtil
+    {
+        private readonly IProcessUtil processUtil;
+        private readonly ILogger logger;
         private readonly IFCCCoverletConsoleExecutor fccExecutor;
-		private readonly List<ICoverletConsoleExecutor> executors;
+        private readonly List<ICoverletConsoleExecutor> executors;
 
-		[ImportingConstructor]
-		public CoverletConsoleUtil(
-			IProcessUtil processUtil, 
-			ILogger logger,
-			[Import(typeof(ICoverletConsoleDotnetToolsGlobalExecutor))]
-			ICoverletConsoleExecutor globalExecutor,
-			[Import(typeof(ICoverletConsoleCustomPathExecutor))]
-			ICoverletConsoleExecutor customPathExecutor,
-			[Import(typeof(ICoverletConsoleDotnetToolsLocalExecutor))]
-			ICoverletConsoleExecutor localExecutor,
-			IFCCCoverletConsoleExecutor fccExecutor
-			)
-		{
-			this.processUtil = processUtil;
-			this.logger = logger;
+        [ImportingConstructor]
+        public CoverletConsoleUtil(
+            IProcessUtil processUtil,
+            ILogger logger,
+            [Import(typeof(ICoverletConsoleDotnetToolsGlobalExecutor))]
+            ICoverletConsoleExecutor globalExecutor,
+            [Import(typeof(ICoverletConsoleCustomPathExecutor))]
+            ICoverletConsoleExecutor customPathExecutor,
+            [Import(typeof(ICoverletConsoleDotnetToolsLocalExecutor))]
+            ICoverletConsoleExecutor localExecutor,
+            IFCCCoverletConsoleExecutor fccExecutor
+            )
+        {
+            this.processUtil = processUtil;
+            this.logger = logger;
 
             executors = new List<ICoverletConsoleExecutor>
             {
@@ -42,123 +42,123 @@ namespace FineCodeCoverage.Engine.Coverlet
 
             this.fccExecutor = fccExecutor;
         }
-		public void Initialize(string appDataFolder)
-		{
-			fccExecutor.Initialize(appDataFolder);
-		}
-
-		// for now FCCCoverletConsoleExeProvider can return null for exe path
-
-		internal ExecuteRequest GetExecuteRequest(ICoverageProject project, string coverletSettings)
+        public void Initialize(string appDataFolder)
         {
-			foreach(var exeProvider in executors)
-            {
-				var executeRequest = exeProvider.GetRequest(project, coverletSettings);
-				if(executeRequest != null)
-                {
-					return executeRequest;
-                }
-            }
-			return null;//todo change to throw when using zip file
+            fccExecutor.Initialize(appDataFolder);
         }
 
-		internal List<string> GetCoverletSettings(ICoverageProject project)
+        // for now FCCCoverletConsoleExeProvider can return null for exe path
+
+        internal ExecuteRequest GetExecuteRequest(ICoverageProject project, string coverletSettings)
         {
-			var coverletSettings = new List<string>();
+            foreach (var exeProvider in executors)
+            {
+                var executeRequest = exeProvider.GetRequest(project, coverletSettings);
+                if (executeRequest != null)
+                {
+                    return executeRequest;
+                }
+            }
+            return null;//todo change to throw when using zip file
+        }
 
-			coverletSettings.Add($@"""{project.TestDllFile}""");
+        internal List<string> GetCoverletSettings(ICoverageProject project)
+        {
+            var coverletSettings = new List<string>();
 
-			coverletSettings.Add($@"--format ""cobertura""");
+            coverletSettings.Add($@"""{project.TestDllFile}""");
 
-			foreach (var value in (project.Settings.Exclude ?? new string[0]).Where(x => !string.IsNullOrWhiteSpace(x)))
-			{
-				coverletSettings.Add($@"--exclude ""{value.Replace("\"", "\\\"").Trim(' ', '\'')}""");
-			}
+            coverletSettings.Add($@"--format ""cobertura""");
 
-			foreach (var referencedProjectExcludedFromCodeCoverage in project.ExcludedReferencedProjects)
-			{
-				coverletSettings.Add($@"--exclude ""[{referencedProjectExcludedFromCodeCoverage}]*""");
-			}
+            foreach (var value in (project.Settings.Exclude ?? new string[0]).Where(x => !string.IsNullOrWhiteSpace(x)))
+            {
+                coverletSettings.Add($@"--exclude ""{value.Replace("\"", "\\\"").Trim(' ', '\'')}""");
+            }
 
-			foreach (var value in (project.Settings.Include ?? new string[0]).Where(x => !string.IsNullOrWhiteSpace(x)))
-			{
-				coverletSettings.Add($@"--include ""{value.Replace("\"", "\\\"").Trim(' ', '\'')}""");
-			}
+            foreach (var referencedProjectExcludedFromCodeCoverage in project.ExcludedReferencedProjects)
+            {
+                coverletSettings.Add($@"--exclude ""[{referencedProjectExcludedFromCodeCoverage}]*""");
+            }
 
-			foreach (var includedReferencedProject in project.IncludedReferencedProjects)
-			{
-				coverletSettings.Add($@"--include ""[{includedReferencedProject}]*""");
-			}
+            foreach (var value in (project.Settings.Include ?? new string[0]).Where(x => !string.IsNullOrWhiteSpace(x)))
+            {
+                coverletSettings.Add($@"--include ""{value.Replace("\"", "\\\"").Trim(' ', '\'')}""");
+            }
 
-			foreach (var value in (project.Settings.ExcludeByFile ?? new string[0]).Where(x => !string.IsNullOrWhiteSpace(x)))
-			{
-				coverletSettings.Add($@"--exclude-by-file ""{value.Replace("\"", "\\\"").Trim(' ', '\'')}""");
-			}
+            foreach (var includedReferencedProject in project.IncludedReferencedProjects)
+            {
+                coverletSettings.Add($@"--include ""[{includedReferencedProject}]*""");
+            }
 
-			foreach (var value in (project.Settings.ExcludeByAttribute ?? new string[0]).Where(x => !string.IsNullOrWhiteSpace(x)))
-			{
-				coverletSettings.Add($@"--exclude-by-attribute ""{value.Replace("\"", "\\\"").Trim(' ', '\'', '[', ']')}""");
-			}
+            foreach (var value in (project.Settings.ExcludeByFile ?? new string[0]).Where(x => !string.IsNullOrWhiteSpace(x)))
+            {
+                coverletSettings.Add($@"--exclude-by-file ""{value.Replace("\"", "\\\"").Trim(' ', '\'')}""");
+            }
 
-			if (project.Settings.IncludeTestAssembly)
-			{
-				coverletSettings.Add("--include-test-assembly");
-			}
+            foreach (var value in (project.Settings.ExcludeByAttribute ?? new string[0]).Where(x => !string.IsNullOrWhiteSpace(x)))
+            {
+                coverletSettings.Add($@"--exclude-by-attribute ""{value.Replace("\"", "\\\"").Trim(' ', '\'', '[', ']')}""");
+            }
 
-			coverletSettings.Add($@"--target ""dotnet""");
+            if (project.Settings.IncludeTestAssembly)
+            {
+                coverletSettings.Add("--include-test-assembly");
+            }
 
-			coverletSettings.Add($@"--threshold-type line");
+            coverletSettings.Add($@"--target ""dotnet""");
 
-			coverletSettings.Add($@"--threshold-stat total");
+            coverletSettings.Add($@"--threshold-type line");
 
-			coverletSettings.Add($@"--threshold 0");
+            coverletSettings.Add($@"--threshold-stat total");
 
-			coverletSettings.Add($@"--output ""{ project.CoverageOutputFile }""");
+            coverletSettings.Add($@"--threshold 0");
 
-			var runSettings = !string.IsNullOrWhiteSpace(project.RunSettingsFile) ? $@"--settings """"{project.RunSettingsFile}""""" : default;
-			coverletSettings.Add($@"--targetargs ""test  """"{project.TestDllFile}"""" --nologo --blame {runSettings} --results-directory """"{project.CoverageOutputFolder}"""" --diag """"{project.CoverageOutputFolder}/diagnostics.log""""  """);
+            coverletSettings.Add($@"--output ""{ project.CoverageOutputFile }""");
 
-			return coverletSettings;
-		}
+            var runSettings = !string.IsNullOrWhiteSpace(project.RunSettingsFile) ? $@"--settings """"{project.RunSettingsFile}""""" : default;
+            coverletSettings.Add($@"--targetargs ""test  """"{project.TestDllFile}"""" --nologo --blame {runSettings} --results-directory """"{project.CoverageOutputFolder}"""" --diag """"{project.CoverageOutputFolder}/diagnostics.log""""  """);
 
-		public async Task<bool> RunAsync(ICoverageProject project, bool throwError = false)
-		{
-			var title = $"Coverlet Run ({project.ProjectName})";
+            return coverletSettings;
+        }
 
-			var coverletSettings = GetCoverletSettings(project);
+        public async Task<bool> RunAsync(ICoverageProject project, bool throwError = false)
+        {
+            var title = $"Coverlet Run ({project.ProjectName})";
 
-			logger.Log($"{title} Arguments {Environment.NewLine}{string.Join($"{Environment.NewLine}", coverletSettings)}");
+            var coverletSettings = GetCoverletSettings(project);
 
-			var result = await processUtil
-			.ExecuteAsync(GetExecuteRequest(project, string.Join(" ", coverletSettings)));
+            logger.Log($"{title} Arguments {Environment.NewLine}{string.Join($"{Environment.NewLine}", coverletSettings)}");
+
+            var result = await processUtil
+            .ExecuteAsync(GetExecuteRequest(project, string.Join(" ", coverletSettings)));
 
 
-			if (result != null)
-			{
-				/*
+            if (result != null)
+            {
+                /*
 				0 - Success.
 				1 - If any test fails.
 				2 - Coverage percentage is below threshold.
 				3 - Test fails and also coverage percentage is below threshold.
 			*/
-				if (result.ExitCode > 3)
-				{
-					logger.Log($"{title} Error. Exit code: {result.ExitCode}");
-					logger.Log($"{title} Error. Output: ", result.Output);
-					if (throwError)
-					{
-						throw new Exception(result.Output);
-					}
+                if (result.ExitCode > 3)
+                {
+                    logger.Log($"{title} Error. Exit code: {result.ExitCode}");
+                    logger.Log($"{title} Error. Output: ", result.Output);
+                    if (throwError)
+                    {
+                        throw new Exception(result.Output);
+                    }
 
-					
-					return false;
-				}
 
-				logger.Log(title, result.Output);
+                    return false;
+                }
 
-				return true;
-			}
-			return false;
-		}
-	}
+                logger.Log(title, result.Output);
+
+                return true;
+            }
+            return false;
+        }
+    }
 }

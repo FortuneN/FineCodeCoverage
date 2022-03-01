@@ -9,8 +9,8 @@ namespace FineCodeCoverage.Engine.ReportGenerator
     [System.Runtime.InteropServices.ComVisible(true)]
     public class JsThemeStyling
     {
-//#pragma warning disable IDE0079 // Remove unnecessary suppression
-//#pragma warning disable SA1401 // Fields should be private
+        //#pragma warning disable IDE0079 // Remove unnecessary suppression
+        //#pragma warning disable SA1401 // Fields should be private
         public string BackgroundColour;
         public string FontColour;
         public string TableBorderColour;

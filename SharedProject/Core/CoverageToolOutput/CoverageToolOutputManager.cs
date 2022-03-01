@@ -46,7 +46,7 @@ namespace FineCodeCoverage.Engine
             }
         }
 
-        
+
 
         private void DetermineOutputFolderForAllProjects()
         {

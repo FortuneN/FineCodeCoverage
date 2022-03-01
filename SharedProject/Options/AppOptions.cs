@@ -154,7 +154,7 @@ namespace FineCodeCoverage.Options
         [Category(reportCategory)]
         [Description("When npath complexity exceeds this value for a method then the method will be present in the risk hotspots tab. OpenCover only")]
         public int ThresholdForNPathComplexity { get; set; } = 200;
-        
+
         [Category(reportCategory)]
         [Description("When crap score exceeds this value for a method then the method will be present in the risk hotspots tab. OpenCover only")]
         public int ThresholdForCrapScore { get; set; } = 15;

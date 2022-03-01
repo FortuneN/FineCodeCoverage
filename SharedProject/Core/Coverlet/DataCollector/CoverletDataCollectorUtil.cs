@@ -35,8 +35,8 @@ namespace FineCodeCoverage.Engine.Coverlet
         [ImportingConstructor]
         public CoverletDataCollectorUtil(
             IFileUtil fileUtil,
-            IRunSettingsCoverletConfigurationFactory runSettingsCoverletConfigurationFactory, 
-            ILogger logger, 
+            IRunSettingsCoverletConfigurationFactory runSettingsCoverletConfigurationFactory,
+            ILogger logger,
             IProcessUtil processUtil,
             IDataCollectorSettingsBuilderFactory dataCollectorSettingsBuilderFactory,
             ICoverletDataCollectorGeneratedCobertura coverletDataCollectorGeneratedCobertura,
@@ -55,7 +55,7 @@ namespace FineCodeCoverage.Engine.Coverlet
             this.toolZipProvider = toolZipProvider;
             this.toolFolder = toolFolder;
         }
-        
+
         private bool? GetUseDataCollectorFromProjectFile()
         {
             var root = coverageProject.ProjectFileXElement;
@@ -68,11 +68,11 @@ namespace FineCodeCoverage.Engine.Coverlet
                     var useDataCollectorValue = useDataCollectorElement.Value.ToLower().Trim();
                     return useDataCollectorValue == "true" || useDataCollectorValue == "";
                 }
-                
+
             }
             return null;
         }
-        
+
         private bool OverriddenFromProjectFile()
         {
             var useDataCollectorFromProjectFile = GetUseDataCollectorFromProjectFile();
@@ -96,11 +96,11 @@ namespace FineCodeCoverage.Engine.Coverlet
         {
             runSettingsCoverletConfiguration = runSettingsCoverletConfigurationFactory.Create();
             this.coverageProject = coverageProject;
-            
-            if(coverageProject.RunSettingsFile != null)
+
+            if (coverageProject.RunSettingsFile != null)
             {
                 var runSettingsXml = fileUtil.ReadAllText(coverageProject.RunSettingsFile);
-                    
+
                 runSettingsCoverletConfiguration.Read(runSettingsXml);
                 switch (runSettingsCoverletConfiguration.CoverletDataCollectorState)
                 {
@@ -113,15 +113,15 @@ namespace FineCodeCoverage.Engine.Coverlet
             }
 
             return HasSetUseDataCollectorInProjectFile();
-            
+
         }
 
         private string GetSettings()
         {
             var dataCollectorSettingsBuilder = dataCollectorSettingsBuilderFactory.Create();
             dataCollectorSettingsBuilder
-                .Initialize(coverageProject.Settings, coverageProject.RunSettingsFile, Path.Combine(coverageProject.CoverageOutputFolder,"FCC.runsettings"));
-            
+                .Initialize(coverageProject.Settings, coverageProject.RunSettingsFile, Path.Combine(coverageProject.CoverageOutputFolder, "FCC.runsettings"));
+
             // command arguments
             dataCollectorSettingsBuilder
                 .WithProjectDll(coverageProject.TestDllFile);
@@ -131,12 +131,12 @@ namespace FineCodeCoverage.Engine.Coverlet
                 .WithNoLogo();
             dataCollectorSettingsBuilder
                 .WithDiagnostics($"{coverageProject.CoverageOutputFolder}/diagnostics.log");
-            
+
             dataCollectorSettingsBuilder
                 .WithResultsDirectory(coverageProject.CoverageOutputFolder);
 
             string[] projectExcludes = coverageProject.ExcludedReferencedProjects.Select(erp => $"[{erp}]*").ToArray();
-            if(coverageProject.Settings.Exclude != null)
+            if (coverageProject.Settings.Exclude != null)
             {
                 projectExcludes = projectExcludes.Concat(coverageProject.Settings.Exclude).ToArray();
             }
@@ -150,11 +150,11 @@ namespace FineCodeCoverage.Engine.Coverlet
                 .WithExcludeByAttribute(coverageProject.Settings.ExcludeByAttribute, runSettingsCoverletConfiguration.ExcludeByAttribute);
 
             string[] projectIncludes = coverageProject.IncludedReferencedProjects.Select(irp => $"[{irp}]*").ToArray();
-            if(coverageProject.Settings.Include != null)
+            if (coverageProject.Settings.Include != null)
             {
                 projectIncludes = projectIncludes.Concat(coverageProject.Settings.Include).ToArray();
             }
-            
+
             dataCollectorSettingsBuilder
                 .WithInclude(projectIncludes, runSettingsCoverletConfiguration.Include);
             dataCollectorSettingsBuilder
@@ -168,7 +168,7 @@ namespace FineCodeCoverage.Engine.Coverlet
                 .WithUseSourceLink(runSettingsCoverletConfiguration.UseSourceLink);
             dataCollectorSettingsBuilder
                 .WithSkipAutoProps(runSettingsCoverletConfiguration.SkipAutoProps);
-            
+
             return dataCollectorSettingsBuilder
                 .Build();
 
@@ -176,7 +176,8 @@ namespace FineCodeCoverage.Engine.Coverlet
 
         private string GetTestAdapterPathArg()
         {
-            if (!String.IsNullOrWhiteSpace(coverageProject.Settings.CoverletCollectorDirectoryPath)) {
+            if (!String.IsNullOrWhiteSpace(coverageProject.Settings.CoverletCollectorDirectoryPath))
+            {
                 var directoryPath = coverageProject.Settings.CoverletCollectorDirectoryPath.Trim();
                 if (Directory.Exists(directoryPath))
                 {
@@ -190,9 +191,9 @@ namespace FineCodeCoverage.Engine.Coverlet
         public async Task<bool> RunAsync(bool throwError = false)
         {
             var settings = GetSettings();
-            
+
             LogRun(settings);
-            
+
             var result = await processUtil
             .ExecuteAsync(new ExecuteRequest
             {
@@ -209,7 +210,7 @@ namespace FineCodeCoverage.Engine.Coverlet
 
             // dotnet
             // https://github.com/dotnet/sdk/blob/936935f18c3540ed77c97e392780a9dd82aca441/src/Cli/dotnet/commands/dotnet-test/Program.cs#L86
-            
+
             // test failure has exit code 1 
             return processResponseProcessor.Process(result, code => code == 0 || code == 1, throwError, GetLogTitle(), () =>
              {
@@ -232,7 +233,7 @@ namespace FineCodeCoverage.Engine.Coverlet
 
         public void Initialize(string appDataFolder)
         {
-            var zipDestination = toolFolder.EnsureUnzipped(appDataFolder, zipDirectoryName,toolZipProvider.ProvideZip(zipPrefix));
+            var zipDestination = toolFolder.EnsureUnzipped(appDataFolder, zipDirectoryName, toolZipProvider.ProvideZip(zipPrefix));
             var testAdapterPath = Path.Combine(zipDestination, "build", "netstandard1.0");
             TestAdapterPathArg = $@"""{testAdapterPath}""";
         }

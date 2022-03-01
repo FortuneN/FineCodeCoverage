@@ -19,313 +19,313 @@ using ReportGeneratorPlugins;
 
 namespace FineCodeCoverage.Engine.ReportGenerator
 {
-	interface IReportGeneratorUtil
+    interface IReportGeneratorUtil
     {
         void Initialize(string appDataFolder);
-		string ProcessUnifiedHtml(string htmlForProcessing,string reportOutputFolder);
-		Task<ReportGeneratorResult> GenerateAsync(IEnumerable<string> coverOutputFiles,string reportOutputFolder, bool throwError = false);
+        string ProcessUnifiedHtml(string htmlForProcessing, string reportOutputFolder);
+        Task<ReportGeneratorResult> GenerateAsync(IEnumerable<string> coverOutputFiles, string reportOutputFolder, bool throwError = false);
         string BlankReport(bool withHistory);
         System.Threading.Tasks.Task LogCoverageProcessAsync(string message);
-		System.Threading.Tasks.Task EndOfCoverageRunAsync();
+        System.Threading.Tasks.Task EndOfCoverageRunAsync();
     }
 
     internal class ReportGeneratorResult
-	{
-		public string UnifiedHtml { get; set; }
-		public string UnifiedXmlFile { get; set; }
-		public bool Success { get; set; }
-	}
+    {
+        public string UnifiedHtml { get; set; }
+        public string UnifiedXmlFile { get; set; }
+        public bool Success { get; set; }
+    }
 
-	[Export(typeof(IReportGeneratorUtil))]
-	internal partial class ReportGeneratorUtil : 
-		IReportGeneratorUtil, 
-		IListener<EnvironmentFontDetailsChangedMessage>, IListener<DpiChangedMessage>, IListener<ReadyForReportMessage>
-	{
-		private readonly IAssemblyUtil assemblyUtil;
-		private readonly IProcessUtil processUtil;
-		private readonly ILogger logger;
-		private readonly IToolFolder toolFolder;
-		private readonly IToolZipProvider toolZipProvider;
+    [Export(typeof(IReportGeneratorUtil))]
+    internal partial class ReportGeneratorUtil :
+        IReportGeneratorUtil,
+        IListener<EnvironmentFontDetailsChangedMessage>, IListener<DpiChangedMessage>, IListener<ReadyForReportMessage>
+    {
+        private readonly IAssemblyUtil assemblyUtil;
+        private readonly IProcessUtil processUtil;
+        private readonly ILogger logger;
+        private readonly IToolFolder toolFolder;
+        private readonly IToolZipProvider toolZipProvider;
         private readonly IReportColoursProvider reportColoursProvider;
         private readonly IFileUtil fileUtil;
-		private readonly IAppOptionsProvider appOptionsProvider;
-		private readonly IResourceProvider resourceProvider;
+        private readonly IAppOptionsProvider appOptionsProvider;
+        private readonly IResourceProvider resourceProvider;
         private readonly IShowFCCOutputPane showFCCOutputPane;
         private readonly IEventAggregator eventAggregator;
         private const string zipPrefix = "reportGenerator";
-		private const string zipDirectoryName = "reportGenerator";
+        private const string zipDirectoryName = "reportGenerator";
 
-		private const string ThemeChangedJSFunctionName = "themeChanged";
-		private const string CoverageLogJSFunctionName = "coverageLog";
-		private const string CoverageLogTabName = "Coverage Log";
-		private const string ShowFCCWorkingJSFunctionName = "showFCCWorking";
-		private const string FontChangedJSFunctionName = "fontChanged";
-		private readonly Base64ReportImage plusBase64ReportImage = new Base64ReportImage(".icon-plus", "PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4KPHN2ZyB3aWR0aD0iMTc5MiIgaGVpZ2h0PSIxNzkyIiB2aWV3Qm94PSIwIDAgMTc5MiAxNzkyIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxwYXRoIGQ9Ik0xNjAwIDczNnYxOTJxMCA0MC0yOCA2OHQtNjggMjhoLTQxNnY0MTZxMCA0MC0yOCA2OHQtNjggMjhoLTE5MnEtNDAgMC02OC0yOHQtMjgtNjh2LTQxNmgtNDE2cS00MCAwLTY4LTI4dC0yOC02OHYtMTkycTAtNDAgMjgtNjh0NjgtMjhoNDE2di00MTZxMC00MCAyOC02OHQ2OC0yOGgxOTJxNDAgMCA2OCAyOHQyOCA2OHY0MTZoNDE2cTQwIDAgNjggMjh0MjggNjh6Ii8+PC9zdmc+");
-		private readonly Base64ReportImage minusBase64ReportImage = new Base64ReportImage(".icon-minus", "PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4NCjxzdmcgd2lkdGg9IjE3OTIiIGhlaWdodD0iMTc5MiIgdmlld0JveD0iMCAwIDE3OTIgMTc5MiIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBmaWxsPSIjMDAwIiBkPSJNMTYwMCA3MzZ2MTkycTAgNDAtMjggNjh0LTY4IDI4aC0xMjE2cS00MCAwLTY4LTI4dC0yOC02OHYtMTkycTAtNDAgMjgtNjh0NjgtMjhoMTIxNnE0MCAwIDY4IDI4dDI4IDY4eiIvPjwvc3ZnPg==");
-		private readonly Base64ReportImage downActiveBase64ReportImage = new Base64ReportImage(".icon-down-dir_active", "PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4NCjxzdmcgd2lkdGg9IjE3OTIiIGhlaWdodD0iMTc5MiIgdmlld0JveD0iMCAwIDE3OTIgMTc5MiIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBmaWxsPSIjMDA3OEQ0IiBkPSJNMTQwOCA3MDRxMCAyNi0xOSA0NWwtNDQ4IDQ0OHEtMTkgMTktNDUgMTl0LTQ1LTE5bC00NDgtNDQ4cS0xOS0xOS0xOS00NXQxOS00NSA0NS0xOWg4OTZxMjYgMCA0NSAxOXQxOSA0NXoiLz48L3N2Zz4=");
-		private readonly Base64ReportImage downInactiveBase64ReportImage = new Base64ReportImage(".icon-down-dir", "PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4KPHN2ZyB3aWR0aD0iMTc5MiIgaGVpZ2h0PSIxNzkyIiB2aWV3Qm94PSIwIDAgMTc5MiAxNzkyIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxwYXRoIGQ9Ik0xNDA4IDcwNHEwIDI2LTE5IDQ1bC00NDggNDQ4cS0xOSAxOS00NSAxOXQtNDUtMTlsLTQ0OC00NDhxLTE5LTE5LTE5LTQ1dDE5LTQ1IDQ1LTE5aDg5NnEyNiAwIDQ1IDE5dDE5IDQ1eiIvPjwvc3ZnPg==");
-		private readonly Base64ReportImage upActiveBase64ReportImage = new Base64ReportImage(".icon-up-dir_active", "PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4NCjxzdmcgd2lkdGg9IjE3OTIiIGhlaWdodD0iMTc5MiIgdmlld0JveD0iMCAwIDE3OTIgMTc5MiIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBmaWxsPSIjMDA3OEQ0IiBkPSJNMTQwOCAxMjE2cTAgMjYtMTkgNDV0LTQ1IDE5aC04OTZxLTI2IDAtNDUtMTl0LTE5LTQ1IDE5LTQ1bDQ0OC00NDhxMTktMTkgNDUtMTl0NDUgMTlsNDQ4IDQ0OHExOSAxOSAxOSA0NXoiLz48L3N2Zz4=");
+        private const string ThemeChangedJSFunctionName = "themeChanged";
+        private const string CoverageLogJSFunctionName = "coverageLog";
+        private const string CoverageLogTabName = "Coverage Log";
+        private const string ShowFCCWorkingJSFunctionName = "showFCCWorking";
+        private const string FontChangedJSFunctionName = "fontChanged";
+        private readonly Base64ReportImage plusBase64ReportImage = new Base64ReportImage(".icon-plus", "PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4KPHN2ZyB3aWR0aD0iMTc5MiIgaGVpZ2h0PSIxNzkyIiB2aWV3Qm94PSIwIDAgMTc5MiAxNzkyIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxwYXRoIGQ9Ik0xNjAwIDczNnYxOTJxMCA0MC0yOCA2OHQtNjggMjhoLTQxNnY0MTZxMCA0MC0yOCA2OHQtNjggMjhoLTE5MnEtNDAgMC02OC0yOHQtMjgtNjh2LTQxNmgtNDE2cS00MCAwLTY4LTI4dC0yOC02OHYtMTkycTAtNDAgMjgtNjh0NjgtMjhoNDE2di00MTZxMC00MCAyOC02OHQ2OC0yOGgxOTJxNDAgMCA2OCAyOHQyOCA2OHY0MTZoNDE2cTQwIDAgNjggMjh0MjggNjh6Ii8+PC9zdmc+");
+        private readonly Base64ReportImage minusBase64ReportImage = new Base64ReportImage(".icon-minus", "PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4NCjxzdmcgd2lkdGg9IjE3OTIiIGhlaWdodD0iMTc5MiIgdmlld0JveD0iMCAwIDE3OTIgMTc5MiIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBmaWxsPSIjMDAwIiBkPSJNMTYwMCA3MzZ2MTkycTAgNDAtMjggNjh0LTY4IDI4aC0xMjE2cS00MCAwLTY4LTI4dC0yOC02OHYtMTkycTAtNDAgMjgtNjh0NjgtMjhoMTIxNnE0MCAwIDY4IDI4dDI4IDY4eiIvPjwvc3ZnPg==");
+        private readonly Base64ReportImage downActiveBase64ReportImage = new Base64ReportImage(".icon-down-dir_active", "PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4NCjxzdmcgd2lkdGg9IjE3OTIiIGhlaWdodD0iMTc5MiIgdmlld0JveD0iMCAwIDE3OTIgMTc5MiIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBmaWxsPSIjMDA3OEQ0IiBkPSJNMTQwOCA3MDRxMCAyNi0xOSA0NWwtNDQ4IDQ0OHEtMTkgMTktNDUgMTl0LTQ1LTE5bC00NDgtNDQ4cS0xOS0xOS0xOS00NXQxOS00NSA0NS0xOWg4OTZxMjYgMCA0NSAxOXQxOSA0NXoiLz48L3N2Zz4=");
+        private readonly Base64ReportImage downInactiveBase64ReportImage = new Base64ReportImage(".icon-down-dir", "PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4KPHN2ZyB3aWR0aD0iMTc5MiIgaGVpZ2h0PSIxNzkyIiB2aWV3Qm94PSIwIDAgMTc5MiAxNzkyIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxwYXRoIGQ9Ik0xNDA4IDcwNHEwIDI2LTE5IDQ1bC00NDggNDQ4cS0xOSAxOS00NSAxOXQtNDUtMTlsLTQ0OC00NDhxLTE5LTE5LTE5LTQ1dDE5LTQ1IDQ1LTE5aDg5NnEyNiAwIDQ1IDE5dDE5IDQ1eiIvPjwvc3ZnPg==");
+        private readonly Base64ReportImage upActiveBase64ReportImage = new Base64ReportImage(".icon-up-dir_active", "PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4NCjxzdmcgd2lkdGg9IjE3OTIiIGhlaWdodD0iMTc5MiIgdmlld0JveD0iMCAwIDE3OTIgMTc5MiIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBmaWxsPSIjMDA3OEQ0IiBkPSJNMTQwOCAxMjE2cTAgMjYtMTkgNDV0LTQ1IDE5aC04OTZxLTI2IDAtNDUtMTl0LTE5LTQ1IDE5LTQ1bDQ0OC00NDhxMTktMTkgNDUtMTl0NDUgMTlsNDQ4IDQ0OHExOSAxOSAxOSA0NXoiLz48L3N2Zz4=");
         private readonly IScriptManager scriptManager;
-		private DpiScale dpiScale;
-		private FontDetails environmentFontDetails;
-		private string previousFontSizeName;
-		private string unprocessedReport;
-		private string previousReportOutputFolder;
+        private DpiScale dpiScale;
+        private FontDetails environmentFontDetails;
+        private string previousFontSizeName;
+        private string unprocessedReport;
+        private string previousReportOutputFolder;
         private IReportColours reportColours;
-		private JsThemeStyling jsReportColours;
-		private IReportColours ReportColours
+        private JsThemeStyling jsReportColours;
+        private IReportColours ReportColours
         {
-			get => reportColours;
+            get => reportColours;
             set
             {
-				reportColours = value;
-				jsReportColours = reportColours.Convert();
+                reportColours = value;
+                jsReportColours = reportColours.Convert();
             }
         }
-		private readonly bool showBranchCoverage = true;
-		private List<string> logs = new List<string>();
+        private readonly bool showBranchCoverage = true;
+        private List<string> logs = new List<string>();
 
-		public string ReportGeneratorExePath { get; private set; }
+        public string ReportGeneratorExePath { get; private set; }
 
-		private string FontSize => $"{environmentFontDetails.Size * dpiScale.DpiScaleX}px";
-		private string FontName => environmentFontDetails.Family.Source;
+        private string FontSize => $"{environmentFontDetails.Size * dpiScale.DpiScaleX}px";
+        private string FontName => environmentFontDetails.Family.Source;
 
-		[ImportingConstructor]
-		public ReportGeneratorUtil(
-			IAssemblyUtil assemblyUtil,
-			IProcessUtil processUtil,
-			ILogger logger,
-			IToolFolder toolFolder,
-			IToolZipProvider toolZipProvider,
-			IFileUtil fileUtil,
-			IAppOptionsProvider appOptionsProvider,
-			IReportColoursProvider reportColoursProvider,
-			IScriptManager scriptManager,
-			IResourceProvider resourceProvider,
-			IShowFCCOutputPane showFCCOutputPane,
-			IEventAggregator eventAggregator
-			)
-		{
-			this.fileUtil = fileUtil;
-			this.appOptionsProvider = appOptionsProvider;
-			this.assemblyUtil = assemblyUtil;
-			this.processUtil = processUtil;
-			this.logger = logger;
-			this.toolFolder = toolFolder;
-			this.toolZipProvider = toolZipProvider;
-			this.reportColoursProvider = reportColoursProvider;
+        [ImportingConstructor]
+        public ReportGeneratorUtil(
+            IAssemblyUtil assemblyUtil,
+            IProcessUtil processUtil,
+            ILogger logger,
+            IToolFolder toolFolder,
+            IToolZipProvider toolZipProvider,
+            IFileUtil fileUtil,
+            IAppOptionsProvider appOptionsProvider,
+            IReportColoursProvider reportColoursProvider,
+            IScriptManager scriptManager,
+            IResourceProvider resourceProvider,
+            IShowFCCOutputPane showFCCOutputPane,
+            IEventAggregator eventAggregator
+            )
+        {
+            this.fileUtil = fileUtil;
+            this.appOptionsProvider = appOptionsProvider;
+            this.assemblyUtil = assemblyUtil;
+            this.processUtil = processUtil;
+            this.logger = logger;
+            this.toolFolder = toolFolder;
+            this.toolZipProvider = toolZipProvider;
+            this.reportColoursProvider = reportColoursProvider;
             this.reportColoursProvider.ColoursChanged += ReportColoursProvider_ColoursChanged;
-			this.scriptManager = scriptManager;
+            this.scriptManager = scriptManager;
             this.resourceProvider = resourceProvider;
             this.showFCCOutputPane = showFCCOutputPane;
             this.eventAggregator = eventAggregator;
-			this.eventAggregator.AddListener(this);
+            this.eventAggregator.AddListener(this);
             scriptManager.ClearFCCWindowLogsEvent += ScriptManager_ClearFCCWindowLogsEvent;
             scriptManager.ShowFCCOutputPaneEvent += ScriptManager_ShowFCCOutputPaneEvent;
         }
 
         private async void ScriptManager_ShowFCCOutputPaneEvent(object sender, EventArgs e)
         {
-			await showFCCOutputPane.ShowAsync();
+            await showFCCOutputPane.ShowAsync();
         }
 
         private void ScriptManager_ClearFCCWindowLogsEvent(object sender, EventArgs e)
         {
-			logs.Clear();
+            logs.Clear();
         }
 
         public void Initialize(string appDataFolder)
-		{
-			var zipDestination = toolFolder.EnsureUnzipped(appDataFolder, zipDirectoryName, toolZipProvider.ProvideZip(zipPrefix));
-			ReportGeneratorExePath = Directory.GetFiles(zipDestination, "reportGenerator.exe", SearchOption.AllDirectories).FirstOrDefault()
-								  ?? Directory.GetFiles(zipDestination, "*reportGenerator*.exe", SearchOption.AllDirectories).FirstOrDefault();
-		}
+        {
+            var zipDestination = toolFolder.EnsureUnzipped(appDataFolder, zipDirectoryName, toolZipProvider.ProvideZip(zipPrefix));
+            ReportGeneratorExePath = Directory.GetFiles(zipDestination, "reportGenerator.exe", SearchOption.AllDirectories).FirstOrDefault()
+                                  ?? Directory.GetFiles(zipDestination, "*reportGenerator*.exe", SearchOption.AllDirectories).FirstOrDefault();
+        }
 
-		public async Task<ReportGeneratorResult> GenerateAsync(IEnumerable<string> coverOutputFiles, string reportOutputFolder, bool throwError = false)
-		{
-			var title = "ReportGenerator Run";
+        public async Task<ReportGeneratorResult> GenerateAsync(IEnumerable<string> coverOutputFiles, string reportOutputFolder, bool throwError = false)
+        {
+            var title = "ReportGenerator Run";
 
-			var unifiedHtmlFile = Path.Combine(reportOutputFolder, "index.html");
-			var unifiedXmlFile = Path.Combine(reportOutputFolder, "Cobertura.xml");
+            var unifiedHtmlFile = Path.Combine(reportOutputFolder, "index.html");
+            var unifiedXmlFile = Path.Combine(reportOutputFolder, "Cobertura.xml");
 
-			var reportGeneratorSettings = new List<string>();
+            var reportGeneratorSettings = new List<string>();
 
-			reportGeneratorSettings.Add($@"""-targetdir:{reportOutputFolder}""");
+            reportGeneratorSettings.Add($@"""-targetdir:{reportOutputFolder}""");
 
-			async Task<bool> run(string outputReportType, string inputReports)
-			{
-				var reportTypeSettings = reportGeneratorSettings.ToArray().ToList();
+            async Task<bool> run(string outputReportType, string inputReports)
+            {
+                var reportTypeSettings = reportGeneratorSettings.ToArray().ToList();
 
-				if (outputReportType.Equals("Cobertura", StringComparison.OrdinalIgnoreCase))
-				{
-					reportTypeSettings.Add($@"""-reports:{inputReports}""");
-					reportTypeSettings.Add($@"""-reporttypes:Cobertura""");
+                if (outputReportType.Equals("Cobertura", StringComparison.OrdinalIgnoreCase))
+                {
+                    reportTypeSettings.Add($@"""-reports:{inputReports}""");
+                    reportTypeSettings.Add($@"""-reporttypes:Cobertura""");
 
-				}
-				else if (outputReportType.Equals("HtmlInline_AzurePipelines", StringComparison.OrdinalIgnoreCase))
-				{
-					reportTypeSettings.Add($@"""-reports:{inputReports}""");
-					reportTypeSettings.Add($@"""-plugins:{typeof(FccLightReportBuilder).Assembly.Location}""");
-					reportTypeSettings.Add($@"""-reporttypes:{FccLightReportBuilder.REPORT_TYPE}""");
-					var (cyclomaticThreshold, crapScoreThreshold, nPathThreshold) = HotspotThresholds();
+                }
+                else if (outputReportType.Equals("HtmlInline_AzurePipelines", StringComparison.OrdinalIgnoreCase))
+                {
+                    reportTypeSettings.Add($@"""-reports:{inputReports}""");
+                    reportTypeSettings.Add($@"""-plugins:{typeof(FccLightReportBuilder).Assembly.Location}""");
+                    reportTypeSettings.Add($@"""-reporttypes:{FccLightReportBuilder.REPORT_TYPE}""");
+                    var (cyclomaticThreshold, crapScoreThreshold, nPathThreshold) = HotspotThresholds();
 
-					reportTypeSettings.Add($@"""riskHotspotsAnalysisThresholds:metricThresholdForCyclomaticComplexity={cyclomaticThreshold}""");
-					reportTypeSettings.Add($@"""riskHotspotsAnalysisThresholds:metricThresholdForCrapScore={crapScoreThreshold}""");
-					reportTypeSettings.Add($@"""riskHotspotsAnalysisThresholds:metricThresholdForNPathComplexity={nPathThreshold}""");
+                    reportTypeSettings.Add($@"""riskHotspotsAnalysisThresholds:metricThresholdForCyclomaticComplexity={cyclomaticThreshold}""");
+                    reportTypeSettings.Add($@"""riskHotspotsAnalysisThresholds:metricThresholdForCrapScore={crapScoreThreshold}""");
+                    reportTypeSettings.Add($@"""riskHotspotsAnalysisThresholds:metricThresholdForNPathComplexity={nPathThreshold}""");
 
-				}
-				else
-				{
-					throw new Exception($"Unknown reporttype '{outputReportType}'");
-				}
+                }
+                else
+                {
+                    throw new Exception($"Unknown reporttype '{outputReportType}'");
+                }
 
-				logger.Log($"{title} Arguments [reporttype:{outputReportType}] {Environment.NewLine}{string.Join($"{Environment.NewLine}", reportTypeSettings)}");
-				
-				var result = await processUtil
-					.ExecuteAsync(new ExecuteRequest
-					{
-						FilePath = ReportGeneratorExePath,
-						Arguments = string.Join(" ", reportTypeSettings),
-						WorkingDirectory = reportOutputFolder
-					});
+                logger.Log($"{title} Arguments [reporttype:{outputReportType}] {Environment.NewLine}{string.Join($"{Environment.NewLine}", reportTypeSettings)}");
+
+                var result = await processUtil
+                    .ExecuteAsync(new ExecuteRequest
+                    {
+                        FilePath = ReportGeneratorExePath,
+                        Arguments = string.Join(" ", reportTypeSettings),
+                        WorkingDirectory = reportOutputFolder
+                    });
 
 
-				if (result != null)
-				{
-					if (result.ExitCode != 0)
-					{
-						logger.Log($"{title} [reporttype:{outputReportType}] Error", result.Output);
-						logger.Log($"{title} [reporttype:{outputReportType}] Error", result.ExitCode);
+                if (result != null)
+                {
+                    if (result.ExitCode != 0)
+                    {
+                        logger.Log($"{title} [reporttype:{outputReportType}] Error", result.Output);
+                        logger.Log($"{title} [reporttype:{outputReportType}] Error", result.ExitCode);
 
-						if (throwError)
-						{
-							throw new Exception(result.Output);
-						}
+                        if (throwError)
+                        {
+                            throw new Exception(result.Output);
+                        }
 
-						return false;
-					}
+                        return false;
+                    }
 
-					logger.Log($"{title} [reporttype:{outputReportType}]", result.Output);
-					return true;
-				}
-				return false;
-
-			}
-
-			var reportGeneratorResult = new ReportGeneratorResult { Success = false, UnifiedHtml = null, UnifiedXmlFile = unifiedXmlFile };
-
-			var startTime = DateTime.Now;
-			await LogCoverageProcessAsync("Generating cobertura report");
-			var coberturaResult = await run("Cobertura", string.Join(";", coverOutputFiles));
-			var duration = DateTime.Now - startTime;
-
-			if (coberturaResult)
-			{
-				var coberturaDurationMesage = $"Cobertura report generation duration - {duration}";
-				await LogCoverageProcessAsync(coberturaDurationMesage); // result output includes duration for normal log
-
-				startTime = DateTime.Now;
-				await LogCoverageProcessAsync("Generating html report");
-				var htmlResult = await run("HtmlInline_AzurePipelines", unifiedXmlFile);
-				duration = DateTime.Now - startTime;
-				if (htmlResult)
-				{
-					var htmlReportDurationMessage = $"Html report generation duration - {duration}";
-					await LogCoverageProcessAsync(htmlReportDurationMessage); // result output includes duration for normal log
-					reportGeneratorResult.UnifiedHtml = fileUtil.ReadAllText(unifiedHtmlFile);
-					reportGeneratorResult.Success = true;
-				}
+                    logger.Log($"{title} [reporttype:{outputReportType}]", result.Output);
+                    return true;
+                }
+                return false;
 
             }
 
-			return reportGeneratorResult;
+            var reportGeneratorResult = new ReportGeneratorResult { Success = false, UnifiedHtml = null, UnifiedXmlFile = unifiedXmlFile };
 
-		}
+            var startTime = DateTime.Now;
+            await LogCoverageProcessAsync("Generating cobertura report");
+            var coberturaResult = await run("Cobertura", string.Join(";", coverOutputFiles));
+            var duration = DateTime.Now - startTime;
 
-		private void SetInitialTheme(HtmlAgilityPack.HtmlDocument document)
-		{
-			var backgroundColor = jsReportColours.BackgroundColour;
-			var fontColour = jsReportColours.FontColour;
-			var overviewTableBorderColor = jsReportColours.TableBorderColour;
+            if (coberturaResult)
+            {
+                var coberturaDurationMesage = $"Cobertura report generation duration - {duration}";
+                await LogCoverageProcessAsync(coberturaDurationMesage); // result output includes duration for normal log
 
-			var style = document.DocumentNode.Descendants("style").First();
+                startTime = DateTime.Now;
+                await LogCoverageProcessAsync("Generating html report");
+                var htmlResult = await run("HtmlInline_AzurePipelines", unifiedXmlFile);
+                duration = DateTime.Now - startTime;
+                if (htmlResult)
+                {
+                    var htmlReportDurationMessage = $"Html report generation duration - {duration}";
+                    await LogCoverageProcessAsync(htmlReportDurationMessage); // result output includes duration for normal log
+                    reportGeneratorResult.UnifiedHtml = fileUtil.ReadAllText(unifiedHtmlFile);
+                    reportGeneratorResult.Success = true;
+                }
 
-			var parser = new StylesheetParser();
-			var stylesheet = parser.Parse(style.InnerHtml);
-			var styleRules = stylesheet.StyleRules;
+            }
 
-			var lightRedForCyclomatic = styleRules.First(r => r.SelectorText == ".lightred");
-			lightRedForCyclomatic.Style.BackgroundColor = null;
-			/*
+            return reportGeneratorResult;
+
+        }
+
+        private void SetInitialTheme(HtmlAgilityPack.HtmlDocument document)
+        {
+            var backgroundColor = jsReportColours.BackgroundColour;
+            var fontColour = jsReportColours.FontColour;
+            var overviewTableBorderColor = jsReportColours.TableBorderColour;
+
+            var style = document.DocumentNode.Descendants("style").First();
+
+            var parser = new StylesheetParser();
+            var stylesheet = parser.Parse(style.InnerHtml);
+            var styleRules = stylesheet.StyleRules;
+
+            var lightRedForCyclomatic = styleRules.First(r => r.SelectorText == ".lightred");
+            lightRedForCyclomatic.Style.BackgroundColor = null;
+            /*
                 Other option
                 lightRedForCyclomatic.Style.BackgroundColor = "rgba(255,255,255,0.3)";
 
                 or 
                 be *dynamic* and be lighten / darken %age of the background color
             */
-			var grayRule = styleRules.First(r => r.SelectorText == ".gray");
-			grayRule.Style.BackgroundColor = jsReportColours.GrayCoverageColour;
+            var grayRule = styleRules.First(r => r.SelectorText == ".gray");
+            grayRule.Style.BackgroundColor = jsReportColours.GrayCoverageColour;
 
-			var htmlRule = styleRules.First(r => r.Selector.Text == "html");
-			var htmlStyle = htmlRule.Style;
-			htmlStyle.BackgroundColor = backgroundColor;
+            var htmlRule = styleRules.First(r => r.Selector.Text == "html");
+            var htmlStyle = htmlRule.Style;
+            htmlStyle.BackgroundColor = backgroundColor;
 
-			var containerRule = styleRules.First(r => r.SelectorText == ".container");
-			containerRule.Style.BackgroundColor = backgroundColor;
+            var containerRule = styleRules.First(r => r.SelectorText == ".container");
+            containerRule.Style.BackgroundColor = backgroundColor;
 
-			var overviewTableBorder = $"1px solid {overviewTableBorderColor}";
-			var overviewThRule = styleRules.First(r => r.SelectorText == ".overview th");
-			overviewThRule.Style.BackgroundColor = backgroundColor;
-			overviewThRule.Style.Border = overviewTableBorder;
+            var overviewTableBorder = $"1px solid {overviewTableBorderColor}";
+            var overviewThRule = styleRules.First(r => r.SelectorText == ".overview th");
+            overviewThRule.Style.BackgroundColor = backgroundColor;
+            overviewThRule.Style.Border = overviewTableBorder;
 
-			var overviewTdRule = styleRules.First(r => r.SelectorText == ".overview td");
-			overviewTdRule.Style.Border = overviewTableBorder;
+            var overviewTdRule = styleRules.First(r => r.SelectorText == ".overview td");
+            overviewTdRule.Style.Border = overviewTableBorder;
 
-			var overviewRule = styleRules.First(r => r.SelectorText == ".overview");
-			overviewRule.Style.Border = overviewTableBorder;
+            var overviewRule = styleRules.First(r => r.SelectorText == ".overview");
+            overviewRule.Style.Border = overviewTableBorder;
 
-			var overviewHeaderLinks = styleRules.First(r => r.SelectorText == ".overview th a");
-			overviewHeaderLinks.Style.Color = jsReportColours.CoverageTableHeaderFontColour;
+            var overviewHeaderLinks = styleRules.First(r => r.SelectorText == ".overview th a");
+            overviewHeaderLinks.Style.Color = jsReportColours.CoverageTableHeaderFontColour;
 
-			var overviewTrHoverRule = styleRules.First(r => r.SelectorText == ".overview tr:hover");
-			overviewTrHoverRule.Style.Background = jsReportColours.CoverageTableRowHoverBackgroundColour;
+            var overviewTrHoverRule = styleRules.First(r => r.SelectorText == ".overview tr:hover");
+            overviewTrHoverRule.Style.Background = jsReportColours.CoverageTableRowHoverBackgroundColour;
 
-			var expandCollapseIconColor = ReportColours.CoverageTableExpandCollapseIconColour;
-			plusBase64ReportImage.FillSvg(styleRules, expandCollapseIconColor.ToJsColour());
-			minusBase64ReportImage.FillSvg(styleRules, expandCollapseIconColor.ToJsColour());
+            var expandCollapseIconColor = ReportColours.CoverageTableExpandCollapseIconColour;
+            plusBase64ReportImage.FillSvg(styleRules, expandCollapseIconColor.ToJsColour());
+            minusBase64ReportImage.FillSvg(styleRules, expandCollapseIconColor.ToJsColour());
 
-			var coverageTableActiveSortColor = ReportColours.CoverageTableActiveSortColour.ToJsColour();
-			var coverageTableInactiveSortColor = ReportColours.CoverageTableInactiveSortColour.ToJsColour();
-			downActiveBase64ReportImage.FillSvg(styleRules, coverageTableActiveSortColor);
-			upActiveBase64ReportImage.FillSvg(styleRules, coverageTableActiveSortColor);
-			downInactiveBase64ReportImage.FillSvg(styleRules, coverageTableInactiveSortColor);
+            var coverageTableActiveSortColor = ReportColours.CoverageTableActiveSortColour.ToJsColour();
+            var coverageTableInactiveSortColor = ReportColours.CoverageTableInactiveSortColour.ToJsColour();
+            downActiveBase64ReportImage.FillSvg(styleRules, coverageTableActiveSortColor);
+            upActiveBase64ReportImage.FillSvg(styleRules, coverageTableActiveSortColor);
+            downInactiveBase64ReportImage.FillSvg(styleRules, coverageTableInactiveSortColor);
 
-			var linkColor = jsReportColours.LinkColour;
-			var linkRule = styleRules.First(r => r.SelectorText == "a");
-			var linkHoverRule = styleRules.First(r => r.SelectorText == "a:hover");
+            var linkColor = jsReportColours.LinkColour;
+            var linkRule = styleRules.First(r => r.SelectorText == "a");
+            var linkHoverRule = styleRules.First(r => r.SelectorText == "a:hover");
 
-			linkRule.Style.Color = linkColor;
-			linkRule.Style.Cursor = "pointer";
-			linkRule.Style.TextDecoration = "none";
+            linkRule.Style.Color = linkColor;
+            linkRule.Style.Cursor = "pointer";
+            linkRule.Style.TextDecoration = "none";
 
-			linkHoverRule.Style.Color = linkColor;
-			linkHoverRule.Style.Cursor = "pointer";
-			linkHoverRule.Style.TextDecoration = "none";
+            linkHoverRule.Style.Color = linkColor;
+            linkHoverRule.Style.Cursor = "pointer";
+            linkHoverRule.Style.TextDecoration = "none";
 
-			var stringWriter = new StringWriter();
-			var formatter = new CompressedStyleFormatter();
-			stylesheet.ToCss(stringWriter, formatter);
-			var changedCss = stringWriter.ToString();
-			style.InnerHtml = changedCss;
-		}
+            var stringWriter = new StringWriter();
+            var formatter = new CompressedStyleFormatter();
+            stylesheet.ToCss(stringWriter, formatter);
+            var changedCss = stringWriter.ToString();
+            style.InnerHtml = changedCss;
+        }
 
-		private string GetStickyTableHead()
-		{
+        private string GetStickyTableHead()
+        {
             if (!appOptionsProvider.Get().StickyCoverageTable)
             {
-				return "";
+                return "";
             }
-			return @"
+            return @"
 function CustomEventPolyfill() {
   if ( typeof window.CustomEvent === 'function' ) return false;
 
@@ -791,33 +791,33 @@ function stickytheadapply(elements, options)
 let elements = document.querySelectorAll('table.overview.table-fixed.stripped')
 stickytheadapply(elements, { fixedOffset: document.getElementById('divHeader') });
 ";
-		}
+        }
 
-		private string GetGroupingCss(bool namespacedClasses)
+        private string GetGroupingCss(bool namespacedClasses)
         {
             if (namespacedClasses)
             {
-				return "";
+                return "";
             }
-			return HideGroupingCss();
+            return HideGroupingCss();
 
-		}
+        }
 
-		private string HideGroupingCss()
+        private string HideGroupingCss()
         {
-			return @"
+            return @"
 coverage-info div.customizebox div:nth-child(2) { visibility:hidden;font-size:1px;height:1px;padding:0;border:0;margin:0 }
 coverage-info div.customizebox div:nth-child(2) * { visibility:hidden;font-size:1px;height:1px;padding:0;border:0;margin:0 }
 ";
-		}
+        }
 
-		private string ObserveAndHideFullyCovered()
+        private string ObserveAndHideFullyCovered()
         {
             if (!appOptionsProvider.Get().HideFullyCovered)
             {
-				return "";
+                return "";
             }
-			return @"
+            return @"
 var targetNode = document;//document.querySelector('table.overview.table-fixed.stripped');
 
 var config = { attributes: false, childList: true, subtree: true };
@@ -867,9 +867,9 @@ observer.observe(targetNode, config);
 ";
         }
 
-		private string HackGroupingToAllowAll(int groupingLevel)
+        private string HackGroupingToAllowAll(int groupingLevel)
         {
-			return $@"
+            return $@"
 				var customizeBox = document.getElementsByClassName('customizebox')[0];
 				if(customizeBox){{
 					var groupingInput = customizeBox.querySelector('input');
@@ -878,150 +878,150 @@ observer.observe(targetNode, config);
 				
 ";
 
-		}
+        }
 
-		private string GetFontNameSize()
+        private string GetFontNameSize()
         {
-			return $"{FontSize}{FontName}";
-		}
+            return $"{FontSize}{FontName}";
+        }
 
-		private string HideCyclomaticComplexityLink()
+        private string HideCyclomaticComplexityLink()
         {
-			return @"
+            return @"
 risk-hotspots > div > table > thead > tr > th:last-of-type > a:last-of-type {
 		display:none
 }
 ";
 
-		}
+        }
 
-		public string ProcessUnifiedHtml(string htmlForProcessing, string reportOutputFolder)
-		{
-			previousFontSizeName = GetFontNameSize();
-			unprocessedReport = htmlForProcessing;
-			previousReportOutputFolder = reportOutputFolder;
-			var previousLogMessages = $"[{string.Join(",",logs.Select(l => $"'{l}'"))}]";
-			var appOptions = appOptionsProvider.Get();
-			var namespacedClasses = appOptions.NamespacedClasses;
-			ReportColours = reportColoursProvider.GetColours();
-			return assemblyUtil.RunInAssemblyResolvingContext(() =>
-			{
-				var (cyclomaticThreshold, crapScoreThreshold, nPathThreshold) = HotspotThresholds();
-				var noRiskHotspotsHeader = "No risk hotspots that exceed options :";
-				var noRiskHotspotsCyclomaticMsg = $"Cyclomatic complexity : {cyclomaticThreshold}";
-				var noRiskHotspotsNpathMsg =$"NPath complexity      : {nPathThreshold}";
-				var noRiskHotspotsCrapMessage = $"Crap score            : {crapScoreThreshold}";
-				var doc = new HtmlDocument
-				{
-					OptionFixNestedTags = true,
-					OptionAutoCloseOnEnd = true
-				};
+        public string ProcessUnifiedHtml(string htmlForProcessing, string reportOutputFolder)
+        {
+            previousFontSizeName = GetFontNameSize();
+            unprocessedReport = htmlForProcessing;
+            previousReportOutputFolder = reportOutputFolder;
+            var previousLogMessages = $"[{string.Join(",", logs.Select(l => $"'{l}'"))}]";
+            var appOptions = appOptionsProvider.Get();
+            var namespacedClasses = appOptions.NamespacedClasses;
+            ReportColours = reportColoursProvider.GetColours();
+            return assemblyUtil.RunInAssemblyResolvingContext(() =>
+            {
+                var (cyclomaticThreshold, crapScoreThreshold, nPathThreshold) = HotspotThresholds();
+                var noRiskHotspotsHeader = "No risk hotspots that exceed options :";
+                var noRiskHotspotsCyclomaticMsg = $"Cyclomatic complexity : {cyclomaticThreshold}";
+                var noRiskHotspotsNpathMsg = $"NPath complexity      : {nPathThreshold}";
+                var noRiskHotspotsCrapMessage = $"Crap score            : {crapScoreThreshold}";
+                var doc = new HtmlDocument
+                {
+                    OptionFixNestedTags = true,
+                    OptionAutoCloseOnEnd = true
+                };
 
 
-				doc.LoadHtml(htmlForProcessing);
-				SetInitialTheme(doc);
-				htmlForProcessing = null;
+                doc.LoadHtml(htmlForProcessing);
+                SetInitialTheme(doc);
+                htmlForProcessing = null;
 
-				doc.DocumentNode.QuerySelectorAll(".footer").ToList().ForEach(x => x.SetAttributeValue("style", "display:none"));
-				doc.DocumentNode.QuerySelectorAll(".container").ToList().ForEach(x => x.SetAttributeValue("style", "margin:0;padding:25px;border:0"));
-				doc.DocumentNode.QuerySelectorAll(".containerleft").ToList().ForEach(x => x.SetAttributeValue("style", "margin:0;padding:0;border:0"));
-				doc.DocumentNode.QuerySelectorAll(".containerleft > h1 , .containerleft > p").ToList().ForEach(x => x.SetAttributeValue("style", "display:none"));
+                doc.DocumentNode.QuerySelectorAll(".footer").ToList().ForEach(x => x.SetAttributeValue("style", "display:none"));
+                doc.DocumentNode.QuerySelectorAll(".container").ToList().ForEach(x => x.SetAttributeValue("style", "margin:0;padding:25px;border:0"));
+                doc.DocumentNode.QuerySelectorAll(".containerleft").ToList().ForEach(x => x.SetAttributeValue("style", "margin:0;padding:0;border:0"));
+                doc.DocumentNode.QuerySelectorAll(".containerleft > h1 , .containerleft > p").ToList().ForEach(x => x.SetAttributeValue("style", "display:none"));
 
-				// DOM changes
+                // DOM changes
 
-				HideRowsFromOverviewTable(doc);
-				
+                HideRowsFromOverviewTable(doc);
 
-				// TEXT changes
-				var assemblyClassDelimiter = "!";
 
-				var outerHtml = doc.DocumentNode.OuterHtml;
-				var htmlSb = new StringBuilder(outerHtml);
-				FixGroupingMax(htmlSb);
-				FixCollapse(htmlSb);
+                // TEXT changes
+                var assemblyClassDelimiter = "!";
 
-				var assembliesSearch = "var assemblies = [";
-				var startIndex = outerHtml.IndexOf(assembliesSearch) + assembliesSearch.Length - 1;
-				var endIndex = outerHtml.IndexOf("var historicCoverageExecutionTimes");
-				var assembliesToReplace = outerHtml.Substring(startIndex, endIndex - startIndex);
-				endIndex = assembliesToReplace.LastIndexOf(']');
-				assembliesToReplace = assembliesToReplace.Substring(0, endIndex + 1);
+                var outerHtml = doc.DocumentNode.OuterHtml;
+                var htmlSb = new StringBuilder(outerHtml);
+                FixGroupingMax(htmlSb);
+                FixCollapse(htmlSb);
 
-				var assemblies = JArray.Parse(assembliesToReplace);
-				var groupingLevel = 0;
-				foreach (JObject assembly in assemblies)
-				{
-					var assemblyName = assembly["name"];
-					var classes = assembly["classes"] as JArray;
+                var assembliesSearch = "var assemblies = [";
+                var startIndex = outerHtml.IndexOf(assembliesSearch) + assembliesSearch.Length - 1;
+                var endIndex = outerHtml.IndexOf("var historicCoverageExecutionTimes");
+                var assembliesToReplace = outerHtml.Substring(startIndex, endIndex - startIndex);
+                endIndex = assembliesToReplace.LastIndexOf(']');
+                assembliesToReplace = assembliesToReplace.Substring(0, endIndex + 1);
 
-					var autoGeneratedRemovals = new List<JObject>();
-					foreach (JObject @class in classes)
-					{
-						var className = @class["name"].ToString();
-						if (className == "AutoGeneratedProgram")
-						{
-							autoGeneratedRemovals.Add(@class);
-						}
-						else
-						{
-							var namespaces = className.Split('.').Length - 1;
-							if (namespaces > groupingLevel)
-							{
-								groupingLevel = namespaces;
-							}
-							if (!namespacedClasses)
-							{
-								// simplify name
-								var lastIndexOfDotInName = className.LastIndexOf('.');
-								if (lastIndexOfDotInName != -1) @class["name"] = className.Substring(lastIndexOfDotInName).Trim('.');
-							}
-							//mark with # and add the assembly name
-							var rp = @class["rp"].ToString();
-							var htmlIndex = rp.IndexOf(".html");
-							@class["rp"] = $"#{assemblyName}{assemblyClassDelimiter}{className + ".html" + rp.Substring(htmlIndex + 5)}";
-						}
+                var assemblies = JArray.Parse(assembliesToReplace);
+                var groupingLevel = 0;
+                foreach (JObject assembly in assemblies)
+                {
+                    var assemblyName = assembly["name"];
+                    var classes = assembly["classes"] as JArray;
 
-					}
-					foreach (var autoGeneratedRemoval in autoGeneratedRemovals)
-					{
-						classes.Remove(autoGeneratedRemoval);
-					}
+                    var autoGeneratedRemovals = new List<JObject>();
+                    foreach (JObject @class in classes)
+                    {
+                        var className = @class["name"].ToString();
+                        if (className == "AutoGeneratedProgram")
+                        {
+                            autoGeneratedRemovals.Add(@class);
+                        }
+                        else
+                        {
+                            var namespaces = className.Split('.').Length - 1;
+                            if (namespaces > groupingLevel)
+                            {
+                                groupingLevel = namespaces;
+                            }
+                            if (!namespacedClasses)
+                            {
+                                // simplify name
+                                var lastIndexOfDotInName = className.LastIndexOf('.');
+                                if (lastIndexOfDotInName != -1) @class["name"] = className.Substring(lastIndexOfDotInName).Trim('.');
+                            }
+                            //mark with # and add the assembly name
+                            var rp = @class["rp"].ToString();
+                            var htmlIndex = rp.IndexOf(".html");
+                            @class["rp"] = $"#{assemblyName}{assemblyClassDelimiter}{className + ".html" + rp.Substring(htmlIndex + 5)}";
+                        }
 
-				}
-				var assembliesReplaced = assemblies.ToString();
-				htmlSb.Replace(assembliesToReplace, assembliesReplaced);
+                    }
+                    foreach (var autoGeneratedRemoval in autoGeneratedRemovals)
+                    {
+                        classes.Remove(autoGeneratedRemoval);
+                    }
 
-				//is this even present if there are no riskhotspots
-				var riskHotspotsSearch = "var riskHotspots = [";
-				var rhStartIndex = outerHtml.IndexOf(riskHotspotsSearch) + riskHotspotsSearch.Length - 1;
-				var rhEndIndex = outerHtml.IndexOf("var branchCoverageAvailable");
-				var rhToReplace = outerHtml.Substring(rhStartIndex, rhEndIndex - rhStartIndex);
-				rhEndIndex = rhToReplace.LastIndexOf(']');
-				rhToReplace = rhToReplace.Substring(0, rhEndIndex + 1);
+                }
+                var assembliesReplaced = assemblies.ToString();
+                htmlSb.Replace(assembliesToReplace, assembliesReplaced);
 
-				var riskHotspots = JArray.Parse(rhToReplace);
-				foreach (JObject riskHotspot in riskHotspots)
-				{
-					var assembly = riskHotspot["assembly"].ToString();
-					var qualifiedClassName = riskHotspot["class"].ToString();
-					if (!namespacedClasses)
-					{
-						// simplify name
-						var lastIndexOfDotInName = qualifiedClassName.LastIndexOf('.');
-						if (lastIndexOfDotInName != -1) riskHotspot["class"] = qualifiedClassName.Substring(lastIndexOfDotInName).Trim('.');
-					}
-					var newReportPath = $"#{assembly}{assemblyClassDelimiter}{qualifiedClassName}.html";
-					riskHotspot["reportPath"] = newReportPath;
-				}
-				var riskHotspotsReplaced = riskHotspots.ToString();
-				htmlSb.Replace(rhToReplace, riskHotspotsReplaced);
+                //is this even present if there are no riskhotspots
+                var riskHotspotsSearch = "var riskHotspots = [";
+                var rhStartIndex = outerHtml.IndexOf(riskHotspotsSearch) + riskHotspotsSearch.Length - 1;
+                var rhEndIndex = outerHtml.IndexOf("var branchCoverageAvailable");
+                var rhToReplace = outerHtml.Substring(rhStartIndex, rhEndIndex - rhStartIndex);
+                rhEndIndex = rhToReplace.LastIndexOf(']');
+                rhToReplace = rhToReplace.Substring(0, rhEndIndex + 1);
 
-				htmlSb.Replace(".table-fixed", ".table-fixed-ignore-me");
+                var riskHotspots = JArray.Parse(rhToReplace);
+                foreach (JObject riskHotspot in riskHotspots)
+                {
+                    var assembly = riskHotspot["assembly"].ToString();
+                    var qualifiedClassName = riskHotspot["class"].ToString();
+                    if (!namespacedClasses)
+                    {
+                        // simplify name
+                        var lastIndexOfDotInName = qualifiedClassName.LastIndexOf('.');
+                        if (lastIndexOfDotInName != -1) riskHotspot["class"] = qualifiedClassName.Substring(lastIndexOfDotInName).Trim('.');
+                    }
+                    var newReportPath = $"#{assembly}{assemblyClassDelimiter}{qualifiedClassName}.html";
+                    riskHotspot["reportPath"] = newReportPath;
+                }
+                var riskHotspotsReplaced = riskHotspots.ToString();
+                htmlSb.Replace(rhToReplace, riskHotspotsReplaced);
 
-				var fontColour = jsReportColours.FontColour;
-				var scrollbarThumbColour = jsReportColours.ScrollBarThumbColour;
-				var sliderThumbColour = jsReportColours.SliderThumbColour;
-				htmlSb.Replace("</head>", $@"
+                htmlSb.Replace(".table-fixed", ".table-fixed-ignore-me");
+
+                var fontColour = jsReportColours.FontColour;
+                var scrollbarThumbColour = jsReportColours.ScrollBarThumbColour;
+                var sliderThumbColour = jsReportColours.SliderThumbColour;
+                htmlSb.Replace("</head>", $@"
 				<style id=""fccStyle1"" type=""text/css"">
 					*, body {{ font-family:{FontName};font-size: {FontSize}; color: {fontColour}}}
 					button {{ cursor:pointer; padding:10px; color: {jsReportColours.ButtonTextColour}; background:{jsReportColours.ButtonColour}; border-color:{jsReportColours.ButtonBorderColour}}}
@@ -1058,7 +1058,7 @@ risk-hotspots > div > table > thead > tr > th:last-of-type > a:last-of-type {
 				</head>
 			");
 
-				htmlSb.Replace("</body>", $@"
+                htmlSb.Replace("</body>", $@"
 					<script type=""text/javascript"">
 						{GetStickyTableHead()}
 						{HackGroupingToAllowAll(groupingLevel)}
@@ -1231,7 +1231,7 @@ risk-hotspots > div > table > thead > tr > th:last-of-type > a:last-of-type {
 					</body>
 				");
 
-				htmlSb.Replace("</head>", $@"
+                htmlSb.Replace("</head>", $@"
 				<style type=""text/css"" id='fccMediaStyle'>
 					@media screen and (-ms-high-contrast:active){{
 						table.coverage > td.green{{ background-color: windowText }}
@@ -1245,7 +1245,7 @@ risk-hotspots > div > table > thead > tr > th:last-of-type > a:last-of-type {
 				</head>
 			");
 
-				htmlSb.Replace("<body>", $@"
+                htmlSb.Replace("<body>", $@"
 					<body oncontextmenu='return false;'>
 					<style id='fccStyle2'>
 						#divHeader {{
@@ -1479,98 +1479,98 @@ risk-hotspots > div > table > thead > tr > th:last-of-type > a:last-of-type {
 
                 if (!showBranchCoverage)
                 {
-					htmlSb.Replace("branchCoverageAvailable = true", "branchCoverageAvailable = false");
-				}
-				
-				var processed = string.Join(
-				Environment.NewLine,
-				htmlSb.ToString().Split('\r', '\n')
-				.Select(line =>
-				{
-					// modify column widths
+                    htmlSb.Replace("branchCoverageAvailable = true", "branchCoverageAvailable = false");
+                }
 
-					if (line.StartsWith(".column"))
-					{
-						line = $"{line.Substring(0, line.IndexOf('{')).Trim('{')} {{white-space: nowrap; width:1%;}}";
-					}
+                var processed = string.Join(
+                Environment.NewLine,
+                htmlSb.ToString().Split('\r', '\n')
+                .Select(line =>
+                {
+                    // modify column widths
 
-					// modify coverage data
+                    if (line.StartsWith(".column"))
+                    {
+                        line = $"{line.Substring(0, line.IndexOf('{')).Trim('{')} {{white-space: nowrap; width:1%;}}";
+                    }
 
-					if (line.IndexOf(@"""name"":") != -1 && line.IndexOf(@"""rp"":") != -1 && line.IndexOf(@"""cl"":") != -1)
-					{
-						var lineJO = JObject.Parse(line.TrimEnd(','));
-						var name = lineJO.Value<string>("name");
+                    // modify coverage data
 
-						if (name.Equals("AutoGeneratedProgram"))
-						{
-							// output line
+                    if (line.IndexOf(@"""name"":") != -1 && line.IndexOf(@"""rp"":") != -1 && line.IndexOf(@"""cl"":") != -1)
+                    {
+                        var lineJO = JObject.Parse(line.TrimEnd(','));
+                        var name = lineJO.Value<string>("name");
 
-							line = string.Empty;
-						}
-						else
-						{
-							// simplify name
+                        if (name.Equals("AutoGeneratedProgram"))
+                        {
+                            // output line
 
-							var lastIndexOfDotInName = name.LastIndexOf('.');
-							if (lastIndexOfDotInName != -1) lineJO["name"] = name.Substring(lastIndexOfDotInName).Trim('.');
+                            line = string.Empty;
+                        }
+                        else
+                        {
+                            // simplify name
 
-							// prefix the url with #
+                            var lastIndexOfDotInName = name.LastIndexOf('.');
+                            if (lastIndexOfDotInName != -1) lineJO["name"] = name.Substring(lastIndexOfDotInName).Trim('.');
 
-							lineJO["rp"] = $"#{lineJO.Value<string>("rp")}";
+                            // prefix the url with #
 
-							// output line
+                            lineJO["rp"] = $"#{lineJO.Value<string>("rp")}";
 
-							line = $"{lineJO.ToString(Formatting.None)},";
-						}
-					}
+                            // output line
 
-					// modify risk host spots data
+                            line = $"{lineJO.ToString(Formatting.None)},";
+                        }
+                    }
 
-					if (line.IndexOf(@"""assembly"":") != -1 && line.IndexOf(@"""class"":") != -1 && line.IndexOf(@"""reportPath"":") != -1)
-					{
-						var lineJO = JObject.Parse($"{{ {line.TrimEnd(',')} }}");
+                    // modify risk host spots data
 
-						// simplify class
+                    if (line.IndexOf(@"""assembly"":") != -1 && line.IndexOf(@"""class"":") != -1 && line.IndexOf(@"""reportPath"":") != -1)
+                    {
+                        var lineJO = JObject.Parse($"{{ {line.TrimEnd(',')} }}");
 
-						var _class = lineJO.Value<string>("class");
-						var lastIndexOfDotInClass = _class.LastIndexOf('.');
-						if (lastIndexOfDotInClass != -1) lineJO["class"] = _class.Substring(lastIndexOfDotInClass).Trim('.');
+                        // simplify class
 
-						// prefix the urls with #
+                        var _class = lineJO.Value<string>("class");
+                        var lastIndexOfDotInClass = _class.LastIndexOf('.');
+                        if (lastIndexOfDotInClass != -1) lineJO["class"] = _class.Substring(lastIndexOfDotInClass).Trim('.');
 
-						lineJO["reportPath"] = $"#{lineJO.Value<string>("reportPath")}";
+                        // prefix the urls with #
 
-						// output line
+                        lineJO["reportPath"] = $"#{lineJO.Value<string>("reportPath")}";
 
-						line = $"{lineJO.ToString(Formatting.None).Trim('{', '}')},";
-					}
+                        // output line
 
-					return line;
-				}));
+                        line = $"{lineJO.ToString(Formatting.None).Trim('{', '}')},";
+                    }
 
-				if (reportOutputFolder != null)
-				{
-					var processedHtmlFile = Path.Combine(reportOutputFolder, "index-processed.html");
-					File.WriteAllText(processedHtmlFile, processed);
-				}
+                    return line;
+                }));
 
-				return processed;
+                if (reportOutputFolder != null)
+                {
+                    var processedHtmlFile = Path.Combine(reportOutputFolder, "index-processed.html");
+                    File.WriteAllText(processedHtmlFile, processed);
+                }
 
-			});
-		}
+                return processed;
 
-		private void PreventBrowserHistory(StringBuilder documentStringBuilder)
-        {
-			documentStringBuilder.Replace(
-				@"{key:""onDonBeforeUnlodad"",value:function(){if(this.saveCollapseState(),void 0!==this.window.history&&void 0!==this.window.history.replaceState){console.log(""Coverage info: Updating history"",this.settings);var e=null;(e=null!==window.history.state?JSON.parse(JSON.stringify(this.window.history.state)):new Gc).coverageInfoSettings=JSON.parse(JSON.stringify(this.settings)),window.history.replaceState(e,null)}}},",
-				@"{key:""onDonBeforeUnlodad"",value: function(){}},");
+            });
         }
 
-		private void FixCollapse(StringBuilder documentStringBuilder)
+        private void PreventBrowserHistory(StringBuilder documentStringBuilder)
         {
-			documentStringBuilder.Replace(
-				@"{key:""saveCollapseState"",value:function(){var e=this;this.settings.collapseStates=[],function t(n){for(var r=0;r<n.length;r++)e.settings.collapseStates.push(n[r].collapsed),t(n[r].subElements)}(this.codeElements)}},{key:""restoreCollapseState"",value:function(){var e=this,t=0;!function n(r){for(var i=0;i<r.length;i++)e.settings.collapseStates.length>t&&(r[i].collapsed=e.settings.collapseStates[t]),t++,n(r[i].subElements)}(this.codeElements)}}",
-				@"{
+            documentStringBuilder.Replace(
+                @"{key:""onDonBeforeUnlodad"",value:function(){if(this.saveCollapseState(),void 0!==this.window.history&&void 0!==this.window.history.replaceState){console.log(""Coverage info: Updating history"",this.settings);var e=null;(e=null!==window.history.state?JSON.parse(JSON.stringify(this.window.history.state)):new Gc).coverageInfoSettings=JSON.parse(JSON.stringify(this.settings)),window.history.replaceState(e,null)}}},",
+                @"{key:""onDonBeforeUnlodad"",value: function(){}},");
+        }
+
+        private void FixCollapse(StringBuilder documentStringBuilder)
+        {
+            documentStringBuilder.Replace(
+                @"{key:""saveCollapseState"",value:function(){var e=this;this.settings.collapseStates=[],function t(n){for(var r=0;r<n.length;r++)e.settings.collapseStates.push(n[r].collapsed),t(n[r].subElements)}(this.codeElements)}},{key:""restoreCollapseState"",value:function(){var e=this,t=0;!function n(r){for(var i=0;i<r.length;i++)e.settings.collapseStates.length>t&&(r[i].collapsed=e.settings.collapseStates[t]),t++,n(r[i].subElements)}(this.codeElements)}}",
+                @"{
 					key:""saveCollapseState"",
 					value:function(){
 						var e=this;
@@ -1613,11 +1613,11 @@ risk-hotspots > div > table > thead > tr > th:last-of-type > a:last-of-type {
 				}");
         }
 
-		private void FixGroupingMax(StringBuilder documentStringBuilder)
+        private void FixGroupingMax(StringBuilder documentStringBuilder)
         {
-			documentStringBuilder.Replace(
-				@"{key:""ngOnInit"",value:function(){this.historicCoverageExecutionTimes=this.window.historicCoverageExecutionTimes,this.branchCoverageAvailable=this.window.branchCoverageAvailable,this.translations=this.window.translations;var e=!1;if(void 0!==this.window.history&&void 0!==this.window.history.replaceState&&null!==this.window.history.state&&null!=this.window.history.state.coverageInfoSettings)console.log(""Coverage info: Restoring from history"",this.window.history.state.coverageInfoSettings),e=!0,this.settings=JSON.parse(JSON.stringify(this.window.history.state.coverageInfoSettings));else{for(var t=0,n=this.window.assemblies,r=0;r<n.length;r++)for(var i=0;i<n[r].classes.length;i++)t=Math.max(t,(n[r].classes[i].name.match(/\./g)||[]).length);this.settings.groupingMaximum=t,console.log(""Grouping maximum: ""+t)}var o=window.location.href.indexOf(""?"");o>-1&&(this.queryString=window.location.href.substr(o)),this.updateCoverageInfo(),e&&this.restoreCollapseState()}}",
-				@"{key:""ngOnInit"",value:function(){
+            documentStringBuilder.Replace(
+                @"{key:""ngOnInit"",value:function(){this.historicCoverageExecutionTimes=this.window.historicCoverageExecutionTimes,this.branchCoverageAvailable=this.window.branchCoverageAvailable,this.translations=this.window.translations;var e=!1;if(void 0!==this.window.history&&void 0!==this.window.history.replaceState&&null!==this.window.history.state&&null!=this.window.history.state.coverageInfoSettings)console.log(""Coverage info: Restoring from history"",this.window.history.state.coverageInfoSettings),e=!0,this.settings=JSON.parse(JSON.stringify(this.window.history.state.coverageInfoSettings));else{for(var t=0,n=this.window.assemblies,r=0;r<n.length;r++)for(var i=0;i<n[r].classes.length;i++)t=Math.max(t,(n[r].classes[i].name.match(/\./g)||[]).length);this.settings.groupingMaximum=t,console.log(""Grouping maximum: ""+t)}var o=window.location.href.indexOf(""?"");o>-1&&(this.queryString=window.location.href.substr(o)),this.updateCoverageInfo(),e&&this.restoreCollapseState()}}",
+                @"{key:""ngOnInit"",value:function(){
 					this.historicCoverageExecutionTimes=this.window.historicCoverageExecutionTimes;
                     this.branchCoverageAvailable=this.window.branchCoverageAvailable;
                     this.translations=this.window.translations;
@@ -1647,89 +1647,89 @@ risk-hotspots > div > table > thead > tr > th:last-of-type > a:last-of-type {
 
         }
 
-		private void HideRowsFromOverviewTable(HtmlDocument doc)
+        private void HideRowsFromOverviewTable(HtmlDocument doc)
         {
-			var table = doc.DocumentNode.QuerySelectorAll("table.overview").First();
-			var tableRows = table.QuerySelectorAll("tr").ToArray();
-			try { tableRows[0].SetAttributeValue("style", "display:none"); } catch { } // generated on
-			try { tableRows[1].SetAttributeValue("style", "display:none"); } catch { } // parser
-			if (!showBranchCoverage)
-			{
-				try { tableRows[10].SetAttributeValue("style", "display:none"); } catch { } // covered branches
-				try { tableRows[11].SetAttributeValue("style", "display:none"); } catch { } // total branches
-				try { tableRows[12].SetAttributeValue("style", "display:none"); } catch { } // branch coverage
-			}
-		}
+            var table = doc.DocumentNode.QuerySelectorAll("table.overview").First();
+            var tableRows = table.QuerySelectorAll("tr").ToArray();
+            try { tableRows[0].SetAttributeValue("style", "display:none"); } catch { } // generated on
+            try { tableRows[1].SetAttributeValue("style", "display:none"); } catch { } // parser
+            if (!showBranchCoverage)
+            {
+                try { tableRows[10].SetAttributeValue("style", "display:none"); } catch { } // covered branches
+                try { tableRows[11].SetAttributeValue("style", "display:none"); } catch { } // total branches
+                try { tableRows[12].SetAttributeValue("style", "display:none"); } catch { } // branch coverage
+            }
+        }
 
-		private (int cyclomaticThreshold, int crapScoreThreshold, int nPathThreshold) HotspotThresholds()
+        private (int cyclomaticThreshold, int crapScoreThreshold, int nPathThreshold) HotspotThresholds()
         {
-			var options = appOptionsProvider.Get();
-			return (
-				options.ThresholdForCyclomaticComplexity,
-				options.ThresholdForCrapScore,
-				options.ThresholdForNPathComplexity
-			);
+            var options = appOptionsProvider.Get();
+            return (
+                options.ThresholdForCyclomaticComplexity,
+                options.ThresholdForCrapScore,
+                options.ThresholdForNPathComplexity
+            );
 
-		}
+        }
 
-		private void ReportColoursProvider_ColoursChanged(object sender, IReportColours reportColours)
-		{
-			ReprocessReport();
-		}
+        private void ReportColoursProvider_ColoursChanged(object sender, IReportColours reportColours)
+        {
+            ReprocessReport();
+        }
 
         public string BlankReport(bool withHistory)
         {
             if (!withHistory)
             {
-				logs.Clear();
+                logs.Clear();
             }
-			return ProcessUnifiedHtml(resourceProvider.ReadResource("dummyReportToProcess.html"),null);
+            return ProcessUnifiedHtml(resourceProvider.ReadResource("dummyReportToProcess.html"), null);
         }
 
         public async System.Threading.Tasks.Task LogCoverageProcessAsync(string message)
         {
-			await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-			eventAggregator.SendMessage(new InvokeScriptMessage(CoverageLogJSFunctionName, message));
-			logs.Add(message);
-		}
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+            eventAggregator.SendMessage(new InvokeScriptMessage(CoverageLogJSFunctionName, message));
+            logs.Add(message);
+        }
 
         public async System.Threading.Tasks.Task EndOfCoverageRunAsync()
         {
-			await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-			eventAggregator.SendMessage(new InvokeScriptMessage(ShowFCCWorkingJSFunctionName, false));
-		}
-		
-		public void UpdateReportWithDpiFontChanges()
-        {
-			if (unprocessedReport !=null && previousFontSizeName != GetFontNameSize())
-			{
-				ReprocessReport();
-			}
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+            eventAggregator.SendMessage(new InvokeScriptMessage(ShowFCCWorkingJSFunctionName, false));
         }
 
-		private void ReprocessReport()
+        public void UpdateReportWithDpiFontChanges()
         {
-			var newReport = ProcessUnifiedHtml(unprocessedReport, previousReportOutputFolder);
-			eventAggregator.SendMessage(new NewReportMessage { Report = newReport });
-		}
+            if (unprocessedReport != null && previousFontSizeName != GetFontNameSize())
+            {
+                ReprocessReport();
+            }
+        }
 
-		public void Handle(EnvironmentFontDetailsChangedMessage message)
-		{
-			environmentFontDetails = message.FontDetails;
-			UpdateReportWithDpiFontChanges();
-		}
+        private void ReprocessReport()
+        {
+            var newReport = ProcessUnifiedHtml(unprocessedReport, previousReportOutputFolder);
+            eventAggregator.SendMessage(new NewReportMessage { Report = newReport });
+        }
 
-		public void Handle(DpiChangedMessage message)
-		{
-			dpiScale = message.DpiScale;
-			UpdateReportWithDpiFontChanges();
-		}
+        public void Handle(EnvironmentFontDetailsChangedMessage message)
+        {
+            environmentFontDetails = message.FontDetails;
+            UpdateReportWithDpiFontChanges();
+        }
 
-		public void Handle(ReadyForReportMessage message)
-		{
-			var newReport = BlankReport(false);
-			eventAggregator.SendMessage(new ObjectForScriptingMessage { ObjectForScripting = scriptManager });
-			eventAggregator.SendMessage(new NewReportMessage { Report = newReport });
-		}
-	}
+        public void Handle(DpiChangedMessage message)
+        {
+            dpiScale = message.DpiScale;
+            UpdateReportWithDpiFontChanges();
+        }
+
+        public void Handle(ReadyForReportMessage message)
+        {
+            var newReport = BlankReport(false);
+            eventAggregator.SendMessage(new ObjectForScriptingMessage { ObjectForScripting = scriptManager });
+            eventAggregator.SendMessage(new NewReportMessage { Report = newReport });
+        }
+    }
 }
