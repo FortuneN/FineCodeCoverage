@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using AutoMoq;
-using FineCodeCoverage.Core.Model;
 using FineCodeCoverage.Engine;
 using FineCodeCoverage.Engine.Model;
 using FineCodeCoverage.Impl;
