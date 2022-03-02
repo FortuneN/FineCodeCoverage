@@ -248,7 +248,7 @@ namespace FineCodeCoverage.Engine
             }
         }
 
-        private async System.Threading.Tasks.Task ReloadCoverageTaskContinuationAsync(System.Threading.Tasks.Task<(List<CoverageLine> coverageLines, string reportHtml)> t)
+        private async System.Threading.Tasks.Task DisplayCoverageResultAsync(System.Threading.Tasks.Task<(List<CoverageLine> coverageLines, string reportHtml)> t)
         {
             switch (t.Status)
             {
@@ -317,19 +317,15 @@ namespace FineCodeCoverage.Engine
 
                 if (coverOutputFiles.Any())
                 {
-                    var (lines, report) = await RunAndProcessReportAsync(coverOutputFiles,reportOutputFolder,cancellationToken);
+                    var (lines, report) = await RunAndProcessReportAsync(coverOutputFiles, reportOutputFolder, cancellationToken);
                     coverageLines = lines;
                     reportHtml = report;
                 }
 
                 return (coverageLines, reportHtml);
-                 
-            }, cancellationToken)
-            .ContinueWith(t =>
-            {
-                _ = ReloadCoverageTaskContinuationAsync(t);
 
-              }, System.Threading.Tasks.TaskScheduler.Default);
+            }, cancellationToken)
+            .ContinueWith(DisplayCoverageResultAsync, System.Threading.Tasks.TaskScheduler.Default); 
 
         }
     }
