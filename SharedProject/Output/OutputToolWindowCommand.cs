@@ -26,14 +26,17 @@ namespace FineCodeCoverage.Output
 		/// </summary>
 		private readonly AsyncPackage package;
 
+		private readonly ILogger logger;
+
 		/// <summary>
 		/// Initializes a new instance of the <see cref="OutputToolWindowCommand"/> class.
 		/// Adds our command handlers for menu (commands must exist in the command table file)
 		/// </summary>
 		/// <param name="package">Owner package, not null.</param>
 		/// <param name="commandService">Command service to add command to, not null.</param>
-		private OutputToolWindowCommand(AsyncPackage package, OleMenuCommandService commandService)
+		private OutputToolWindowCommand(AsyncPackage package, OleMenuCommandService commandService, ILogger logger)
 		{
+			this.logger = logger;
 			this.package = package ?? throw new ArgumentNullException(nameof(package));
 			commandService = commandService ?? throw new ArgumentNullException(nameof(commandService));
 
@@ -66,14 +69,14 @@ namespace FineCodeCoverage.Output
 		/// Initializes the singleton instance of the command.
 		/// </summary>
 		/// <param name="package">Owner package, not null.</param>
-		public static async Task InitializeAsync(AsyncPackage package)
+		public static async Task InitializeAsync(AsyncPackage package, ILogger logger)
 		{
 			// Switch to the main thread - the call to AddCommand in OutputToolWindowCommand's constructor requires
 			// the UI thread.
 			await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(package.DisposalToken);
 
 			OleMenuCommandService commandService = await package.GetServiceAsync((typeof(IMenuCommandService))) as OleMenuCommandService;
-			Instance = new OutputToolWindowCommand(package, commandService);
+			Instance = new OutputToolWindowCommand(package, commandService, logger);
 		}
 
 		/// <summary>
@@ -83,26 +86,37 @@ namespace FineCodeCoverage.Output
 		/// <param name="e">The event args.</param>
 		public void Execute(object sender, EventArgs e)
 		{
-            _ = ThreadHelper.JoinableTaskFactory.RunAsync(ShowToolWindowAsync);
-		}
+            _ = ThreadHelper.JoinableTaskFactory.RunAsync(async () =>
+			{
+                try
+                {
+                    await ShowToolWindowAsync();
+                }
+                catch (Exception exception)
+                {
+                    logger.Log(exception);
+                }
+            });
+
+        }
 
 		public async Task<ToolWindowPane> ShowToolWindowAsync()
 		{
             ToolWindowPane window = await package.ShowToolWindowAsync(typeof(OutputToolWindow), 0, true, package.DisposalToken);
 
-            if ((null == window) || (null == window.Frame))
-			{
-				throw new NotSupportedException($"Cannot create '{Vsix.Name}' output window");
-			}
-
-			return window;
+			return ReturnOrThrowIfCannotCreateToolWindow(window);
 		}
 
 		public async Task<ToolWindowPane> FindToolWindowAsync()
 		{
             ToolWindowPane window = await package.FindToolWindowAsync(typeof(OutputToolWindow), 0, true, package.DisposalToken);
 
-            if ((null == window) || (null == window.Frame))
+            return ReturnOrThrowIfCannotCreateToolWindow(window);
+		}
+
+		private ToolWindowPane ReturnOrThrowIfCannotCreateToolWindow(ToolWindowPane window)
+        {
+			if ((null == window) || (null == window.Frame))
 			{
 				throw new NotSupportedException($"Cannot create '{Vsix.Name}' output window");
 			}
