@@ -78,7 +78,6 @@ public interface IEventSubscriptionManager
     /// <param name="listener">Object that should be implementing IListener(of T's), this overload is used when your listeners to multiple message types</param>
     /// <param name="holdStrongReference">determines if the EventAggregator should hold a weak or strong reference to the listener object. If null it will use the Config level option unless overriden by the parameter.</param>
     /// <returns>Returns the current IEventSubscriptionManager to allow for easy fluent additions.</returns>
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
     IEventSubscriptionManager AddListener(object listener, bool? holdStrongReference = null);
 
     /// <summary>
@@ -100,11 +99,8 @@ public interface IEventSubscriptionManager
 
 public interface IEventPublisher
 {
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
     void SendMessage<TMessage>(TMessage message, Action<Action> marshal = null);
 
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1004:GenericMethodsShouldProvideTypeParameter"),
-     System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
     void SendMessage<TMessage>(Action<Action> marshal = null)
         where TMessage : new();
 }
@@ -135,7 +131,6 @@ public class EventAggregator : IEventAggregator
     /// <typeparam name="TMessage">The type of message being sent</typeparam>
     /// <param name="message">The message instance</param>
     /// <param name="marshal">You can optionally override how the message publication action is marshalled</param>
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
     public void SendMessage<TMessage>(TMessage message, Action<Action> marshal = null)
     {
         if (marshal == null)
@@ -149,9 +144,6 @@ public class EventAggregator : IEventAggregator
     /// </summary>
     /// <typeparam name="TMessage">The type of message being sent</typeparam>
     /// <param name="marshal">You can optionally override how the message publication action is marshalled</param>
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed"),
-     System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design",
-         "CA1004:GenericMethodsShouldProvideTypeParameter")]
     public void SendMessage<TMessage>(Action<Action> marshal = null)
         where TMessage : new()
     {
@@ -166,8 +158,7 @@ public class EventAggregator : IEventAggregator
         {
             foreach (ListenerWrapper o in _listeners.Where(o => o.Handles<TListener>() || o.HandlesMessage(message)))
             {
-                bool wasThisOneCalled;
-                o.TryHandle<TListener>(message, out wasThisOneCalled);
+                o.TryHandle<TListener>(message, out bool wasThisOneCalled);
                 if (wasThisOneCalled)
                     listenerCalledCount++;
             }
@@ -224,9 +215,8 @@ public class EventAggregator : IEventAggregator
 
         public void RemoveListener(object listener)
         {
-            ListenerWrapper listenerWrapper;
             lock (_sync)
-                if (TryGetListenerWrapperByListener(listener, out listenerWrapper))
+                if (TryGetListenerWrapperByListener(listener, out ListenerWrapper listenerWrapper))
                     _listeners.Remove(listenerWrapper);
         }
 
@@ -249,8 +239,7 @@ public class EventAggregator : IEventAggregator
 
         private bool ContainsListener(object listener)
         {
-            ListenerWrapper listenerWrapper;
-            return TryGetListenerWrapperByListener(listener, out listenerWrapper);
+            return TryGetListenerWrapperByListener(listener, out _);
         }
 
         private bool TryGetListenerWrapperByListener(object listener, out ListenerWrapper listenerWrapper)
@@ -373,8 +362,7 @@ public class EventAggregator : IEventAggregator
 
             foreach (var handler in _handlers)
             {
-                bool thisOneHandled = false;
-                handler.TryHandle<TListener>(target, message, out thisOneHandled);
+                handler.TryHandle<TListener>(target, message, out bool thisOneHandled);
                 wasHandled |= thisOneHandled;
             }
         }
@@ -414,9 +402,8 @@ public class EventAggregator : IEventAggregator
                 return false;
             }
 
-            bool handled;
             Type messageType = message.GetType();
-            bool previousMessageType = supportedMessageTypes.TryGetValue(messageType, out handled);
+            bool previousMessageType = supportedMessageTypes.TryGetValue(messageType, out bool handled);
             if (!previousMessageType && _supportMessageInheritance)
             {
                 handled = TypeHelper.IsAssignableFrom(_messageType, messageType);
@@ -524,7 +511,6 @@ public class EventAggregator : IEventAggregator
         }
     }
 
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1034:NestedTypesShouldNotBeVisible")]
     public class Config
     {
         private Action<object> _onMessageNotPublishedBecauseZeroListeners = msg =>
