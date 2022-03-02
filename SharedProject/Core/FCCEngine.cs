@@ -269,6 +269,8 @@ namespace FineCodeCoverage.Engine
                     break;
             }
             reportGeneratorUtil.EndOfCoverageRun();
+            cancellationTokenSource.Dispose();
+            cancellationTokenSource = null;
 
         }
 
@@ -328,6 +330,7 @@ namespace FineCodeCoverage.Engine
             .ContinueWith(DisplayCoverageResult, System.Threading.Tasks.TaskScheduler.Default); 
 
         }
+
     }
 
 }
