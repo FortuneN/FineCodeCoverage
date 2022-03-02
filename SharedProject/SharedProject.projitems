@@ -91,7 +91,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Core\ReportGenerator\ReportGeneratorUtil.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\ReportGenerator\ThemeResourceKeyProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\SourceFileOpener.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Core\SVsColorThemeService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\AssemblyUtil.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\ComparableFile.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\DotNet\DotNetConfigFinder.cs" />
