@@ -39,7 +39,9 @@ namespace FineCodeCoverage.Engine
         private IInitializeStatusProvider initializeStatusProvider;
         private readonly ICoverageToolOutputManager coverageOutputManager;
         internal System.Threading.Tasks.Task reloadCoverageTask;
-        private ISolutionEvents solutionEvents; // keep alive
+#pragma warning disable IDE0052 // Remove unread private members
+        private readonly ISolutionEvents solutionEvents; // keep alive
+#pragma warning restore IDE0052 // Remove unread private members
         private readonly IEventAggregator eventAggregator;
 
         [ImportingConstructor]

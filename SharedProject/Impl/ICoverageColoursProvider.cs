@@ -1,8 +1,10 @@
-﻿namespace FineCodeCoverage.Impl
+﻿using System.Threading.Tasks;
+
+namespace FineCodeCoverage.Impl
 {
     internal interface ICoverageColoursProvider
     {
-        void UpdateRequired();
+        Task PrepareAsync();
        
     }
 
