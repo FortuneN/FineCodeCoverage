@@ -22,7 +22,7 @@ namespace FineCodeCoverage.Options
         }
         internal AppOptions(bool isReadOnly)
         {
-            if (!isReadOnly)
+            if (!isReadOnly && AppOptionsStorageProvider == null)
             {
                 ThreadHelper.JoinableTaskFactory.Run(async () =>
                 {
