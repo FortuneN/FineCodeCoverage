@@ -62,6 +62,10 @@ namespace Test
         {
             mocker = new AutoMoqer();
             var testContainerDiscoverer = mocker.Create<TestContainerDiscoverer>();
+            testContainerDiscoverer.RunAsync = (taskProvider) =>
+            {
+                taskProvider().Wait();
+            };
             testContainerDiscoverer.initializeThread.Join();
         }
 

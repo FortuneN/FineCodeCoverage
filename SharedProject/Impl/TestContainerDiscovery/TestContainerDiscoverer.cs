@@ -65,6 +65,11 @@ namespace FineCodeCoverage.Impl
             
         }
 
+        internal Action<Func<System.Threading.Tasks.Task>> RunAsync = (taskProvider) =>
+        {
+            _ = ThreadHelper.JoinableTaskFactory.RunAsync(taskProvider);
+        };
+
         private async System.Threading.Tasks.Task TestExecutionStartingAsync(IOperation operation)
         {
             fccEngine.StopCoverage();
@@ -125,15 +130,16 @@ namespace FineCodeCoverage.Impl
             }
             fccEngine.ReloadCoverage(testOperation.GetCoverageProjectsAsync);
         }
-
+        private bool cancelling;
         private void OperationState_StateChanged(object sender, OperationStateChangedEventArgs e)
         {
-            _ = ThreadHelper.JoinableTaskFactory.RunAsync(async () =>
+            RunAsync(async () =>
             {
                 try
                 {
                     if (e.State == TestOperationStates.TestExecutionCanceling)
                     {
+                        cancelling = true;
                         await CombinedLogAsync("Test execution cancelling - running coverage will be cancelled.");
                         await reportGeneratorUtil.EndOfCoverageRunAsync(); // not necessarily true but get desired result
                         fccEngine.StopCoverage();
@@ -143,6 +149,7 @@ namespace FineCodeCoverage.Impl
                     if (e.State == TestOperationStates.TestExecutionStarting)
                     {
                         await TestExecutionStartingAsync(e.Operation);
+                        cancelling = false;
                     }
 
                     if (e.State == TestOperationStates.TestExecutionFinished)
@@ -150,12 +157,13 @@ namespace FineCodeCoverage.Impl
                         await TestExecutionFinishedAsync(e.Operation);
                     }
 
-                    if (e.State == TestOperationStates.TestExecutionCancelAndFinished)
+                    if (e.State == TestOperationStates.TestExecutionCancelAndFinished && !cancelling)
                     {
                         await CombinedLogAsync("There has been an issue running tests. See the Tests output window pane.");
                         await reportGeneratorUtil.EndOfCoverageRunAsync(); // not necessarily true but get desired result
-                    fccEngine.StopCoverage();
+                        fccEngine.StopCoverage();
                     }
+                    
                 }
                 catch (Exception exception)
                 {
