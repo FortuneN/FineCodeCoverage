@@ -5,7 +5,6 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
 using FineCodeCoverage.Engine.Model;
 using System.Linq;
-using Microsoft.VisualStudio.Shell;
 
 namespace FineCodeCoverage.Impl
 {
@@ -13,30 +12,21 @@ namespace FineCodeCoverage.Impl
 	{
 		private readonly ITextBuffer _textBuffer;
         private readonly IFCCEngine fccEngine;
-		private readonly ICoverageColoursProvider coverageColoursProvider;
 
 		public event EventHandler<SnapshotSpanEventArgs> TagsChanged;
 
-		public CoverageLineGlyphTagger(ITextBuffer textBuffer, IFCCEngine fccEngine, ICoverageColoursProvider coverageColoursProvider)
+		public CoverageLineGlyphTagger(ITextBuffer textBuffer, IFCCEngine fccEngine)
 		{
 			_textBuffer = textBuffer;
             this.fccEngine = fccEngine;
-            this.coverageColoursProvider = coverageColoursProvider;
             fccEngine.UpdateMarginTags += FCCEngine_UpdateMarginTags;
 		}
 
 		private void FCCEngine_UpdateMarginTags(UpdateMarginTagsEventArgs e)
 		{
-#pragma warning disable VSTHRD102 // Implement internal logic asynchronously
-			ThreadHelper.JoinableTaskFactory.Run(async () =>
-#pragma warning restore VSTHRD102 // Implement internal logic asynchronously
-			{
-				await coverageColoursProvider.PrepareAsync();
-				var span = new SnapshotSpan(_textBuffer.CurrentSnapshot, 0, _textBuffer.CurrentSnapshot.Length);
-				var spanEventArgs = new SnapshotSpanEventArgs(span);
-				TagsChanged?.Invoke(this, spanEventArgs);
-			});
-			
+			var span = new SnapshotSpan(_textBuffer.CurrentSnapshot, 0, _textBuffer.CurrentSnapshot.Length);
+			var spanEventArgs = new SnapshotSpanEventArgs(span);
+			TagsChanged?.Invoke(this, spanEventArgs);
 		}
 
 		IEnumerable<ITagSpan<CoverageLineGlyphTag>> ITagger<CoverageLineGlyphTag>.GetTags(NormalizedSnapshotSpanCollection spans)
