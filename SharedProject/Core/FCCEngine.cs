@@ -146,7 +146,7 @@ namespace FineCodeCoverage.Engine
                 var coverageProjectHasFailed = coverageProject.HasFailed;
                 if (coverageProjectHasFailed) // todo remove step
                 {
-                    await reportGeneratorUtil.LogCoverageProcessAsync($"{coverageProject.ProjectName} failed : {coverageProject.FailureDescription}");
+                    reportGeneratorUtil.LogCoverageProcess($"{coverageProject.ProjectName} failed : {coverageProject.FailureDescription}");
                 }
                 await coverageProject.StepAsync("Run Coverage Tool", async (project) =>
                 {
@@ -154,11 +154,11 @@ namespace FineCodeCoverage.Engine
                     try
                     {
                         var coverageTool = coverageUtilManager.CoverageToolName(project);
-                        await reportGeneratorUtil.LogCoverageProcessAsync($"Starting {coverageTool} coverage for {project.ProjectName}");
+                        reportGeneratorUtil.LogCoverageProcess($"Starting {coverageTool} coverage for {project.ProjectName}");
                         await coverageUtilManager.RunCoverageAsync(project, true);
                     }catch(Exception exc)
                     {
-                        await reportGeneratorUtil.LogCoverageProcessAsync($"{coverageProject.ProjectName} failed : {exc}");
+                        reportGeneratorUtil.LogCoverageProcess($"{coverageProject.ProjectName} failed : {exc}");
                         throw exc;
                     }
                     if (!cancellationToken.IsCancellationRequested)
@@ -166,7 +166,7 @@ namespace FineCodeCoverage.Engine
                         var duration = DateTime.Now - start;
                         var durationMessage = $"Completed coverage for {coverageProject.ProjectName} : {duration}";
                         logger.Log(durationMessage);
-                        await reportGeneratorUtil.LogCoverageProcessAsync(durationMessage);
+                        reportGeneratorUtil.LogCoverageProcess(durationMessage);
                     }
                 });
             }
@@ -243,32 +243,32 @@ namespace FineCodeCoverage.Engine
                     }
                     logger.Log($"File synchronization duration : {fileSynchronizationDetails.Duration}");
                     var itemOrItems = logs.Count == 1 ? "item" : "items";
-                    await reportGeneratorUtil.LogCoverageProcessAsync($"File synchronization {logs.Count} {itemOrItems}, duration : {fileSynchronizationDetails.Duration}");
+                    reportGeneratorUtil.LogCoverageProcess($"File synchronization {logs.Count} {itemOrItems}, duration : {fileSynchronizationDetails.Duration}");
                 }
             }
         }
 
-        private async System.Threading.Tasks.Task DisplayCoverageResultAsync(System.Threading.Tasks.Task<(List<CoverageLine> coverageLines, string reportHtml)> t)
+        private void DisplayCoverageResult(System.Threading.Tasks.Task<(List<CoverageLine> coverageLines, string reportHtml)> t)
         {
             switch (t.Status)
             {
                 case System.Threading.Tasks.TaskStatus.Canceled:
                     LogReloadCoverageStatus(ReloadCoverageStatus.Cancelled);
-                    await reportGeneratorUtil.LogCoverageProcessAsync("Coverage cancelled");
+                    reportGeneratorUtil.LogCoverageProcess("Coverage cancelled");
                     break;
                 case System.Threading.Tasks.TaskStatus.Faulted:
                     LogReloadCoverageStatus(ReloadCoverageStatus.Error);
                     logger.Log(t.Exception.InnerExceptions[0]);
-                    await reportGeneratorUtil.LogCoverageProcessAsync(t.Exception.ToString());
+                    reportGeneratorUtil.LogCoverageProcess(t.Exception.ToString());
                     break;
                 case System.Threading.Tasks.TaskStatus.RanToCompletion:
                     LogReloadCoverageStatus(ReloadCoverageStatus.Done);
-#pragma warning disable VSTHRD103 // Call async methods when in an async method
+#pragma warning disable VSTHRD002 // Avoid problematic synchronous waits
                     UpdateUI(t.Result.coverageLines, t.Result.reportHtml);
-#pragma warning restore VSTHRD103 // Call async methods when in an async method
+#pragma warning restore VSTHRD002 // Avoid problematic synchronous waits
                     break;
             }
-            await reportGeneratorUtil.EndOfCoverageRunAsync();
+            reportGeneratorUtil.EndOfCoverageRun();
 
         }
 
@@ -284,7 +284,7 @@ namespace FineCodeCoverage.Engine
                         return;
                     
                     case InitializeStatus.Initializing:
-                        await reportGeneratorUtil.LogCoverageProcessAsync("Initializing");
+                        reportGeneratorUtil.LogCoverageProcess("Initializing");
                         LogReloadCoverageStatus(ReloadCoverageStatus.Initializing);
                         await System.Threading.Tasks.Task.Delay(InitializeWait);
                         break;
@@ -305,7 +305,7 @@ namespace FineCodeCoverage.Engine
 
                 await PollInitializedStatusAsync(cancellationToken);
 
-                await reportGeneratorUtil.LogCoverageProcessAsync("Starting coverage - full details in FCC Output Pane");
+                reportGeneratorUtil.LogCoverageProcess("Starting coverage - full details in FCC Output Pane");
                 LogReloadCoverageStatus(ReloadCoverageStatus.Start);
 
                 var coverageProjects = await coverageRequestCallback();
@@ -325,7 +325,7 @@ namespace FineCodeCoverage.Engine
                 return (coverageLines, reportHtml);
 
             }, cancellationToken)
-            .ContinueWith(DisplayCoverageResultAsync, System.Threading.Tasks.TaskScheduler.Default); 
+            .ContinueWith(DisplayCoverageResult, System.Threading.Tasks.TaskScheduler.Default); 
 
         }
     }

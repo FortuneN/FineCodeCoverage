@@ -26,8 +26,8 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 		string ProcessUnifiedHtml(string htmlForProcessing,string reportOutputFolder);
 		Task<ReportGeneratorResult> GenerateAsync(IEnumerable<string> coverOutputFiles,string reportOutputFolder, bool throwError = false);
         string BlankReport(bool withHistory);
-        Task LogCoverageProcessAsync(string message);
-		Task EndOfCoverageRunAsync();
+        void LogCoverageProcess(string message);
+		void EndOfCoverageRun();
     }
 
     internal class ReportGeneratorResult
@@ -216,23 +216,23 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 			var reportGeneratorResult = new ReportGeneratorResult { Success = false, UnifiedHtml = null, UnifiedXmlFile = unifiedXmlFile };
 
 			var startTime = DateTime.Now;
-			await LogCoverageProcessAsync("Generating cobertura report");
+			LogCoverageProcess("Generating cobertura report");
 			var coberturaResult = await run("Cobertura", string.Join(";", coverOutputFiles));
 			var duration = DateTime.Now - startTime;
 
 			if (coberturaResult)
 			{
 				var coberturaDurationMesage = $"Cobertura report generation duration - {duration}";
-				await LogCoverageProcessAsync(coberturaDurationMesage); // result output includes duration for normal log
+				LogCoverageProcess(coberturaDurationMesage); // result output includes duration for normal log
 
 				startTime = DateTime.Now;
-				await LogCoverageProcessAsync("Generating html report");
+				LogCoverageProcess("Generating html report");
 				var htmlResult = await run("HtmlInline_AzurePipelines", unifiedXmlFile);
 				duration = DateTime.Now - startTime;
 				if (htmlResult)
 				{
 					var htmlReportDurationMessage = $"Html report generation duration - {duration}";
-					await LogCoverageProcessAsync(htmlReportDurationMessage); // result output includes duration for normal log
+					LogCoverageProcess(htmlReportDurationMessage); // result output includes duration for normal log
 					reportGeneratorResult.UnifiedHtml = fileUtil.ReadAllText(unifiedHtmlFile);
 					reportGeneratorResult.Success = true;
 				}
@@ -1687,16 +1687,14 @@ risk-hotspots > div > table > thead > tr > th:last-of-type > a:last-of-type {
 			return ProcessUnifiedHtml(resourceProvider.ReadResource("dummyReportToProcess.html"),null);
         }
 
-        public async Task LogCoverageProcessAsync(string message)
+        public void LogCoverageProcess(string message)
         {
-			await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 			eventAggregator.SendMessage(new InvokeScriptMessage(CoverageLogJSFunctionName, message));
 			logs.Add(message);
 		}
 
-        public async Task EndOfCoverageRunAsync()
+        public void EndOfCoverageRun()
         {
-			await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 			eventAggregator.SendMessage(new InvokeScriptMessage(ShowFCCWorkingJSFunctionName, false));
 		}
 		

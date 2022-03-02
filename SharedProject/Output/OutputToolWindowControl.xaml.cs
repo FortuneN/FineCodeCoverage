@@ -73,8 +73,13 @@ namespace FineCodeCoverage.Output
 
         public void Handle(InvokeScriptMessage message)
         {
-            InvokeScript(message.ScriptName, message.Arguments);
-        }
+			ThreadHelper.JoinableTaskFactory.Run(async () =>
+			{
+				await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+
+				InvokeScript(message.ScriptName, message.Arguments);
+			});
+		}
 
         public void Handle(ObjectForScriptingMessage message)
         {

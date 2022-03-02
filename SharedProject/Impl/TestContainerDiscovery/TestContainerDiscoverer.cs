@@ -70,15 +70,15 @@ namespace FineCodeCoverage.Impl
             _ = ThreadHelper.JoinableTaskFactory.RunAsync(taskProvider);
         };
 
-        private async System.Threading.Tasks.Task TestExecutionStartingAsync(IOperation operation)
+        private void TestExecutionStarting(IOperation operation)
         {
             fccEngine.StopCoverage();
 
             var settings = appOptionsProvider.Get();
             if (!settings.Enabled)
             {
-                await CombinedLogAsync("Coverage not collected as FCC disabled.");
-                await reportGeneratorUtil.EndOfCoverageRunAsync();
+                CombinedLog("Coverage not collected as FCC disabled.");
+                reportGeneratorUtil.EndOfCoverageRun();
                 return;
             }
             if (settings.RunInParallel)
@@ -92,17 +92,17 @@ namespace FineCodeCoverage.Impl
             }
             else
             {
-                await CombinedLogAsync("Coverage collected when tests finish. RunInParallel option true for immediate");
+                CombinedLog("Coverage collected when tests finish. RunInParallel option true for immediate");
             }
         }
 
-        private async System.Threading.Tasks.Task CombinedLogAsync(string message)
+        private void CombinedLog(string message)
         {
-            await reportGeneratorUtil.LogCoverageProcessAsync(message);
+            reportGeneratorUtil.LogCoverageProcess(message);
             logger.Log(message);
         }
 
-        private async System.Threading.Tasks.Task TestExecutionFinishedAsync(IOperation operation)
+        private void TestExecutionFinished(IOperation operation)
         {
             var settings = appOptionsProvider.Get();
             if (!settings.Enabled || settings.RunInParallel)
@@ -112,8 +112,8 @@ namespace FineCodeCoverage.Impl
             var testOperation = testOperationFactory.Create(operation);
             if (!settings.RunWhenTestsFail && testOperation.FailedTests > 0)
             {
-                await CombinedLogAsync($"Skipping coverage due to failed tests.  Option {nameof(AppOptions.RunWhenTestsFail)} is false");
-                await reportGeneratorUtil.EndOfCoverageRunAsync();
+                CombinedLog($"Skipping coverage due to failed tests.  Option {nameof(AppOptions.RunWhenTestsFail)} is false");
+                reportGeneratorUtil.EndOfCoverageRun();
                 return;
             }
 
@@ -123,8 +123,8 @@ namespace FineCodeCoverage.Impl
             {
                 if (totalTests <= runWhenTestsExceed)
                 {
-                    await CombinedLogAsync($"Skipping coverage as total tests ({totalTests}) <= {nameof(AppOptions.RunWhenTestsExceed)} ({runWhenTestsExceed})");
-                    await reportGeneratorUtil.EndOfCoverageRunAsync();
+                    CombinedLog($"Skipping coverage as total tests ({totalTests}) <= {nameof(AppOptions.RunWhenTestsExceed)} ({runWhenTestsExceed})");
+                    reportGeneratorUtil.EndOfCoverageRun();
                     return;
                 }
             }
@@ -133,43 +133,40 @@ namespace FineCodeCoverage.Impl
         private bool cancelling;
         private void OperationState_StateChanged(object sender, OperationStateChangedEventArgs e)
         {
-            RunAsync(async () =>
+            try
             {
-                try
+                if (e.State == TestOperationStates.TestExecutionCanceling)
                 {
-                    if (e.State == TestOperationStates.TestExecutionCanceling)
-                    {
-                        cancelling = true;
-                        await CombinedLogAsync("Test execution cancelling - running coverage will be cancelled.");
-                        await reportGeneratorUtil.EndOfCoverageRunAsync(); // not necessarily true but get desired result
-                        fccEngine.StopCoverage();
-                    }
+                    cancelling = true;
+                    CombinedLog("Test execution cancelling - running coverage will be cancelled.");
+                    reportGeneratorUtil.EndOfCoverageRun(); // not necessarily true but get desired result
+                    fccEngine.StopCoverage();
+                }
 
 
-                    if (e.State == TestOperationStates.TestExecutionStarting)
-                    {
-                        await TestExecutionStartingAsync(e.Operation);
-                        cancelling = false;
-                    }
+                if (e.State == TestOperationStates.TestExecutionStarting)
+                {
+                    TestExecutionStarting(e.Operation);
+                    cancelling = false;
+                }
 
-                    if (e.State == TestOperationStates.TestExecutionFinished)
-                    {
-                        await TestExecutionFinishedAsync(e.Operation);
-                    }
+                if (e.State == TestOperationStates.TestExecutionFinished)
+                {
+                    TestExecutionFinished(e.Operation);
+                }
 
-                    if (e.State == TestOperationStates.TestExecutionCancelAndFinished && !cancelling)
-                    {
-                        await CombinedLogAsync("There has been an issue running tests. See the Tests output window pane.");
-                        await reportGeneratorUtil.EndOfCoverageRunAsync(); // not necessarily true but get desired result
-                        fccEngine.StopCoverage();
-                    }
+                if (e.State == TestOperationStates.TestExecutionCancelAndFinished && !cancelling)
+                {
+                    CombinedLog("There has been an issue running tests. See the Tests output window pane.");
+                    reportGeneratorUtil.EndOfCoverageRun(); // not necessarily true but get desired result
+                    fccEngine.StopCoverage();
+                }
                     
-                }
-                catch (Exception exception)
-                {
-                    logger.Log("Error processing unit test events", exception);
-                }
-            });
+            }
+            catch (Exception exception)
+            {
+                logger.Log("Error processing unit test events", exception);
+            }
             
         }
     }
