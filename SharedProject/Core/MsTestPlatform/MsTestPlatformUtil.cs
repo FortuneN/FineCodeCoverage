@@ -2,6 +2,7 @@
 using System.Linq;
 using System.ComponentModel.Composition;
 using FineCodeCoverage.Core.Utilities;
+using System.Threading;
 
 namespace FineCodeCoverage.Engine.MsTestPlatform
 {
@@ -20,9 +21,9 @@ namespace FineCodeCoverage.Engine.MsTestPlatform
             this.toolFolder = toolFolder;
             this.toolZipProvider = toolZipProvider;
         }
-		public void Initialize(string appDataFolder)
+		public void Initialize(string appDataFolder, CancellationToken cancellationToken)
 		{
-			var zipDestination = toolFolder.EnsureUnzipped(appDataFolder, zipDirectoryName, toolZipProvider.ProvideZip(zipPrefix));
+			var zipDestination = toolFolder.EnsureUnzipped(appDataFolder, zipDirectoryName, toolZipProvider.ProvideZip(zipPrefix), cancellationToken);
 			MsTestPlatformExePath = Directory
 				.GetFiles(zipDestination, "vstest.console.exe", SearchOption.AllDirectories)
 				.FirstOrDefault();

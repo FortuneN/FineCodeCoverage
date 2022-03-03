@@ -2,6 +2,7 @@
 using System.ComponentModel.Composition;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using FineCodeCoverage.Core.Coverlet;
 using FineCodeCoverage.Core.Utilities;
@@ -187,7 +188,7 @@ namespace FineCodeCoverage.Engine.Coverlet
             return TestAdapterPathArg;
         }
 
-        public async Task<bool> RunAsync(bool throwError = false)
+        public async Task RunAsync(CancellationToken cancellationToken)
         {
             var settings = GetSettings();
             
@@ -199,7 +200,7 @@ namespace FineCodeCoverage.Engine.Coverlet
                 FilePath = "dotnet",
                 Arguments = $@"test --collect:""XPlat Code Coverage"" {settings} --test-adapter-path {GetTestAdapterPathArg()}",
                 WorkingDirectory = coverageProject.ProjectOutputFolder
-            });
+            }, cancellationToken);
             // this is how coverlet console determines exit code
             // https://github.com/coverlet-coverage/coverlet/blob/ac0e0fad2f0301a3fe9a3de9f8cdb32f406ce6d8/src/coverlet.console/Program.cs
             // https://github.com/coverlet-coverage/coverlet/issues/388
@@ -211,7 +212,7 @@ namespace FineCodeCoverage.Engine.Coverlet
             // https://github.com/dotnet/sdk/blob/936935f18c3540ed77c97e392780a9dd82aca441/src/Cli/dotnet/commands/dotnet-test/Program.cs#L86
             
             // test failure has exit code 1 
-            return processResponseProcessor.Process(result, code => code == 0 || code == 1, throwError, GetLogTitle(), () =>
+            processResponseProcessor.Process(result, code => code == 0 || code == 1, true, GetLogTitle(), () =>
              {
                  coverletDataCollectorGeneratedCobertura.CorrectPath(coverageProject.CoverageOutputFolder, coverageProject.CoverageOutputFile);
              });
@@ -230,9 +231,9 @@ namespace FineCodeCoverage.Engine.Coverlet
             logger.Log(LogRunMessage(coverletSettings));
         }
 
-        public void Initialize(string appDataFolder)
+        public void Initialize(string appDataFolder,CancellationToken cancellationToken)
         {
-            var zipDestination = toolFolder.EnsureUnzipped(appDataFolder, zipDirectoryName,toolZipProvider.ProvideZip(zipPrefix));
+            var zipDestination = toolFolder.EnsureUnzipped(appDataFolder, zipDirectoryName,toolZipProvider.ProvideZip(zipPrefix),cancellationToken);
             var testAdapterPath = Path.Combine(zipDestination, "build", "netstandard1.0");
             TestAdapterPathArg = $@"""{testAdapterPath}""";
         }

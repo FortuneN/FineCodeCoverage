@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel.Composition;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using FineCodeCoverage.Core.Utilities;
 using FineCodeCoverage.Engine.Model;
 
@@ -46,9 +47,9 @@ namespace FineCodeCoverage.Engine.Coverlet
 
 		}
 
-		public void Initialize(string appDataFolder)
+		public void Initialize(string appDataFolder, CancellationToken cancellationToken)
 		{
-			var zipDestination = toolFolder.EnsureUnzipped(appDataFolder, zipDirectoryName, toolZipProvider.ProvideZip(zipPrefix));
+			var zipDestination = toolFolder.EnsureUnzipped(appDataFolder, zipDirectoryName, toolZipProvider.ProvideZip(zipPrefix), cancellationToken);
 			coverletExePath = Directory.GetFiles(zipDestination, "coverlet.exe", SearchOption.AllDirectories).FirstOrDefault()
 						   ?? Directory.GetFiles(zipDestination, "*coverlet*.exe", SearchOption.AllDirectories).FirstOrDefault();
 		}

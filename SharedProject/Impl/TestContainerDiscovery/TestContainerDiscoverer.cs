@@ -3,12 +3,13 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Threading;
+using FineCodeCoverage.Core.Utilities;
 using FineCodeCoverage.Engine;
 using FineCodeCoverage.Engine.ReportGenerator;
 using FineCodeCoverage.Options;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.TestWindow.Extensibility;
+using Task = System.Threading.Tasks.Task;
 using Microsoft.VisualStudio.Utilities;
 
 namespace FineCodeCoverage.Impl
@@ -27,7 +28,8 @@ namespace FineCodeCoverage.Impl
         private readonly ILogger logger;
         private readonly IAppOptionsProvider appOptionsProvider;
         private readonly IReportGeneratorUtil reportGeneratorUtil;
-        internal System.Threading.Thread initializeThread;
+        private bool cancelling;
+        internal Task initializeTask;
 
         [ExcludeFromCodeCoverage]
         public Uri ExecutorUri => new Uri($"executor://{Vsix.Code}.Executor/v1");
@@ -46,7 +48,8 @@ namespace FineCodeCoverage.Impl
             ITestOperationFactory testOperationFactory,
             ILogger logger,
             IAppOptionsProvider appOptionsProvider,
-            IReportGeneratorUtil reportGeneratorUtil
+            IReportGeneratorUtil reportGeneratorUtil,
+            IDisposeAwareTaskRunner disposeAwareTaskRunner 
 
         )
         {
@@ -55,14 +58,16 @@ namespace FineCodeCoverage.Impl
             this.fccEngine = fccEngine;
             this.testOperationFactory = testOperationFactory;
             this.logger = logger;
-            
-            initializeThread = new Thread(() =>
+
+            disposeAwareTaskRunner.RunAsync(() =>
             {
-                operationState.StateChanged += OperationState_StateChanged;
-                _ = initializer.InitializeAsync();
+                initializeTask = Task.Run(async () =>
+                {
+                    operationState.StateChanged += OperationState_StateChanged;
+                    await initializer.InitializeAsync(disposeAwareTaskRunner.DisposalToken);
+                });
+                return initializeTask;
             });
-            initializeThread.Start();
-            
         }
 
         internal Action<Func<System.Threading.Tasks.Task>> RunAsync = (taskProvider) =>
@@ -130,7 +135,7 @@ namespace FineCodeCoverage.Impl
             }
             fccEngine.ReloadCoverage(testOperation.GetCoverageProjectsAsync);
         }
-        private bool cancelling;
+        
         private void OperationState_StateChanged(object sender, OperationStateChangedEventArgs e)
         {
             try

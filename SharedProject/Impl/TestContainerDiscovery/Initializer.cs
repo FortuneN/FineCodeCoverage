@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel.Composition;
+using System.Threading;
 using System.Threading.Tasks;
 using FineCodeCoverage.Engine;
 using FineCodeCoverage.Engine.Model;
@@ -30,23 +31,30 @@ namespace FineCodeCoverage.Impl
             this.coverageProjectFactory = coverageProjectFactory;
             this.packageInitializer = packageInitializer;
         }
-        public async Task InitializeAsync()
+        public async Task InitializeAsync(CancellationToken cancellationToken)
         {
             try
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 logger.Log($"Initializing");
 
+                cancellationToken.ThrowIfCancellationRequested();
                 coverageProjectFactory.Initialize();
-                fccEngine.Initialize(this);
-                await packageInitializer.InitializeAsync();
 
+                fccEngine.Initialize(this, cancellationToken);
+                await packageInitializer.InitializeAsync(cancellationToken);
+
+                cancellationToken.ThrowIfCancellationRequested();
                 logger.Log($"Initialized");
             }
             catch (Exception exception)
             {
                 InitializeStatus = InitializeStatus.Error;
                 InitializeExceptionMessage = exception.Message;
-                logger.Log($"Failed Initialization", exception);
+                if (!cancellationToken.IsCancellationRequested)
+                {
+                    logger.Log($"Failed Initialization", exception);
+                }
             }
 
             if(InitializeStatus != InitializeStatus.Error)

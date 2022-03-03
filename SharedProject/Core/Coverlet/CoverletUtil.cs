@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.Composition;
+using System.Threading;
 using System.Threading.Tasks;
 using FineCodeCoverage.Engine.Model;
 
@@ -17,20 +18,20 @@ namespace FineCodeCoverage.Engine.Coverlet
             this.coverletDataCollectorUtil = coverletDataCollectorUtil;
             this.coverletGlobalUtil = coverletGlobalUtil;
         }
-		public void Initialize(string appDataFolder)
+		public void Initialize(string appDataFolder,CancellationToken cancellationToken)
 		{
-			coverletGlobalUtil.Initialize(appDataFolder);
-			coverletDataCollectorUtil.Initialize(appDataFolder);
+			coverletGlobalUtil.Initialize(appDataFolder, cancellationToken);
+			coverletDataCollectorUtil.Initialize(appDataFolder, cancellationToken);
 		}
 
 		
-		public Task<bool> RunCoverletAsync(ICoverageProject project, bool throwError = false)
+		public Task RunCoverletAsync(ICoverageProject project, CancellationToken cancellationToken)
 		{
             if (coverletDataCollectorUtil.CanUseDataCollector(project))
             {
-				return coverletDataCollectorUtil.RunAsync(throwError);
+				return coverletDataCollectorUtil.RunAsync(cancellationToken);
             }
-			return coverletGlobalUtil.RunAsync(project, throwError);
+			return coverletGlobalUtil.RunAsync(project, cancellationToken);
 		}
 	}
 }

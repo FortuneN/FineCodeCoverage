@@ -9,7 +9,7 @@ namespace FineCodeCoverage.Engine
     {
         event UpdateMarginTagsDelegate UpdateMarginTags;
         string AppDataFolderPath { get; }
-        void Initialize(IInitializeStatusProvider initializeStatusProvider);
+        void Initialize(IInitializeStatusProvider initializeStatusProvider, System.Threading.CancellationToken cancellationToken);
         void StopCoverage();
         void ReloadCoverage(Func<System.Threading.Tasks.Task<List<ICoverageProject>>> coverageRequestCallback);
 

@@ -3,6 +3,7 @@ using System.Windows.Controls;
 using Microsoft.VisualStudio.Shell;
 using System.Windows.Media;
 using FineCodeCoverage.Core.Utilities;
+using System;
 
 namespace FineCodeCoverage.Output
 {
@@ -47,18 +48,23 @@ namespace FineCodeCoverage.Output
 
         private void InvokeScript(string scriptName, params object[] args)
         {
-			if (FCCOutputBrowser.Document != null)
+			try
 			{
-				try
+				if (FCCOutputBrowser.Document != null)
 				{
-					// Can use FCCOutputBrowser.IsLoaded but 
-					// it is possible for this to be successful when IsLoaded false.
-					FCCOutputBrowser.InvokeScript(scriptName, args);
-				}
-				catch { 
-					// missed are not important.  Important go through NewReportMessage and NavigateToString 
+					try
+					{
+						// Can use FCCOutputBrowser.IsLoaded but 
+						// it is possible for this to be successful when IsLoaded false.
+						FCCOutputBrowser.InvokeScript(scriptName, args);
+					}
+					catch
+					{
+						// missed are not important.  Important go through NewReportMessage and NavigateToString 
+					}
 				}
 			}
+			catch (ObjectDisposedException) { }
 		}
 
         public void Handle(NewReportMessage message)

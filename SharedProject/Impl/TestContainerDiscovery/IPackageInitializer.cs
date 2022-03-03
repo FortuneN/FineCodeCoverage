@@ -4,7 +4,7 @@ namespace FineCodeCoverage.Impl
 {
     internal interface IPackageInitializer
     {
-        Task InitializeAsync();
+        Task InitializeAsync(System.Threading.CancellationToken cancellationToken);
     }
 
 }

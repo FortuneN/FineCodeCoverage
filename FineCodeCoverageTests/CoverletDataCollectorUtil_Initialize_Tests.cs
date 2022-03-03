@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Threading;
 using AutoMoq;
 using FineCodeCoverage.Core.Utilities;
 using FineCodeCoverage.Engine.Coverlet;
@@ -22,14 +23,15 @@ namespace Test
         [Test]
         public void Should_Ensure_Unzipped_And_Sets_The_Quoted_TestAdapterPathArg()
         {
+            var ct = CancellationToken.None;
             var zipDetails = new ZipDetails { Path = "path", Version = "version" };
             var mockToolZipProvider = mocker.GetMock<IToolZipProvider>();
             mockToolZipProvider.Setup(zp => zp.ProvideZip(CoverletDataCollectorUtil.zipPrefix)).Returns(zipDetails);
 
             var mockToolFolder = mocker.GetMock<IToolFolder>();
-            mockToolFolder.Setup(cf => cf.EnsureUnzipped("appdatafolder", CoverletDataCollectorUtil.zipDirectoryName, zipDetails)).Returns("zipdestination");
+            mockToolFolder.Setup(cf => cf.EnsureUnzipped("appdatafolder", CoverletDataCollectorUtil.zipDirectoryName, zipDetails,ct)).Returns("zipdestination");
 
-            coverletDataCollector.Initialize("appdatafolder");
+            coverletDataCollector.Initialize("appdatafolder",ct);
             Assert.AreEqual($@"""{Path.Combine("zipdestination", "build", "netstandard1.0")}""", coverletDataCollector.TestAdapterPathArg);
 
         }

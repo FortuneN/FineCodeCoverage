@@ -1,12 +1,10 @@
-﻿using System.Threading.Tasks;
-using System.Threading;
+﻿using System.Threading;
+using System.Threading.Tasks;
 
 namespace FineCodeCoverage.Core.Utilities
 {
     interface IProcessUtil
     {
-		Task<ExecuteResponse> ExecuteAsync(ExecuteRequest request);
-		CancellationToken CancellationToken { get; set; }
-
+		Task<ExecuteResponse> ExecuteAsync(ExecuteRequest request, CancellationToken cancellationToken);
 	}
 }

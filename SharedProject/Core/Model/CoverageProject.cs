@@ -13,6 +13,8 @@ using FineCodeCoverage.Engine.FileSynchronization;
 using FineCodeCoverage.Options;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.CodeAnalysis.MSBuild;
+using EnvDTE80;
+using System.Threading;
 
 namespace FineCodeCoverage.Engine.Model
 {
@@ -21,7 +23,7 @@ namespace FineCodeCoverage.Engine.Model
         private readonly IAppOptionsProvider appOptionsProvider;
         private readonly IFileSynchronizationUtil fileSynchronizationUtil;
         private readonly ILogger logger;
-        private readonly DTE dte;
+        private readonly DTE2 dte;
         private readonly bool canUseMsBuildWorkspace;
         private XElement projectFileXElement;
         private IAppOptions settings;
@@ -55,7 +57,7 @@ namespace FineCodeCoverage.Engine.Model
         }
         private readonly string coverageToolOutputFolderName = "coverage-tool-output";
 
-        public CoverageProject(IAppOptionsProvider appOptionsProvider, IFileSynchronizationUtil fileSynchronizationUtil, ILogger logger, DTE dte, bool canUseMsBuildWorkspace)
+        public CoverageProject(IAppOptionsProvider appOptionsProvider, IFileSynchronizationUtil fileSynchronizationUtil, ILogger logger, DTE2 dte, bool canUseMsBuildWorkspace)
         {
             this.appOptionsProvider = appOptionsProvider;
             this.fileSynchronizationUtil = fileSynchronizationUtil;
@@ -363,30 +365,35 @@ namespace FineCodeCoverage.Engine.Model
                 return;
             }
 
-            logger.Log($"{stepName} ({ProjectName})");
-
             try
             {
                 await action(this);
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
             }
             catch (Exception exception)
             {
                 FailureStage = stepName;
                 FailureDescription = exception.ToString();
             }
-
-            if (HasFailed)
-            {
-                logger.Log($"{stepName} ({ProjectName}) Failed", FailureDescription);
-            }
         }
 
-        public async Task<CoverageProjectFileSynchronizationDetails> PrepareForCoverageAsync()
+        public async Task<CoverageProjectFileSynchronizationDetails> PrepareForCoverageAsync(CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             EnsureDirectories();
+
+            cancellationToken.ThrowIfCancellationRequested();
             CleanFCCDirectory();
+
+            cancellationToken.ThrowIfCancellationRequested();
             var synchronizationDetails = SynchronizeBuildOutput();
+
+            cancellationToken.ThrowIfCancellationRequested();
             await SetIncludedExcludedReferencedProjectsAsync();
+
             return synchronizationDetails;
         }
 
@@ -404,6 +411,7 @@ namespace FineCodeCoverage.Engine.Model
                 IncludedReferencedProjects = referencedProjects.Select(referencedProject => referencedProject.AssemblyName).ToList();
             }
         }
+        
         private void SetExcludedReferencedProjects(List<ReferencedProject> referencedProjects)
         {
             foreach (var referencedProject in referencedProjects)
@@ -435,6 +443,7 @@ namespace FineCodeCoverage.Engine.Model
             catch (Exception) { }
             return null;
         }
+
         private async Task<List<ReferencedProject>> GetReferencedProjectsFromDteAsync()
         {
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
@@ -478,6 +487,7 @@ namespace FineCodeCoverage.Engine.Model
             }
             return new List<ReferencedProject>();
         }
+        
         private async Task<List<ReferencedProject>> GetReferencedProjectsWithDesignTimeBuildWorkerAsync()
         {
             var msBuildWorkspace = MSBuildWorkspace.Create();
@@ -488,7 +498,6 @@ namespace FineCodeCoverage.Engine.Model
                     .Where(path => path != null)
                     .Select(path => new ReferencedProject(path)).ToList();
         }
-
 
         private async Task<List<ReferencedProject>> GetReferencedProjectsFromProjectFileAsync()
         {
@@ -546,14 +555,17 @@ namespace FineCodeCoverage.Engine.Model
             EnsureBuildOutputDirectory();
             EnsureEmptyOutputFolder();
         }
+        
         private void EnsureFccDirectory()
         {
             CreateIfDoesNotExist(FCCOutputFolder);
         }
+
         private void EnsureBuildOutputDirectory()
         {
             CreateIfDoesNotExist(BuildOutputPath);
         }
+        
         private void CreateIfDoesNotExist(string path)
         {
             if (!Directory.Exists(path))
@@ -561,6 +573,7 @@ namespace FineCodeCoverage.Engine.Model
                 Directory.CreateDirectory(path);
             }
         }
+        
         /// <summary>
         /// Delete all files and sub-directories from the output folder if it exists, or creates the directory if it does not exist.
         /// </summary>
@@ -583,6 +596,7 @@ namespace FineCodeCoverage.Engine.Model
                 Directory.CreateDirectory(CoverageOutputFolder);
             }
         }
+        
         private void CleanFCCDirectory()
         {
             var exclusions = new List<string> { buildOutputFolderName, coverageToolOutputFolderName };
@@ -608,6 +622,7 @@ namespace FineCodeCoverage.Engine.Model
                });
 
         }
+        
         private CoverageProjectFileSynchronizationDetails SynchronizeBuildOutput()
         {
             var start = DateTime.Now;

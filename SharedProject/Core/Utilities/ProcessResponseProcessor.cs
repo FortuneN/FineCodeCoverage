@@ -15,25 +15,20 @@ namespace FineCodeCoverage.Core.Utilities
         }
         public bool Process(ExecuteResponse result, Func<int, bool> exitCodeSuccessPredicate, bool throwError, string title,Action successCallback = null)
         {
-            if (result != null)
+            if (!exitCodeSuccessPredicate(result.ExitCode))
             {
-                if (!exitCodeSuccessPredicate(result.ExitCode))
+                if (throwError)
                 {
-                    if (throwError)
-                    {
-                        throw new Exception(result.Output);
-                    }
-
-                    logger.Log($"{title} Error", result.Output);
-                    return false;
+                    throw new Exception(result.Output);
                 }
 
-                logger.Log(title, result.Output);
-                successCallback?.Invoke();
-                return true;
+                logger.Log($"{title} Error", result.Output);
+                return false;
             }
-            return false;
 
+            logger.Log(title, result.Output);
+            successCallback?.Invoke();
+            return true;
         }
     }
 }

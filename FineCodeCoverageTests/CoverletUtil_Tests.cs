@@ -1,3 +1,4 @@
+using System.Threading;
 using System.Threading.Tasks;
 using AutoMoq;
 using FineCodeCoverage.Engine.Coverlet;
@@ -21,46 +22,41 @@ namespace Test
         [Test]
         public void Should_Initialize_The_GlobalTool_And_DataCollector()
         {
-            coverletUtil.Initialize("folder path");
-            mocker.Verify<ICoverletConsoleUtil>(g => g.Initialize("folder path"));
-            mocker.Verify<ICoverletDataCollectorUtil>(dc => dc.Initialize("folder path"));
+            var ct = CancellationToken.None;
+            coverletUtil.Initialize("folder path",ct);
+            mocker.Verify<ICoverletConsoleUtil>(g => g.Initialize("folder path",ct));
+            mocker.Verify<ICoverletDataCollectorUtil>(dc => dc.Initialize("folder path", ct));
         }
 
-        [TestCase(true,true)]
-        [TestCase(true, false)]
-        [TestCase(false, false)]
-        [TestCase(false, true)]
-        public async Task Should_Use_The_DataCollector_If_Possible(bool throwOnError, bool result)
+        [Test]
+        public async Task Should_Use_The_DataCollector_If_Possible()
         {
+            var ct = CancellationToken.None;
             var project = new Mock<ICoverageProject>().Object;
 
             var mockDataCollectorUtil = mocker.GetMock<ICoverletDataCollectorUtil>();
             mockDataCollectorUtil.Setup(dc => dc.CanUseDataCollector(project)).Returns(true);
-            mockDataCollectorUtil.Setup(dc => dc.RunAsync(throwOnError).Result).Returns(result);
+            mockDataCollectorUtil.Setup(dc => dc.RunAsync(ct));
 
-            var success = await coverletUtil.RunCoverletAsync(project, throwOnError);
+            await coverletUtil.RunCoverletAsync(project,ct);
             
-            Assert.AreEqual(result, success);
             mockDataCollectorUtil.VerifyAll();
         }
 
-        [TestCase(true, true)]
-        [TestCase(true, false)]
-        [TestCase(false, false)]
-        [TestCase(false, true)]
-        public async Task Should_Use_The_Global_Tool_If_Not_Possible(bool throwOnError, bool result)
+        [Test]
+        public async Task Should_Use_The_Global_Tool_If_Not_Possible()
         {
+            var ct = CancellationToken.None;
             var project = new Mock<ICoverageProject>().Object;
 
             var mockDataCollectorUtil = mocker.GetMock<ICoverletDataCollectorUtil>();
             mockDataCollectorUtil.Setup(dc => dc.CanUseDataCollector(project)).Returns(false);
 
             var mockGlobalUtil = mocker.GetMock<ICoverletConsoleUtil>();
-            mockGlobalUtil.Setup(g => g.RunAsync(project, throwOnError).Result).Returns(result);
+            mockGlobalUtil.Setup(g => g.RunAsync(project, ct));
 
-            var success = await coverletUtil.RunCoverletAsync(project, throwOnError);
+            await coverletUtil.RunCoverletAsync(project,ct);
 
-            Assert.AreEqual(result, success);
             mockDataCollectorUtil.VerifyAll();
             mockGlobalUtil.VerifyAll();
         }
