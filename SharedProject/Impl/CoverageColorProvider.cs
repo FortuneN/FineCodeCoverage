@@ -80,7 +80,7 @@ namespace FineCodeCoverage.Impl
                     {
                         return ParseColor(touchAreaInfo[0].crBackground);
                     }
-                    throw new Exception("Failed to get color");
+                    throw new Exception($"Failed to get color - error {getItemSuccess}");
                 }
 
                 CoverageTouchedArea = GetColor("Coverage Touched Area");
