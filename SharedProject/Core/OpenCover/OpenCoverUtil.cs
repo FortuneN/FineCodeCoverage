@@ -7,6 +7,7 @@ using FineCodeCoverage.Engine.MsTestPlatform;
 using System.Threading.Tasks;
 using System.ComponentModel.Composition;
 using FineCodeCoverage.Core.Utilities;
+using System.Threading;
 
 namespace FineCodeCoverage.Engine.OpenCover
 {
@@ -37,9 +38,9 @@ namespace FineCodeCoverage.Engine.OpenCover
             this.toolZipProvider = toolZipProvider;
         }
 
-		public void Initialize(string appDataFolder)
+		public void Initialize(string appDataFolder, CancellationToken cancellationToken)
 		{
-			var zipDestination = toolFolder.EnsureUnzipped(appDataFolder, zipDirectoryName, toolZipProvider.ProvideZip(zipPrefix));
+			var zipDestination = toolFolder.EnsureUnzipped(appDataFolder, zipDirectoryName, toolZipProvider.ProvideZip(zipPrefix),cancellationToken);
 			openCoverExePath = Directory
 				.GetFiles(zipDestination, "OpenCover.Console.exe", SearchOption.AllDirectories)
 				.FirstOrDefault();
@@ -54,7 +55,7 @@ namespace FineCodeCoverage.Engine.OpenCover
 			return openCoverExePath;
         }
 
-		public async Task<bool> RunOpenCoverAsync(ICoverageProject project, bool throwError = false)
+		public async Task RunOpenCoverAsync(ICoverageProject project, CancellationToken cancellationToken)
 		{
 			var title = $"OpenCover Run ({project.ProjectName})";
 
@@ -203,25 +204,14 @@ namespace FineCodeCoverage.Engine.OpenCover
 				FilePath = GetOpenCoverExePath(project.Settings.OpenCoverCustomPath),
 				Arguments = string.Join(" ", opencoverSettings),
 				WorkingDirectory = project.ProjectOutputFolder
-			});
+			},cancellationToken);
 			
-			if(result != null)
-            {
-				if (result.ExitCode != 0)
-				{
-					if (throwError)
-					{
-						throw new Exception(result.Output);
-					}
-
-					logger.Log($"{title} Error", result.Output);
-					return false;
-				}
-
-				logger.Log(title, result.Output);
-				return true;
+			if (result.ExitCode != 0)
+			{
+				throw new Exception(result.Output);
 			}
-			return false;
+
+			logger.Log(title, result.Output);
 		}
 	}
 }

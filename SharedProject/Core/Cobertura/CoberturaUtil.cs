@@ -15,7 +15,6 @@ namespace FineCodeCoverage.Engine.Cobertura
 		private readonly XmlSerializer SERIALIZER = new XmlSerializer(typeof(CoverageReport));
 		private readonly XmlReaderSettings READER_SETTINGS = new XmlReaderSettings { DtdProcessing = DtdProcessing.Ignore };
 		private CoverageReport coverageReport;
-		public List<CoverageLine> CoverageLines { get; private set; }
 
 		private CoverageReport LoadReport(string xmlFile)
 		{
@@ -68,9 +67,9 @@ namespace FineCodeCoverage.Engine.Cobertura
 		//	return jsonText;
 		//}
 
-		public void ProcessCoberturaXml(string xmlFile)
+		public List<CoverageLine> ProcessCoberturaXml(string xmlFile)
 		{
-			CoverageLines = new List<CoverageLine>();
+			var coverageLines = new List<CoverageLine>();
 
 			coverageReport = LoadReport(xmlFile);
 
@@ -80,7 +79,7 @@ namespace FineCodeCoverage.Engine.Cobertura
 				{
 					foreach (var line in classs.Lines.Line)
 					{
-						CoverageLines.Add(new CoverageLine
+						coverageLines.Add(new CoverageLine
 						{
 							Package = package,
 							Class = classs,
@@ -89,6 +88,8 @@ namespace FineCodeCoverage.Engine.Cobertura
 					}
 				}
 			}
+
+			return coverageLines;
 		}
 
 		public string[] GetSourceFiles(string assemblyName, string qualifiedClassName, int file)

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.ComponentModel.Composition;
 using System.IO;
+using System.Threading;
 using FineCodeCoverage.Engine;
 using FineCodeCoverage.Output;
 using Microsoft.VisualStudio.Shell;
@@ -25,8 +26,9 @@ namespace FineCodeCoverage.Impl
             this.serviceProvider = serviceProvider;
         }
 
-        public async Task InitializeAsync()
+        public async Task InitializeAsync(CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 
             if (serviceProvider.GetService(typeof(SVsShell)) is IVsShell shell)

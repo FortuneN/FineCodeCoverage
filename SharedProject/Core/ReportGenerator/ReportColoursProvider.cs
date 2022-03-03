@@ -24,13 +24,10 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 
         [ImportingConstructor]
         public ReportColoursProvider(
-            [Import(typeof(SVsServiceProvider))]
-            IServiceProvider serviceProvider,
             IThemeResourceKeyProvider themeResourceKeyProvider
-            )
+        )
         {
             this.themeResourceKeyProvider = themeResourceKeyProvider;
-            var colorThemeService = serviceProvider.GetService(typeof(SVsColorThemeService));
             lastReportColours = GetReportColours();
             VSColorTheme.ThemeChanged += VSColorTheme_ThemeChanged;
         }

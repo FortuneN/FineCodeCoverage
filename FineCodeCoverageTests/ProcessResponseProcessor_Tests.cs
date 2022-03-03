@@ -26,18 +26,13 @@ namespace Test
         }
 
         [Test]
-        public void Should_Return_False_If_Response_Is_Null_As_Cancelled()
-        {
-            Assert.IsFalse(processor.Process(null, null, true, null, successCallback));
-            Assert.IsFalse(successCallbackCalled);
-        }
-
-        [Test]
         public void Should_Throw_Exception_If_Non_Success_ExitCode_And_Throw_Error_True()
         {
-            var executeResponse = new ExecuteResponse();
-            executeResponse.ExitCode = 999;
-            executeResponse.Output = "This will be exception message";
+            var executeResponse = new ExecuteResponse
+            {
+                ExitCode = 999,
+                Output = "This will be exception message"
+            };
             var callbackExitCode = 0;
             Assert.Throws<Exception>(() =>
             {
@@ -53,9 +48,11 @@ namespace Test
         [Test]
         public void Should_Log_Response_Output_With_Error_Title_If_Non_Success_ExitCode_And_Throw_Error_False()
         {
-            var executeResponse = new ExecuteResponse();
-            executeResponse.ExitCode = 999;
-            executeResponse.Output = "This will be logged";
+            var executeResponse = new ExecuteResponse
+            {
+                ExitCode = 999,
+                Output = "This will be logged"
+            };
             Assert.False(processor.Process(executeResponse, exitCode =>
                 {
                     return false;
@@ -69,9 +66,11 @@ namespace Test
         [Test]
         public void Should_Log_Response_Output_With_Title_If_Success_ExitCode_And_Call_Callback()
         {
-            var executeResponse = new ExecuteResponse();
-            executeResponse.ExitCode = 0;
-            executeResponse.Output = "This will be logged";
+            var executeResponse = new ExecuteResponse
+            {
+                ExitCode = 0,
+                Output = "This will be logged"
+            };
             Assert.True(processor.Process(executeResponse, exitCode =>
             {
                 return true;

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using AutoMoq;
 using FineCodeCoverage.Core.Coverlet;
@@ -64,7 +65,7 @@ namespace Test
             mockCoverageProject.Setup(cp => cp.TestDllFile).Returns("test.dll");
             mockCoverageProject.Setup(cp => cp.CoverageOutputFolder).Returns("");
 
-            await coverletDataCollectorUtil.RunAsync(false);
+            await coverletDataCollectorUtil.RunAsync(CancellationToken.None);
             mockDataCollectorSettingsBuilder.Verify(b => b.WithProjectDll("test.dll"));
 
         }
@@ -78,7 +79,7 @@ namespace Test
             var referencedExcluded = new List<string> { "referencedExcluded" };
             mockCoverageProject.Setup(cp => cp.ExcludedReferencedProjects).Returns(referencedExcluded);
             mockRunSettingsCoverletConfiguration.Setup(rsc => rsc.Exclude).Returns("rsexclude");
-            await coverletDataCollectorUtil.RunAsync(false);
+            await coverletDataCollectorUtil.RunAsync(CancellationToken.None);
             mockDataCollectorSettingsBuilder.Verify(b => b.WithExclude(new string[] { "[referencedExcluded]*","excluded"},"rsexclude"));
         }
 
@@ -89,7 +90,7 @@ namespace Test
             mockCoverageProject.Setup(cp => cp.ExcludedReferencedProjects).Returns(referencedExcluded);
             mockCoverageProject.Setup(cp => cp.CoverageOutputFolder).Returns("");
             mockRunSettingsCoverletConfiguration.Setup(rsc => rsc.Exclude).Returns("rsexclude");
-            await coverletDataCollectorUtil.RunAsync(false);
+            await coverletDataCollectorUtil.RunAsync(CancellationToken.None);
             mockDataCollectorSettingsBuilder.Verify(b => b.WithExclude(new string[] { "[referencedExcluded]*"}, "rsexclude"));
         }
 
@@ -101,7 +102,7 @@ namespace Test
             mockCoverageProject.Setup(cp => cp.CoverageOutputFolder).Returns("");
 
             mockRunSettingsCoverletConfiguration.Setup(rsc => rsc.ExcludeByFile).Returns("rsexcludeByFile");
-            await coverletDataCollectorUtil.RunAsync(false);
+            await coverletDataCollectorUtil.RunAsync(CancellationToken.None);
             mockDataCollectorSettingsBuilder.Verify(b => b.WithExcludeByFile(projectExcludeByFile, "rsexcludeByFile"));
         }
 
@@ -111,7 +112,7 @@ namespace Test
             var projectExcludeByAttribute = new string[] { "excludedByAttribute" };
             mockCoverageProject.Setup(cp => cp.Settings.ExcludeByAttribute).Returns(projectExcludeByAttribute);
             mockRunSettingsCoverletConfiguration.Setup(rsc => rsc.ExcludeByAttribute).Returns("rsexcludeByAttribute");
-            await coverletDataCollectorUtil.RunAsync(false);
+            await coverletDataCollectorUtil.RunAsync(CancellationToken.None);
             mockDataCollectorSettingsBuilder.Verify(b => b.WithExcludeByAttribute(projectExcludeByAttribute, "rsexcludeByAttribute"));
         }
 
@@ -123,7 +124,7 @@ namespace Test
             mockCoverageProject.Setup(cp => cp.CoverageOutputFolder).Returns("");
 
             mockRunSettingsCoverletConfiguration.Setup(rsc => rsc.Include).Returns("rsincluded");
-            await coverletDataCollectorUtil.RunAsync(false);
+            await coverletDataCollectorUtil.RunAsync(CancellationToken.None);
             mockDataCollectorSettingsBuilder.Verify(b => b.WithInclude(projectInclude, "rsincluded"));
         }
 
@@ -134,7 +135,7 @@ namespace Test
             mockCoverageProject.Setup(cp => cp.Settings.IncludeTestAssembly).Returns(projectIncludeTestAssembly);
             mockCoverageProject.Setup(cp => cp.CoverageOutputFolder).Returns("");
             mockRunSettingsCoverletConfiguration.Setup(rsc => rsc.IncludeTestAssembly).Returns(runSettingsIncludeTestAssembly);
-            await coverletDataCollectorUtil.RunAsync(false);
+            await coverletDataCollectorUtil.RunAsync(CancellationToken.None);
             mockDataCollectorSettingsBuilder.Verify(b => b.WithIncludeTestAssembly(projectIncludeTestAssembly, runSettingsIncludeTestAssembly));
         }
 
@@ -146,7 +147,7 @@ namespace Test
             mockCoverageProject.Setup(cp => cp.CoverageOutputFolder).Returns("output");
             mockCoverageProject.Setup(cp => cp.Settings).Returns(settings);
             
-            await coverletDataCollectorUtil.RunAsync(false);
+            await coverletDataCollectorUtil.RunAsync(CancellationToken.None);
             mockDataCollectorSettingsBuilder.Verify(b => b.Initialize(settings, ".runsettings",Path.Combine("output","FCC.runsettings")));
             
             var invocations = mockDataCollectorSettingsBuilder.Invocations.GetEnumerator().ToIEnumerable().ToList();
@@ -157,21 +158,21 @@ namespace Test
         public async Task Should_Get_Settings_With_ResultsDirectory()
         {
             mockCoverageProject.Setup(cp => cp.CoverageOutputFolder).Returns("outputfolder");
-            await coverletDataCollectorUtil.RunAsync(false);
+            await coverletDataCollectorUtil.RunAsync(CancellationToken.None);
             mockDataCollectorSettingsBuilder.Verify(b => b.WithResultsDirectory("outputfolder"));
         }
 
         [Test]
         public async Task Should_Get_Settings_With_Blame()
         {
-            await coverletDataCollectorUtil.RunAsync(false);
+            await coverletDataCollectorUtil.RunAsync(CancellationToken.None);
             mockDataCollectorSettingsBuilder.Verify(b => b.WithBlame());
         }
 
         [Test]
         public async Task Should_Get_Settings_With_NoLogo()
         {
-            await coverletDataCollectorUtil.RunAsync(false);
+            await coverletDataCollectorUtil.RunAsync(CancellationToken.None);
             mockDataCollectorSettingsBuilder.Verify(b => b.WithNoLogo());
         }
 
@@ -179,7 +180,7 @@ namespace Test
         public async Task Should_Get_Settings_With_Diagnostics()
         {
             mockCoverageProject.Setup(cp => cp.CoverageOutputFolder).Returns("outputfolder");
-            await coverletDataCollectorUtil.RunAsync(false);
+            await coverletDataCollectorUtil.RunAsync(CancellationToken.None);
             mockDataCollectorSettingsBuilder.Verify(b => b.WithDiagnostics("outputfolder/diagnostics.log"));
         }
 
@@ -187,7 +188,7 @@ namespace Test
         public async Task Should_Get_Settings_With_IncludeDirectory_From_RunSettings()
         {
             mockRunSettingsCoverletConfiguration.Setup(rsc => rsc.IncludeDirectory).Returns("includeDirectory");
-            await coverletDataCollectorUtil.RunAsync(false);
+            await coverletDataCollectorUtil.RunAsync(CancellationToken.None);
             mockDataCollectorSettingsBuilder.Verify(b => b.WithIncludeDirectory("includeDirectory"));
         }
 
@@ -195,7 +196,7 @@ namespace Test
         public async Task Should_Get_Settings_With_SingleHit_From_RunSettings()
         {
             mockRunSettingsCoverletConfiguration.Setup(rsc => rsc.SingleHit).Returns("true...");
-            await coverletDataCollectorUtil.RunAsync(false);
+            await coverletDataCollectorUtil.RunAsync(CancellationToken.None);
             mockDataCollectorSettingsBuilder.Verify(b => b.WithSingleHit("true..."));
         }
 
@@ -203,7 +204,7 @@ namespace Test
         public async Task Should_Get_Settings_With_UseSourceLink_From_RunSettings()
         {
             mockRunSettingsCoverletConfiguration.Setup(rsc => rsc.UseSourceLink).Returns("true...");
-            await coverletDataCollectorUtil.RunAsync(false);
+            await coverletDataCollectorUtil.RunAsync(CancellationToken.None);
             mockDataCollectorSettingsBuilder.Verify(b => b.WithUseSourceLink("true..."));
         }
 
@@ -211,7 +212,7 @@ namespace Test
         public async Task Should_Get_Settings_With_SkipAutoProps_From_RunSettings()
         {
             mockRunSettingsCoverletConfiguration.Setup(rsc => rsc.SkipAutoProps).Returns("true...");
-            await coverletDataCollectorUtil.RunAsync(false);
+            await coverletDataCollectorUtil.RunAsync(CancellationToken.None);
             mockDataCollectorSettingsBuilder.Verify(b => b.WithSkipAutoProps("true..."));
         }
 
@@ -221,7 +222,7 @@ namespace Test
             mockCoverageProject.Setup(cp => cp.ProjectName).Returns("TestProject");
             mockCoverageProject.Setup(cp => cp.CoverageOutputFolder).Returns("");
             mockDataCollectorSettingsBuilder.Setup(sb => sb.Build()).Returns("settings string");
-            await coverletDataCollectorUtil.RunAsync(false);
+            await coverletDataCollectorUtil.RunAsync(CancellationToken.None);
             mocker.Verify<ILogger>(l => l.Log(coverletDataCollectorUtil.LogRunMessage("settings string")));
         }
 
@@ -232,11 +233,12 @@ namespace Test
             mockCoverageProject.Setup(cp => cp.CoverageOutputFolder).Returns("");
             mockDataCollectorSettingsBuilder.Setup(sb => sb.Build()).Returns("settings");
             coverletDataCollectorUtil.TestAdapterPathArg = "testadapterpath";
-            await coverletDataCollectorUtil.RunAsync(false);
-            mocker.Verify<IProcessUtil>(p => p.ExecuteAsync(It.Is<ExecuteRequest>(er => er.Arguments == @"test --collect:""XPlat Code Coverage"" settings --test-adapter-path testadapterpath" && er.FilePath == "dotnet" && er.WorkingDirectory == "projectOutputFolder")));
+            var ct = CancellationToken.None;
+            await coverletDataCollectorUtil.RunAsync(ct);
+            mocker.Verify<IProcessUtil>(p => p.ExecuteAsync(It.Is<ExecuteRequest>(er => er.Arguments == @"test --collect:""XPlat Code Coverage"" settings --test-adapter-path testadapterpath" && er.FilePath == "dotnet" && er.WorkingDirectory == "projectOutputFolder"),ct));
         }
 
-        private async Task Use_Custom_TestAdapterPath()
+        private async Task<CancellationToken> Use_Custom_TestAdapterPath()
         {
             CreateTemporaryDirectory();
             mockCoverageProject.Setup(cp => cp.ProjectOutputFolder).Returns("projectOutputFolder");
@@ -244,14 +246,16 @@ namespace Test
             mockCoverageProject.Setup(cp => cp.Settings.CoverletCollectorDirectoryPath).Returns(tempDirectory);
             mockDataCollectorSettingsBuilder.Setup(sb => sb.Build()).Returns("settings");
             coverletDataCollectorUtil.TestAdapterPathArg = "testadapterpath";
-            await coverletDataCollectorUtil.RunAsync(false);
+            var ct = CancellationToken.None;
+            await coverletDataCollectorUtil.RunAsync(ct);
+            return ct;
         }
 
         [Test]
         public async Task Should_Use_Custom_TestAdapterPath_Quoted_If_Specified_In_Settings_And_Exists()
         {
-            await Use_Custom_TestAdapterPath();
-            mocker.Verify<IProcessUtil>(p => p.ExecuteAsync(It.Is<ExecuteRequest>(er => er.Arguments == $@"test --collect:""XPlat Code Coverage"" settings --test-adapter-path ""{tempDirectory}""" && er.FilePath == "dotnet" && er.WorkingDirectory == "projectOutputFolder")));
+            var ct = await Use_Custom_TestAdapterPath();
+            mocker.Verify<IProcessUtil>(p => p.ExecuteAsync(It.Is<ExecuteRequest>(er => er.Arguments == $@"test --collect:""XPlat Code Coverage"" settings --test-adapter-path ""{tempDirectory}""" && er.FilePath == "dotnet" && er.WorkingDirectory == "projectOutputFolder"),ct));
         }
 
         [Test]
@@ -261,22 +265,23 @@ namespace Test
             mocker.Verify<ILogger>(l => l.Log($"Using custom coverlet data collector : {tempDirectory}"));
         }
 
-        [TestCase(true,true)]
-        [TestCase(false,false)]
-        public async Task Should_Use_The_ProcessResponseProcessor(bool throwOnError,bool processResponseProcessorResult)
+        [Test]
+        public async Task Should_Use_The_ProcessResponseProcessor()
         {
             mockCoverageProject.Setup(cp => cp.ProjectName).Returns("TestProject");
             mockCoverageProject.Setup(cp => cp.CoverageOutputFolder).Returns("");
             
             var mockProcesUtil = mocker.GetMock<IProcessUtil>();
             var executeResponse = new ExecuteResponse();
-            mockProcesUtil.Setup(p => p.ExecuteAsync(It.IsAny<ExecuteRequest>()).Result).Returns(executeResponse);
+            var ct = CancellationToken.None;
+            mockProcesUtil.Setup(p => p.ExecuteAsync(It.IsAny<ExecuteRequest>(), ct).Result).Returns(executeResponse);
             var mockProcessResponseProcessor = mocker.GetMock<IProcessResponseProcessor>();
 
             var logTitle = "Coverlet Collector Run (TestProject)";
-            mockProcessResponseProcessor.Setup(rp => rp.Process(executeResponse, It.IsAny<Func<int, bool>>(), throwOnError, logTitle, It.IsAny<Action>())).Returns(processResponseProcessorResult);
-            
-            Assert.AreEqual(processResponseProcessorResult, await coverletDataCollectorUtil.RunAsync(throwOnError));
+            mockProcessResponseProcessor.Setup(rp => rp.Process(executeResponse, It.IsAny<Func<int, bool>>(), true, logTitle, It.IsAny<Action>()));
+
+            await coverletDataCollectorUtil.RunAsync(ct);
+            mockProcessResponseProcessor.VerifyAll();
         }
 
         [TestCase(2, false)]
@@ -286,12 +291,12 @@ namespace Test
         {
             var mockProcessResponseProcessor = mocker.GetMock<IProcessResponseProcessor>();
             Func<int, bool> _exitCodePredicate = null;
-            mockProcessResponseProcessor.Setup(rp => rp.Process(It.IsAny<ExecuteResponse>(), It.IsAny<Func<int, bool>>(), false, It.IsAny<string>(), It.IsAny<Action>())).Callback<ExecuteResponse, Func<int, bool>, bool, string, Action>((_, exitCodePredicate, __, ___, ____) =>
+            mockProcessResponseProcessor.Setup(rp => rp.Process(It.IsAny<ExecuteResponse>(), It.IsAny<Func<int, bool>>(), true, It.IsAny<string>(), It.IsAny<Action>())).Callback<ExecuteResponse, Func<int, bool>, bool, string, Action>((_, exitCodePredicate, __, ___, ____) =>
                 {
                     _exitCodePredicate = exitCodePredicate;
                 });
 
-            await coverletDataCollectorUtil.RunAsync(false);
+            await coverletDataCollectorUtil.RunAsync(CancellationToken.None);
             Assert.AreEqual(expectedSuccess, _exitCodePredicate(exitCode));
         }
 
@@ -302,12 +307,12 @@ namespace Test
             mockCoverageProject.Setup(cp => cp.CoverageOutputFile).Returns("outputFile");
             var mockProcessResponseProcessor = mocker.GetMock<IProcessResponseProcessor>();
             Action _successCallback = null;
-            mockProcessResponseProcessor.Setup(rp => rp.Process(It.IsAny<ExecuteResponse>(), It.IsAny<Func<int, bool>>(), false, It.IsAny<string>(), It.IsAny<Action>())).Callback<ExecuteResponse, Func<int, bool>, bool, string, Action>((_, __, ___, ____, successCallback) =>
+            mockProcessResponseProcessor.Setup(rp => rp.Process(It.IsAny<ExecuteResponse>(), It.IsAny<Func<int, bool>>(), true, It.IsAny<string>(), It.IsAny<Action>())).Callback<ExecuteResponse, Func<int, bool>, bool, string, Action>((_, __, ___, ____, successCallback) =>
             {
                 _successCallback = successCallback;
             });
 
-            await coverletDataCollectorUtil.RunAsync(false);
+            await coverletDataCollectorUtil.RunAsync(CancellationToken.None);
             _successCallback();
             mocker.Verify<ICoverletDataCollectorGeneratedCobertura>(gc => gc.CorrectPath("outputFolder", "outputFile"));
         }

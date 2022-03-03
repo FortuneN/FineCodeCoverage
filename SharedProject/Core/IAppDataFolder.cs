@@ -3,7 +3,7 @@
     internal interface IAppDataFolder
     {
         string DirectoryPath { get; }
-        void Initialize();
+        void Initialize(System.Threading.CancellationToken cancellationToken);
         
     }
 

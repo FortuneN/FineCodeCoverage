@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading;
 using AutoMoq;
 using FineCodeCoverage.Core.Utilities;
 using FineCodeCoverage.Engine.Coverlet;
@@ -25,8 +26,9 @@ namespace Test
         [Test]
         public void Should_Initilize_IFCCCoverletConsoleExeProvider()
         {
-            coverletConsoleUtil.Initialize("appDataFolder");
-            mocker.Verify<IFCCCoverletConsoleExecutor>(fccExeProvider => fccExeProvider.Initialize("appDataFolder"));
+            var ct = CancellationToken.None;
+            coverletConsoleUtil.Initialize("appDataFolder", ct);
+            mocker.Verify<IFCCCoverletConsoleExecutor>(fccExeProvider => fccExeProvider.Initialize("appDataFolder", ct));
         }
 
         [TestCase(0)]
