@@ -14,22 +14,29 @@ namespace FineCodeCoverage.Impl
     internal class CoverageColorProvider : ICoverageColoursProvider, ICoverageColours
     {
         private readonly IVsFontAndColorStorage fontAndColorStorage;
-        private Guid categoryWithCoverage = Guid.Parse("ff349800-ea43-46c1-8c98-878e78f46501");
+        private readonly ILogger logger;
         private readonly uint storeFlags = (uint)(__FCSTORAGEFLAGS.FCSF_READONLY | __FCSTORAGEFLAGS.FCSF_LOADDEFAULTS | __FCSTORAGEFLAGS.FCSF_NOAUTOCOLORS | __FCSTORAGEFLAGS.FCSF_PROPAGATECHANGES);
-        private System.Windows.Media.Color defaultCoverageTouchedArea = System.Windows.Media.Colors.Green;
-        private System.Windows.Media.Color defaultCoverageNotTouchedArea = System.Windows.Media.Colors.Red;
-        private System.Windows.Media.Color defaultCoveragePartiallyTouchedArea = System.Windows.Media.Color.FromRgb(255, 165, 0);
+        private readonly System.Windows.Media.Color defaultCoverageTouchedArea = System.Windows.Media.Colors.Green;
+        private readonly System.Windows.Media.Color defaultCoverageNotTouchedArea = System.Windows.Media.Colors.Red;
+        private readonly System.Windows.Media.Color defaultCoveragePartiallyTouchedArea = System.Windows.Media.Color.FromRgb(255, 165, 0);
+        private Guid categoryWithCoverage = Guid.Parse("ff349800-ea43-46c1-8c98-878e78f46501");
+        private bool coverageColoursFromFontsAndColours;
+        private bool dirty = true;
+        private bool canUseFontsAndColours = true;
         public System.Windows.Media.Color CoverageTouchedArea { get; set; }
 
         public System.Windows.Media.Color CoverageNotTouchedArea { get; set; }
 
         public System.Windows.Media.Color CoveragePartiallyTouchedArea { get; set; }
 
-        private bool coverageColoursFromFontsAndColours;
-        private bool dirty = true;
+        
 
         [ImportingConstructor]
-        public CoverageColorProvider([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider, IAppOptionsProvider appOptionsProvider)
+        public CoverageColorProvider(
+            [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider, 
+            IAppOptionsProvider appOptionsProvider,
+            ILogger logger
+        )
         {
             ThreadHelper.ThrowIfNotOnUIThread();
             fontAndColorStorage = (IVsFontAndColorStorage)serviceProvider.GetService(typeof(IVsFontAndColorStorage));
@@ -37,6 +44,7 @@ namespace FineCodeCoverage.Impl
             coverageColoursFromFontsAndColours = appOptionsProvider.Get().CoverageColoursFromFontsAndColours;
             UseDefaultColoursIfNotFontsAndColours();
             appOptionsProvider.OptionsChanged += AppOptionsProvider_OptionsChanged;
+            this.logger = logger;
         }
 
         private void AppOptionsProvider_OptionsChanged(IAppOptions appOptions)
@@ -50,15 +58,20 @@ namespace FineCodeCoverage.Impl
         {
             if (!coverageColoursFromFontsAndColours)
             {
-                CoverageTouchedArea = defaultCoverageTouchedArea;
-                CoverageNotTouchedArea = defaultCoverageNotTouchedArea;
-                CoveragePartiallyTouchedArea = defaultCoveragePartiallyTouchedArea;
+                UseDefaultColours();
             }
+        }
+
+        private void UseDefaultColours()
+        {
+            CoverageTouchedArea = defaultCoverageTouchedArea;
+            CoverageNotTouchedArea = defaultCoverageNotTouchedArea;
+            CoveragePartiallyTouchedArea = defaultCoveragePartiallyTouchedArea;
         }
 
         public async Task PrepareAsync()
         {
-            if (coverageColoursFromFontsAndColours && dirty)
+            if (coverageColoursFromFontsAndColours && canUseFontsAndColours && dirty)
             {
                 await UpdateColoursFromFontsAndColorsAsync();
             }
@@ -69,6 +82,7 @@ namespace FineCodeCoverage.Impl
         {
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
             var success = fontAndColorStorage.OpenCategory(ref categoryWithCoverage, storeFlags);
+            var usedFontsAndColors = false;
             if (success == VSConstants.S_OK)
             {
                 // https://github.com/microsoft/vs-threading/issues/993
@@ -80,18 +94,29 @@ namespace FineCodeCoverage.Impl
                     {
                         return ParseColor(touchAreaInfo[0].crBackground);
                     }
-                    throw new Exception("Failed to get color");
+                    throw new NotSupportedException($"{getItemSuccess}");
                 }
-
-                CoverageTouchedArea = GetColor("Coverage Touched Area");
-                CoverageNotTouchedArea = GetColor("Coverage Not Touched Area");
-                CoveragePartiallyTouchedArea = GetColor("Coverage Partially Touched Area");
+                try
+                {
+                    // https://developercommunity.visualstudio.com/t/fonts-and-colors-coverage-settings-available-in-vs/1683898
+                    CoverageTouchedArea = GetColor("Coverage Touched Area");
+                    CoverageNotTouchedArea = GetColor("Coverage Not Touched Area");
+                    CoveragePartiallyTouchedArea = GetColor("Coverage Partially Touched Area");
+                    usedFontsAndColors = true;
+                    
+                }catch(NotSupportedException)
+                {
+                    logger.Log("No coverage settings available from Fonts and Colors");
+                }
             }
-            else
+            
+            fontAndColorStorage.CloseCategory();
+            if (!usedFontsAndColors)
             {
-                //throw ?
+                canUseFontsAndColours = false;
+                UseDefaultColours();
             }
-            fontAndColorStorage.CloseCategory(); // only for success ?
+            
         }
 
         private System.Windows.Media.Color ParseColor(uint color)
