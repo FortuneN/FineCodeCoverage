@@ -82,6 +82,7 @@ namespace FineCodeCoverage.Impl
         {
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
             var success = fontAndColorStorage.OpenCategory(ref categoryWithCoverage, storeFlags);
+            var usedFontsAndColors = false;
             if (success == VSConstants.S_OK)
             {
                 // https://github.com/microsoft/vs-threading/issues/993
@@ -101,14 +102,21 @@ namespace FineCodeCoverage.Impl
                     CoverageTouchedArea = GetColor("Coverage Touched Area");
                     CoverageNotTouchedArea = GetColor("Coverage Not Touched Area");
                     CoveragePartiallyTouchedArea = GetColor("Coverage Partially Touched Area");
+                    usedFontsAndColors = true;
+                    
                 }catch(NotSupportedException)
                 {
                     logger.Log("No coverage settings available from Fonts and Colors");
                 }
             }
-            canUseFontsAndColours = false;
-            UseDefaultColours();
+            
             fontAndColorStorage.CloseCategory();
+            if (!usedFontsAndColors)
+            {
+                canUseFontsAndColours = false;
+                UseDefaultColours();
+            }
+            
         }
 
         private System.Windows.Media.Color ParseColor(uint color)
