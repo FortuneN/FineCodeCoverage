@@ -114,7 +114,7 @@ If you are using option 1) then project and global options will only be used whe
 
 #### Options
 ```
-CoverageColoursFromFontsAndColours Specify true to use Environment / Fonts and Colors / Text Editor for editor Coverage colouring.
+CoverageColoursFromFontsAndColours Specify true to use Environment / Fonts and Colors / Text Editor for editor Coverage colouring ( if present).
                                    Coverage Touched Area / Coverage Not Touched Area / Coverage Partially Touched Area.
 								   When false colours used are Green, Red and Gold.
 Enabled							   Specifies whether or not coverage output is enabled
