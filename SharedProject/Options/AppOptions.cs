@@ -41,6 +41,10 @@ namespace FineCodeCoverage.Options
         [Description("Specifies whether or not coverage output is enabled")]
         public bool Enabled { get; set; } = true;
 
+        [Category(runCategory)]
+        [Description("Specifies whether or not the ms code coverage is used (BETA)")]
+        public bool MsCodeCoverage { get; set; } = true;
+
         [Category(excludeIncludeCategory)]
         [Description(
         @"Filter expressions to exclude specific modules and types (multiple)

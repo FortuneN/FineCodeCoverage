@@ -77,6 +77,10 @@
       <Link>Resources\reportparts.xml</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
+    <Content Include="fineCodeCoverageSettings.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
     <Content Include="ZippedTools\coverlet.collector.3.0.3.zip">
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
@@ -92,6 +96,9 @@
     <Content Include="ZippedTools\reportGenerator.4.7.1.zip">
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
+    <Content Include="ZippedTools\microsoft.codecoverage.17.1.0.zip">
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
     <VSCTCompile Include="..\Shared Files\OutputToolWindowPackage.vsct">
       <Link>OutputToolWindowPackage.vsct</Link>
       <ResourceName>Menus.ctmenu</ResourceName>
@@ -104,6 +111,7 @@
       <Link>Resources\OutputToolWindowCommand.png</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
+    <None Include="README.md" />
     <!--
     <None Include="Key.snk" />
 	-->
@@ -128,6 +136,9 @@
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.SDK" Version="16.0.206" ExcludeAssets="runtime">
       <IncludeAssets>compile; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Shell.15.0">
+      <Version>16.10.31225.38</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.TestWindow.Interfaces">
       <Version>11.0.61030</Version>

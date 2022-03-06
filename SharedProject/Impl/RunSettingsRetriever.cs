@@ -14,7 +14,7 @@ namespace FineCodeCoverage.Impl
 	internal class RunSettingsRetriever: IRunSettingsRetriever
 	{
 		private object userSettings;
-		
+
 		public async Task<string> GetRunSettingsFileAsync(object userSettings, ContainerData projectData)
 		{
 			this.userSettings = userSettings;
@@ -29,7 +29,7 @@ namespace FineCodeCoverage.Impl
 
 			return runSettingsFile;
 		}
-
+			
 		private string GetAndUpdateSolutionRunSettingsFilePath()
 		{
 			return userSettings.GetType().GetMethod("GetAndUpdateSolutionRunSettingsFilePath", BindingFlags.Public | BindingFlags.Instance).Invoke(userSettings, new object[] { }) as string;

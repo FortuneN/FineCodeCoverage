@@ -21,17 +21,20 @@ namespace FineCodeCoverage.Engine
     {
         internal int InitializeWait { get; set; } = 5000;
         internal const string initializationFailedMessagePrefix = "Initialization failed.  Please check the following error which may be resolved by reopening visual studio which will start the initialization process again.";
-        private readonly object colorThemeService;
+        private readonly object colorThemeService;        
         private CancellationTokenSource cancellationTokenSource;
-        
+
         public event UpdateMarginTagsDelegate UpdateMarginTags;
         public event UpdateOutputWindowDelegate UpdateOutputWindow;
-        
+
         public string AppDataFolderPath { get; private set; }
         public List<CoverageLine> CoverageLines { get; internal set; }
+        public string SolutionPath { get; set; }
+
 
         private readonly ICoverageUtilManager coverageUtilManager;
-        private readonly ICoberturaUtil coberturaUtil;
+        private readonly ICoberturaUtil coberturaUtil;        
+        private readonly IMsCodeCoverageRunSettingsService msCodeCoverageRunSettingsService;
         private readonly IMsTestPlatformUtil msTestPlatformUtil;
         private readonly IReportGeneratorUtil reportGeneratorUtil;
         private readonly IProcessUtil processUtil;
@@ -39,7 +42,7 @@ namespace FineCodeCoverage.Engine
         private readonly ILogger logger;
         private readonly IAppDataFolder appDataFolder;
         private readonly IServiceProvider serviceProvider;
-        
+
         private IInitializeStatusProvider initializeStatusProvider;
         private readonly ICoverageToolOutputManager coverageOutputManager;
         internal System.Threading.Tasks.Task reloadCoverageTask;
@@ -48,13 +51,14 @@ namespace FineCodeCoverage.Engine
         public FCCEngine(
             ICoverageUtilManager coverageUtilManager,
             ICoberturaUtil coberturaUtil,
-            IMsTestPlatformUtil msTestPlatformUtil,
+            IMsTestPlatformUtil msTestPlatformUtil,            
             IReportGeneratorUtil reportGeneratorUtil,
             IProcessUtil processUtil,
             IAppOptionsProvider appOptionsProvider,
             ILogger logger,
             IAppDataFolder appDataFolder,
             ICoverageToolOutputManager coverageOutputManager,
+            IMsCodeCoverageRunSettingsService msCodeCoverageRunSettingsService,
             [Import(typeof(SVsServiceProvider))]
             IServiceProvider serviceProvider
             )
@@ -68,7 +72,8 @@ namespace FineCodeCoverage.Engine
             this.appOptionsProvider = appOptionsProvider;
             this.logger = logger;
             this.appDataFolder = appDataFolder;
-            this.serviceProvider = serviceProvider;
+            this.serviceProvider = serviceProvider;            
+            this.msCodeCoverageRunSettingsService = msCodeCoverageRunSettingsService;
             colorThemeService = serviceProvider.GetService(typeof(SVsColorThemeService));
         }
 
@@ -91,6 +96,7 @@ namespace FineCodeCoverage.Engine
             reportGeneratorUtil.Initialize(AppDataFolderPath);
             msTestPlatformUtil.Initialize(AppDataFolderPath);
             coverageUtilManager.Initialize(AppDataFolderPath);
+            msCodeCoverageRunSettingsService.Initialize(AppDataFolderPath);
         }
 
         public void ClearUI()
@@ -102,13 +108,13 @@ namespace FineCodeCoverage.Engine
         }
 
         public void StopCoverage()
-        {
+        {           
             if (cancellationTokenSource != null)
             {
                 cancellationTokenSource.Cancel();
             }
         }
-        
+
         private CancellationToken Reset()
         {
             ClearUI();
@@ -150,16 +156,16 @@ namespace FineCodeCoverage.Engine
         {
             CoverageLines = coverageLines;
             UpdateMarginTags?.Invoke(new UpdateMarginTagsEventArgs());
-            RaiseUpdateOutputWindow(reportHtml);
+            RaiseUpdateOutputWindow(reportHtml);            
         }
 
-        private async System.Threading.Tasks.Task<(List<CoverageLine> coverageLines,string reportFilePath)> RunAndProcessReportAsync(string[] coverOutputFiles,string reportOutputFolder,CancellationToken cancellationToken)
+        private async System.Threading.Tasks.Task<(List<CoverageLine> coverageLines,string reportFilePath)> RunAndProcessReportAsync(string[] coverOutputFiles, string reportOutputFolder, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
             List<CoverageLine> coverageLines = null;
             string processedReport = null;
-            
+
             var result = await reportGeneratorUtil.GenerateAsync(coverOutputFiles,reportOutputFolder, true);
 
             if (result.Success)
@@ -227,7 +233,7 @@ namespace FineCodeCoverage.Engine
                 {
                     case InitializeStatus.Initialized:
                         return;
-                    
+
                     case InitializeStatus.Initializing:
                         LogReloadCoverageStatus(ReloadCoverageStatus.Initializing);
                         await System.Threading.Tasks.Task.Delay(InitializeWait);
@@ -241,41 +247,52 @@ namespace FineCodeCoverage.Engine
         public void ReloadCoverage(Func<System.Threading.Tasks.Task<List<ICoverageProject>>> coverageRequestCallback)
         {
             var cancellationToken = Reset();
-
-            reloadCoverageTask = System.Threading.Tasks.Task.Run(async () =>
-            {
-                List<CoverageLine> coverageLines = null;
-                string reportHtml = null;
-
-                await PollInitializedStatusAsync(cancellationToken);
-
-                LogReloadCoverageStatus(ReloadCoverageStatus.Start);
-
-                var coverageProjects = await coverageRequestCallback();
-
-                coverageOutputManager.SetProjectCoverageOutputFolder(coverageProjects);
-                var reportOutputFolder = coverageOutputManager.GetReportOutputFolder();
-
-                var coverOutputFiles = await RunCoverageAsync(coverageProjects, cancellationToken);
-
-                if (coverOutputFiles.Any())
+            
+                reloadCoverageTask = System.Threading.Tasks.Task.Run(async () =>
                 {
-                    var (lines, report) = await RunAndProcessReportAsync(coverOutputFiles,reportOutputFolder,cancellationToken);
-                    coverageLines = lines;
-                    reportHtml = report;
-                }
+                    List<CoverageLine> coverageLines = null;
+                    string reportHtml = null;
 
-                return (coverageLines, reportHtml);
-                 
-            }, cancellationToken)
-            .ContinueWith(t =>
-            {
-                ReloadCoverageTaskContinuation(t);
+                    await PollInitializedStatusAsync(cancellationToken);
 
-              }, System.Threading.Tasks.TaskScheduler.Default);
+                    LogReloadCoverageStatus(ReloadCoverageStatus.Start);
 
+                    var coverageProjects = await coverageRequestCallback();
+                    coverageOutputManager.SetProjectCoverageOutputFolder(coverageProjects);                    
+                    var reportOutputFolder = coverageOutputManager.GetReportOutputFolder();                    
+                    var settings = appOptionsProvider.Get();
+                    if (!settings.MsCodeCoverage)
+                    {
+                        var coverOutputFiles = await RunCoverageAsync(coverageProjects, cancellationToken);
+                        if (coverOutputFiles.Any())
+                        {
+                            (coverageLines, reportHtml) = await RunAndProcessReportAsync(coverOutputFiles, reportOutputFolder, cancellationToken);
+                        }
+                    }
+                    else
+                    {
+                        await PrepareCoverageProjectsAsync(coverageProjects, cancellationToken);
+                        var outputFiles = msCodeCoverageRunSettingsService.GetCoverageFilesFromLastRun();
+                        logger.Log("Number of outputfiles:" + outputFiles.Count);
+                        if (outputFiles.Any())
+                        {
+                            (coverageLines, reportHtml) = await RunAndProcessReportAsync(outputFiles.ToArray(), reportOutputFolder, cancellationToken);
+                        }
+                    }
+                    return (coverageLines, reportHtml);
+
+                }, cancellationToken)
+                .ContinueWith(t =>
+                {
+                    ReloadCoverageTaskContinuation(t);
+
+                }, System.Threading.Tasks.TaskScheduler.Default);            
+        }
+
+        public void PrepareTestRun(ITestOperation testOperation)
+        {
+            msCodeCoverageRunSettingsService.PrepareRunSettings(SolutionPath, testOperation);
         }
 
     }
-
 }

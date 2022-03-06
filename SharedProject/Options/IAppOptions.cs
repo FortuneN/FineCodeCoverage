@@ -27,5 +27,6 @@
         bool HideFullyCovered { get; }
         bool AdjacentBuildOutput { get; }
         bool IncludeReferencedProjects { get; }
+        bool MsCodeCoverage { get; set; } 
     }
 }

@@ -112,7 +112,7 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 
 			var unifiedHtmlFile = Path.Combine(reportOutputFolder, "index.html");
 			var unifiedXmlFile = Path.Combine(reportOutputFolder, "Cobertura.xml");
-
+		
 			var reportGeneratorSettings = new List<string>();
 
 			reportGeneratorSettings.Add($@"""-targetdir:{reportOutputFolder}""");

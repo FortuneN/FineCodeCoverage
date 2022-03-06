@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Threading.Tasks;
 using FineCodeCoverage.Engine.Model;
 
@@ -25,6 +26,13 @@ namespace FineCodeCoverage.Impl
         {
             return GetCoverageProjectsAsync(operation.Configuration);
         }
+
+        public void SetRunSettings(string filePath)
+        {
+            var userRunSettings = operation.Configuration.UserRunSettings;
+            userRunSettings.GetType().GetMethod("SetActiveRunSettings", BindingFlags.Public | BindingFlags.Instance).Invoke(userRunSettings, new object[] { filePath });
+        }
+
         private async System.Threading.Tasks.Task<List<ICoverageProject>> GetCoverageProjectsAsync(TestConfiguration testConfiguration)
         {
             var userRunSettings = testConfiguration.UserRunSettings;

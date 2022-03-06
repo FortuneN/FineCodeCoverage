@@ -9,12 +9,15 @@ namespace FineCodeCoverage.Engine
     {
         event UpdateMarginTagsDelegate UpdateMarginTags;
         event UpdateOutputWindowDelegate UpdateOutputWindow;
-        string AppDataFolderPath { get; }
+        string AppDataFolderPath { get; }        
         void Initialize(IInitializeStatusProvider initializeStatusProvider);
         void StopCoverage();
-        void ReloadCoverage(Func<System.Threading.Tasks.Task<List<ICoverageProject>>> coverageRequestCallback);
+        void ReloadCoverage(Func<System.Threading.Tasks.Task<List<ICoverageProject>>> coverageRequestCallback);        
         void ClearUI();
         List<CoverageLine> CoverageLines { get; }
+        string SolutionPath { get; set; }
+
+        void PrepareTestRun(ITestOperation testOperation);     
     }
 
 }

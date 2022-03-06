@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using FineCodeCoverage.Engine;
@@ -24,7 +26,7 @@ namespace FineCodeCoverage.Impl
         private readonly ITestOperationFactory testOperationFactory;
         private readonly ILogger logger;
         private readonly IAppOptionsProvider appOptionsProvider;
-        internal System.Threading.Thread initializeThread;
+        internal System.Threading.Thread initializeThread;        
 
         [ExcludeFromCodeCoverage]
         public Uri ExecutorUri => new Uri($"executor://{Vsix.Code}.Executor/v1");
@@ -51,14 +53,14 @@ namespace FineCodeCoverage.Impl
             this.fccEngine = fccEngine;
             this.testOperationFactory = testOperationFactory;
             this.logger = logger;
-            
+
             initializeThread = new Thread(() =>
             {
                 operationState.StateChanged += OperationState_StateChanged;
                 initializer.Initialize();
             });
             initializeThread.Start();
-            
+
         }
 
         private void AppOptionsEvents_OptionsChanged(IAppOptions appOptions)
@@ -71,13 +73,17 @@ namespace FineCodeCoverage.Impl
         private void TestExecutionStarting(IOperation operation)
         {
             fccEngine.StopCoverage();
-
             var settings = appOptionsProvider.Get();
             if (!settings.Enabled)
             {
                 return;
+            }            
+            if (settings.MsCodeCoverage)
+            {
+                var testOperation = testOperationFactory.Create(operation);
+                fccEngine.PrepareTestRun(testOperation);
             }
-            if (settings.RunInParallel)
+            else if (settings.RunInParallel)
             {
                 fccEngine.ReloadCoverage(() =>
                 {
@@ -89,7 +95,7 @@ namespace FineCodeCoverage.Impl
         }
 
         private void TestExecutionFinished(IOperation operation)
-        {
+        {            
             var settings = appOptionsProvider.Get();
             if (!settings.Enabled)
             {
@@ -124,19 +130,19 @@ namespace FineCodeCoverage.Impl
             try
             {
                 if(e.State == TestOperationStates.TestExecutionCanceling)
-                {
+                {                 
                     fccEngine.StopCoverage();
                 }
 
-                
+
                 if (e.State == TestOperationStates.TestExecutionStarting)
-                {
+                {                    
                     TestExecutionStarting(e.Operation);
                 }
 
                 if (e.State == TestOperationStates.TestExecutionFinished)
-                {
-                    TestExecutionFinished(e.Operation);
+                {                    
+                    TestExecutionFinished(e.Operation);                    
                 }
             }
             catch (Exception exception)

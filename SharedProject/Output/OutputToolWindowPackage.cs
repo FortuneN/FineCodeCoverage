@@ -7,9 +7,13 @@ using System.Diagnostics.CodeAnalysis;
 using System.ComponentModel.Composition;
 using Task = System.Threading.Tasks.Task;
 using Microsoft.VisualStudio.Shell.Interop;
-using EnvDTE80;
 using Microsoft;
 using FineCodeCoverage.Engine;
+using EnvDTE80;
+using Microsoft.VisualStudio;
+using Microsoft.VisualStudio.Shell.Events;
+using System.Threading.Tasks;
+using System.IO;
 
 namespace FineCodeCoverage.Output
 {
@@ -38,13 +42,16 @@ namespace FineCodeCoverage.Output
 	[ProvideOptionPage(typeof(AppOptions), Vsix.Name, "General", 0, 0, true)]
 	[PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
 	[ProvideToolWindow(typeof(OutputToolWindow), Style = VsDockStyle.Tabbed, DockedHeight = 300, Window = EnvDTE.Constants.vsWindowKindOutput)]
+	[ProvideAutoLoad(VSConstants.UICONTEXT.SolutionOpening_string, PackageAutoLoadFlags.BackgroundLoad)]
 	public sealed class OutputToolWindowPackage : AsyncPackage
 	{
 		private Microsoft.VisualStudio.ComponentModelHost.IComponentModel componentModel;
-		/// <summary>
-		/// OutputToolWindowPackage GUID string.
-		/// </summary>
-		public const string PackageGuidString = "4e91ba47-cd42-42bc-b92e-3c4355d2eb5f";
+        private IFCCEngine fccEngine;
+
+        /// <summary>
+        /// OutputToolWindowPackage GUID string.
+        /// </summary>
+        public const string PackageGuidString = "4e91ba47-cd42-42bc-b92e-3c4355d2eb5f";
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="OutputToolWindowPackage"/> class.
@@ -70,15 +77,50 @@ namespace FineCodeCoverage.Output
 			// Do any initialization that requires the UI thread after switching to the UI thread.
 			await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-			var _dte2 = (DTE2)GetGlobalService(typeof(SDTE));
+			var _dte2 = (DTE2)GetGlobalService(typeof(SDTE));			
 			var sp = new ServiceProvider(_dte2 as Microsoft.VisualStudio.OLE.Interop.IServiceProvider);
 			componentModel = sp.GetService(typeof(Microsoft.VisualStudio.ComponentModelHost.SComponentModel)) as Microsoft.VisualStudio.ComponentModelHost.IComponentModel;
             Assumes.Present(componentModel);
-            await OutputToolWindowCommand.InitializeAsync(this);
-			await ClearUICommand.InitializeAsync(this, componentModel.GetService<IFCCEngine>());
+			fccEngine = componentModel.GetService<IFCCEngine>();			
+
+			await OutputToolWindowCommand.InitializeAsync(this);
+			await ClearUICommand.InitializeAsync(this, fccEngine);
+
+			bool isSolutionLoaded = await IsSolutionLoadedAsync();
+			if (isSolutionLoaded)
+			{
+				HandleOpenSolution();
+			}
+			SolutionEvents.OnAfterBackgroundSolutionLoadComplete += HandleOpenSolution;
+		}
+		
+		private void HandleOpenSolution()
+        {			
+			ThreadHelper.JoinableTaskFactory.Run(async () =>
+			{
+				await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+				var _dte2 = (DTE2)GetGlobalService(typeof(SDTE));
+				var solPath = Path.GetDirectoryName(_dte2.Solution.FileName);
+				fccEngine.SolutionPath = solPath;				
+			});
 		}
 
-        protected override System.Threading.Tasks.Task<object> InitializeToolWindowAsync(Type toolWindowType, int id, CancellationToken cancellationToken)
+        private void HandleOpenSolution(object sender, EventArgs e)
+        {
+			HandleOpenSolution();			
+		}
+
+		private async Task<bool> IsSolutionLoadedAsync()
+		{
+			await JoinableTaskFactory.SwitchToMainThreadAsync();
+			var solService = await GetServiceAsync(typeof(SVsSolution)) as IVsSolution;
+
+			ErrorHandler.ThrowOnFailure(solService.GetProperty((int)__VSPROPID.VSPROPID_IsSolutionOpen, out object value));
+
+			return value is bool isSolOpen && isSolOpen;
+		}
+
+		protected override System.Threading.Tasks.Task<object> InitializeToolWindowAsync(Type toolWindowType, int id, CancellationToken cancellationToken)
         {
 			var context = new OutputToolWindowContext
 			{
