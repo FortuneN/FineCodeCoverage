@@ -28,6 +28,7 @@ namespace FineCodeCoverage.Engine
         
         public string AppDataFolderPath { get; private set; }
         public List<CoverageLine> CoverageLines { get; internal set; }
+        private bool IsVsShutdown => disposeAwareTaskRunner.DisposalToken.IsCancellationRequested;
         public string SolutionPath { get; set; }
 
 
@@ -48,7 +49,7 @@ namespace FineCodeCoverage.Engine
 #pragma warning restore IDE0052 // Remove unread private members
         private readonly IEventAggregator eventAggregator;
         private readonly IDisposeAwareTaskRunner disposeAwareTaskRunner;
-
+        private readonly IAppOptionsProvider appOptionsProvider;
         private bool disposed = false;
 
         [ImportingConstructor]
@@ -73,6 +74,7 @@ namespace FineCodeCoverage.Engine
             this.eventAggregator = eventAggregator;
             this.disposeAwareTaskRunner = disposeAwareTaskRunner;
             solutionEvents.AfterClosing += (s,args) => ClearOutputWindow(false);
+            this.appOptionsProvider = appOptionsProvider;
             appOptionsProvider.OptionsChanged += (appOptions) =>
             {
                 if (!appOptions.Enabled)
@@ -89,7 +91,6 @@ namespace FineCodeCoverage.Engine
             this.appDataFolder = appDataFolder;
             this.serviceProvider = serviceProvider;            
             this.msCodeCoverageRunSettingsService = msCodeCoverageRunSettingsService;
-            colorThemeService = serviceProvider.GetService(typeof(SVsColorThemeService));
         }
 
         internal string GetLogReloadCoverageStatusMessage(ReloadCoverageStatus reloadCoverageStatus)
@@ -328,15 +329,25 @@ namespace FineCodeCoverage.Engine
                       coverageOutputManager.SetProjectCoverageOutputFolder(coverageProjects);
                       var reportOutputFolder = coverageOutputManager.GetReportOutputFolder();
 
-                      var coverOutputFiles = await RunCoverageAsync(coverageProjects, cancellationToken);
-
-                      if (coverOutputFiles.Any())
+                      var settings = appOptionsProvider.Get();
+                      if (!settings.MsCodeCoverage)
                       {
-                          var (lines, report) = await RunAndProcessReportAsync(coverOutputFiles, reportOutputFolder, cancellationToken);
-                          coverageLines = lines;
-                          reportHtml = report;
+                          var coverOutputFiles = await RunCoverageAsync(coverageProjects, cancellationToken);
+                          if (coverOutputFiles.Any())
+                          {
+                              (coverageLines, reportHtml) = await RunAndProcessReportAsync(coverOutputFiles, reportOutputFolder, cancellationToken);
+                          }
                       }
-
+                      else
+                      {
+                          await PrepareCoverageProjectsAsync(coverageProjects, cancellationToken);
+                          var outputFiles = msCodeCoverageRunSettingsService.GetCoverageFilesFromLastRun();
+                          logger.Log("Number of outputfiles:" + outputFiles.Count);
+                          if (outputFiles.Any())
+                          {
+                              (coverageLines, reportHtml) = await RunAndProcessReportAsync(outputFiles.ToArray(), reportOutputFolder, cancellationToken);
+                          }
+                      }
                       return (coverageLines, reportHtml);
 
                   }, cancellationToken)

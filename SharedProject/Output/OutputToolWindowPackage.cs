@@ -47,7 +47,7 @@ namespace FineCodeCoverage.Output
 	[ProvideAutoLoad(VSConstants.UICONTEXT.SolutionOpening_string, PackageAutoLoadFlags.BackgroundLoad)]
 	public sealed class OutputToolWindowPackage : AsyncPackage
 	{
-		private Microsoft.VisualStudio.ComponentModelHost.IComponentModel componentModel;
+		private static Microsoft.VisualStudio.ComponentModelHost.IComponentModel componentModel;
         private IFCCEngine fccEngine;
 
         /// <summary>
@@ -97,7 +97,7 @@ namespace FineCodeCoverage.Output
             Assumes.Present(componentModel);
 			fccEngine = componentModel.GetService<IFCCEngine>();			
 
-			await OutputToolWindowCommand.InitializeAsync(this);
+			await OutputToolWindowCommand.InitializeAsync(this, componentModel.GetService<ILogger>());
 			await ClearUICommand.InitializeAsync(this, fccEngine);
 
 			bool isSolutionLoaded = await IsSolutionLoadedAsync();
@@ -105,9 +105,8 @@ namespace FineCodeCoverage.Output
 			{
 				HandleOpenSolution();
 			}
-			SolutionEvents.OnAfterBackgroundSolutionLoadComplete += HandleOpenSolution;
-			await OutputToolWindowCommand.InitializeAsync(this, componentModel.GetService<ILogger>());
-			await ClearUICommand.InitializeAsync(this, componentModel.GetService<IFCCEngine>());
+            Microsoft.VisualStudio.Shell.Events.SolutionEvents.OnAfterBackgroundSolutionLoadComplete += HandleOpenSolution;
+			
 		}
 		
 		private void HandleOpenSolution()

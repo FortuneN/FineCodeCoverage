@@ -9,6 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Threading;
 
 namespace FineCodeCoverage.Engine.MsTestPlatform
 {
@@ -33,9 +34,9 @@ namespace FineCodeCoverage.Engine.MsTestPlatform
             this.toolZipProvider = toolZipProvider;
         }
 
-        public void Initialize(string appDataFolder)
+        public void Initialize(string appDataFolder, CancellationToken cancellationToken)
         {
-            var zipDestination = toolFolder.EnsureUnzipped(appDataFolder, zipDirectoryName, toolZipProvider.ProvideZip(zipPrefix));
+            var zipDestination = toolFolder.EnsureUnzipped(appDataFolder, zipDirectoryName, toolZipProvider.ProvideZip(zipPrefix), cancellationToken);
             MsCodeCoveragePath = Path.Combine(zipDestination, "build", "netstandard1.0");
             ShimPath = Path.Combine(zipDestination, "build", "netstandard1.0", "CodeCoverage", "coreclr", "Microsoft.VisualStudio.CodeCoverage.Shim.dll");
             ExtensionDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);

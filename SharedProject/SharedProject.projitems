@@ -72,6 +72,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Core\Model\CoverageLine.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Model\CoverageProject.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Model\CoverageProjectFactory.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Model\CoverageProjectFileSynchronizationDetails.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Model\ICoverageProject.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Model\ICoverageProjectFactory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Model\ReferencedProject.cs" />
@@ -94,12 +95,14 @@
     <Compile Include="$(MSBuildThisFileDirectory)Core\SourceFileOpener.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\AssemblyUtil.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\ComparableFile.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\DisposeAwareTaskRunner.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\DotNet\DotNetConfigFinder.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\DotNet\DotNetToolListExecutor.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\DotNet\DotNetToolListParser.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\DotNet\IDotNetConfigFinder.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\DotNet\IDotNetToolListExecutor.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\DotNet\IDotNetToolListParser.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\EventAggregator.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\FileComparer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\FileSystemInfoDeleteExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\FileUtil.cs" />
@@ -107,12 +110,16 @@
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\IFileUtil.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\IProcessResponseProcessor.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\IProcessUtil.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\IResourceProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\ISolutionEvents.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\IZipFile.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\LinqExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\MEF.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\ProcessResponseProcessor.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\ProcessUtil.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\ReflectionExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\ResourceProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\SolutionEvents.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\ToolZip\IToolFolder.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\ToolZip\IToolZipProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\ToolZip\ToolFolder.cs" />
@@ -155,7 +162,13 @@
     <Compile Include="$(MSBuildThisFileDirectory)Options\IAppOptionsProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\IAppOptionsStorageProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Output\ClearUICommand.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Output\DpiChangedMessage.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Output\EnvironmentFont.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Output\EnvironmentFontDetailsChangedMessage.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Output\InvokeScriptMessage.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Output\IProcess.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Output\NewReportMessage.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Output\ObjectForScriptingMessage.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Output\OutputToolWindow.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Output\OutputToolWindowCommand.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Output\OutputToolWindowContext.cs" />
@@ -164,6 +177,7 @@
     </Compile>
     <Compile Include="$(MSBuildThisFileDirectory)Output\OutputToolWindowPackage.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Output\ProcessWrapper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Output\ReadyForReportMessage.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Output\ScriptManager.cs" />
   </ItemGroup>
   <ItemGroup>
