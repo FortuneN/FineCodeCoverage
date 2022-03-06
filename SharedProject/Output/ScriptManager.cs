@@ -1,34 +1,43 @@
 ﻿using System;
 using System.ComponentModel.Composition;
 using System.Runtime.InteropServices;
+using FineCodeCoverage.Core.Utilities;
 using FineCodeCoverage.Engine;
 
 namespace FineCodeCoverage.Output
 {
-    public interface IScriptInvoker
+    public interface IScriptManager
     {
-        object InvokeScript(string scriptName, params object[] args);
+        event EventHandler ClearFCCWindowLogsEvent;
+        event EventHandler ShowFCCOutputPaneEvent;
+    }
+
+    public class ReportFocusedMessage
+    {
+
     }
 
     [Export]
-    [Export(typeof(IScriptInvoker))]
+    [Export(typeof(IScriptManager))]
     [ComVisible(true)] // do not change the accessibility - needs to be public class
-    public class ScriptManager : IScriptInvoker
+    public class ScriptManager : IScriptManager
     {
         internal const string payPal = "https://paypal.me/FortuneNgwenya";
         internal const string githubIssues = "https://github.com/FortuneN/FineCodeCoverage/issues";
         internal const string marketPlaceRateAndReview = "https://marketplace.visualstudio.com/items?itemName=FortuneNgwenya.FineCodeCoverage&ssr=false#review-details";
         private readonly ISourceFileOpener sourceFileOpener;
         private readonly IProcess process;
+        private readonly IEventAggregator eventAggregator;
         internal System.Threading.Tasks.Task openFileTask;
-        public IScriptInvoker ScriptInvoker { get; set; }
-        public Action FocusCallback { get; set; }
+        public event EventHandler ClearFCCWindowLogsEvent;
+        public event EventHandler ShowFCCOutputPaneEvent;
 
         [ImportingConstructor]
-        internal ScriptManager(ISourceFileOpener sourceFileOpener, IProcess process)
+        internal ScriptManager(ISourceFileOpener sourceFileOpener, IProcess process, IEventAggregator eventAggregator)
         {
             this.sourceFileOpener = sourceFileOpener;
             this.process = process;
+            this.eventAggregator = eventAggregator;
         }
         
         public void OpenFile(string assemblyName, string qualifiedClassName, int file, int line)
@@ -53,16 +62,18 @@ namespace FineCodeCoverage.Output
 
         public void DocumentFocused()
         {
-            FocusCallback();
+            eventAggregator.SendMessage(new ReportFocusedMessage());
         }
 
-        public object InvokeScript(string scriptName, params object[] args)
+        public void ClearFCCWindowLogs()
         {
-            if(ScriptInvoker != null)
-            {
-                return ScriptInvoker.InvokeScript(scriptName, args);
-            }
-            return null;
+            ClearFCCWindowLogsEvent?.Invoke(this, EventArgs.Empty);
         }
+
+        public void ShowFCCOutputPane()
+        {
+            ShowFCCOutputPaneEvent?.Invoke(this, EventArgs.Empty);
+        }
+
     }
 }

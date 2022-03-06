@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Threading;
+using System.Threading.Tasks;
 using FineCodeCoverage.Engine.Model;
 
 namespace FineCodeCoverage.Engine.Coverlet
@@ -6,8 +7,8 @@ namespace FineCodeCoverage.Engine.Coverlet
 	internal interface ICoverletDataCollectorUtil
 	{
 		bool CanUseDataCollector(ICoverageProject coverageProject);
-		Task<bool> RunAsync(bool throwError = false);
+		Task RunAsync(CancellationToken cancellationToken);
 
-		void Initialize(string appDataFolder);
+		void Initialize(string appDataFolder, CancellationToken cancellationToken);
 	}
 }

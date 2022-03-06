@@ -58,6 +58,36 @@ namespace FineCodeCoverage.Engine.ReportGenerator
         public Color SliderRightColour { get; set; }
 
         public Color SliderThumbColour { get; set; }
+
+        public Color ButtonBorderColour { get; set; }
+
+        public Color ButtonBorderDisabledColour { get; set; }
+
+        public Color ButtonBorderFocusedColour { get; set; }
+
+        public Color ButtonBorderHoverColour { get; set; }
+
+        public Color ButtonBorderPressedColour { get; set; }
+
+        public Color ButtonColour { get; set; }
+
+        public Color ButtonDisabledColour { get; set; }
+
+        public Color ButtonFocusedColour { get; set; }
+
+        public Color ButtonHoverColour { get; set; }
+
+        public Color ButtonPressedColour { get; set; }
+
+        public Color ButtonTextColour { get; set; }
+
+        public Color ButtonDisabledTextColour { get; set; }
+
+        public Color ButtonFocusedTextColour { get; set; }
+
+        public Color ButtonHoverTextColour { get; set; }
+
+        public Color ButtonPressedTextColour { get; set; }
     }
 
 }

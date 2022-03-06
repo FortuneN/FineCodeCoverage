@@ -8,11 +8,11 @@ namespace FineCodeCoverage.Engine
     internal interface IFCCEngine
     {
         event UpdateMarginTagsDelegate UpdateMarginTags;
-        event UpdateOutputWindowDelegate UpdateOutputWindow;
-        string AppDataFolderPath { get; }        
-        void Initialize(IInitializeStatusProvider initializeStatusProvider);
+        string AppDataFolderPath { get; }
+        void Initialize(IInitializeStatusProvider initializeStatusProvider, System.Threading.CancellationToken cancellationToken);
         void StopCoverage();
-        void ReloadCoverage(Func<System.Threading.Tasks.Task<List<ICoverageProject>>> coverageRequestCallback);        
+        void ReloadCoverage(Func<System.Threading.Tasks.Task<List<ICoverageProject>>> coverageRequestCallback);
+
         void ClearUI();
         List<CoverageLine> CoverageLines { get; }
         string SolutionPath { get; set; }

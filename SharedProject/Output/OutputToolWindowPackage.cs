@@ -5,6 +5,7 @@ using Microsoft.VisualStudio.Shell;
 using System.Runtime.InteropServices;
 using System.Diagnostics.CodeAnalysis;
 using System.ComponentModel.Composition;
+using System.Threading.Tasks;
 using Task = System.Threading.Tasks.Task;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft;
@@ -14,6 +15,7 @@ using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell.Events;
 using System.Threading.Tasks;
 using System.IO;
+using FineCodeCoverage.Core.Utilities;
 
 namespace FineCodeCoverage.Output
 {
@@ -64,6 +66,18 @@ namespace FineCodeCoverage.Output
 			// initialization is the Initialize method.
 		}
 
+		/*
+			Hack necessary for debugging in 2022 !
+			https://developercommunity.visualstudio.com/t/vsix-tool-window-vs2022-different-instantiation-wh/1663280
+		*/
+		internal static OutputToolWindowContext GetOutputToolWindowContext()
+        {
+			return new OutputToolWindowContext
+			{
+				EventAggregator = componentModel.GetService<IEventAggregator>()
+			};
+		}
+
 		/// <summary>
 		/// Initialization of the package; this method is called right after the package is sited, so this is the place
 		/// where you can put all the initialization code that rely on services provided by VisualStudio.
@@ -92,6 +106,8 @@ namespace FineCodeCoverage.Output
 				HandleOpenSolution();
 			}
 			SolutionEvents.OnAfterBackgroundSolutionLoadComplete += HandleOpenSolution;
+			await OutputToolWindowCommand.InitializeAsync(this, componentModel.GetService<ILogger>());
+			await ClearUICommand.InitializeAsync(this, componentModel.GetService<IFCCEngine>());
 		}
 		
 		private void HandleOpenSolution()
@@ -120,14 +136,9 @@ namespace FineCodeCoverage.Output
 			return value is bool isSolOpen && isSolOpen;
 		}
 
-		protected override System.Threading.Tasks.Task<object> InitializeToolWindowAsync(Type toolWindowType, int id, CancellationToken cancellationToken)
+        protected override Task<object> InitializeToolWindowAsync(Type toolWindowType, int id, CancellationToken cancellationToken)
         {
-			var context = new OutputToolWindowContext
-			{
-				FccEngine = componentModel.GetService<IFCCEngine>(),
-				ScriptManager = componentModel.GetService<ScriptManager>()
-			};
-			return System.Threading.Tasks.Task.FromResult<object>(context);
+			return Task.FromResult<object>(GetOutputToolWindowContext());
 		}
         public override IVsAsyncToolWindowFactory GetAsyncToolWindowFactory(Guid toolWindowType)
 		{

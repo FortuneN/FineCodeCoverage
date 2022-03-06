@@ -2,21 +2,27 @@
 using System.Linq;
 using FineCodeCoverage;
 using System.Diagnostics;
-using Microsoft.VisualStudio;
 using System.Collections.Generic;
 using Microsoft.VisualStudio.Shell;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.VisualStudio.Shell.Interop;
 using System.ComponentModel.Composition;
 using Microsoft;
+using Task = System.Threading.Tasks.Task;
+using EnvDTE80;
 
+interface IShowFCCOutputPane
+{
+    Task ShowAsync();
+}
+[Export(typeof(IShowFCCOutputPane))]
 [Export(typeof(ILogger))]
-public class Logger : ILogger
+public class Logger : ILogger, IShowFCCOutputPane
 {
     private IVsOutputWindowPane _pane;
     private IVsOutputWindow _outputWindow;
+    private DTE2 dte;
     private readonly IServiceProvider _serviceProvider;
-    private Guid _paneGuid = VSConstants.GUID_BuildOutputWindowPane;
     private Guid fccPaneGuid = Guid.Parse("3B3C775A-0050-445D-9022-0230957805B2");
 
     [ImportingConstructor]
@@ -29,32 +35,24 @@ public class Logger : ILogger
         staticLogger = this;
     }
 
-    IVsOutputWindowPane CreatePane(Guid paneGuid, string title,
-        bool visible, bool clearWithSolution)
+    private async Task SetPaneAsync()
     {
-        
-        ThreadHelper.ThrowIfNotOnUIThread();
+        await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
         _outputWindow = (IVsOutputWindow)_serviceProvider.GetService(typeof(SVsOutputWindow));
         Assumes.Present(_outputWindow);
-        IVsOutputWindowPane pane;
+        dte = (DTE2)_serviceProvider.GetService(typeof(EnvDTE.DTE));
+        Assumes.Present(dte);
 
         // Create a new pane.
         _outputWindow.CreatePane(
-            ref paneGuid,
-            title,
-            Convert.ToInt32(visible),
-            Convert.ToInt32(clearWithSolution));
+            ref fccPaneGuid,
+            "FCC",
+            Convert.ToInt32(true),
+            Convert.ToInt32(false)); // do not clear with solution otherwise will not get initialize methods
 
         // Retrieve the new pane.
-        _outputWindow.GetPane(ref paneGuid, out pane);
-        return pane;
-    }
-
-    private void SetPane()
-    {
-        ThreadHelper.ThrowIfNotOnUIThread();
-        // do not clear with solution otherwise will not get initialize methods
-        _pane = CreatePane(fccPaneGuid, "FCC", true, false);
+        _outputWindow.GetPane(ref fccPaneGuid, out IVsOutputWindowPane pane);
+        _pane = pane;
     }
 
     [SuppressMessage("Usage", "VSTHRD102:Implement internal logic asynchronously")]
@@ -75,7 +73,7 @@ public class Logger : ILogger
 
                 if(_pane == null)
                 {
-                    SetPane();
+                    await SetPaneAsync();
                 }
 
                 if(_pane == null)
@@ -145,5 +143,22 @@ public class Logger : ILogger
     public void LogWithoutTitle(IEnumerable<string> message)
     {
         LogImpl(message.ToArray(), false);
+    }
+
+    public async Task ShowAsync()
+    {
+        await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+
+        if (_pane == null)
+        {
+            await SetPaneAsync();
+        }
+
+        if (_pane != null)
+        {
+            EnvDTE.Window window = dte.Windows.Item(EnvDTE.Constants.vsWindowKindOutput);
+            window.Activate();
+            _pane.Activate();
+        }
     }
 }

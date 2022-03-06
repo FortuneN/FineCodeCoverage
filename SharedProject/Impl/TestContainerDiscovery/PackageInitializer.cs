@@ -1,11 +1,12 @@
 ﻿using System;
 using System.ComponentModel.Composition;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Threading;
 using FineCodeCoverage.Engine;
 using FineCodeCoverage.Output;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Task = System.Threading.Tasks.Task;
 
 namespace FineCodeCoverage.Impl
 {
@@ -25,32 +26,30 @@ namespace FineCodeCoverage.Impl
             this.serviceProvider = serviceProvider;
         }
 
-        [SuppressMessage("Usage", "VSTHRD102:Implement internal logic asynchronously")]
-        public void Initialize()
+        public async Task InitializeAsync(CancellationToken cancellationToken)
         {
-            ThreadHelper.JoinableTaskFactory.Run(async () =>
+            cancellationToken.ThrowIfCancellationRequested();
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+
+            if (serviceProvider.GetService(typeof(SVsShell)) is IVsShell shell)
             {
-                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                var packageToBeLoadedGuid = new Guid(OutputToolWindowPackage.PackageGuidString);
+                shell.LoadPackage(ref packageToBeLoadedGuid, out var _);
 
-                if (serviceProvider.GetService(typeof(SVsShell)) is IVsShell shell)
+                var outputWindowInitializedFile = Path.Combine(fccEngine.AppDataFolderPath, "outputWindowInitialized");
+
+                if (File.Exists(outputWindowInitializedFile))
                 {
-                    var packageToBeLoadedGuid = new Guid(OutputToolWindowPackage.PackageGuidString);
-                    shell.LoadPackage(ref packageToBeLoadedGuid, out var package);
-
-                    var outputWindowInitializedFile = Path.Combine(fccEngine.AppDataFolderPath, "outputWindowInitialized");
-
-                    if (File.Exists(outputWindowInitializedFile))
-                    {
-                        OutputToolWindowCommand.Instance.FindToolWindow();
-                    }
-                    else
-                    {
-                        // for first time users, the window is automatically docked 
-                        OutputToolWindowCommand.Instance.ShowToolWindow();
-                        File.WriteAllText(outputWindowInitializedFile, string.Empty);
-                    }
+                    await OutputToolWindowCommand.Instance.FindToolWindowAsync();
                 }
-            });
+                else
+                {
+                    // for first time users, the window is automatically docked 
+                    await OutputToolWindowCommand.Instance.ShowToolWindowAsync();
+                    File.WriteAllText(outputWindowInitializedFile, string.Empty);
+                }
+            }
+
         }
     }
 

@@ -1,8 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
 using AutoMoq;
-using FineCodeCoverage.Core.Model;
 using FineCodeCoverage.Engine;
 using FineCodeCoverage.Engine.Model;
 using FineCodeCoverage.Impl;
@@ -29,84 +30,86 @@ namespace Test
         }
 
 		[Test]
-		public void Should_Log_Initializing_When_Initialize()
+		public async Task Should_Log_Initializing_When_Initialize()
         {
-			initializer.Initialize();
+			await initializer.InitializeAsync(CancellationToken.None);
 			mocker.Verify<ILogger>(l => l.Log("Initializing"));
         }
 
-		private void InitializeWithException(Action<Exception> callback = null)
+		private async Task InitializeWithExceptionAsync(Action<Exception> callback = null)
 		{
 			var initializeException = new Exception("initialize exception");
 			mocker.Setup<ICoverageProjectFactory>(a => a.Initialize()).Throws(initializeException);
 			
-			initializer.Initialize();
+			await initializer.InitializeAsync(CancellationToken.None);
 			callback?.Invoke(initializeException);
 
 		}
 		[Test]
-		public void Should_Set_InitializeStatus_To_Error_If_Exception_When_Initialize()
+		public async Task Should_Set_InitializeStatus_To_Error_If_Exception_When_Initialize()
 		{
-			InitializeWithException();
+			await InitializeWithExceptionAsync();
 			Assert.AreEqual(InitializeStatus.Error, initializer.InitializeStatus);
 		}
 
 		[Test]
-		public void Should_Set_InitializeExceptionMessage_If_Exception_When_Initialize()
+		public async Task Should_Set_InitializeExceptionMessage_If_Exception_When_Initialize()
 		{
-			InitializeWithException();
+			await InitializeWithExceptionAsync();
 			Assert.AreEqual("initialize exception", initializer.InitializeExceptionMessage);
 		}
 
 		[Test]
-		public void Should_Log_Failed_Initialization_With_Exception_if_Exception_When_Initialize()
+		public async Task Should_Log_Failed_Initialization_With_Exception_if_Exception_When_Initialize()
         {
 			Exception initializeException = null;
-			InitializeWithException(exc => initializeException = exc);
+			await InitializeWithExceptionAsync(exc => initializeException = exc);
 			mocker.Verify<ILogger>(l => l.Log("Failed Initialization", initializeException));
 		}
 
 		[Test]
-		public void Should_Set_InitializeStatus_To_Initialized_When_Successfully_Completed()
+		public async Task Should_Set_InitializeStatus_To_Initialized_When_Successfully_Completed()
 		{
-			initializer.Initialize();
+			await initializer.InitializeAsync(CancellationToken.None);
 			Assert.AreEqual(InitializeStatus.Initialized, initializer.InitializeStatus);
 		}
 
 		[Test]
-		public void Should_Log_Initialized_When_Successfully_Completed()
+		public async Task Should_Log_Initialized_When_Successfully_Completed()
 		{
-			initializer.Initialize();
+			await initializer.InitializeAsync(CancellationToken.None);
 			mocker.Verify<ILogger>(l => l.Log("Initialized"));
 		}
 
 		[Test]
-		public void Should_Initialize_Dependencies_In_Order()
+		public async Task Should_Initialize_Dependencies_In_Order()
         {
+			var disposalToken = CancellationToken.None;
 			List<int> callOrder = new List<int>();
 			mocker.GetMock<ICoverageProjectFactory>().Setup(cp => cp.Initialize()).Callback(() =>
 			{
 				callOrder.Add(1);
 			});
-			mocker.GetMock<IFCCEngine>().Setup(engine => engine.Initialize(initializer)).Callback(() =>
+			mocker.GetMock<IFCCEngine>().Setup(engine => engine.Initialize(initializer, disposalToken)).Callback(() =>
 			{
 				callOrder.Add(2);
 			});
 
-			mocker.GetMock<IPackageInitializer>().Setup(p => p.Initialize()).Callback(() =>
+			mocker.GetMock<IPackageInitializer>().Setup(p => p.InitializeAsync(disposalToken)).Callback(() =>
 			{
 				callOrder.Add(3);
 			});
 
-			initializer.Initialize();
+			await initializer.InitializeAsync(disposalToken);
 			Assert.AreEqual(new List<int> { 1, 2, 3 }, callOrder);
 		}
 
 		[Test]
-		public void Should_Pass_Itself_To_FCCEngine_For_InitializeStatus()
+		public async Task Should_Pass_Itself_To_FCCEngine_For_InitializeStatus()
         {
-			initializer.Initialize();
-			mocker.Verify<IFCCEngine>(engine => engine.Initialize(initializer));
+			var disposalToken = CancellationToken.None;
+			await initializer.InitializeAsync(disposalToken);
+			mocker.Verify<IFCCEngine>(engine => engine.Initialize(initializer, disposalToken));
         }
 
 	}

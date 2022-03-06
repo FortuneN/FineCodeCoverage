@@ -5,10 +5,13 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
-using System.Threading;
+using FineCodeCoverage.Core.Utilities;
 using FineCodeCoverage.Engine;
+using FineCodeCoverage.Engine.ReportGenerator;
 using FineCodeCoverage.Options;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.TestWindow.Extensibility;
+using Task = System.Threading.Tasks.Task;
 using Microsoft.VisualStudio.Utilities;
 
 namespace FineCodeCoverage.Impl
@@ -26,7 +29,9 @@ namespace FineCodeCoverage.Impl
         private readonly ITestOperationFactory testOperationFactory;
         private readonly ILogger logger;
         private readonly IAppOptionsProvider appOptionsProvider;
-        internal System.Threading.Thread initializeThread;        
+        private readonly IReportGeneratorUtil reportGeneratorUtil;
+        private bool cancelling;
+        internal Task initializeTask;
 
         [ExcludeFromCodeCoverage]
         public Uri ExecutorUri => new Uri($"executor://{Vsix.Code}.Executor/v1");
@@ -44,38 +49,43 @@ namespace FineCodeCoverage.Impl
             IInitializer initializer,
             ITestOperationFactory testOperationFactory,
             ILogger logger,
-            IAppOptionsProvider appOptionsProvider
+            IAppOptionsProvider appOptionsProvider,
+            IReportGeneratorUtil reportGeneratorUtil,
+            IDisposeAwareTaskRunner disposeAwareTaskRunner 
 
         )
         {
-            appOptionsProvider.OptionsChanged += AppOptionsEvents_OptionsChanged;
             this.appOptionsProvider = appOptionsProvider;
+            this.reportGeneratorUtil = reportGeneratorUtil;
             this.fccEngine = fccEngine;
             this.testOperationFactory = testOperationFactory;
             this.logger = logger;
 
-            initializeThread = new Thread(() =>
+            disposeAwareTaskRunner.RunAsync(() =>
             {
-                operationState.StateChanged += OperationState_StateChanged;
-                initializer.Initialize();
+                initializeTask = Task.Run(async () =>
+                {
+                    operationState.StateChanged += OperationState_StateChanged;
+                    await initializer.InitializeAsync(disposeAwareTaskRunner.DisposalToken);
+                });
+                return initializeTask;
             });
-            initializeThread.Start();
-
         }
 
-        private void AppOptionsEvents_OptionsChanged(IAppOptions appOptions)
+        internal Action<Func<System.Threading.Tasks.Task>> RunAsync = (taskProvider) =>
         {
-            if (!appOptions.Enabled)
-            {
-                fccEngine.ClearUI();
-            }
-        }
+            _ = ThreadHelper.JoinableTaskFactory.RunAsync(taskProvider);
+        };
+
         private void TestExecutionStarting(IOperation operation)
         {
             fccEngine.StopCoverage();
+
             var settings = appOptionsProvider.Get();
             if (!settings.Enabled)
             {
+                CombinedLog("Coverage not collected as FCC disabled.");
+                reportGeneratorUtil.EndOfCoverageRun();
                 return;
             }            
             if (settings.MsCodeCoverage)
@@ -92,23 +102,30 @@ namespace FineCodeCoverage.Impl
 
                 });
             }
+            else
+            {
+                CombinedLog("Coverage collected when tests finish. RunInParallel option true for immediate");
+            }
+        }
+
+        private void CombinedLog(string message)
+        {
+            reportGeneratorUtil.LogCoverageProcess(message);
+            logger.Log(message);
         }
 
         private void TestExecutionFinished(IOperation operation)
-        {            
+        {
             var settings = appOptionsProvider.Get();
-            if (!settings.Enabled)
-            {
-                return;
-            }
-            if (settings.RunInParallel)
+            if (!settings.Enabled || settings.RunInParallel)
             {
                 return;
             }
             var testOperation = testOperationFactory.Create(operation);
             if (!settings.RunWhenTestsFail && testOperation.FailedTests > 0)
             {
-                logger.Log($"Skipping coverage due to failed tests.  Option {nameof(AppOptions.RunWhenTestsFail)} is false");
+                CombinedLog($"Skipping coverage due to failed tests.  Option {nameof(AppOptions.RunWhenTestsFail)} is false");
+                reportGeneratorUtil.EndOfCoverageRun();
                 return;
             }
 
@@ -118,19 +135,23 @@ namespace FineCodeCoverage.Impl
             {
                 if (totalTests <= runWhenTestsExceed)
                 {
-                    logger.Log($"Skipping coverage as total tests ({totalTests}) <= {nameof(AppOptions.RunWhenTestsExceed)} ({runWhenTestsExceed})");
+                    CombinedLog($"Skipping coverage as total tests ({totalTests}) <= {nameof(AppOptions.RunWhenTestsExceed)} ({runWhenTestsExceed})");
+                    reportGeneratorUtil.EndOfCoverageRun();
                     return;
                 }
             }
             fccEngine.ReloadCoverage(testOperation.GetCoverageProjectsAsync);
         }
-
+        
         private void OperationState_StateChanged(object sender, OperationStateChangedEventArgs e)
         {
             try
             {
-                if(e.State == TestOperationStates.TestExecutionCanceling)
-                {                 
+                if (e.State == TestOperationStates.TestExecutionCanceling)
+                {
+                    cancelling = true;
+                    CombinedLog("Test execution cancelling - running coverage will be cancelled.");
+                    reportGeneratorUtil.EndOfCoverageRun(); // not necessarily true but get desired result
                     fccEngine.StopCoverage();
                 }
 
@@ -138,17 +159,27 @@ namespace FineCodeCoverage.Impl
                 if (e.State == TestOperationStates.TestExecutionStarting)
                 {                    
                     TestExecutionStarting(e.Operation);
+                    cancelling = false;
                 }
 
                 if (e.State == TestOperationStates.TestExecutionFinished)
                 {                    
                     TestExecutionFinished(e.Operation);                    
                 }
+
+                if (e.State == TestOperationStates.TestExecutionCancelAndFinished && !cancelling)
+                {
+                    CombinedLog("There has been an issue running tests. See the Tests output window pane.");
+                    reportGeneratorUtil.EndOfCoverageRun(); // not necessarily true but get desired result
+                    fccEngine.StopCoverage();
+                }
+                    
             }
             catch (Exception exception)
             {
                 logger.Log("Error processing unit test events", exception);
             }
+            
         }
     }
 }

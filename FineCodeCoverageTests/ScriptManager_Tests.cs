@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using FineCodeCoverage.Core.Utilities;
 using FineCodeCoverage.Engine;
 using FineCodeCoverage.Output;
 using Moq;
@@ -11,13 +12,15 @@ namespace Test
         private ScriptManager scriptManager;
         private Mock<ISourceFileOpener> sourceFileOpener;
         private Mock<IProcess> mockProcess;
+        private Mock<IEventAggregator> mockEventAggregator;
 
         [SetUp]
         public void SetUp()
         {
             sourceFileOpener = new Mock<ISourceFileOpener>();
             mockProcess = new Mock<IProcess>();
-            scriptManager = new ScriptManager(sourceFileOpener.Object, mockProcess.Object);
+            mockEventAggregator = new Mock<IEventAggregator>();
+            scriptManager = new ScriptManager(sourceFileOpener.Object, mockProcess.Object, mockEventAggregator.Object);
         }
 
         [Test]
@@ -42,12 +45,10 @@ namespace Test
         }
 
         [Test]
-        public void DocumentFocused_Should_Call_The_Focus_Callback()
+        public void DocumentFocused_Should_Send_Message()
         {
-            var calledCallback = false;
-            scriptManager.FocusCallback = () => calledCallback = true;
             scriptManager.DocumentFocused();
-            Assert.True(calledCallback);
+            mockEventAggregator.Verify(e => e.SendMessage(It.IsAny<ReportFocusedMessage>(), null));
         }
 
         [Test]

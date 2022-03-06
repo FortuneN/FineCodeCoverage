@@ -22,7 +22,7 @@ namespace FineCodeCoverage.Options
         }
         internal AppOptions(bool isReadOnly)
         {
-            if (!isReadOnly)
+            if (!isReadOnly && AppOptionsStorageProvider == null)
             {
                 ThreadHelper.JoinableTaskFactory.Run(async () =>
                 {
@@ -179,7 +179,6 @@ namespace FineCodeCoverage.Options
         [Description("Set to true to hide classes, namespaces and assemblies that are fully covered.")]
         public bool HideFullyCovered { get; set; }
 
-        [SuppressMessage("Usage", "VSTHRD010:Invoke single-threaded types on Main thread")]
         public override void SaveSettingsToStorage()
         {
             AppOptionsStorageProvider.SaveSettingsToStorage(this);

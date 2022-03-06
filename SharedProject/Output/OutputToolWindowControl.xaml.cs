@@ -1,72 +1,95 @@
-﻿using EnvDTE;
-using System.Windows;
-using FineCodeCoverage.Engine;
+﻿using System.Windows;
 using System.Windows.Controls;
 using Microsoft.VisualStudio.Shell;
-using Microsoft;
+using System.Windows.Media;
+using FineCodeCoverage.Core.Utilities;
+using System;
 
 namespace FineCodeCoverage.Output
 {
-    /// <summary>
-    /// Interaction logic for OutputToolWindowControl.
-    /// </summary>
-    internal partial class OutputToolWindowControl : UserControl, IScriptInvoker
+	/// <summary>
+	/// Interaction logic for OutputToolWindowControl.
+	/// </summary>
+	internal partial class OutputToolWindowControl : 
+		UserControl, IListener<NewReportMessage>, IListener<InvokeScriptMessage>, IListener<ObjectForScriptingMessage>
 	{
-        private DTE Dte;
-		private Events Events;
-		private SolutionEvents SolutionEvents;
+        private readonly IEventAggregator eventAggregator;
 
-		/// <summary>
-		/// Initializes a new instance of the <see cref="OutputToolWindowControl"/> class.
-		/// </summary>
-		public OutputToolWindowControl(ScriptManager scriptManager,IFCCEngine fccEngine)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="OutputToolWindowControl"/> class.
+        /// </summary>
+        public OutputToolWindowControl(IEventAggregator eventAggregator)
 		{
+			this.eventAggregator = eventAggregator;
 			InitializeComponent();
+			eventAggregator.SendMessage(new DpiChangedMessage { DpiScale = VisualTreeHelper.GetDpi(this) });
+			var environmentFont = new EnvironmentFont();
+			environmentFont.Changed += (sender, fontDetails) =>
+			{
+				eventAggregator.SendMessage(new EnvironmentFontDetailsChangedMessage { FontDetails = fontDetails });
+			};
+			environmentFont.Initialize(this);
+			this.Loaded += OutputToolWindowControl_Loaded;
 
+			eventAggregator.AddListener(this);
+			eventAggregator.SendMessage(new ReadyForReportMessage());
+		}
+
+        protected override void OnDpiChanged(DpiScale oldDpi, DpiScale newDpi)
+		{
+			base.OnDpiChanged(oldDpi, newDpi);
+			eventAggregator.SendMessage(new DpiChangedMessage { DpiScale = newDpi });
+		}
+
+		private void OutputToolWindowControl_Loaded(object sender, RoutedEventArgs e)
+        {
+			FCCOutputBrowser.Visibility = Visibility.Visible;
+        }
+
+        private void InvokeScript(string scriptName, params object[] args)
+        {
+			try
+			{
+				if (FCCOutputBrowser.Document != null)
+				{
+					try
+					{
+						// Can use FCCOutputBrowser.IsLoaded but 
+						// it is possible for this to be successful when IsLoaded false.
+						FCCOutputBrowser.InvokeScript(scriptName, args);
+					}
+					catch
+					{
+						// missed are not important.  Important go through NewReportMessage and NavigateToString 
+					}
+				}
+			}
+			catch (ObjectDisposedException) { }
+		}
+
+        public void Handle(NewReportMessage message)
+        {
 			ThreadHelper.JoinableTaskFactory.Run(async () =>
 			{
 				await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-				Dte = (DTE)await OutputToolWindowCommand.Instance.ServiceProvider.GetServiceAsync(typeof(DTE));
-				Assumes.Present(Dte);
-				Events = Dte.Events;
-				SolutionEvents = Events.SolutionEvents;
-				SolutionEvents.Opened += () => Clear();
-				SolutionEvents.AfterClosing += () => Clear();
+
+				FCCOutputBrowser.NavigateToString(message.Report);
 			});
+		}
 
-			FCCOutputBrowser.ObjectForScripting = scriptManager;
-			scriptManager.ScriptInvoker = this;
-			
-			fccEngine.UpdateOutputWindow += (args) =>
-			{
-				ThreadHelper.JoinableTaskFactory.Run(async () =>
-				{
-					await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-
-					if (string.IsNullOrWhiteSpace(args?.HtmlContent))
-					{
-						Clear();
-						return;
-					}
-					
-					FCCOutputBrowser.NavigateToString(args.HtmlContent);
-					FCCOutputBrowser.Visibility = Visibility.Visible;
-				});
-			};
-        }
-
-        public object InvokeScript(string scriptName, params object[] args)
+        public void Handle(InvokeScriptMessage message)
         {
-			if (FCCOutputBrowser.Document != null)
+			ThreadHelper.JoinableTaskFactory.Run(async () =>
 			{
-				return FCCOutputBrowser.InvokeScript(scriptName, args);
-			}
-			return null;
+				await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+
+				InvokeScript(message.ScriptName, message.Arguments);
+			});
 		}
 
-        private void Clear()
-		{
-			FCCOutputBrowser.Visibility = Visibility.Hidden;
+        public void Handle(ObjectForScriptingMessage message)
+        {
+			FCCOutputBrowser.ObjectForScripting = message.ObjectForScripting;
 		}
-	}
+    }
 }

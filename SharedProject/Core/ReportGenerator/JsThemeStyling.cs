@@ -39,6 +39,22 @@ namespace FineCodeCoverage.Engine.ReportGenerator
         public string SliderLeftColour;
         public string SliderRightColour;
         public string SliderThumbColour;
+
+        public string ButtonBorderColour;
+        public string ButtonBorderDisabledColour;
+        public string ButtonBorderFocusedColour;
+        public string ButtonBorderHoverColour;
+        public string ButtonBorderPressedColour;
+        public string ButtonColour;
+        public string ButtonDisabledColour;
+        public string ButtonFocusedColour;
+        public string ButtonHoverColour;
+        public string ButtonPressedColour;
+        public string ButtonTextColour;
+        public string ButtonDisabledTextColour;
+        public string ButtonFocusedTextColour;
+        public string ButtonHoverTextColour;
+        public string ButtonPressedTextColour;
         //#pragma warning restore SA1401 // Fields should be private
         //#pragma warning restore IDE0079 // Remove unnecessary suppression
     }

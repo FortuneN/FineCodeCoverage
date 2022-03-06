@@ -9,7 +9,7 @@ namespace FineCodeCoverage.Impl
 	internal class CoverageLineGlyphFactory : IGlyphFactory
 	{
 		private enum CoverageType { Covered, Partial, NotCovered}
-        private ICoverageColours coverageColours;
+        private readonly ICoverageColours coverageColours;
 
         public CoverageLineGlyphFactory(ICoverageColours coverageColours)
         {

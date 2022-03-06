@@ -1,8 +1,11 @@
-﻿namespace FineCodeCoverage.Impl
+﻿using System.Threading;
+using System.Threading.Tasks;
+
+namespace FineCodeCoverage.Impl
 {
     internal interface IInitializer : IInitializeStatusProvider
     {
-        void Initialize();
+        Task InitializeAsync(CancellationToken cancellationToken);
     }
 
 }

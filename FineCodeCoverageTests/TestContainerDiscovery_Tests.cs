@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using AutoMoq;
+using FineCodeCoverage.Core.Utilities;
 using FineCodeCoverage.Engine;
 using FineCodeCoverage.Engine.Model;
 using FineCodeCoverage.Impl;
@@ -61,33 +63,41 @@ namespace Test
         public void SetUp()
         {
             mocker = new AutoMoqer();
+            var mockDisposeAwareTaskRunner = mocker.GetMock<IDisposeAwareTaskRunner>();
+            mockDisposeAwareTaskRunner.Setup(runner => runner.RunAsync(It.IsAny<Func<Task>>())).Callback<Func<Task>>(async taskProvider => await taskProvider());
             var testContainerDiscoverer = mocker.Create<TestContainerDiscoverer>();
-            testContainerDiscoverer.initializeThread.Join();
+            testContainerDiscoverer.RunAsync = (taskProvider) =>
+            {
+                taskProvider().Wait();
+            };
+            testContainerDiscoverer.initializeTask.Wait();
         }
 
         [Test]
         public void It_Should_Initialize_As_Is_The_Entrance()
         {
-            mocker.Verify<IInitializer>(i => i.Initialize());
+            mocker.Verify<IInitializer>(i => i.InitializeAsync(It.IsAny<CancellationToken>()));
         }
 
         [Test]
-        public void It_Should_Watch_For_Operation_State_Change_Before_Initialize()
+        public async Task It_Should_Watch_For_Operation_State_Change_Before_Initialize()
         {
             List<int> order = new List<int>();
             mocker = new AutoMoqer();
+            var mockDisposeAwareTaskRunner = mocker.GetMock<IDisposeAwareTaskRunner>();
+            mockDisposeAwareTaskRunner.Setup(runner => runner.RunAsync(It.IsAny<Func<Task>>())).Callback<Func<Task>>(async taskProvider => await taskProvider());
             var mockOperationState = mocker.GetMock<IOperationState>();
             mockOperationState.SetupAdd(o => o.StateChanged += It.IsAny<EventHandler<OperationStateChangedEventArgs>>()).Callback(() =>
             {
                 order.Add(1);
             });
             var mockInitializer = mocker.GetMock<IInitializer>();
-            mockInitializer.Setup(i => i.Initialize()).Callback(() =>
+            mockInitializer.Setup(i => i.InitializeAsync(It.IsAny<CancellationToken>())).Callback(() =>
             {
                 order.Add(2);
             });
             var testContainerDiscoverer = mocker.Create<TestContainerDiscoverer>();
-            testContainerDiscoverer.initializeThread.Join();
+            await testContainerDiscoverer.initializeTask;
             Assert.AreEqual(new List<int> { 1, 2 }, order);
         }
 
@@ -226,17 +236,6 @@ namespace Test
             mocker.GetMock<IFCCEngine>().Setup(engine => engine.StopCoverage()).Throws(exception);
             RaiseTestExecutionCancelling();
             mocker.Verify<ILogger>(logger => logger.Log("Error processing unit test events", exception));
-        }
-
-        [TestCase(true)]
-        [TestCase(false)]
-        public void Should_Clear_UI_When_Enabled_Setting_Is_Set_To_False(bool newEnabled)
-        {
-            var mockAppOptions = new Mock<IAppOptions>();
-            mockAppOptions.Setup(o => o.Enabled).Returns(newEnabled);
-            mocker.GetMock<IAppOptionsProvider>().Raise(optionsProvider => optionsProvider.OptionsChanged += null, mockAppOptions.Object);
-            mocker.Verify<IFCCEngine>(engine => engine.ClearUI(), newEnabled ? Times.Never() : Times.Once());
-
         }
     }
 }

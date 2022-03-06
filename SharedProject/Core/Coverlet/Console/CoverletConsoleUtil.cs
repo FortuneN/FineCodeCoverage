@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using FineCodeCoverage.Core.Utilities;
 using FineCodeCoverage.Engine.Model;
@@ -42,9 +43,9 @@ namespace FineCodeCoverage.Engine.Coverlet
 
             this.fccExecutor = fccExecutor;
         }
-		public void Initialize(string appDataFolder)
+		public void Initialize(string appDataFolder, CancellationToken cancellationToken)
 		{
-			fccExecutor.Initialize(appDataFolder);
+			fccExecutor.Initialize(appDataFolder, cancellationToken);
 		}
 
 		// for now FCCCoverletConsoleExeProvider can return null for exe path
@@ -121,7 +122,7 @@ namespace FineCodeCoverage.Engine.Coverlet
 			return coverletSettings;
 		}
 
-		public async Task<bool> RunAsync(ICoverageProject project, bool throwError = false)
+		public async Task RunAsync(ICoverageProject project, CancellationToken cancellationToken)
 		{
 			var title = $"Coverlet Run ({project.ProjectName})";
 
@@ -130,11 +131,10 @@ namespace FineCodeCoverage.Engine.Coverlet
 			logger.Log($"{title} Arguments {Environment.NewLine}{string.Join($"{Environment.NewLine}", coverletSettings)}");
 
 			var result = await processUtil
-			.ExecuteAsync(GetExecuteRequest(project, string.Join(" ", coverletSettings)));
+			.ExecuteAsync(GetExecuteRequest(project, string.Join(" ", coverletSettings)), cancellationToken);
 
 
-			if (result != null)
-			{
+			
 				/*
 				0 - Success.
 				1 - If any test fails.
@@ -145,20 +145,11 @@ namespace FineCodeCoverage.Engine.Coverlet
 				{
 					logger.Log($"{title} Error. Exit code: {result.ExitCode}");
 					logger.Log($"{title} Error. Output: ", result.Output);
-					if (throwError)
-					{
-						throw new Exception(result.Output);
-					}
-
 					
-					return false;
+					throw new Exception(result.Output);
 				}
 
 				logger.Log(title, result.Output);
-
-				return true;
-			}
-			return false;
 		}
 	}
 }
