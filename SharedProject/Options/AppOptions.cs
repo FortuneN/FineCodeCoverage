@@ -43,7 +43,7 @@ namespace FineCodeCoverage.Options
 
         [Category(runCategory)]
         [Description("Specifies whether or not the ms code coverage is used (BETA)")]
-        public bool MsCodeCoverage { get; set; } = true;
+        public bool MsCodeCoverage { get; set; } = false;
 
         [Category(excludeIncludeCategory)]
         [Description(
