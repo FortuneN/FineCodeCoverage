@@ -11,7 +11,6 @@ using FineCodeCoverage.Engine.ReportGenerator;
 using FineCodeCoverage.Impl;
 using FineCodeCoverage.Options;
 using FineCodeCoverage.Output;
-using Microsoft.VisualStudio.Shell;
 
 namespace FineCodeCoverage.Engine
 {
