@@ -39,7 +39,6 @@ namespace FineCodeCoverage.Engine
         private readonly IReportGeneratorUtil reportGeneratorUtil;
         private readonly ILogger logger;
         private readonly IAppDataFolder appDataFolder;
-        private readonly IServiceProvider serviceProvider;
 
         private IInitializeStatusProvider initializeStatusProvider;
         private readonly ICoverageToolOutputManager coverageOutputManager;
@@ -62,8 +61,6 @@ namespace FineCodeCoverage.Engine
             IAppDataFolder appDataFolder,
             ICoverageToolOutputManager coverageOutputManager,
             IMsCodeCoverageRunSettingsService msCodeCoverageRunSettingsService,
-            [Import(typeof(SVsServiceProvider))]
-            IServiceProvider serviceProvider,
             ISolutionEvents solutionEvents,
             IAppOptionsProvider appOptionsProvider,
             IEventAggregator eventAggregator,
@@ -89,7 +86,6 @@ namespace FineCodeCoverage.Engine
             this.reportGeneratorUtil = reportGeneratorUtil;
             this.logger = logger;
             this.appDataFolder = appDataFolder;
-            this.serviceProvider = serviceProvider;            
             this.msCodeCoverageRunSettingsService = msCodeCoverageRunSettingsService;
         }
 
