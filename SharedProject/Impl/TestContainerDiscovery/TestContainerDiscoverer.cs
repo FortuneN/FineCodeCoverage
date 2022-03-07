@@ -13,6 +13,7 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.TestWindow.Extensibility;
 using Task = System.Threading.Tasks.Task;
 using Microsoft.VisualStudio.Utilities;
+using FineCodeCoverage.Engine.MsTestPlatform;
 
 namespace FineCodeCoverage.Impl
 {
@@ -30,6 +31,7 @@ namespace FineCodeCoverage.Impl
         private readonly ILogger logger;
         private readonly IAppOptionsProvider appOptionsProvider;
         private readonly IReportGeneratorUtil reportGeneratorUtil;
+        private readonly IMsCodeCoverageRunSettingsService msCodeCoverageRunSettingsService;
         private bool cancelling;
         internal Task initializeTask;
 
@@ -51,12 +53,14 @@ namespace FineCodeCoverage.Impl
             ILogger logger,
             IAppOptionsProvider appOptionsProvider,
             IReportGeneratorUtil reportGeneratorUtil,
-            IDisposeAwareTaskRunner disposeAwareTaskRunner 
+            IDisposeAwareTaskRunner disposeAwareTaskRunner,
+            IMsCodeCoverageRunSettingsService msCodeCoverageRunSettingsService
 
         )
         {
             this.appOptionsProvider = appOptionsProvider;
             this.reportGeneratorUtil = reportGeneratorUtil;
+            this.msCodeCoverageRunSettingsService = msCodeCoverageRunSettingsService;
             this.fccEngine = fccEngine;
             this.testOperationFactory = testOperationFactory;
             this.logger = logger;
@@ -91,7 +95,7 @@ namespace FineCodeCoverage.Impl
             if (settings.MsCodeCoverage)
             {
                 var testOperation = testOperationFactory.Create(operation);
-                fccEngine.PrepareTestRun(testOperation);
+                msCodeCoverageRunSettingsService.PrepareRunSettings(testOperation);
             }
             else if (settings.RunInParallel)
             {

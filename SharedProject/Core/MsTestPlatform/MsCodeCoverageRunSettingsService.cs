@@ -1,6 +1,9 @@
-﻿using FineCodeCoverage.Core.Utilities;
+﻿using EnvDTE;
+using EnvDTE80;
+using FineCodeCoverage.Core.Utilities;
 using FineCodeCoverage.Engine.Model;
 using FineCodeCoverage.Impl;
+using Microsoft;
 using Microsoft.VisualStudio.Shell;
 using System;
 using System.Collections.Generic;
@@ -10,6 +13,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading;
+using Task = System.Threading.Tasks.Task;
 
 namespace FineCodeCoverage.Engine.MsTestPlatform
 {
@@ -28,15 +32,40 @@ namespace FineCodeCoverage.Engine.MsTestPlatform
         private const string fccSettingsTemplate = "fineCodeCoverageSettings.xml";
         private const string fccSolutionFolder = ".fcc";
         private string testResultsDirectory;
+        private string solutionDirectoryPath;
+        private DTE2 dte;
 
         [ImportingConstructor]
-        public MsCodeCoverageRunSettingsService(IToolFolder toolFolder, IToolZipProvider toolZipProvider)
+        public MsCodeCoverageRunSettingsService(
+            IToolFolder toolFolder, 
+            IToolZipProvider toolZipProvider, 
+            ISolutionEvents solutionEvents,
+            [Import(typeof(SVsServiceProvider))]
+            IServiceProvider serviceProvider
+            )
         {
             this.toolFolder = toolFolder;
             this.toolZipProvider = toolZipProvider;
             var extensionDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
             var runSettingsPath = Path.Combine(extensionDirectory, fccSettingsTemplate);
             runSettings = File.ReadAllText(runSettingsPath);
+            solutionEvents.AfterOpen += SolutionEvents_AfterOpen;
+            dte = (DTE2)serviceProvider.GetService(typeof(DTE));
+            Assumes.Present(dte);
+        }
+
+        private void SolutionEvents_AfterOpen(object sender, EventArgs e)
+        {
+            ThreadHelper.JoinableTaskFactory.Run(async () =>
+            {
+                await SetSolutionDirectoryPathAsync();
+            });
+        }
+
+        private async Task SetSolutionDirectoryPathAsync()
+        {
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+            solutionDirectoryPath =  Path.GetDirectoryName(dte.Solution.FileName);
         }
 
         public void Initialize(string appDataFolder, CancellationToken cancellationToken)
@@ -64,9 +93,9 @@ namespace FineCodeCoverage.Engine.MsTestPlatform
             }
         }
 
-        private void CreateCleanResultsDirectory(string solutionPath)
+        private void CreateCleanResultsDirectory()
         {
-            testResultsDirectory = Path.Combine(solutionPath, fccSolutionFolder, "TestResults");
+            testResultsDirectory = Path.Combine(solutionDirectoryPath, fccSolutionFolder, "TestResults");
             if (Directory.Exists(testResultsDirectory))
             {
                 Directory.Delete(testResultsDirectory, true);
@@ -94,17 +123,26 @@ namespace FineCodeCoverage.Engine.MsTestPlatform
 
         }
 
-        public void PrepareRunSettings(string solutionPath, ITestOperation testOperation)
+        private async Task EnsureSolutionDirectoryPathAsync()
+        {
+            if (solutionDirectoryPath == null)
+            {
+                await SetSolutionDirectoryPathAsync();
+            }
+        }
+
+        public void PrepareRunSettings(ITestOperation testOperation)
         {
             ThreadHelper.JoinableTaskFactory.Run(async () =>
             {
-                var uiThread = ThreadHelper.CheckAccess();
+                await EnsureSolutionDirectoryPathAsync();
                 List<ICoverageProject> coverageProjects = await testOperation.GetCoverageProjectsAsync();
 
                 CopyShimForNetFrameworkProjects(coverageProjects);
-                CreateCleanResultsDirectory(solutionPath);
 
-                var runsettingsFile = Path.Combine(solutionPath, fccSolutionFolder, "fcc.runsettings");
+                CreateCleanResultsDirectory();
+
+                var runsettingsFile = Path.Combine(solutionDirectoryPath, fccSolutionFolder, "fcc.runsettings");
                 File.WriteAllText(runsettingsFile, CreateRunSettings(coverageProjects));
                 testOperation.SetRunSettings(runsettingsFile);
             });

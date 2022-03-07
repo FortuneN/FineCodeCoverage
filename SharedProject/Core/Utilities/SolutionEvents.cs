@@ -11,6 +11,7 @@ namespace FineCodeCoverage.Core.Utilities
     public class SolutionEvents : ISolutionEvents, IVsSolutionEvents
     {
         public event EventHandler AfterClosing;
+        public event EventHandler AfterOpen;
 
         [ImportingConstructor]
         public SolutionEvents(
@@ -56,6 +57,7 @@ namespace FineCodeCoverage.Core.Utilities
 
         public int OnAfterOpenSolution(object pUnkReserved, int fNewSolution)
         {
+            AfterOpen?.Invoke(this, EventArgs.Empty);
             return VSConstants.S_OK;
         }
 
@@ -71,7 +73,7 @@ namespace FineCodeCoverage.Core.Utilities
 
         public int OnAfterCloseSolution(object pUnkReserved)
         {
-            AfterClosing?.Invoke(this, new EventArgs());
+            AfterClosing?.Invoke(this, EventArgs.Empty);
             return VSConstants.S_OK;
         }
     }

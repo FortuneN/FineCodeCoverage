@@ -28,8 +28,6 @@ namespace FineCodeCoverage.Engine
         public string AppDataFolderPath { get; private set; }
         public List<CoverageLine> CoverageLines { get; internal set; }
         private bool IsVsShutdown => disposeAwareTaskRunner.DisposalToken.IsCancellationRequested;
-        public string SolutionPath { get; set; }
-
 
         private readonly ICoverageUtilManager coverageUtilManager;
         private readonly ICoberturaUtil coberturaUtil;        
@@ -372,12 +370,6 @@ namespace FineCodeCoverage.Engine
                 disposed = true;
             }
         }
-
-        public void PrepareTestRun(ITestOperation testOperation)
-        {
-            msCodeCoverageRunSettingsService.PrepareRunSettings(SolutionPath, testOperation);
-        }
-
     }
 
 }

@@ -3,7 +3,6 @@ using System.Threading;
 using FineCodeCoverage.Options;
 using Microsoft.VisualStudio.Shell;
 using System.Runtime.InteropServices;
-using System.Diagnostics.CodeAnalysis;
 using System.ComponentModel.Composition;
 using System.Threading.Tasks;
 using Task = System.Threading.Tasks.Task;
@@ -12,8 +11,6 @@ using Microsoft;
 using FineCodeCoverage.Engine;
 using EnvDTE80;
 using Microsoft.VisualStudio;
-using Microsoft.VisualStudio.Shell.Events;
-using System.Threading.Tasks;
 using System.IO;
 using FineCodeCoverage.Core.Utilities;
 
@@ -44,7 +41,6 @@ namespace FineCodeCoverage.Output
 	[ProvideOptionPage(typeof(AppOptions), Vsix.Name, "General", 0, 0, true)]
 	[PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
 	[ProvideToolWindow(typeof(OutputToolWindow), Style = VsDockStyle.Tabbed, DockedHeight = 300, Window = EnvDTE.Constants.vsWindowKindOutput)]
-	[ProvideAutoLoad(VSConstants.UICONTEXT.SolutionOpening_string, PackageAutoLoadFlags.BackgroundLoad)]
 	public sealed class OutputToolWindowPackage : AsyncPackage
 	{
 		private static Microsoft.VisualStudio.ComponentModelHost.IComponentModel componentModel;
@@ -99,42 +95,8 @@ namespace FineCodeCoverage.Output
 
 			await OutputToolWindowCommand.InitializeAsync(this, componentModel.GetService<ILogger>());
 			await ClearUICommand.InitializeAsync(this, fccEngine);
-
-			bool isSolutionLoaded = await IsSolutionLoadedAsync();
-			if (isSolutionLoaded)
-			{
-				HandleOpenSolution();
-			}
-            Microsoft.VisualStudio.Shell.Events.SolutionEvents.OnAfterBackgroundSolutionLoadComplete += HandleOpenSolution;
-			
 		}
 		
-		private void HandleOpenSolution()
-        {			
-			ThreadHelper.JoinableTaskFactory.Run(async () =>
-			{
-				await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-				var _dte2 = (DTE2)GetGlobalService(typeof(SDTE));
-				var solPath = Path.GetDirectoryName(_dte2.Solution.FileName);
-				fccEngine.SolutionPath = solPath;				
-			});
-		}
-
-        private void HandleOpenSolution(object sender, EventArgs e)
-        {
-			HandleOpenSolution();			
-		}
-
-		private async Task<bool> IsSolutionLoadedAsync()
-		{
-			await JoinableTaskFactory.SwitchToMainThreadAsync();
-			var solService = await GetServiceAsync(typeof(SVsSolution)) as IVsSolution;
-
-			ErrorHandler.ThrowOnFailure(solService.GetProperty((int)__VSPROPID.VSPROPID_IsSolutionOpen, out object value));
-
-			return value is bool isSolOpen && isSolOpen;
-		}
-
         protected override Task<object> InitializeToolWindowAsync(Type toolWindowType, int id, CancellationToken cancellationToken)
         {
 			return Task.FromResult<object>(GetOutputToolWindowContext());

@@ -8,7 +8,7 @@ namespace FineCodeCoverage.Engine.MsTestPlatform
 {
     interface IMsCodeCoverageRunSettingsService
     {
-        void PrepareRunSettings(string solutionPath, ITestOperation testOperation);
+        void PrepareRunSettings(ITestOperation testOperation);
         IList<String> GetCoverageFilesFromLastRun();        
         void Initialize(string appDataFolder, CancellationToken cancellationToken);
     }    

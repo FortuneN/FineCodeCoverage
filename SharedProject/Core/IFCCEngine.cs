@@ -15,9 +15,6 @@ namespace FineCodeCoverage.Engine
 
         void ClearUI();
         List<CoverageLine> CoverageLines { get; }
-        string SolutionPath { get; set; }
-
-        void PrepareTestRun(ITestOperation testOperation);     
     }
 
 }
