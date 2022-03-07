@@ -20,18 +20,23 @@ namespace FineCodeCoverage.Engine.MsTestPlatform
 
         public string ShimPath { get; private set; }
 
-        private string ExtensionDirectory;
+        private readonly string runSettings;
         private readonly IToolFolder toolFolder;
         private readonly IToolZipProvider toolZipProvider;
         private const string zipPrefix = "microsoft.codecoverage";
         private const string zipDirectoryName = "msCodeCoverage";
         private const string fccSettingsTemplate = "fineCodeCoverageSettings.xml";
+        private const string fccSolutionFolder = ".fcc";
+        private string testResultsDirectory;
 
         [ImportingConstructor]
         public MsCodeCoverageRunSettingsService(IToolFolder toolFolder, IToolZipProvider toolZipProvider)
         {
             this.toolFolder = toolFolder;
             this.toolZipProvider = toolZipProvider;
+            var extensionDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            var runSettingsPath = Path.Combine(extensionDirectory, fccSettingsTemplate);
+            runSettings = File.ReadAllText(runSettingsPath);
         }
 
         public void Initialize(string appDataFolder, CancellationToken cancellationToken)
@@ -39,10 +44,9 @@ namespace FineCodeCoverage.Engine.MsTestPlatform
             var zipDestination = toolFolder.EnsureUnzipped(appDataFolder, zipDirectoryName, toolZipProvider.ProvideZip(zipPrefix), cancellationToken);
             MsCodeCoveragePath = Path.Combine(zipDestination, "build", "netstandard1.0");
             ShimPath = Path.Combine(zipDestination, "build", "netstandard1.0", "CodeCoverage", "coreclr", "Microsoft.VisualStudio.CodeCoverage.Shim.dll");
-            ExtensionDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
         }
 
-        private void PrepareOutputFolder(string outputFolder)
+        private void CopyShim(string outputFolder)
         {
             string destination = Path.Combine(outputFolder, Path.GetFileName(ShimPath));
             if (!File.Exists(destination))
@@ -51,56 +55,59 @@ namespace FineCodeCoverage.Engine.MsTestPlatform
             }
         }
 
-        private string testResultsDirectory;
+        private void CopyShimForNetFrameworkProjects(List<ICoverageProject> coverageProjects)
+        {
+            var netFrameworkCoverageProjects = coverageProjects.Where(cp => !cp.IsDotNetSdkStyle());
+            foreach(var netFrameworkCoverageProject in netFrameworkCoverageProjects)
+            {
+                CopyShim(netFrameworkCoverageProject.ProjectOutputFolder);
+            }
+        }
+
+        private void CreateCleanResultsDirectory(string solutionPath)
+        {
+            testResultsDirectory = Path.Combine(solutionPath, fccSolutionFolder, "TestResults");
+            if (Directory.Exists(testResultsDirectory))
+            {
+                Directory.Delete(testResultsDirectory, true);
+            }
+            Directory.CreateDirectory(testResultsDirectory);
+        }
+
+        private string CreateRunSettings(List<ICoverageProject> coverageProjects)
+        {
+            var excluded = new HashSet<string>();
+            foreach (var p in coverageProjects.Where(x => !x.Settings.IncludeTestAssembly))
+            {
+                excluded.Add(Path.GetFileName(p.TestDllFile));
+            }
+
+            string excludeXml = "";
+            foreach (var ex in excluded)
+            {
+                excludeXml += $"<ModulePath>{ex}</ModulePath>";
+            }
+
+            return runSettings.Replace("%resultsDir%", testResultsDirectory)
+                      .Replace("%testAdapter%", MsCodeCoveragePath)
+                      .Replace("%exclude%", excludeXml);
+
+        }
 
         public void PrepareRunSettings(string solutionPath, ITestOperation testOperation)
         {
             ThreadHelper.JoinableTaskFactory.Run(async () =>
             {
+                var uiThread = ThreadHelper.CheckAccess();
                 List<ICoverageProject> coverageProjects = await testOperation.GetCoverageProjectsAsync();
-                var excluded = new HashSet<string>();
 
-                foreach (var p in coverageProjects)
-                {
-                    // TODO only call this if the project is a .net framework project
-                    // Not needed for .net core
-                    PrepareOutputFolder(p.ProjectOutputFolder);
-                }
+                CopyShimForNetFrameworkProjects(coverageProjects);
+                CreateCleanResultsDirectory(solutionPath);
 
-                foreach (var p in coverageProjects.Where(x => !x.Settings.IncludeTestAssembly))
-                {
-                    excluded.Add(Path.GetFileName(p.TestDllFile));
-                }
-
-                string excludeXml = "";
-                foreach (var ex in excluded)
-                {
-                    excludeXml += $"<ModulePath>{ex}</ModulePath>";
-                }
-
-                testResultsDirectory = Path.Combine(solutionPath, ".fcc", "TestResults");
-                if (Directory.Exists(testResultsDirectory))
-                {
-                    Directory.Delete(testResultsDirectory, true);
-                }
-                Directory.CreateDirectory(testResultsDirectory);
-
-                var fccTemplate = Path.Combine(solutionPath, fccSettingsTemplate);
-                string runSettings = "";
-                if (!File.Exists(fccTemplate))
-                {
-                    File.Copy(Path.Combine(ExtensionDirectory, fccSettingsTemplate), fccTemplate);
-                }
-                runSettings = File.ReadAllText(fccTemplate);
-
-                var runsettingsFile = Path.Combine(solutionPath, ".fcc", "fcc.runsettings");
-                var preparedRunsettings = runSettings.Replace("%resultsDir%", testResultsDirectory)
-                      .Replace("%testAdapter%", MsCodeCoveragePath)
-                      .Replace("%exclude%", excludeXml);
-                File.WriteAllText(runsettingsFile, preparedRunsettings);
+                var runsettingsFile = Path.Combine(solutionPath, fccSolutionFolder, "fcc.runsettings");
+                File.WriteAllText(runsettingsFile, CreateRunSettings(coverageProjects));
                 testOperation.SetRunSettings(runsettingsFile);
-            }
-             );
+            });
         }
 
         public IList<string> GetCoverageFilesFromLastRun()
