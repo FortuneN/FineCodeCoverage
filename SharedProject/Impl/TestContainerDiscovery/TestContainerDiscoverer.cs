@@ -117,7 +117,7 @@ namespace FineCodeCoverage.Impl
         private void TestExecutionFinished(IOperation operation)
         {
             var settings = appOptionsProvider.Get();
-            if (!settings.Enabled || settings.RunInParallel)
+            if (!settings.Enabled || (settings.RunInParallel && !settings.MsCodeCoverage))
             {
                 return;
             }

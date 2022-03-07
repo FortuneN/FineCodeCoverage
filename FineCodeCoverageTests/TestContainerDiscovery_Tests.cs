@@ -142,6 +142,21 @@ namespace Test
         }
 
         [Test]
+        public void Should_ReloadCoverage_When_TestExecutionFinished_If_RunInParallel_But_MsCodeCoverage()
+        {
+            var (operation,_,__) = SetUpForProceedPath();
+            SetUpOptions(mockAppOptions =>
+            {
+                mockAppOptions.Setup(o => o.Enabled).Returns(true);
+                mockAppOptions.Setup(o => o.RunInParallel).Returns(true);
+                mockAppOptions.Setup(o => o.MsCodeCoverage).Returns(true);
+            });
+            RaiseTestExecutionFinished(operation);
+
+            mocker.Verify<IFCCEngine>(engine => engine.ReloadCoverage(It.IsAny<Func<Task<List<ICoverageProject>>>>()));
+        }
+
+        [Test]
         public async Task Should_ReloadCoverage_When_TestExecutionStarting_And_Settings_RunInParallel_Is_True()
         {
             SetUpOptions(mockAppOptions =>
