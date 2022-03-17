@@ -186,16 +186,17 @@ namespace FineCodeCoverage.Engine.MsTestPlatform
         private const string msCodeCoverageMessage = "Ms code coverage";
         internal Dictionary<string, UserRunSettingsProjectDetails> userRunSettingsProjectDetailsLookup;
         private ShimCopier shimCopier;
-        private ProjectRunSettingsGenerator projectRunSettingsGenerator;
+        private readonly IProjectRunSettingsGenerator projectRunSettingsGenerator;
+        private readonly IUserRunSettingsService userRunSettingsService;
 
         [ImportingConstructor]
         public MsCodeCoverageRunSettingsService(
             IToolFolder toolFolder, 
             IToolZipProvider toolZipProvider, 
-            [Import(typeof(SVsServiceProvider))]
-            IServiceProvider serviceProvider,
             IAppOptionsProvider appOptionsProvider,
             ICoverageToolOutputManager coverageOutputManager,
+            IProjectRunSettingsGenerator projectRunSettingsGenerator,
+            IUserRunSettingsService userRunSettingsService,
             IBuiltInRunSettingsTemplate builtInRunSettingsTemplate,
             ICustomRunSettingsTemplateProvider customRunSettingsTemplateProvider,
             ILogger logger,
@@ -211,7 +212,8 @@ namespace FineCodeCoverage.Engine.MsTestPlatform
             this.logger = logger;
             this.reportGeneratorUtil = reportGeneratorUtil;
             builtInRunSettingsTemplateString = builtInRunSettingsTemplate.Template;
-            this.projectRunSettingsGenerator = new ProjectRunSettingsGenerator(serviceProvider);
+            this.projectRunSettingsGenerator = projectRunSettingsGenerator;
+            this.userRunSettingsService = userRunSettingsService;
         }
 
         public void Initialize(string appDataFolder, IFCCEngine fccEngine, CancellationToken cancellationToken)
@@ -234,7 +236,7 @@ namespace FineCodeCoverage.Engine.MsTestPlatform
                 var coverageProjects = await testOperation.GetCoverageProjectsAsync();
                 var coverageProjectsWithRunSettings = coverageProjects.Where(coverageProject => coverageProject.RunSettingsFile != null).ToList();
 
-                var (suitable,specifiedMsCodeCoverage) = CheckUserRunSettingsSuitability(
+                var (suitable,specifiedMsCodeCoverage) = userRunSettingsService.CheckUserRunSettingsSuitability(
                     coverageProjectsWithRunSettings.Select(cp => cp.RunSettingsFile),useMsCodeCoverage
                 );
 
@@ -275,69 +277,6 @@ namespace FineCodeCoverage.Engine.MsTestPlatform
             return collectionStatus;
         }
 
-        #region user runsettings suitability
-        private static (bool Suitable, bool SpecifiedMsCodeCoverage) CheckUserRunSettingsSuitability(IEnumerable<string> userRunSettingsFiles, bool useMsCodeCoverage)
-        {
-            var specifiedMsCodeCoverage = false;
-            foreach (var userRunSettingsFile in userRunSettingsFiles)
-            {
-                var (suitable, projectSpecifiedMsCodeCoverage) = ValidateUserRunSettings(File.ReadAllText(userRunSettingsFile), useMsCodeCoverage);
-                if (!suitable)
-                {
-                    return (false, false);
-                }
-                if (projectSpecifiedMsCodeCoverage)
-                {
-                    specifiedMsCodeCoverage = true;
-                }
-            }
-
-            return (true, specifiedMsCodeCoverage);
-        }
-
-        internal static (bool Suitable, bool SpecifiedMsCodeCoverage) ValidateUserRunSettings(string runSettings, bool useMsCodeCoverage)
-        {
-            try
-            {
-                var runSettingsDoc = XDocument.Parse(runSettings);
-                var dataCollectorsElement = runSettingsDoc.GetStrictDescendant("RunSettings/DataCollectionRunSettings/DataCollectors");
-                if (dataCollectorsElement == null)
-                {
-                    return (useMsCodeCoverage, false);
-                }
-
-                var msDataCollectorElement = RunSettingsHelper.FindMsDataCollector(dataCollectorsElement);
-
-                if (msDataCollectorElement == null)
-                {
-                    return (useMsCodeCoverage, false);
-                }
-
-                if (HasCoberturaFormat(msDataCollectorElement))
-                {
-                    return (true, true);
-                }
-
-                return (useMsCodeCoverage, true);
-            }
-            catch
-            {
-                return (false, false);
-            }
-        }
-
-        private static bool HasCoberturaFormat(XElement msDataCollectorElement)
-        {
-            var formatElement = msDataCollectorElement.GetStrictDescendant("Configuration/Format");
-            if (formatElement == null)
-            {
-                return false;
-            }
-            return formatElement.Value == "Cobertura";
-        }
-
-        #endregion
-        
         private async Task PrepareCoverageProjectsAsync(List<ICoverageProject> coverageProjects)
         {
             userRunSettingsProjectDetailsLookup = new Dictionary<string, UserRunSettingsProjectDetails>();
@@ -457,27 +396,21 @@ namespace FineCodeCoverage.Engine.MsTestPlatform
         {
             if (configurationInfo.RequestState == RunSettingConfigurationInfoState.Execution && NotFCCGenerated(inputRunSettingDocument))
             {
-                return AddFCCSettings(inputRunSettingDocument, configurationInfo);
+                var replacements = CreateReplacements(configurationInfo.TestContainers);
+                return userRunSettingsService.AddFCCRunSettings(replacements, inputRunSettingDocument);
             }
             return null;
         }
 
-        internal IXPathNavigable AddFCCSettings(IXPathNavigable inputRunSettingDocument, IRunSettingsConfigurationInfo configurationInfo)
+        private bool NotFCCGenerated(IXPathNavigable inputRunSettingDocument)
         {
             var navigator = inputRunSettingDocument.CreateNavigator();
-            navigator.MoveToFirstChild();
-            var clonedNavigator = navigator.Clone();
-            IRunSettingsTemplateReplacements runSettingsTemplateReplacements = CreateReplacements(configurationInfo);
-            ConfigureRunConfiguration(navigator, runSettingsTemplateReplacements);
-            EnsureMsDataCollector(clonedNavigator, runSettingsTemplateReplacements);
-
-            return inputRunSettingDocument;
+            return navigator.SelectSingleNode($"//{builtInRunSettingsTemplate.FCCMarkerElementName}") == null;
         }
 
-        private IRunSettingsTemplateReplacements CreateReplacements(IRunSettingsConfigurationInfo configurationInfo)
+        private IRunSettingsTemplateReplacements CreateReplacements(IEnumerable<ITestContainer> testContainers)
         {
-            var allProjectDetails = configurationInfo.TestContainers.Select(tc => userRunSettingsProjectDetailsLookup[tc.Source]).ToList();
-            // might have an issue with &resultsdirectory& as there is a ResultsDirectory property ?
+            var allProjectDetails = testContainers.Select(tc => userRunSettingsProjectDetailsLookup[tc.Source]).ToList();
             var resultsDirectory = allProjectDetails[0].OutputFolder;
             var allSettings = allProjectDetails.Select(pd => pd.Settings);
             var mergedSettings = new MergedIncludesExcludesOptions(allSettings);
@@ -500,6 +433,142 @@ namespace FineCodeCoverage.Engine.MsTestPlatform
 
             return new RunSettingsTemplateReplacements(mergedSettings, resultsDirectory, "true", modulePathsInclude, modulePathsExclude, MsCodeCoveragePath);
         }
+
+        #endregion
+
+        public void Collect(IOperation operation, ITestOperation testOperation)
+        {
+            var resultsUris = operation.GetRunSettingsMsDataCollectorResultUri();
+            var coberturaFiles = new string[0];
+            if (resultsUris != null)
+            {
+                coberturaFiles = resultsUris.Select(uri => uri.LocalPath).Where(f => f.EndsWith(".cobertura.xml")).ToArray();
+            }
+
+            if (coberturaFiles.Length == 0)
+            {
+                ThreadHelper.JoinableTaskFactory.Run(async () =>
+                {
+                    await CombinedLogAsync("No cobertura files for ms code coverage.");
+                });
+            }
+
+            fccEngine.RunAndProcessReport(coberturaFiles,() =>
+            {
+                ThreadHelper.JoinableTaskFactory.Run(async () =>
+                {
+                    List<ICoverageProject> coverageProjects = await testOperation.GetCoverageProjectsAsync();
+                    await projectRunSettingsGenerator.RemoveGeneratedProjectSettingsAsync(coverageProjects);
+                });
+            });
+        }
+
+        public void StopCoverage()
+        {
+            fccEngine.StopCoverage();
+        }
+
+        #region Logging
+        private async Task CombinedLogAsync(string message)
+        {
+            await CombinedLogAsync(() =>
+            {
+                logger.Log(message);
+                reportGeneratorUtil.LogCoverageProcess(message);
+            });
+        }
+
+        private async Task CombinedLogAsync(Action action)
+        {
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+            action();
+        }
+        #endregion
+
+    }
+
+    internal interface IUserRunSettingsService
+    {
+        IXPathNavigable AddFCCRunSettings(IBuiltInRunSettingsTemplate builtInRunSettingsTemplate, IRunSettingsTemplateReplacements replacements, IXPathNavigable inputRunSettingDocument);
+        (bool Suitable, bool SpecifiedMsCodeCoverage) CheckUserRunSettingsSuitability(IEnumerable<string> userRunSettingsFiles, bool useMsCodeCoverage);
+    }
+
+    [Export(typeof(IUserRunSettingsService))]
+    internal class UserRunSettingsService : IUserRunSettingsService
+    {
+        private IBuiltInRunSettingsTemplate builtInRunSettingsTemplate;
+
+        public (bool Suitable, bool SpecifiedMsCodeCoverage) CheckUserRunSettingsSuitability(IEnumerable<string> userRunSettingsFiles, bool useMsCodeCoverage)
+        {
+            var specifiedMsCodeCoverage = false;
+            foreach (var userRunSettingsFile in userRunSettingsFiles)
+            {
+                var (suitable, projectSpecifiedMsCodeCoverage) = ValidateUserRunSettings(File.ReadAllText(userRunSettingsFile), useMsCodeCoverage);
+                if (!suitable)
+                {
+                    return (false, false);
+                }
+                if (projectSpecifiedMsCodeCoverage)
+                {
+                    specifiedMsCodeCoverage = true;
+                }
+            }
+
+            return (true, specifiedMsCodeCoverage);
+        }
+
+        private static (bool Suitable, bool SpecifiedMsCodeCoverage) ValidateUserRunSettings(string runSettings, bool useMsCodeCoverage)
+        {
+            try
+            {
+                var runSettingsDoc = XDocument.Parse(runSettings);
+                var dataCollectorsElement = runSettingsDoc.GetStrictDescendant("RunSettings/DataCollectionRunSettings/DataCollectors");
+                if (dataCollectorsElement == null)
+                {
+                    return (useMsCodeCoverage, false);
+                }
+
+                var msDataCollectorElement = RunSettingsHelper.FindMsDataCollector(dataCollectorsElement);
+
+                if (msDataCollectorElement == null)
+                {
+                    return (useMsCodeCoverage, false);
+                }
+
+                if (HasCoberturaFormat(msDataCollectorElement))
+                {
+                    return (true, true);
+                }
+
+                return (useMsCodeCoverage, true);
+            }
+            catch
+            {
+                return (false, false);
+            }
+        }
+
+        private static bool HasCoberturaFormat(XElement msDataCollectorElement)
+        {
+            var formatElement = msDataCollectorElement.GetStrictDescendant("Configuration/Format");
+            if (formatElement == null)
+            {
+                return false;
+            }
+            return formatElement.Value == "Cobertura";
+        }
+
+        public IXPathNavigable AddFCCRunSettings(IBuiltInRunSettingsTemplate builtInRunSettingsTemplate, IRunSettingsTemplateReplacements replacements, IXPathNavigable inputRunSettingDocument)
+        {
+            this.builtInRunSettingsTemplate = builtInRunSettingsTemplate;
+            var navigator = inputRunSettingDocument.CreateNavigator();
+            navigator.MoveToFirstChild();
+            var clonedNavigator = navigator.Clone();
+            ConfigureRunConfiguration(navigator, replacements);
+            EnsureMsDataCollector(clonedNavigator, replacements);
+            return navigator;
+        }
+
 
         private void ConfigureRunConfiguration(XPathNavigator xpathNavigator, IRunSettingsTemplateReplacements replacements)
         {
@@ -630,71 +699,27 @@ namespace FineCodeCoverage.Engine.MsTestPlatform
                 navigator.AppendChild("<Configuration><Format>Cobertura</Format></Configuration>");
             }
         }
-
-        private bool NotFCCGenerated(IXPathNavigable inputRunSettingDocument)
-        {
-            var navigator = inputRunSettingDocument.CreateNavigator();
-            return navigator.SelectSingleNode($"//{builtInRunSettingsTemplate.FCCMarkerElementName}") == null;
-        }
-        #endregion
-
-        public void Collect(IOperation operation, ITestOperation testOperation)
-        {
-            var resultsUris = operation.GetRunSettingsMsDataCollectorResultUri();
-            var coberturaFiles = new string[0];
-            if (resultsUris != null)
-            {
-                coberturaFiles = resultsUris.Select(uri => uri.LocalPath).Where(f => f.EndsWith(".cobertura.xml")).ToArray();
-            }
-
-            if (coberturaFiles.Length == 0)
-            {
-                ThreadHelper.JoinableTaskFactory.Run(async () =>
-                {
-                    await CombinedLogAsync("No cobertura files for ms code coverage.");
-                });
-            }
-
-            fccEngine.RunAndProcessReport(coberturaFiles,() =>
-            {
-                ThreadHelper.JoinableTaskFactory.Run(async () =>
-                {
-                    List<ICoverageProject> coverageProjects = await testOperation.GetCoverageProjectsAsync();
-                    await projectRunSettingsGenerator.RemoveGeneratedProjectSettingsAsync(coverageProjects);
-                });
-            });
-        }
-
-        public void StopCoverage()
-        {
-            fccEngine.StopCoverage();
-        }
-
-        #region Logging
-        private async Task CombinedLogAsync(string message)
-        {
-            await CombinedLogAsync(() =>
-            {
-                logger.Log(message);
-                reportGeneratorUtil.LogCoverageProcess(message);
-            });
-        }
-
-        private async Task CombinedLogAsync(Action action)
-        {
-            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-            action();
-        }
-        #endregion
-
     }
 
-    internal class ProjectRunSettingsGenerator
+    internal interface IProjectRunSettingsGenerator
+    {
+        string GeneratedProjectRunSettingsFilePath(ICoverageProject coverageProject);
+        Task RemoveGeneratedProjectSettingsAsync(IEnumerable<ICoverageProject> coverageProjects);
+        Task<List<string>> WriteProjectsRunSettingsAsync(List<(string projectRunSettings, string projectRunSettingsFilePath, Guid projectGuid, string customTemplatePath)> projectsRunSettingsWriteDetails);
+    }
+
+    [Export(typeof(IProjectRunSettingsGenerator))]
+    internal class ProjectRunSettingsGenerator : IProjectRunSettingsGenerator
     {
         private readonly IServiceProvider serviceProvider;
         private const string fccGeneratedRunSettingsSuffix = "fcc-mscodecoverage-generated";
 
-        public ProjectRunSettingsGenerator(IServiceProvider serviceProvider)
+
+        [ImportingConstructor]
+        public ProjectRunSettingsGenerator(
+            [Import(typeof(SVsServiceProvider))]
+            IServiceProvider serviceProvider  
+        )
         {
             this.serviceProvider = serviceProvider;
         }
