@@ -15,6 +15,7 @@ namespace FineCodeCoverage.Options
         private const string outputCategory = "Output";
         private const string reportCategory = "Report";
         private const string uiCategory = "UI";
+        private const string msExcludeIncludeCategory = "Ms Exclude / Include";
 
         public AppOptions():this(false)
         {
@@ -178,6 +179,54 @@ namespace FineCodeCoverage.Options
         [Category(reportCategory)]
         [Description("Set to true to hide classes, namespaces and assemblies that are fully covered.")]
         public bool HideFullyCovered { get; set; }
+
+        [Category(msExcludeIncludeCategory)]
+        [Description("Multiple regexes that match assemblies specified by assembly name or file path - for exclusion")]
+        public string[] ModulePathsExclude { get; set; }
+
+        [Category(msExcludeIncludeCategory)]
+        [Description("Multiple regexes that match assemblies specified by assembly name or file path - for inclusion")]
+        public string[] ModulePathsInclude { get; set; }
+
+        [Category(msExcludeIncludeCategory)]
+        [Description("Multiple regexes that match assemblies by the Company attribute - for exclusion")]
+        public string[] CompanyNamesExclude { get; set; }
+
+        [Category(msExcludeIncludeCategory)]
+        [Description("Multiple regexes that match assemblies by the Company attribute - for inclusion")]
+        public string[] CompanyNamesInclude { get; set; }
+
+        [Category(msExcludeIncludeCategory)]
+        [Description("Multiple regexes that match assemblies by the public key token - for exclusion")]
+        public string[] PublicKeyTokensExclude { get; set; }
+
+        [Category(msExcludeIncludeCategory)]
+        [Description("Multiple regexes that match assemblies by the public key token - for inclusion")]
+        public string[] PublicKeyTokensInclude { get; set; }
+
+        [Category(msExcludeIncludeCategory)]
+        [Description("Multiple regexes that match elements by the path name of the source file in which they're defined - for exclusion")]
+        public string[] SourcesExclude { get; set; }
+
+        [Category(msExcludeIncludeCategory)]
+        [Description("Multiple regexes that match elements by the path name of the source file in which they're defined - for inclusion")]
+        public string[] SourcesInclude { get; set; }
+
+        [Category(msExcludeIncludeCategory)]
+        [Description("Multiple regexes that match elements that have the specified attribute by full name - for exclusion")]
+        public string[] AttributesExclude { get; set; }
+
+        [Category(msExcludeIncludeCategory)]
+        [Description("Multiple regexes that match elements that have the specified attribute by full name - for inclusion")]
+        public string[] AttributesInclude { get; set; }
+
+        [Category(msExcludeIncludeCategory)]
+        [Description("Multiple regexes that match procedures, functions, or methods by fully qualified name, including the parameter list. - for exclusion")]
+        public string[] FunctionsExclude { get; set; }
+
+        [Category(msExcludeIncludeCategory)]
+        [Description("Multiple regexes that match procedures, functions, or methods by fully qualified name, including the parameter list. - for inclusion")]
+        public string[] FunctionsInclude { get; set; }
 
         public override void SaveSettingsToStorage()
         {

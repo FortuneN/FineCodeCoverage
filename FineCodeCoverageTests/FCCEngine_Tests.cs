@@ -168,7 +168,7 @@ namespace Test
         public async Task Should_Prepare_For_Coverage_Suitable_CoverageProjects()
         {
             var mockSuitableCoverageProject = await ReloadSuitableCoverageProject();
-            mockSuitableCoverageProject.Verify(p => p.PrepareForCoverageAsync(It.IsAny<CancellationToken>()));
+            mockSuitableCoverageProject.Verify(p => p.PrepareForCoverageAsync(It.IsAny<CancellationToken>(),true));
         }
 
         [Test]
@@ -337,7 +337,7 @@ namespace Test
             {
 
             });
-            mockSuitableCoverageProject.Setup(p => p.PrepareForCoverageAsync(It.IsAny<CancellationToken>())).Callback(() =>
+            mockSuitableCoverageProject.Setup(p => p.PrepareForCoverageAsync(It.IsAny<CancellationToken>(), true)).Callback(() =>
             {
                 fccEngine.ReloadCoverage(()=>Task.FromResult(new List<ICoverageProject>()));
                 Thread.Sleep(1000);
@@ -441,7 +441,7 @@ namespace Test
             mockSuitableCoverageProject.Setup(p => p.ProjectFile).Returns("Defined.csproj");
             mockSuitableCoverageProject.Setup(p => p.Settings.Enabled).Returns(true);
 
-            mockSuitableCoverageProject.Setup(p => p.PrepareForCoverageAsync(It.IsAny<CancellationToken>())).Callback(() =>
+            mockSuitableCoverageProject.Setup(p => p.PrepareForCoverageAsync(It.IsAny<CancellationToken>(), true)).Callback(() =>
             {
                 fccEngine.StopCoverage();
 
@@ -475,7 +475,7 @@ namespace Test
             var mockSuitableCoverageProject = new Mock<ICoverageProject>();
             mockSuitableCoverageProject.Setup(p => p.ProjectFile).Returns("Defined.csproj");
             mockSuitableCoverageProject.Setup(p => p.Settings.Enabled).Returns(true);
-            mockSuitableCoverageProject.Setup(p => p.PrepareForCoverageAsync(It.IsAny<CancellationToken>())).Returns(Task.FromResult(new CoverageProjectFileSynchronizationDetails()));
+            mockSuitableCoverageProject.Setup(p => p.PrepareForCoverageAsync(It.IsAny<CancellationToken>(), true)).Returns(Task.FromResult(new CoverageProjectFileSynchronizationDetails()));
             mockSuitableCoverageProject.Setup(p => p.StepAsync("Run Coverage Tool", It.IsAny<Func<ICoverageProject, Task>>())).Returns(Task.CompletedTask);
             return mockSuitableCoverageProject;
         }

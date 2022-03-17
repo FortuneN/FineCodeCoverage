@@ -153,6 +153,7 @@ namespace FineCodeCoverage.Engine.Model
         public string FailureStage { get; set; }
         public bool HasFailed => !string.IsNullOrWhiteSpace(FailureStage) || !string.IsNullOrWhiteSpace(FailureDescription);
         public string ProjectFile { get; set; }
+        public Guid Id { get; set; }
         public string ProjectName { get; set; }
         public string CoverageOutputFile => Path.Combine(CoverageOutputFolder, $"{ProjectName}.coverage.xml");
 
@@ -347,7 +348,7 @@ namespace FineCodeCoverage.Engine.Model
             {
                 if (projectFileXElement == null)
                 {
-                    projectFileXElement = XElementUtil.Load(ProjectFile, true);
+                    projectFileXElement = LinqToXmlUtil.Load(ProjectFile, true);
                 }
                 return projectFileXElement;
 
@@ -380,7 +381,7 @@ namespace FineCodeCoverage.Engine.Model
             }
         }
 
-        public async Task<CoverageProjectFileSynchronizationDetails> PrepareForCoverageAsync(CancellationToken cancellationToken)
+        public async Task<CoverageProjectFileSynchronizationDetails> PrepareForCoverageAsync(CancellationToken cancellationToken,bool synchronizeBuildOuput = true)
         {
             cancellationToken.ThrowIfCancellationRequested();
             EnsureDirectories();
@@ -388,8 +389,12 @@ namespace FineCodeCoverage.Engine.Model
             cancellationToken.ThrowIfCancellationRequested();
             CleanFCCDirectory();
 
-            cancellationToken.ThrowIfCancellationRequested();
-            var synchronizationDetails = SynchronizeBuildOutput();
+            CoverageProjectFileSynchronizationDetails synchronizationDetails = null;
+            if (synchronizeBuildOuput)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                synchronizationDetails = SynchronizeBuildOutput();
+            }
 
             cancellationToken.ThrowIfCancellationRequested();
             await SetIncludedExcludedReferencedProjectsAsync();
@@ -406,7 +411,7 @@ namespace FineCodeCoverage.Engine.Model
 
         private void SetIncludedReferencedProjects(List<ReferencedProject> referencedProjects)
         {
-            if (settings.IncludeReferencedProjects)
+            if (Settings.IncludeReferencedProjects)
             {
                 IncludedReferencedProjects = referencedProjects.Select(referencedProject => referencedProject.AssemblyName).ToList();
             }

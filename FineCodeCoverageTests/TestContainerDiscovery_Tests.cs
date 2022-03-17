@@ -6,6 +6,7 @@ using AutoMoq;
 using FineCodeCoverage.Core.Utilities;
 using FineCodeCoverage.Engine;
 using FineCodeCoverage.Engine.Model;
+using FineCodeCoverage.Engine.MsTestPlatform;
 using FineCodeCoverage.Impl;
 using FineCodeCoverage.Options;
 using Microsoft.VisualStudio.TestWindow.Extensibility;
@@ -142,7 +143,7 @@ namespace Test
         }
 
         [Test]
-        public void Should_ReloadCoverage_When_TestExecutionFinished_If_RunInParallel_But_MsCodeCoverage()
+        public void Should_ReloadCoverage_When_TestExecutionFinished_If_RunInParallel_And_Not_Collecting_With_MsCodeCoverage()
         {
             var (operation,_,__) = SetUpForProceedPath();
             SetUpOptions(mockAppOptions =>

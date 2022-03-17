@@ -1,15 +1,14 @@
 ﻿using FineCodeCoverage.Impl;
-using System;
-using System.Collections.Generic;
-using System.Text;
+using Microsoft.VisualStudio.TestWindow.Extensibility;
 using System.Threading;
 
 namespace FineCodeCoverage.Engine.MsTestPlatform
 {
     interface IMsCodeCoverageRunSettingsService
     {
-        void PrepareRunSettings(ITestOperation testOperation);
-        IList<String> GetCoverageFilesFromLastRun();        
-        void Initialize(string appDataFolder, CancellationToken cancellationToken);
+        void Initialize(string appDataFolder,IFCCEngine fccEngine, CancellationToken cancellationToken);
+        MsCodeCoverageCollectionStatus IsCollecting(ITestOperation testOperation);
+        void Collect(IOperation operation, ITestOperation testOperation);
+        void StopCoverage();
     }    
 }

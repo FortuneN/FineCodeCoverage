@@ -73,11 +73,6 @@
       <Link>Resources\LICENSE</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="..\Shared Files\fineCodeCoverageSettings.xml">
-      <Link>fineCodeCoverageSettings.xml</Link>
-      <IncludeInVSIX>true</IncludeInVSIX>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
     <Content Include="..\Shared Files\Resources\dummyReportToProcess.html">
       <Link>Resources\dummyReportToProcess.html</Link>
       <IncludeInVSIX>true</IncludeInVSIX>

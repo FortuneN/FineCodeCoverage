@@ -65,11 +65,6 @@
       <Link>OutputToolWindowPackage.vsct</Link>
       <ResourceName>Menus.ctmenu</ResourceName>
     </VSCTCompile>
-    <Content Include="..\Shared Files\fineCodeCoverageSettings.xml">
-      <Link>fineCodeCoverageSettings.xml</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <IncludeInVSIX>true</IncludeInVSIX>
-    </Content>
     <Content Include="..\Shared Files\Resources\dummyReportToProcess.html">
       <Link>Resources\dummyReportToProcess.html</Link>
       <IncludeInVSIX>true</IncludeInVSIX>

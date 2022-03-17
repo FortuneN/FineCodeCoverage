@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Reflection;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using FineCodeCoverage.Engine.Model;
 
@@ -8,29 +6,25 @@ namespace FineCodeCoverage.Impl
 {
     internal class TestOperation : ITestOperation
     {
-        private readonly Operation operation;
+        private readonly TestRunRequest testRunRequest;
         private readonly ICoverageProjectFactory coverageProjectFactory;
         private readonly IRunSettingsRetriever runSettingsRetriever;
 
-        public TestOperation(Operation operation, ICoverageProjectFactory coverageProjectFactory, IRunSettingsRetriever runSettingsRetriever)
+        public TestOperation(TestRunRequest testRunRequest, ICoverageProjectFactory coverageProjectFactory, IRunSettingsRetriever runSettingsRetriever)
         {
-            this.operation = operation;
+            this.testRunRequest = testRunRequest;
             this.coverageProjectFactory = coverageProjectFactory;
             this.runSettingsRetriever = runSettingsRetriever;
         }
-        public long FailedTests => operation.Response.FailedTests;
+        public long FailedTests => testRunRequest.Response.FailedTests;
 
-        public long TotalTests => operation.TotalTests;
+        public long TotalTests => testRunRequest.TotalTests;
+
+        public string SolutionDirectory => testRunRequest.Configuration.SolutionDirectory;
 
         public Task<List<ICoverageProject>> GetCoverageProjectsAsync()
         {
-            return GetCoverageProjectsAsync(operation.Configuration);
-        }
-
-        public void SetRunSettings(string filePath)
-        {
-            var userRunSettings = operation.Configuration.UserRunSettings;
-            userRunSettings.GetType().GetMethod("SetActiveRunSettings", BindingFlags.Public | BindingFlags.Instance).Invoke(userRunSettings, new object[] { filePath });
+            return GetCoverageProjectsAsync(testRunRequest.Configuration);
         }
 
         private async System.Threading.Tasks.Task<List<ICoverageProject>> GetCoverageProjectsAsync(TestConfiguration testConfiguration)
@@ -48,6 +42,7 @@ namespace FineCodeCoverage.Impl
 
                 var containerData = container.ProjectData;
                 project.ProjectFile = container.ProjectData.ProjectFilePath;
+                project.Id = containerData.Id;
                 project.RunSettingsFile = await runSettingsRetriever.GetRunSettingsFileAsync(userRunSettings, containerData);
 
             }

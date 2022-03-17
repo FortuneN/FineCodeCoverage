@@ -76,10 +76,17 @@
     <Compile Include="$(MSBuildThisFileDirectory)Core\Model\ICoverageProject.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Model\ICoverageProjectFactory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Model\ReferencedProject.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\MsTestPlatform\BuiltInRunSettingsTemplate.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\MsTestPlatform\CustomRunSettingsTemplateProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\MsTestPlatform\IBuiltInRunSettingsTemplate.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\MsTestPlatform\ICustomRunSettingsTemplateProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\MsTestPlatform\IMsCodeCoverageRunSettingsService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\MsTestPlatform\IMsTestPlatformUtil.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\MsTestPlatform\IRunSettingsTemplateReplacements.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\MsTestPlatform\MsCodeCoverageIOperationExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\MsTestPlatform\MsCodeCoverageRunSettingsService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\MsTestPlatform\MsTestPlatformUtil.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\MsTestPlatform\RunSettingsHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\OpenCover\IOpenCoverUtil.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\OpenCover\OpenCoverUtil.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\ReportGenerator\Base64ReportImage.cs" />
@@ -124,7 +131,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\ToolZip\IToolZipProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\ToolZip\ToolFolder.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\ToolZip\ToolZipProvider.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\XElementUtil.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\LinqToXmlUtil.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\ZipFileWrapper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColorProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageLineGlyphFactory.cs" />
@@ -146,7 +153,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Impl\TestContainerDiscovery\IPackageInitializer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\TestContainerDiscovery\ITestOperation.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\TestContainerDiscovery\ITestOperationFactory.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Impl\TestContainerDiscovery\Operation.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Impl\TestContainerDiscovery\TestRunRequest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\TestContainerDiscovery\PackageInitializer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\TestContainerDiscovery\TestConfiguration.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\TestContainerDiscovery\TestContainerDiscoverer.cs" />
