@@ -1,7 +1,7 @@
 ﻿using System.Linq;
 using System.Xml.Linq;
 
-namespace FineCodeCoverage.Engine.MsTestPlatform
+namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
 {
     internal static class RunSettingsHelper
     {
@@ -22,12 +22,12 @@ namespace FineCodeCoverage.Engine.MsTestPlatform
 
         public static bool IsFriendlyMsCodeCoverage(string friendlyName)
         {
-            return friendlyName == "Code Coverage";
+            return friendlyName == MsDataCollectorFriendlyName;
         }
 
         public static bool IsMsCodeCoverageUri(string uri)
         {
-            return uri == "datacollector://Microsoft/CodeCoverage/2.0";
+            return uri == MsDataCollectorUri;
         }
 
         public static XElement FindMsDataCollector(XElement dataCollectors)

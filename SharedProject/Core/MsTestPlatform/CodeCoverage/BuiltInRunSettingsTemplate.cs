@@ -2,8 +2,9 @@
 using System;
 using System.ComponentModel.Composition;
 using System.Xml.Linq;
+using System.Xml.XPath;
 
-namespace FineCodeCoverage.Engine.MsTestPlatform
+namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
 {
     [Export(typeof(IBuiltInRunSettingsTemplate))]
     internal class BuiltInRunSettingsTemplate : IBuiltInRunSettingsTemplate
@@ -254,6 +255,12 @@ The resulting runsettings file actually used for test runs is put into .fcc/fcc.
             return runSettingsDocument.ToXmlString();
         }
 
+        public bool FCCGenerated(IXPathNavigable inputRunSettingDocument)
+        {
+            var navigator = inputRunSettingDocument.CreateNavigator();
+            return navigator.SelectSingleNode($"//{FCCMarkerElementName}") != null;
+            
+        }
     }
 
 }

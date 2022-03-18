@@ -1,4 +1,6 @@
-﻿namespace FineCodeCoverage.Engine.MsTestPlatform
+﻿using System.Xml.XPath;
+
+namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
 {
     internal interface IBuiltInRunSettingsTemplate
     {
@@ -13,6 +15,7 @@
         string RunConfigurationElement { get; }
         string TestAdaptersPathElement { get; }
 
+        bool FCCGenerated(IXPathNavigable inputRunSettingDocument);
     }
 
 }

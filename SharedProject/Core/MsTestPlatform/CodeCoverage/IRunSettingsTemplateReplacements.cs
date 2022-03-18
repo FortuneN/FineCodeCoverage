@@ -1,4 +1,4 @@
-﻿namespace FineCodeCoverage.Engine.MsTestPlatform
+﻿namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
 {
     internal interface IRunSettingsTemplateReplacements
     {

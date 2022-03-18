@@ -11,7 +11,7 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.TestWindow.Extensibility;
 using Task = System.Threading.Tasks.Task;
 using Microsoft.VisualStudio.Utilities;
-using FineCodeCoverage.Engine.MsTestPlatform;
+using FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage;
 
 namespace FineCodeCoverage.Impl
 {
@@ -81,7 +81,7 @@ namespace FineCodeCoverage.Impl
             _ = ThreadHelper.JoinableTaskFactory.RunAsync(taskProvider);
         };
 
-        private void TestExecutionStarting(IOperation operation)
+        private async Task TestExecutionStartingAsync(IOperation operation)
         {
             runningInParallel = false;
             StopCoverage();
@@ -94,7 +94,7 @@ namespace FineCodeCoverage.Impl
                 return;
             }
 
-            msCodeCoverageCollectionStatus = msCodeCoverageRunSettingsService.IsCollecting(testOperationFactory.Create(operation));
+            msCodeCoverageCollectionStatus = await msCodeCoverageRunSettingsService.IsCollectingAsync(testOperationFactory.Create(operation));
             if (msCodeCoverageCollectionStatus == MsCodeCoverageCollectionStatus.NotCollecting)
             {
                 if (settings.RunInParallel)
@@ -119,7 +119,7 @@ namespace FineCodeCoverage.Impl
             logger.Log(message);
         }
 
-        private void TestExecutionFinished(IOperation operation)
+        private async Task TestExecutionFinishedAsync(IOperation operation)
         {
             var settings = appOptionsProvider.Get();
             if (!settings.Enabled || runningInParallel || MsCodeCoverageErrored)
@@ -136,7 +136,7 @@ namespace FineCodeCoverage.Impl
             
             if (msCodeCoverageCollectionStatus == MsCodeCoverageCollectionStatus.Collecting)
             {
-                msCodeCoverageRunSettingsService.Collect(operation, testOperation);
+                await msCodeCoverageRunSettingsService.CollectAsync(operation, testOperation);
             }
             else
             {
@@ -190,37 +190,39 @@ namespace FineCodeCoverage.Impl
 
         private void OperationState_StateChanged(object sender, OperationStateChangedEventArgs e)
         {
-            try
+            RunAsync(async () =>
             {
-                if (e.State == TestOperationStates.TestExecutionCanceling)
+                try
                 {
-                    cancelling = true;
-                    CoverageCancelled("Test execution cancelling - running coverage will be cancelled.");
+                    if (e.State == TestOperationStates.TestExecutionCanceling)
+                    {
+                        cancelling = true;
+                        CoverageCancelled("Test execution cancelling - running coverage will be cancelled.");
+                    }
+
+
+                    if (e.State == TestOperationStates.TestExecutionStarting)
+                    {
+                        await TestExecutionStartingAsync(e.Operation);
+                        cancelling = false;
+                    }
+
+                    if (e.State == TestOperationStates.TestExecutionFinished)
+                    {
+                        await TestExecutionFinishedAsync(e.Operation);
+                    }
+
+                    if (e.State == TestOperationStates.TestExecutionCancelAndFinished && !cancelling)
+                    {
+                        CoverageCancelled("There has been an issue running tests. See the Tests output window pane.");
+                    }
+
                 }
-
-
-                if (e.State == TestOperationStates.TestExecutionStarting)
-                {                    
-                    TestExecutionStarting(e.Operation);
-                    cancelling = false;
-                }
-
-                if (e.State == TestOperationStates.TestExecutionFinished)
-                {                    
-                    TestExecutionFinished(e.Operation);                    
-                }
-
-                if (e.State == TestOperationStates.TestExecutionCancelAndFinished && !cancelling)
+                catch (Exception exception)
                 {
-                    CoverageCancelled("There has been an issue running tests. See the Tests output window pane.");
+                    logger.Log("Error processing unit test events", exception);
                 }
-                    
-            }
-            catch (Exception exception)
-            {
-                logger.Log("Error processing unit test events", exception);
-            }
-            
+            });
         }
     }
 }

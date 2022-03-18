@@ -63,6 +63,10 @@ namespace FineCodeCoverage.Core.Utilities
         {
             File.WriteAllText(path, contents);
         }
-       
+
+        public bool Exists(string filePath)
+        {
+            return File.Exists(filePath);
+        }
     }
 }
