@@ -1,4 +1,5 @@
-﻿using FineCodeCoverage.Options;
+﻿using FineCodeCoverage.Engine.Model;
+using FineCodeCoverage.Options;
 using Microsoft.VisualStudio.TestWindow.Extensibility;
 using System.Collections.Generic;
 
@@ -12,13 +13,6 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
             string testAdapter
         );
 
-        IRunSettingsTemplateReplacements Create(
-                IMsCodeCoverageIncludesExcludesOptions coverageProjectSettings,
-                string resultsDirectory,
-                string enabled,
-                IEnumerable<string> modulePathsInclude,
-                IEnumerable<string> modulePathsExclude,
-                string testAdapter
-            );
+        IRunSettingsTemplateReplacements Create(ICoverageProject coverageProject, string testAdapter);
     }
 }

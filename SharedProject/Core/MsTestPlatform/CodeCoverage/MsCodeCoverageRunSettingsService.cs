@@ -23,8 +23,6 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
     [Export(typeof(IRunSettingsService))]
     internal class MsCodeCoverageRunSettingsService : IMsCodeCoverageRunSettingsService, IRunSettingsService
     {
-        public string ShimPath { get; private set; }
-
         public string Name => "Fine Code Coverage MsCodeCoverageRunSettingsService";
 
         internal class UserRunSettingsProjectDetails : IUserRunSettingsProjectDetails
@@ -58,7 +56,7 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
         private const string zipPrefix = "microsoft.codecoverage";
         private const string zipDirectoryName = "msCodeCoverage";
         private const string msCodeCoverageMessage = "Ms code coverage";
-        private Dictionary<string, IUserRunSettingsProjectDetails> userRunSettingsProjectDetailsLookup;
+        internal Dictionary<string, IUserRunSettingsProjectDetails> userRunSettingsProjectDetailsLookup;
         private readonly IProjectRunSettingsGenerator projectRunSettingsGenerator;
         private readonly IUserRunSettingsService userRunSettingsService;
         private string msCodeCoveragePath;
@@ -125,8 +123,8 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
                 {
                     if (specifiedMsCodeCoverage || useMsCodeCoverage)
                     {
-                        var (successFullyPreparedRunSettings, customTemplatePaths) = await PrepareRunSettingsAsync(coverageProjects,testOperation.SolutionDirectory);
-                        if (successFullyPreparedRunSettings)
+                        var (successfullyGeneratedRunSettings, customTemplatePaths) = await SetupProjectsWithoutRunSettingsAsync(projectsWithoutRunSettings, testOperation.SolutionDirectory);
+                        if (successfullyGeneratedRunSettings)
                         {
                             await CombinedLogAsync(() =>
                             {
@@ -162,7 +160,7 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
             }
         }
 
-        internal Dictionary<string, IUserRunSettingsProjectDetails> SetUserRunSettingsProjectDetails(List<ICoverageProject> coverageProjectsWithRunSettings)
+        private void SetUserRunSettingsProjectDetails(List<ICoverageProject> coverageProjectsWithRunSettings)
         {
             userRunSettingsProjectDetailsLookup = new Dictionary<string, IUserRunSettingsProjectDetails>();
             foreach (var coverageProjectWithRunSettings in coverageProjectsWithRunSettings)
@@ -177,23 +175,22 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
                 };
                 userRunSettingsProjectDetailsLookup.Add(coverageProjectWithRunSettings.TestDllFile, userRunSettingsProjectDetails);
             }
-            return userRunSettingsProjectDetailsLookup;
         }
 
-        public async Task<(bool Success, List<string> CustomTemplatePaths)> PrepareRunSettingsAsync(List<ICoverageProject> coverageProjects, string solutionDirectory)
+        public async Task<(bool Success, List<string> CustomTemplatePaths)> SetupProjectsWithoutRunSettingsAsync(List<ICoverageProject> coverageProjectsWithoutRunSettings, string solutionDirectory)
         {
-            shimCopier.Copy(shimPath,coverageProjects);
+            shimCopier.Copy(shimPath,coverageProjectsWithoutRunSettings);
 
-            return await GenerateProjectsRunSettingsAsync(coverageProjects, solutionDirectory);
+            return await GenerateProjectsRunSettingsAsync(coverageProjectsWithoutRunSettings, solutionDirectory);
         }
 
-        private async Task<(bool Success, List<string> CustomTemplatePaths)> GenerateProjectsRunSettingsAsync(IEnumerable<ICoverageProject> coverageProjects, string solutionDirectory)
+        private async Task<(bool Success, List<string> CustomTemplatePaths)> GenerateProjectsRunSettingsAsync(IEnumerable<ICoverageProject> coverageProjectsWithoutRunSettings, string solutionDirectory)
         {
             var successfullyGeneratedRunSettings = false;
             IEnumerable<CoverageProjectRunSettings> projectsRunSettings = null;
             try
             {
-                projectsRunSettings = GetProjectsRunSettingsWriteDetails(coverageProjects, solutionDirectory);
+                projectsRunSettings = GetCoverageProjectsRunSettings(coverageProjectsWithoutRunSettings, solutionDirectory);
             }
             catch (Exception ex)
             {
@@ -219,12 +216,12 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
                     logger.Log(msg, ex.ToString());
                     reportGeneratorUtil.LogCoverageProcess(msg);
                 });
-                await projectRunSettingsGenerator.RemoveGeneratedProjectSettingsAsync(coverageProjects);
+                await projectRunSettingsGenerator.RemoveGeneratedProjectSettingsAsync(coverageProjectsWithoutRunSettings);
             }
             return (successfullyGeneratedRunSettings, customTemplatePaths);
         }
 
-        private List<CoverageProjectRunSettings> GetProjectsRunSettingsWriteDetails(IEnumerable<ICoverageProject> coverageProjects, string solutionDirectory)
+        private List<CoverageProjectRunSettings> GetCoverageProjectsRunSettings(IEnumerable<ICoverageProject> coverageProjects, string solutionDirectory)
         {
             return coverageProjects.Select(coverageProject => 
             {
@@ -256,19 +253,8 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
 
         private string CreateProjectRunSettings(ICoverageProject coverageProject, string runSettingsTemplate)
         {
-            var settings = coverageProject.Settings;
-            var modulePathsExclude = coverageProject.ExcludedReferencedProjects.Select(
-                rp => MsCodeCoverageRegex.RegexModuleName(rp)).Concat(settings.ModulePathsExclude ?? Enumerable.Empty<string>()).ToList();
-
-            if (!settings.IncludeTestAssembly)
-            {
-                modulePathsExclude.Add(MsCodeCoverageRegex.RegexEscapePath(coverageProject.TestDllFile));
-            }
-
-            var modulePathsInclude = coverageProject.IncludedReferencedProjects.Select(rp => MsCodeCoverageRegex.RegexModuleName(rp)).Concat(settings.ModulePathsInclude ?? Enumerable.Empty<string>()).ToList();
-
-            var replacements = runSettingsTemplateReplacementsFactory.Create(settings, coverageProject.CoverageOutputFolder, settings.Enabled.ToString(), modulePathsInclude, modulePathsExclude, msCodeCoveragePath);
-
+            var replacements = runSettingsTemplateReplacementsFactory.Create(coverageProject, msCodeCoveragePath);
+            
             var projectRunSettings = builtInRunSettingsTemplate.Replace(runSettingsTemplate, replacements);
 
             return XDocument.Parse(projectRunSettings).FormatXml();

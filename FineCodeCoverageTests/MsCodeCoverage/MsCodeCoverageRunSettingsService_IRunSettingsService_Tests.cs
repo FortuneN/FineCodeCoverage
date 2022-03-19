@@ -68,14 +68,12 @@ namespace FineCodeCoverageTests.MsCodeCoverage
             // collecting
             var mockCoverageProject = new Mock<ICoverageProject>();
             mockCoverageProject.Setup(cp => cp.TestDllFile).Returns("Test.dll");
-            var userRunSettingsProjectDetails = msCodeCoverageRunSettingsService.SetUserRunSettingsProjectDetails(new List<ICoverageProject>
-            {
-                mockCoverageProject.Object
-            });
+            msCodeCoverageRunSettingsService.userRunSettingsProjectDetailsLookup = new Dictionary<string, IUserRunSettingsProjectDetails> { };
+            
 
             var runSettingsTemplateReplacements = new Mock<IRunSettingsTemplateReplacements>().Object;
             var mockRunSettingsTemplateReplacementsFactory = autoMocker.GetMock<IRunSettingsTemplateReplacementsFactory>();
-            mockRunSettingsTemplateReplacementsFactory.Setup(f => f.Create(testContainers, userRunSettingsProjectDetails, msCodeCoveragePath)).Returns(runSettingsTemplateReplacements);
+            mockRunSettingsTemplateReplacementsFactory.Setup(f => f.Create(testContainers, msCodeCoverageRunSettingsService.userRunSettingsProjectDetailsLookup, msCodeCoveragePath)).Returns(runSettingsTemplateReplacements);
 
             var mockUserRunSettingsService = autoMocker.GetMock<IUserRunSettingsService>();
             var fccRunSettingDocument = new Mock<IXPathNavigable>().Object;

@@ -111,6 +111,7 @@
     <Compile Include="Events\EventAggregator.cs" />
     <Compile Include="MsCodeCoverage\CustomRunSettingsTemplateProvider_Tests.cs" />
     <Compile Include="MsCodeCoverage\MsCodeCoverageRunSettingsService_Collect_Tests.cs" />
+    <Compile Include="MsCodeCoverage\MsCodeCoverageRunSettingsService_IsCollecting_Tests.cs" />
     <Compile Include="MsCodeCoverage\MsCodeCoverageRunSettingsService_Initialize_Tests.cs" />
     <Compile Include="MsCodeCoverage\MsCodeCoverageRunSettingsService_IRunSettingsService_Tests.cs" />
     <Compile Include="MsCodeCoverage\ProjectRunSettingsGenerator_Tests.cs" />

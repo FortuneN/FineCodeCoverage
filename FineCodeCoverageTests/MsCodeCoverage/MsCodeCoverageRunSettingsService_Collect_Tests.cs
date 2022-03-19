@@ -54,7 +54,6 @@ namespace FineCodeCoverageTests.MsCodeCoverage
             var mockOperation = new Mock<IOperation>();
             mockOperation.Setup(operation => operation.GetRunSettingsDataCollectorResultUri(new Uri(RunSettingsHelper.MsDataCollectorUri))).Returns(resultsUris);
             
-            // in another test List<ICoverageProject> coverageProjects = await testOperation.GetCoverageProjectsAsync();
             await msCodeCoverageRunSettingsService.CollectAsync(mockOperation.Object, new Mock<ITestOperation>().Object);
             mockFccEngine.Verify(engine => engine.RunAndProcessReport(
                     It.Is<string[]>(coberturaFiles => !expectedCoberturaFiles.Except(coberturaFiles).Any() && !coberturaFiles.Except(expectedCoberturaFiles).Any()), It.IsAny<Action>()

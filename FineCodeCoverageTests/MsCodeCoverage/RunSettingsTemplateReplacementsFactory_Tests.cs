@@ -5,6 +5,8 @@ using FineCodeCoverage.Options;
 using FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage;
 using Microsoft.VisualStudio.TestWindow.Extensibility;
 using System.Linq;
+using FineCodeCoverage.Engine.Model;
+using System;
 
 namespace FineCodeCoverageTests.MsCodeCoverage
 {
@@ -385,31 +387,49 @@ namespace FineCodeCoverageTests.MsCodeCoverage
         }
 
         [Test]
-        public void Should_Set_String_Replacements()
+        public void Should_Set_The_TestAdapter()
         {
-            IMsCodeCoverageIncludesExcludesOptions msCodeCoverageOptions = new Mock<IMsCodeCoverageIncludesExcludesOptions>().Object;
-            var replacements = runSettingsTemplateReplacementsFactory.Create(
-                msCodeCoverageOptions,
-                "ResultsDirectory!",
-                "Enabled!",
-                null,
-                null,
-                "TestAdapter!"
-                );
+            var replacements = runSettingsTemplateReplacementsFactory.Create(CreateCoverageProject(), "MsTestAdapterPath");
+            Assert.AreEqual("MsTestAdapterPath", replacements.TestAdapter);
+        }
 
-            Assert.AreEqual("ResultsDirectory!", replacements.ResultsDirectory);
-            Assert.AreEqual("Enabled!", replacements.Enabled);
-            Assert.AreEqual("TestAdapter!", replacements.TestAdapter);
+        private ICoverageProject CreateCoverageProject(Action<Mock<ICoverageProject>> furtherSetup = null)
+        {
+            var mockSettings = new Mock<IAppOptions>();
+            mockSettings.Setup(settings => settings.IncludeTestAssembly).Returns(true);
+            var mockCoverageProject = new Mock<ICoverageProject>();
+            mockCoverageProject.Setup(cp => cp.ExcludedReferencedProjects).Returns(new List<string>());
+            mockCoverageProject.Setup(cp => cp.IncludedReferencedProjects).Returns(new List<string>());
+            mockCoverageProject.Setup(cp  => cp.Settings).Returns(mockSettings.Object);
+            furtherSetup?.Invoke(mockCoverageProject);
+            return mockCoverageProject.Object;
+        }
+
+        [TestCase(true)]
+        [TestCase(false)]
+        public void Should_Set_Enabled_From_The_CoverageProject_Settings(bool enabled)
+        {
+            var coverageProject = CreateCoverageProject(mock => mock.Setup(cp => cp.Settings.Enabled).Returns(enabled));
+            var replacements = runSettingsTemplateReplacementsFactory.Create(coverageProject,null);
+            Assert.AreEqual(enabled.ToString(), replacements.Enabled);
+        }
+
+        [Test]
+        public void Should_Set_The_ResultsDirectory_To_The_Project_ProjectOutputFolder()
+        {
+            var coverageProject = CreateCoverageProject(mock => mock.Setup(cp => cp.ProjectOutputFolder).Returns("ProjectOutputFolder"));
+            var replacements = runSettingsTemplateReplacementsFactory.Create(coverageProject,null);
+            Assert.AreEqual("ProjectOutputFolder", replacements.ResultsDirectory);
         }
 
         [Test]
         public void Should_Create_Element_Replacements()
         {
-            var msCodeCoverageOptions = new TestMsCodeCoverageOptions
+            var msCodeCoverageOptions = new TestCoverageProjectOptions
             {
-                FunctionsExclude = new[] { "FunctionExclude1","FunctionExclude2"},
+                FunctionsExclude = new[] { "FunctionExclude1", "FunctionExclude2" },
                 FunctionsInclude = new[] { "FunctionInclude1", "FunctionInclude2" },
-                CompanyNamesExclude = new[] { "CompanyNameExclude1", "CompanyNameExclude2"},
+                CompanyNamesExclude = new[] { "CompanyNameExclude1", "CompanyNameExclude2" },
                 CompanyNamesInclude = new[] { "CompanyNameInclude1", "CompanyNameInclude2" },
                 AttributesExclude = new[] { "AttributeExclude1", "AttributeExclude2" },
                 AttributesInclude = new[] { "AttributeInclude1", "AttributeInclude2" },
@@ -417,27 +437,23 @@ namespace FineCodeCoverageTests.MsCodeCoverage
                 PublicKeyTokensInclude = new[] { "PublicKeyTokenInclude1", "PublicKeyTokenInclude2" },
                 SourcesExclude = new[] { "SourceExclude1", "SourceExclude2" },
                 SourcesInclude = new[] { "SourceInclude1", "SourceInclude2" },
-                ModulePathsExclude = new[] { "Ignored" },
-                ModulePathsInclude = new[] { "Ignored" },
+                ModulePathsExclude = new[] { "ModulePathExclude1","ModulePathExclude2" },
+                ModulePathsInclude = new[] { "ModulePathInclude1", "ModulePathInclude2" },
+                IncludeTestAssembly = true,
             };
-            var replacements = runSettingsTemplateReplacementsFactory.Create(
-                msCodeCoverageOptions,
-                null,
-                null,
-                new List<string> { "ModulePathInclude1","ModulePathInclude2"},
-                new List<string> { "ModulePathExclude1", "ModulePathExclude2" },
-                null
-                );
+
+            var coverageProject = CreateCoverageProject(mock => mock.Setup(cp => cp.Settings).Returns(msCodeCoverageOptions));
+            var replacements = runSettingsTemplateReplacementsFactory.Create(coverageProject, null);
+
 
             void AssertReplacement(string replacement, string replacementProperty, bool isInclude)
             {
                 var ie = isInclude ? "Include" : "Exclude";
                 Assert.AreEqual($"<{replacementProperty}>{replacementProperty}{ie}1</{replacementProperty}><{replacementProperty}>{replacementProperty}{ie}2</{replacementProperty}>", replacement);
             }
-            
+
             AssertReplacement(replacements.ModulePathsExclude, "ModulePath", false);
             AssertReplacement(replacements.ModulePathsInclude, "ModulePath", true);
-
             AssertReplacement(replacements.FunctionsExclude, "Function", false);
             AssertReplacement(replacements.FunctionsInclude, "Function", true);
             AssertReplacement(replacements.CompanyNamesExclude, "CompanyName", false);
@@ -453,7 +469,7 @@ namespace FineCodeCoverageTests.MsCodeCoverage
         [Test]
         public void Should_Create_Distinct_Element_Replacements()
         {
-            var msCodeCoverageOptions = new TestMsCodeCoverageOptions
+            var msCodeCoverageOptions = new TestCoverageProjectOptions
             {
                 FunctionsExclude = new[] { "FunctionExclude1", "FunctionExclude1" },
                 FunctionsInclude = new[] { "FunctionInclude1", "FunctionInclude1" },
@@ -465,15 +481,13 @@ namespace FineCodeCoverageTests.MsCodeCoverage
                 PublicKeyTokensInclude = new[] { "PublicKeyTokenInclude1", "PublicKeyTokenInclude1" },
                 SourcesExclude = new[] { "SourceExclude1", "SourceExclude1" },
                 SourcesInclude = new[] { "SourceInclude1", "SourceInclude1" },
+                ModulePathsExclude = new[] { "ModulePathExclude1", "ModulePathExclude1" },
+                ModulePathsInclude = new[] { "ModulePathInclude1", "ModulePathInclude1" },
+                IncludeTestAssembly = true
             };
-            var replacements = runSettingsTemplateReplacementsFactory.Create(
-                msCodeCoverageOptions,
-                null,
-                null,
-                new List<string> { "ModulePathInclude1", "ModulePathInclude1" },
-                new List<string> { "ModulePathExclude1", "ModulePathExclude1" },
-                null
-                );
+
+            var coverageProject = CreateCoverageProject(mock => mock.Setup(cp => cp.Settings).Returns(msCodeCoverageOptions));
+            var replacements = runSettingsTemplateReplacementsFactory.Create(coverageProject, null);
 
             void AssertReplacement(string replacement, string replacementProperty, bool isInclude)
             {
@@ -495,24 +509,139 @@ namespace FineCodeCoverageTests.MsCodeCoverage
             AssertReplacement(replacements.SourcesExclude, "Source", false);
             AssertReplacement(replacements.SourcesInclude, "Source", true);
         }
-        
+
         [Test]
         public void Should_Be_Empty_String_Replacement_When_Null()
         {
-            var msCodeCoverageOptions = new TestMsCodeCoverageOptions
+            var msCodeCoverageOptions = new TestCoverageProjectOptions
             {
-                
+                IncludeTestAssembly = true
             };
-            var replacements = runSettingsTemplateReplacementsFactory.Create(
-                msCodeCoverageOptions,
-                null,
-                null,
-                null,
-                null,
-                null
-                );
+
+            var coverageProject = CreateCoverageProject(mock => mock.Setup(cp => cp.Settings).Returns(msCodeCoverageOptions));
+            var replacements = runSettingsTemplateReplacementsFactory.Create(coverageProject, null);
+            
 
             ReplacementsAssertions.AssertAllEmpty(replacements);
         }
+
+        [Test]
+        public void Should_Have_ModulePathsExclude_Replacements_From_ExcludedReferencedProjects_Settings_And_Excluded_Test_Assembly()
+        {
+            var msCodeCoverageOptions = new TestCoverageProjectOptions
+            {
+                ModulePathsExclude = new[] { "FromSettings"},
+                IncludeTestAssembly = false
+            };
+
+            var coverageProject = CreateCoverageProject(mock =>
+            {
+                mock.Setup(cp => cp.Settings).Returns(msCodeCoverageOptions);
+                mock.Setup(cp => cp.ExcludedReferencedProjects).Returns(new List<string>
+                {
+                    "ModuleName"
+                });
+                mock.Setup(cp => cp.TestDllFile).Returns(@"Path\To\Test.dll");
+            });
+
+            var replacements = runSettingsTemplateReplacementsFactory.Create(coverageProject, null);
+            var expectedModulePathsExclude = $"{ModulePathElement(MsCodeCoverageRegex.RegexModuleName("ModuleName"))}{ModulePathElement("FromSettings")}{ModulePathElement(MsCodeCoverageRegex.RegexEscapePath(@"Path\To\Test.dll"))}";
+            Assert.AreEqual(expectedModulePathsExclude, replacements.ModulePathsExclude);
+        }
+
+        [Test]
+        public void Should_Have_ModulePathsInclude_Replacements_From_IncludedReferencedProjects_And_Settings()
+        {
+            var msCodeCoverageOptions = new TestCoverageProjectOptions
+            {
+                ModulePathsInclude = new[] { "FromSettings" },
+                IncludeTestAssembly = true
+            };
+
+            var coverageProject = CreateCoverageProject(mock =>
+            {
+                mock.Setup(cp => cp.Settings).Returns(msCodeCoverageOptions);
+                mock.Setup(cp => cp.IncludedReferencedProjects).Returns(new List<string>
+                {
+                    "ModuleName"
+                });
+            });
+
+            var replacements = runSettingsTemplateReplacementsFactory.Create(coverageProject, null);
+            var expectedModulePathsInclude = $"{ModulePathElement(MsCodeCoverageRegex.RegexModuleName("ModuleName"))}{ModulePathElement("FromSettings")}";
+            Assert.AreEqual(expectedModulePathsInclude, replacements.ModulePathsInclude);
+        }
+
+        private static string ModulePathElement(string value)
+        {
+            return $"<ModulePath>{value}</ModulePath>";
+        }
+    }
+
+    internal class TestCoverageProjectOptions : IAppOptions
+    {
+        public string[] Exclude => throw new NotImplementedException();
+
+        public string[] ExcludeByAttribute => throw new NotImplementedException();
+
+        public string[] ExcludeByFile => throw new NotImplementedException();
+
+        public string[] Include => throw new NotImplementedException();
+
+        public bool RunInParallel => throw new NotImplementedException();
+
+        public int RunWhenTestsExceed => throw new NotImplementedException();
+
+        public bool RunWhenTestsFail => throw new NotImplementedException();
+
+        public bool RunSettingsOnly => throw new NotImplementedException();
+
+        public bool CoverletConsoleGlobal => throw new NotImplementedException();
+
+        public string CoverletConsoleCustomPath => throw new NotImplementedException();
+
+        public bool CoverletConsoleLocal => throw new NotImplementedException();
+
+        public string CoverletCollectorDirectoryPath => throw new NotImplementedException();
+
+        public string OpenCoverCustomPath => throw new NotImplementedException();
+
+        public string FCCSolutionOutputDirectoryName => throw new NotImplementedException();
+
+        public int ThresholdForCyclomaticComplexity => throw new NotImplementedException();
+
+        public int ThresholdForNPathComplexity => throw new NotImplementedException();
+
+        public int ThresholdForCrapScore => throw new NotImplementedException();
+
+        public bool CoverageColoursFromFontsAndColours => throw new NotImplementedException();
+
+        public bool StickyCoverageTable => throw new NotImplementedException();
+
+        public bool NamespacedClasses => throw new NotImplementedException();
+
+        public bool HideFullyCovered => throw new NotImplementedException();
+
+        public bool AdjacentBuildOutput => throw new NotImplementedException();
+
+        public bool MsCodeCoverage { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public string[] ModulePathsExclude { get; set; }
+        public string[] ModulePathsInclude { get; set; }
+        public string[] CompanyNamesExclude { get; set; }
+        public string[] CompanyNamesInclude { get; set; }
+        public string[] PublicKeyTokensExclude { get; set; }
+        public string[] PublicKeyTokensInclude { get; set; }
+        public string[] SourcesExclude { get; set; }
+        public string[] SourcesInclude { get; set; }
+        public string[] AttributesExclude { get; set; }
+        public string[] AttributesInclude { get; set; }
+        public string[] FunctionsInclude { get; set; }
+        public string[] FunctionsExclude { get; set; }
+
+        public bool Enabled { get; set; }
+
+        public bool IncludeTestAssembly { get; set; }
+
+        public bool IncludeReferencedProjects { get; set; }
     }
 }

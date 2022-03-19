@@ -1,4 +1,5 @@
-﻿using FineCodeCoverage.Options;
+﻿using FineCodeCoverage.Engine.Model;
+using FineCodeCoverage.Options;
 using Microsoft.VisualStudio.TestWindow.Extensibility;
 using System;
 using System.Collections.Generic;
@@ -136,9 +137,19 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
             return new RunSettingsTemplateReplacements(mergedSettings, resultsDirectory, "true", modulePathsInclude, modulePathsExclude, testAdapter);
         }
 
-        public IRunSettingsTemplateReplacements Create(IMsCodeCoverageIncludesExcludesOptions coverageProjectSettings, string resultsDirectory, string enabled, IEnumerable<string> modulePathsInclude, IEnumerable<string> modulePathsExclude, string testAdapter)
+        public IRunSettingsTemplateReplacements Create(ICoverageProject coverageProject, string testAdapter)
         {
-            return new RunSettingsTemplateReplacements(coverageProjectSettings, resultsDirectory, enabled, modulePathsInclude, modulePathsExclude, testAdapter);
+            var settings = coverageProject.Settings;
+            var modulePathsExclude = coverageProject.ExcludedReferencedProjects.Select(
+                rp => MsCodeCoverageRegex.RegexModuleName(rp)).Concat(settings.ModulePathsExclude ?? Enumerable.Empty<string>()).ToList();
+
+            if (!settings.IncludeTestAssembly)
+            {
+                modulePathsExclude.Add(MsCodeCoverageRegex.RegexEscapePath(coverageProject.TestDllFile));
+            }
+
+            var modulePathsInclude = coverageProject.IncludedReferencedProjects.Select(rp => MsCodeCoverageRegex.RegexModuleName(rp)).Concat(settings.ModulePathsInclude ?? Enumerable.Empty<string>()).ToList();
+            return new RunSettingsTemplateReplacements(settings, coverageProject.ProjectOutputFolder, settings.Enabled.ToString(), modulePathsInclude, modulePathsExclude, testAdapter);
         }
     }
 
