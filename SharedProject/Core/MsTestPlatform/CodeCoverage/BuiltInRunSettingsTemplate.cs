@@ -132,14 +132,6 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
 ";
 
             Template = $@"<?xml version='1.0' encoding='utf-8'?>
-
-<!-- 
-Edit this xml file to configure the code coverage for FCC.See
-https://docs.microsoft.com/en-us/visualstudio/test/customizing-code-coverage-analysis?view=vs-2022
-for details.
-
-The resulting runsettings file actually used for test runs is put into .fcc/fcc.runsettings
--->
 <RunSettings>
 {RunConfigurationElement}
 {DataCollectionRunSettingsElement}
@@ -216,7 +208,7 @@ The resulting runsettings file actually used for test runs is put into .fcc/fcc.
                 AddEnabledReplacementAttributeIfNotPresent(msDataCollector);
                 var msDataCollectorConfiguration = GetOrAddConfigurationElement(msDataCollector);
                 AddOrCorrectFormat(msDataCollectorConfiguration);
-                AddFCCGenerated(msDataCollectorConfiguration);
+                AddFCCGeneratedIfNotPresent(msDataCollectorConfiguration);
 
             });
         }
@@ -241,9 +233,12 @@ The resulting runsettings file actually used for test runs is put into .fcc/fcc.
             }
         }
 
-        private void AddFCCGenerated(XElement msDataCollector)
+        private void AddFCCGeneratedIfNotPresent(XElement msDataCollectorConfiguration)
         {
-            msDataCollector.Add(XElement.Parse($"<{FCCMarkerElementName}/>"));
+            if (msDataCollectorConfiguration.Element(FCCMarkerElementName) == null)
+            {
+                msDataCollectorConfiguration.Add(XElement.Parse($"<{FCCMarkerElementName}/>"));
+            }
         }
 
         private void AddOrCorrectFormat(XElement configuration)
@@ -251,7 +246,7 @@ The resulting runsettings file actually used for test runs is put into .fcc/fcc.
             var formatElement = configuration.Element("Format");
             if (formatElement == null)
             {
-                configuration.Add(new XElement("Format", "Cobertura"));
+                configuration.AddFirst(new XElement("Format", "Cobertura"));
             }
             else
             {
