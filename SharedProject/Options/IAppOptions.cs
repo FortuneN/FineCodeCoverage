@@ -10,6 +10,7 @@
         bool IncludeTestAssembly { get; }
         bool RunInParallel { get; }
         int RunWhenTestsExceed { get; }
+        string ToolsDirectory { get; }
         bool RunWhenTestsFail { get; }
         bool RunSettingsOnly { get; }
         bool CoverletConsoleGlobal { get; }
