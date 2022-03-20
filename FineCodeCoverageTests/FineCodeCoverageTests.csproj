@@ -109,7 +109,9 @@
     <Compile Include="CoverageToolOutput_Tests\SolutionFolderProvider_Tests.cs" />
     <Compile Include="CoverageUtilManager_Tests.cs" />
     <Compile Include="Events\EventAggregator.cs" />
-    <Compile Include="MsCodeCoverage\CustomRunSettingsTemplateProvider_Tests.cs" />
+    <Compile Include="MsCodeCoverage\CustomRunSettingsTemplateProvider_Tests - Copy.cs" />
+    <Compile Include="MsCodeCoverage\RunSettingsHelper_Tests.cs" />
+    <Compile Include="MsCodeCoverage\BuiltInRunSettingsTemplate_Tests.cs" />
     <Compile Include="MsCodeCoverage\MsCodeCoverageRunSettingsService_Collect_Tests.cs" />
     <Compile Include="MsCodeCoverage\MsCodeCoverageRunSettingsService_IsCollecting_Tests.cs" />
     <Compile Include="MsCodeCoverage\MsCodeCoverageRunSettingsService_Initialize_Tests.cs" />

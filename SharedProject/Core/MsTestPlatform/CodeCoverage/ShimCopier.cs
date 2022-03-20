@@ -18,7 +18,7 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
             }
         }
 
-        private void CopyShimForNetFrameworkProjects(string shimPath, List<ICoverageProject> coverageProjects)
+        private void CopyShimForNetFrameworkProjects(string shimPath, IEnumerable<ICoverageProject> coverageProjects)
         {
             var netFrameworkCoverageProjects = coverageProjects.Where(cp => !cp.IsDotNetSdkStyle());
             foreach (var netFrameworkCoverageProject in netFrameworkCoverageProjects)
@@ -27,7 +27,7 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
             }
         }
 
-        public void Copy(string shimPath, List<ICoverageProject> coverageProjects)
+        public void Copy(string shimPath, IEnumerable<ICoverageProject> coverageProjects)
         {
             CopyShimForNetFrameworkProjects(shimPath, coverageProjects);
         }

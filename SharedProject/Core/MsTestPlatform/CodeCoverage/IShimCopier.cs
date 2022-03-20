@@ -5,6 +5,6 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
 {
     internal interface IShimCopier
     {
-        void Copy(string shimPath, List<ICoverageProject> coverageProjects);
+        void Copy(string shimPath, IEnumerable<ICoverageProject> coverageProjects);
     }
 }

@@ -110,7 +110,8 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
                 xpathNavigator.MoveToChild("RunConfiguration", "");
             }
 
-            xpathNavigator.OuterXml = builtInRunSettingsTemplate.Replace(xpathNavigator.OuterXml, replacements);
+            var replaceResult = builtInRunSettingsTemplate.Replace(xpathNavigator.OuterXml, replacements);
+            xpathNavigator.OuterXml = replaceResult.Replaced;
         }
 
         private void EnsureMsDataCollector(XPathNavigator xpathNavigator, IRunSettingsTemplateReplacements replacements)
@@ -165,8 +166,8 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
         private void ReplaceExcludesIncludes(XPathNavigator msDataCollectorNavigator, IRunSettingsTemplateReplacements replacements)
         {
             var toReplace = msDataCollectorNavigator.OuterXml;
-            var replaced = builtInRunSettingsTemplate.Replace(toReplace, replacements);
-            msDataCollectorNavigator.OuterXml = replaced;
+            var replaceResult = builtInRunSettingsTemplate.Replace(toReplace, replacements);
+            msDataCollectorNavigator.OuterXml = replaceResult.Replaced;
         }
 
         private void FixUpMsDataCollector(XPathNavigator navigator, IRunSettingsTemplateReplacements replacements)

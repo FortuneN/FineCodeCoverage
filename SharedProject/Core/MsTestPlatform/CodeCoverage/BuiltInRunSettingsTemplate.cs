@@ -42,6 +42,13 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
 
         public string FCCMarkerElementName { get; } = "FCCGenerated";
 
+        private class TemplateReplaceResult : ITemplateReplaceResult
+        {
+            public string Replaced { get; set; }
+
+            public bool ReplacedTestAdapter { get; set;}
+        }
+
 
         public BuiltInRunSettingsTemplate()
         {
@@ -140,12 +147,12 @@ The resulting runsettings file actually used for test runs is put into .fcc/fcc.
 ";
         }
 
-        public string Replace(string runSettingsTemplate, IRunSettingsTemplateReplacements replacements)
+        public ITemplateReplaceResult Replace(string runSettingsTemplate, IRunSettingsTemplateReplacements replacements)
         {
-            return runSettingsTemplate
+            var replacedTestAdapter = runSettingsTemplate.Contains(replacementLookups.TestAdapter);
+            var runSettings = runSettingsTemplate
                       .Replace(replacementLookups.ResultsDirectory, replacements.ResultsDirectory)
                       .Replace(replacementLookups.TestAdapter, replacements.TestAdapter)
-
                       .Replace(replacementLookups.Enabled, replacements.Enabled)
                       .Replace(replacementLookups.ModulePathsExclude, replacements.ModulePathsExclude)
                       .Replace(replacementLookups.ModulePathsInclude, replacements.ModulePathsInclude)
@@ -159,34 +166,46 @@ The resulting runsettings file actually used for test runs is put into .fcc/fcc.
                       .Replace(replacementLookups.CompanyNamesInclude, replacements.CompanyNamesInclude)
                       .Replace(replacementLookups.PublicKeyTokensExclude, replacements.PublicKeyTokensExclude)
                       .Replace(replacementLookups.PublicKeyTokensInclude, replacements.PublicKeyTokensInclude);
+            return new TemplateReplaceResult
+            {
+                ReplacedTestAdapter = replacedTestAdapter,
+                Replaced = runSettings
+            };
         }
 
         private void EnsureRunConfigurationEssentials(XElement runConfiguration)
         {
-            AddIfNotPresent(runConfiguration, "ResultsDirectory", ResultsDirectoryElement);
-            AddIfNotPresent(runConfiguration, "TestAdaptersPaths", TestAdaptersPathElement);
+            AddIfNotPresent(runConfiguration, "ResultsDirectory", ResultsDirectoryElement,null,true);
+            AddIfNotPresent(runConfiguration, "TestAdaptersPaths", TestAdaptersPathElement, null, false);
         }
 
         private void EnsureRunConfiguration(XElement runSettingsElement)
         {
-            AddIfNotPresent(runSettingsElement, "RunConfiguration", RunConfigurationElement, EnsureRunConfigurationEssentials);
+            AddIfNotPresent(runSettingsElement, "RunConfiguration", RunConfigurationElement, EnsureRunConfigurationEssentials,true);
         }
 
-        private void AddIfNotPresent(XElement parent,string elementName,string elementAsString,Action<XElement> elsePath = null)
+        private void AddIfNotPresent(XElement parent,string elementName,string elementAsString,Action<XElement> elsePath = null,bool addFirst = true)
         {
-            AddIfNotPresent(parent, p => p.Element(elementName), elementAsString, elsePath);
+            AddIfNotPresent(parent, p => p.Element(elementName), elementAsString, elsePath, addFirst);
         }
 
-        private void AddIfNotPresent(XElement parent, Func<XElement,XElement> find,string elementAsString, Action<XElement> elsePath = null)
+        private void AddIfNotPresent(XElement parent, Func<XElement,XElement> find,string elementAsString, Action<XElement> presentPath = null,bool addFirst = true)
         {
             var child = find(parent);
             if (child == null)
             {
-                parent.Add(XElement.Parse(elementAsString));
+                if (addFirst)
+                {
+                    parent.AddFirst(XElement.Parse(elementAsString));
+                }
+                else
+                {
+                    parent.Add(XElement.Parse(elementAsString));
+                }
             }
             else
             {
-                elsePath?.Invoke(child);
+                presentPath?.Invoke(child);
             }
         }
 
@@ -194,31 +213,37 @@ The resulting runsettings file actually used for test runs is put into .fcc/fcc.
         {
             AddIfNotPresent(dataCollectors, _ => RunSettingsHelper.FindMsDataCollector(dataCollectors), MsDataCollectorElement, msDataCollector =>
             {
-                AddEnabledReplacementAttribute(msDataCollector);
-                var msDataCollectorConfiguration = msDataCollector.Element("Configuration");
-                if(msDataCollectorConfiguration == null)
-                {
-                    msDataCollectorConfiguration = new XElement("Configuration");
-                    msDataCollector.Add(msDataCollectorConfiguration);
-                }
+                AddEnabledReplacementAttributeIfNotPresent(msDataCollector);
+                var msDataCollectorConfiguration = GetOrAddConfigurationElement(msDataCollector);
                 AddOrCorrectFormat(msDataCollectorConfiguration);
                 AddFCCGenerated(msDataCollectorConfiguration);
 
             });
         }
 
-        private void AddEnabledReplacementAttribute(XElement msDataCollector)
+        private XElement GetOrAddConfigurationElement(XElement msDataCollector)
+        {
+            var msDataCollectorConfiguration = msDataCollector.Element("Configuration");
+            if (msDataCollectorConfiguration == null)
+            {
+                msDataCollectorConfiguration = new XElement("Configuration");
+                msDataCollector.Add(msDataCollectorConfiguration);
+            }
+            return msDataCollectorConfiguration;
+        }
+
+        private void AddEnabledReplacementAttributeIfNotPresent(XElement msDataCollector)
         {
             var enabledAttribute = msDataCollector.Attribute("enabled");
             if(enabledAttribute == null)
             {
-                msDataCollector.Add(new XAttribute("Enabled", replacementLookups.Enabled));
+                msDataCollector.Add(new XAttribute("enabled", replacementLookups.Enabled));
             }
         }
 
         private void AddFCCGenerated(XElement msDataCollector)
         {
-            msDataCollector.Add(new XElement(FCCMarkerElementName));
+            msDataCollector.Add(XElement.Parse($"<{FCCMarkerElementName}/>"));
         }
 
         private void AddOrCorrectFormat(XElement configuration)
@@ -241,7 +266,7 @@ The resulting runsettings file actually used for test runs is put into .fcc/fcc.
 
         private void EnsureMsDataCollector(XElement runSettingsElement)
         {
-            AddIfNotPresent(runSettingsElement, "DataCollectionRunSettings", DataCollectionRunSettingsElement, EnsureDataCollectorsElement);
+            AddIfNotPresent(runSettingsElement, "DataCollectionRunSettings", DataCollectionRunSettingsElement, EnsureDataCollectorsElement, false);
         }
 
         public string ConfigureCustom(string runSettingsTemplate)

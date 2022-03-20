@@ -1,7 +1,6 @@
 ﻿using FineCodeCoverage.Core.Utilities;
 using FineCodeCoverage.Engine.Model;
 using FineCodeCoverage.Impl;
-using Microsoft.VisualStudio.Shell;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
@@ -39,9 +38,16 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
             public ICoverageProject CoverageProject { get; set; }
             public string RunSettings { get; set; }
             public string CustomTemplatePath { get; internal set; }
+            public bool ReplacedTestAdapter { get; internal set; }
         }
 
-        private readonly string builtInRunSettingsTemplateString;
+        private class TemplateReplaceResult : ITemplateReplaceResult
+        {
+            public string Replaced { get; set; }
+
+            public bool ReplacedTestAdapter { get; set; }
+        }
+
         private readonly IToolFolder toolFolder;
         private readonly IToolZipProvider toolZipProvider;
         private readonly IAppOptionsProvider appOptionsProvider;
@@ -88,7 +94,6 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
             this.shimCopier = shimCopier;
             this.logger = logger;
             this.reportGeneratorUtil = reportGeneratorUtil;
-            builtInRunSettingsTemplateString = builtInRunSettingsTemplate.Template;
             this.projectRunSettingsGenerator = projectRunSettingsGenerator;
             this.userRunSettingsService = userRunSettingsService;
         }
@@ -123,7 +128,7 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
                 {
                     if (specifiedMsCodeCoverage || useMsCodeCoverage)
                     {
-                        var (successfullyGeneratedRunSettings, customTemplatePaths) = await SetupProjectsWithoutRunSettingsAsync(projectsWithoutRunSettings, testOperation.SolutionDirectory);
+                        var (successfullyGeneratedRunSettings, customTemplatePaths) = await GenerateProjectsRunSettingsAsync(projectsWithoutRunSettings, testOperation.SolutionDirectory);
                         if (successfullyGeneratedRunSettings)
                         {
                             await CombinedLogAsync(() =>
@@ -177,13 +182,6 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
             }
         }
 
-        public async Task<(bool Success, List<string> CustomTemplatePaths)> SetupProjectsWithoutRunSettingsAsync(List<ICoverageProject> coverageProjectsWithoutRunSettings, string solutionDirectory)
-        {
-            shimCopier.Copy(shimPath,coverageProjectsWithoutRunSettings);
-
-            return await GenerateProjectsRunSettingsAsync(coverageProjectsWithoutRunSettings, solutionDirectory);
-        }
-
         private async Task<(bool Success, List<string> CustomTemplatePaths)> GenerateProjectsRunSettingsAsync(IEnumerable<ICoverageProject> coverageProjectsWithoutRunSettings, string solutionDirectory)
         {
             var successfullyGeneratedRunSettings = false;
@@ -194,15 +192,13 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
             }
             catch (Exception ex)
             {
-                await CombinedLogAsync(() =>
-                {
-                    var msg = "Exception generating ms runsettings";
-                    logger.Log(msg, ex.ToString());
-                    reportGeneratorUtil.LogCoverageProcess(msg);
-                });
+                await CombinedLogExceptionAsync(ex, "Exception generating ms runsettings");
                 return (false, null);
             }
-            var customTemplatePaths = projectsRunSettings.Select(projectRunSettings => projectRunSettings.CustomTemplatePath).ToList();
+            var coverageProjectsThatMayRequireShim = projectsRunSettings.Where(projectRunSettings => projectRunSettings.ReplacedTestAdapter).Select(projectRunSettings => projectRunSettings.CoverageProject);
+            shimCopier.Copy(shimPath, coverageProjectsThatMayRequireShim);
+
+            var customTemplatePaths = projectsRunSettings.Where(projectRunSettings => projectRunSettings.CustomTemplatePath != null).Select(projectRunSettings => projectRunSettings.CustomTemplatePath).ToList();
             try
             {
                 await projectRunSettingsGenerator.WriteProjectsRunSettingsAsync(projectsRunSettings);
@@ -210,13 +206,13 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
             }
             catch (Exception ex)
             {
-                await CombinedLogAsync(() =>
+                await CombinedLogExceptionAsync(ex, "Exception writing ms runsettings");
+                try
                 {
-                    var msg = "Exception writing ms runsettings";
-                    logger.Log(msg, ex.ToString());
-                    reportGeneratorUtil.LogCoverageProcess(msg);
-                });
-                await projectRunSettingsGenerator.RemoveGeneratedProjectSettingsAsync(coverageProjectsWithoutRunSettings);
+                    await projectRunSettingsGenerator.RemoveGeneratedProjectSettingsAsync(coverageProjectsWithoutRunSettings);
+                }
+                catch { }
+                return (false, null);
             }
             return (successfullyGeneratedRunSettings, customTemplatePaths);
         }
@@ -227,9 +223,14 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
             {
                 var projectDirectory = Path.GetDirectoryName(coverageProject.ProjectFile);
                 var (runSettingsTemplate, customTemplatePath) = GetRunSettingsTemplate(projectDirectory, solutionDirectory);
-                var projectRunSettings = CreateProjectRunSettings(coverageProject, runSettingsTemplate);
+                var templateReplaceResult = CreateProjectRunSettings(coverageProject, runSettingsTemplate);
 
-                return new CoverageProjectRunSettings { CoverageProject = coverageProject, RunSettings = projectRunSettings, CustomTemplatePath = customTemplatePath };
+                return new CoverageProjectRunSettings { 
+                    CoverageProject = coverageProject, 
+                    RunSettings = templateReplaceResult.Replaced, 
+                    CustomTemplatePath = customTemplatePath,
+                    ReplacedTestAdapter = templateReplaceResult.ReplacedTestAdapter
+                };
                 
             }).ToList();
         }
@@ -246,18 +247,21 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
             }
             else
             {
-                template = builtInRunSettingsTemplateString;
+                template = builtInRunSettingsTemplate.Template;
             }
             return (template, customPath);
         }
 
-        private string CreateProjectRunSettings(ICoverageProject coverageProject, string runSettingsTemplate)
+        private TemplateReplaceResult CreateProjectRunSettings(ICoverageProject coverageProject, string runSettingsTemplate)
         {
             var replacements = runSettingsTemplateReplacementsFactory.Create(coverageProject, msCodeCoveragePath);
             
-            var projectRunSettings = builtInRunSettingsTemplate.Replace(runSettingsTemplate, replacements);
-
-            return XDocument.Parse(projectRunSettings).FormatXml();
+            var templateReplaceResult = builtInRunSettingsTemplate.Replace(runSettingsTemplate, replacements);
+            return new TemplateReplaceResult
+            {
+                Replaced = XDocument.Parse(templateReplaceResult.Replaced).FormatXml(),
+                ReplacedTestAdapter = templateReplaceResult.ReplacedTestAdapter
+            };
         }
         #endregion
 
@@ -318,6 +322,15 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
         {
             await threadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
             action();
+        }
+
+        private Task CombinedLogExceptionAsync(Exception ex, string reason)
+        {
+            return CombinedLogAsync(() =>
+            {
+                logger.Log(reason, ex.ToString());
+                reportGeneratorUtil.LogCoverageProcess(reason);
+            });
         }
         #endregion
 

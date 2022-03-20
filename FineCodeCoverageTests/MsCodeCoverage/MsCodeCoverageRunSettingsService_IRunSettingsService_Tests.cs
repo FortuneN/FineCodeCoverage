@@ -29,6 +29,12 @@ namespace FineCodeCoverageTests.MsCodeCoverage
             msCodeCoverageRunSettingsService = autoMocker.Create<MsCodeCoverageRunSettingsService>();
         }
 
+        [Test]
+        public void Should_Have_A_Name()
+        {
+            Assert.False(string.IsNullOrWhiteSpace(msCodeCoverageRunSettingsService.Name));
+        }
+
         [TestCase(RunSettingConfigurationInfoState.Discovery)]
         [TestCase(RunSettingConfigurationInfoState.None)]
         public void Should_Not_Process_When_Not_Test_Execution(RunSettingConfigurationInfoState state)

@@ -266,7 +266,7 @@ namespace FineCodeCoverageTests.MsCodeCoverage
 
             var expectedModulePathExcludes1 = !includeTestAssembly1 ? GetModulePathExcludeWhenExcludingTestAssembly(true) : "";
             var expectedModulePathExcludes2 = !includeTestAssembly2 ? GetModulePathExcludeWhenExcludingTestAssembly(false) : "";
-            var expectedModulePathExcludes = ModulePathElement("ModulePathExclude") + expectedModulePathExcludes1 + expectedModulePathExcludes2;
+            var expectedModulePathExcludes = expectedModulePathExcludes1 + expectedModulePathExcludes2 + ModulePathElement("ModulePathExclude");
 
             var replacements = runSettingsTemplateReplacementsFactory.Create(testContainers, userRunSettingsProjectDetailsLookup, null);
             Assert.AreEqual(expectedModulePathExcludes, replacements.ModulePathsExclude);
@@ -318,8 +318,8 @@ namespace FineCodeCoverageTests.MsCodeCoverage
                 return string.Join("", excludedOrIncludedReferenced.Select(referenced => ModulePathElement(MsCodeCoverageRegex.RegexModuleName(referenced))));
             }
 
-            var expectedModulePathExcludes = ModulePathElement("ModulePathExclude") + GetExpectedExcludedOrIncludedEscaped(allExcludedReferencesProjects);
-            var expectedModulePathIncludes = ModulePathElement("ModulePathInclude") + GetExpectedExcludedOrIncludedEscaped(allIncludedReferencesProjects);
+            var expectedModulePathExcludes = GetExpectedExcludedOrIncludedEscaped(allExcludedReferencesProjects) + ModulePathElement("ModulePathExclude");
+            var expectedModulePathIncludes = GetExpectedExcludedOrIncludedEscaped(allIncludedReferencesProjects) + ModulePathElement("ModulePathInclude");
 
             var replacements = runSettingsTemplateReplacementsFactory.Create(testContainers, userRunSettingsProjectDetailsLookup, null);
             Assert.AreEqual(expectedModulePathExcludes, replacements.ModulePathsExclude);
@@ -545,7 +545,7 @@ namespace FineCodeCoverageTests.MsCodeCoverage
             });
 
             var replacements = runSettingsTemplateReplacementsFactory.Create(coverageProject, null);
-            var expectedModulePathsExclude = $"{ModulePathElement(MsCodeCoverageRegex.RegexModuleName("ModuleName"))}{ModulePathElement("FromSettings")}{ModulePathElement(MsCodeCoverageRegex.RegexEscapePath(@"Path\To\Test.dll"))}";
+            var expectedModulePathsExclude = $"{ModulePathElement(MsCodeCoverageRegex.RegexModuleName("ModuleName"))}{ModulePathElement(MsCodeCoverageRegex.RegexEscapePath(@"Path\To\Test.dll"))}{ModulePathElement("FromSettings")}";
             Assert.AreEqual(expectedModulePathsExclude, replacements.ModulePathsExclude);
         }
 
