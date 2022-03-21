@@ -52,7 +52,7 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
         private readonly IToolZipProvider toolZipProvider;
         private readonly IAppOptionsProvider appOptionsProvider;
         private readonly ICoverageToolOutputManager coverageOutputManager;
-        private readonly IBuiltInRunSettingsTemplate builtInRunSettingsTemplate;
+        private readonly IRunSettingsTemplate runSettingsTemplate;
         private readonly ICustomRunSettingsTemplateProvider customRunSettingsTemplateProvider;
         private readonly IRunSettingsTemplateReplacementsFactory runSettingsTemplateReplacementsFactory;
         private readonly IShimCopier shimCopier;
@@ -76,7 +76,7 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
             ICoverageToolOutputManager coverageOutputManager,
             IProjectRunSettingsGenerator projectRunSettingsGenerator,
             IUserRunSettingsService userRunSettingsService,
-            IBuiltInRunSettingsTemplate builtInRunSettingsTemplate,
+            IRunSettingsTemplate runSettingsTemplate,
             ICustomRunSettingsTemplateProvider customRunSettingsTemplateProvider,
             IRunSettingsTemplateReplacementsFactory runSettingsTemplateReplacementsFactory,
             IShimCopier shimCopier,
@@ -88,7 +88,7 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
             this.toolZipProvider = toolZipProvider;
             this.appOptionsProvider = appOptionsProvider;
             this.coverageOutputManager = coverageOutputManager;
-            this.builtInRunSettingsTemplate = builtInRunSettingsTemplate;
+            this.runSettingsTemplate = runSettingsTemplate;
             this.customRunSettingsTemplateProvider = customRunSettingsTemplateProvider;
             this.runSettingsTemplateReplacementsFactory = runSettingsTemplateReplacementsFactory;
             this.shimCopier = shimCopier;
@@ -107,30 +107,45 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
         }
         
         #region set up for collection
+       
         public async Task<MsCodeCoverageCollectionStatus> IsCollectingAsync(ITestOperation testOperation)
         {
             var collectionStatus = MsCodeCoverageCollectionStatus.NotCollecting;
 
-            var coverageProjects = await testOperation.GetCoverageProjectsAsync();
-            var coverageProjectsWithRunSettings = coverageProjects.Where(coverageProject => coverageProject.RunSettingsFile != null).ToList();
+            var (coverageProjects,coverageProjectsWithRunSettings, coverageProjectsWithoutRunSettings) = await GetCoverageProjectsAsync(testOperation);
 
             var useMsCodeCoverage = appOptionsProvider.Get().MsCodeCoverage;
-            var (suitable,specifiedMsCodeCoverage) = userRunSettingsService.CheckUserRunSettingsSuitability(
-                coverageProjectsWithRunSettings.Select(cp => cp.RunSettingsFile),useMsCodeCoverage
-            );
 
-            if (suitable)
+            IUserRunSettingsAnalysisResult analysisResult = null;
+            try
+            {
+                analysisResult = userRunSettingsService.Analyse(
+                    coverageProjectsWithRunSettings,
+                    useMsCodeCoverage,
+                    runSettingsTemplate,
+                    msCodeCoveragePath
+                );
+            }
+            catch (Exception exc)
+            {
+                await CombinedLogExceptionAsync(exc, "Exception analysing runsettings files");
+                return MsCodeCoverageCollectionStatus.Error;
+            }
+
+            var coverageProjectsForShim = analysisResult.ProjectsWithFCCMsTestAdapter;
+
+            if (analysisResult.Suitable)
             {
                 await PrepareCoverageProjectsAsync(coverageProjects);
                 SetUserRunSettingsProjectDetails(coverageProjectsWithRunSettings);
-                var projectsWithoutRunSettings = coverageProjects.Except(coverageProjectsWithRunSettings).ToList();
-                if (projectsWithoutRunSettings.Any())
+                if (coverageProjectsWithoutRunSettings.Any())
                 {
-                    if (specifiedMsCodeCoverage || useMsCodeCoverage)
+                    if (useMsCodeCoverage || analysisResult.SpecifiedMsCodeCoverage)
                     {
-                        var (successfullyGeneratedRunSettings, customTemplatePaths) = await GenerateProjectsRunSettingsAsync(projectsWithoutRunSettings, testOperation.SolutionDirectory);
+                        var (successfullyGeneratedRunSettings, customTemplatePaths, templateCoverageProjectsWithFCCMsTestAdapter) = await GenerateProjectsRunSettingsAsync(coverageProjectsWithoutRunSettings, testOperation.SolutionDirectory);
                         if (successfullyGeneratedRunSettings)
                         {
+                            coverageProjectsForShim.AddRange(templateCoverageProjectsWithFCCMsTestAdapter);
                             await CombinedLogAsync(() =>
                             {
                                 var leadingMessage = customTemplatePaths.Any() ? $"{msCodeCoverageMessage} - custom template paths" : msCodeCoverageMessage;
@@ -153,7 +168,25 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
                 }
             }
 
+            CopyShimWhenCollecting(coverageProjectsForShim, collectionStatus);
+
             return collectionStatus;
+        }
+
+        private async Task<(List<ICoverageProject> allCoverageProjects,List<ICoverageProject> coverageProjectsWithRunSettings, List<ICoverageProject> coverageProjectsWithoutRunSettings)> GetCoverageProjectsAsync(ITestOperation testOperation)
+        {
+            var coverageProjects = await testOperation.GetCoverageProjectsAsync();
+            var coverageProjectsWithRunSettings = coverageProjects.Where(coverageProject => coverageProject.RunSettingsFile != null).ToList();
+            var coverageProjectsWithoutRunSettings = coverageProjects.Except(coverageProjectsWithRunSettings).ToList();
+            return (coverageProjects, coverageProjectsWithRunSettings, coverageProjectsWithoutRunSettings);
+        }
+
+        private void CopyShimWhenCollecting(List<ICoverageProject> coverageProjectsForShim, MsCodeCoverageCollectionStatus collectionStatus)
+        {
+            if (collectionStatus == MsCodeCoverageCollectionStatus.Collecting)
+            {
+                shimCopier.Copy(shimPath, coverageProjectsForShim);
+            }
         }
 
         private async Task PrepareCoverageProjectsAsync(List<ICoverageProject> coverageProjects)
@@ -182,10 +215,9 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
             }
         }
 
-        private async Task<(bool Success, List<string> CustomTemplatePaths)> GenerateProjectsRunSettingsAsync(IEnumerable<ICoverageProject> coverageProjectsWithoutRunSettings, string solutionDirectory)
+        private async Task<(bool Success, List<string> CustomTemplatePaths, List<ICoverageProject> coverageProjectsWithFCCMsTestAdapter)> GenerateProjectsRunSettingsAsync(IEnumerable<ICoverageProject> coverageProjectsWithoutRunSettings, string solutionDirectory)
         {
-            var successfullyGeneratedRunSettings = false;
-            IEnumerable<CoverageProjectRunSettings> projectsRunSettings = null;
+            IEnumerable<CoverageProjectRunSettings> projectsRunSettings;
             try
             {
                 projectsRunSettings = GetCoverageProjectsRunSettings(coverageProjectsWithoutRunSettings, solutionDirectory);
@@ -193,16 +225,12 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
             catch (Exception ex)
             {
                 await CombinedLogExceptionAsync(ex, "Exception generating ms runsettings");
-                return (false, null);
+                return (false, null, null);
             }
-            var coverageProjectsThatMayRequireShim = projectsRunSettings.Where(projectRunSettings => projectRunSettings.ReplacedTestAdapter).Select(projectRunSettings => projectRunSettings.CoverageProject);
-            shimCopier.Copy(shimPath, coverageProjectsThatMayRequireShim);
-
-            var customTemplatePaths = projectsRunSettings.Where(projectRunSettings => projectRunSettings.CustomTemplatePath != null).Select(projectRunSettings => projectRunSettings.CustomTemplatePath).ToList();
+            
             try
             {
                 await projectRunSettingsGenerator.WriteProjectsRunSettingsAsync(projectsRunSettings);
-                successfullyGeneratedRunSettings = true;
             }
             catch (Exception ex)
             {
@@ -212,9 +240,23 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
                     await projectRunSettingsGenerator.RemoveGeneratedProjectSettingsAsync(coverageProjectsWithoutRunSettings);
                 }
                 catch { }
-                return (false, null);
+                return (false, null,null);
             }
-            return (successfullyGeneratedRunSettings, customTemplatePaths);
+            List<string> customTemplatePaths = new List<string>();
+            List<ICoverageProject> coverageProjectsWithFCCMsTestAdapter = new List<ICoverageProject>();
+            foreach(var projectRunSettings in projectsRunSettings)
+            {
+                if (projectRunSettings.ReplacedTestAdapter)
+                {
+                    coverageProjectsWithFCCMsTestAdapter.Add(projectRunSettings.CoverageProject);
+                }
+                if (projectRunSettings.CustomTemplatePath != null)
+                {
+                    customTemplatePaths.Add(projectRunSettings.CustomTemplatePath);
+                }
+            }
+            
+            return (true, customTemplatePaths, coverageProjectsWithFCCMsTestAdapter);
         }
 
         private List<CoverageProjectRunSettings> GetCoverageProjectsRunSettings(IEnumerable<ICoverageProject> coverageProjects, string solutionDirectory)
@@ -243,11 +285,11 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
             if (customRunSettingsTemplateDetails != null)
             {
                 customPath = customRunSettingsTemplateDetails.Path;
-                template = builtInRunSettingsTemplate.ConfigureCustom(customRunSettingsTemplateDetails.Template);
+                template = runSettingsTemplate.ConfigureCustom(customRunSettingsTemplateDetails.Template);
             }
             else
             {
-                template = builtInRunSettingsTemplate.Template;
+                template = runSettingsTemplate.ToString();
             }
             return (template, customPath);
         }
@@ -256,7 +298,7 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
         {
             var replacements = runSettingsTemplateReplacementsFactory.Create(coverageProject, msCodeCoveragePath);
             
-            var templateReplaceResult = builtInRunSettingsTemplate.Replace(runSettingsTemplate, replacements);
+            var templateReplaceResult = this.runSettingsTemplate.Replace(runSettingsTemplate, replacements);
             return new TemplateReplaceResult
             {
                 Replaced = XDocument.Parse(templateReplaceResult.Replaced).FormatXml(),
@@ -268,10 +310,10 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
         #region IRunSettingsService
         public IXPathNavigable AddRunSettings(IXPathNavigable inputRunSettingDocument, IRunSettingsConfigurationInfo configurationInfo, Microsoft.VisualStudio.TestWindow.Extensibility.ILogger log)
         {
-            if (configurationInfo.RequestState == RunSettingConfigurationInfoState.Execution && !builtInRunSettingsTemplate.FCCGenerated(inputRunSettingDocument))
+            if (configurationInfo.RequestState == RunSettingConfigurationInfoState.Execution && !runSettingsTemplate.FCCGenerated(inputRunSettingDocument))
             {
                 var replacements = runSettingsTemplateReplacementsFactory.Create(configurationInfo.TestContainers, userRunSettingsProjectDetailsLookup, msCodeCoveragePath);
-                return userRunSettingsService.AddFCCRunSettings(builtInRunSettingsTemplate, replacements, inputRunSettingDocument);
+                return userRunSettingsService.AddFCCRunSettings(runSettingsTemplate, replacements, inputRunSettingDocument);
             }
             return null;
         }

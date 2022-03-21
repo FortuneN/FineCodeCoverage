@@ -26,22 +26,26 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
             this.vsRunSettingsWriter = vsRunSettingsWriter;
         }
 
-        public async Task RemoveGeneratedProjectSettingsAsync(IEnumerable<ICoverageProject> coverageProjects)
+        public Task RemoveGeneratedProjectSettingsAsync(IEnumerable<ICoverageProject> coverageProjects)
         {
-            var coverageProjectsForRemoval = coverageProjects.Where(coverageProject => IsGeneratedRunSettings(coverageProject.RunSettingsFile));
-            foreach (var coverageProjectForRemoval in coverageProjectsForRemoval)
-            {
-                await vsRunSettingsWriter.RemoveRunSettingsFilePathAsync(coverageProjectForRemoval.Id);
-            }
+            return Task.WhenAll(
+                coverageProjects
+                .Where(coverageProject => IsGeneratedRunSettings(coverageProject.RunSettingsFile))
+                .Select(coverageProjectForRemoval => vsRunSettingsWriter.RemoveRunSettingsFilePathAsync(coverageProjectForRemoval.Id))
+            );
         }
 
-        public async Task WriteProjectsRunSettingsAsync(IEnumerable<ICoverageProjectRunSettings> coverageProjectsRunSettings)
+        public Task WriteProjectsRunSettingsAsync(IEnumerable<ICoverageProjectRunSettings> coverageProjectsRunSettings)
         {
-            foreach (var coverageProjectRunSettings in coverageProjectsRunSettings)
-            {
-                var coverageProject = coverageProjectRunSettings.CoverageProject;
-                await WriteProjectRunSettingsAsync(coverageProject.Id, GeneratedProjectRunSettingsFilePath(coverageProject), coverageProjectRunSettings.RunSettings);
-            }
+            return Task.WhenAll(
+                coverageProjectsRunSettings.Select(coverageProjectRunSettings =>
+                {
+                    var coverageProject = coverageProjectRunSettings.CoverageProject;
+                    var projectRunSettingsFilePath = GeneratedProjectRunSettingsFilePath(coverageProject);
+                    return WriteProjectRunSettingsAsync(coverageProject.Id, projectRunSettingsFilePath, coverageProjectRunSettings.RunSettings);
+                })
+            );
+            
         }
 
         internal static string GeneratedProjectRunSettingsFilePath(ICoverageProject coverageProject)

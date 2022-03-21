@@ -6,8 +6,8 @@ using System.Xml.XPath;
 
 namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
 {
-    [Export(typeof(IBuiltInRunSettingsTemplate))]
-    internal class BuiltInRunSettingsTemplate : IBuiltInRunSettingsTemplate
+    [Export(typeof(IRunSettingsTemplate))]
+    internal class RunSettingsTemplate : IRunSettingsTemplate
     {
         private class ReplacementLookups : IRunSettingsTemplateReplacements
         {
@@ -30,7 +30,7 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
 
         private readonly ReplacementLookups replacementLookups = new ReplacementLookups();
 
-        public string Template { get; }
+        private readonly string template;
 
         public string RunConfigurationElement { get; }
 
@@ -50,7 +50,7 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
         }
 
 
-        public BuiltInRunSettingsTemplate()
+        public RunSettingsTemplate()
         {
             ResultsDirectoryElement = $"<ResultsDirectory>{replacementLookups.ResultsDirectory}</ResultsDirectory>";
             TestAdaptersPathElement = $"<TestAdaptersPaths>{replacementLookups.TestAdapter}</TestAdaptersPaths>";
@@ -131,7 +131,7 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
   </DataCollectionRunSettings>
 ";
 
-            Template = $@"<?xml version='1.0' encoding='utf-8'?>
+            template = $@"<?xml version='1.0' encoding='utf-8'?>
 <RunSettings>
 {RunConfigurationElement}
 {DataCollectionRunSettingsElement}
@@ -139,9 +139,14 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
 ";
         }
 
+        public override string ToString()
+        {
+            return template;
+        }
+
         public ITemplateReplaceResult Replace(string runSettingsTemplate, IRunSettingsTemplateReplacements replacements)
         {
-            var replacedTestAdapter = runSettingsTemplate.Contains(replacementLookups.TestAdapter);
+            var replacedTestAdapter = HasReplaceableTestAdapter(runSettingsTemplate);
             var runSettings = runSettingsTemplate
                       .Replace(replacementLookups.ResultsDirectory, replacements.ResultsDirectory)
                       .Replace(replacementLookups.TestAdapter, replacements.TestAdapter)
@@ -165,6 +170,7 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
             };
         }
 
+        #region custom
         private void EnsureRunConfigurationEssentials(XElement runConfiguration)
         {
             AddIfNotPresent(runConfiguration, "ResultsDirectory", ResultsDirectoryElement,null,true);
@@ -274,12 +280,18 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
 
             return runSettingsDocument.ToXmlString();
         }
+        #endregion
 
         public bool FCCGenerated(IXPathNavigable inputRunSettingDocument)
         {
             var navigator = inputRunSettingDocument.CreateNavigator();
             return navigator.SelectSingleNode($"//{FCCMarkerElementName}") != null;
             
+        }
+
+        public bool HasReplaceableTestAdapter(string replaceable)
+        {
+            return replaceable.Contains(replacementLookups.TestAdapter);
         }
     }
 

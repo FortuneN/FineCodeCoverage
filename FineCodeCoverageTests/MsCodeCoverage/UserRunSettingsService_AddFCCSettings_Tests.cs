@@ -74,9 +74,9 @@ namespace FineCodeCoverageTests.MsCodeCoverage
         }
     }
 
-    internal class MsCodeCoverage_UserRunSettingsService_AddFCCSettings_Tests
+    internal class UserRunSettingsService_AddFCCSettings_Tests
     {
-        private readonly BuiltInRunSettingsTemplate builtInRunSettingsTemplate = new BuiltInRunSettingsTemplate();
+        private readonly RunSettingsTemplate runSettingsTemplate = new RunSettingsTemplate();
         private UserRunSettingsService userRunSettingsService;
         private const string xmlDeclaration = "<?xml version='1.0' encoding='utf-8'?>";
         private const string unchangedRunConfiguration = @"
@@ -539,7 +539,7 @@ $@"<RunSettings>
 
         private string AddFCCSettings(XPathNavigator navigator, IRunSettingsTemplateReplacements runSettingsTemplateReplacements)
         {
-            return userRunSettingsService.AddFCCRunSettings( builtInRunSettingsTemplate, runSettingsTemplateReplacements, navigator).DumpXmlContents();
+            return userRunSettingsService.AddFCCRunSettings( runSettingsTemplate, runSettingsTemplateReplacements, navigator).DumpXmlContents();
         }
 
 

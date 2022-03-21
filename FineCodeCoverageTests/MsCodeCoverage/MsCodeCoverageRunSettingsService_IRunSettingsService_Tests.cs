@@ -48,7 +48,7 @@ namespace FineCodeCoverageTests.MsCodeCoverage
         public void Should_Not_Process_When_Runsettings_Created_From_Template()
         {
             var xPathNavigable = new Mock<IXPathNavigable>().Object;
-            autoMocker.GetMock<IBuiltInRunSettingsTemplate>().Setup(brst => brst.FCCGenerated(xPathNavigable)).Returns(true);
+            autoMocker.GetMock<IRunSettingsTemplate>().Setup(runSettingsTemplate => runSettingsTemplate.FCCGenerated(xPathNavigable)).Returns(true);
             var mockRunSettingsConfigurationInfo = new Mock<IRunSettingsConfigurationInfo>();
             mockRunSettingsConfigurationInfo.Setup(ci => ci.RequestState).Returns(RunSettingConfigurationInfoState.Execution);
             Assert.IsNull(msCodeCoverageRunSettingsService.AddRunSettings(xPathNavigable, mockRunSettingsConfigurationInfo.Object, null));
@@ -58,8 +58,8 @@ namespace FineCodeCoverageTests.MsCodeCoverage
         public void Should_UserRunSettingsService_AddFCCRunSettings_When_Execute_And_UserRunSettings()
         {
             var inputRunSettingDocument = new Mock<IXPathNavigable>().Object;
-            var mockBuiltInRunSettingsTemplate = autoMocker.GetMock<IBuiltInRunSettingsTemplate>();
-            mockBuiltInRunSettingsTemplate.Setup(brst => brst.FCCGenerated(inputRunSettingDocument)).Returns(false);
+            var mockRunSettingsTemplate = autoMocker.GetMock<IRunSettingsTemplate>();
+            mockRunSettingsTemplate.Setup(runSettingsTemplate => runSettingsTemplate.FCCGenerated(inputRunSettingDocument)).Returns(false);
 
             var mockRunSettingsConfigurationInfo = new Mock<IRunSettingsConfigurationInfo>();
             mockRunSettingsConfigurationInfo.Setup(ci => ci.RequestState).Returns(RunSettingConfigurationInfoState.Execution);
@@ -83,7 +83,7 @@ namespace FineCodeCoverageTests.MsCodeCoverage
 
             var mockUserRunSettingsService = autoMocker.GetMock<IUserRunSettingsService>();
             var fccRunSettingDocument = new Mock<IXPathNavigable>().Object;
-            mockUserRunSettingsService.Setup(userRunSettingsService => userRunSettingsService.AddFCCRunSettings(mockBuiltInRunSettingsTemplate.Object, runSettingsTemplateReplacements, inputRunSettingDocument)).Returns(fccRunSettingDocument);
+            mockUserRunSettingsService.Setup(userRunSettingsService => userRunSettingsService.AddFCCRunSettings(mockRunSettingsTemplate.Object, runSettingsTemplateReplacements, inputRunSettingDocument)).Returns(fccRunSettingDocument);
 
             Assert.AreSame(fccRunSettingDocument,msCodeCoverageRunSettingsService.AddRunSettings(inputRunSettingDocument, mockRunSettingsConfigurationInfo.Object, null));
         }

@@ -76,9 +76,9 @@
     <Compile Include="$(MSBuildThisFileDirectory)Core\Model\ICoverageProject.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Model\ICoverageProjectFactory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Model\ReferencedProject.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Core\MsTestPlatform\CodeCoverage\BuiltInRunSettingsTemplate.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\MsTestPlatform\CodeCoverage\RunSettingsTemplate.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\MsTestPlatform\CodeCoverage\CustomRunSettingsTemplateProvider.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Core\MsTestPlatform\CodeCoverage\IBuiltInRunSettingsTemplate.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\MsTestPlatform\CodeCoverage\IRunSettingsTemplate.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\MsTestPlatform\CodeCoverage\ICoverageProjectRunSettings.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\MsTestPlatform\CodeCoverage\ICustomRunSettingsTemplateProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\MsTestPlatform\CodeCoverage\IMsCodeCoverageRunSettingsService.cs" />

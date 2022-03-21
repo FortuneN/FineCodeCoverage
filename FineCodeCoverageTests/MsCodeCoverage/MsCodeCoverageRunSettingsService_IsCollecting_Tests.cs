@@ -53,6 +53,22 @@ namespace FineCodeCoverageTests.MsCodeCoverage
             public bool ReplacedTestAdapter { get; set; }
         }
 
+        private class UserRunSettingsAnalysisResult : IUserRunSettingsAnalysisResult
+        {
+            public UserRunSettingsAnalysisResult(bool suitable, bool specifiedMsCodeCoverage)
+            {
+                Suitable = suitable;
+                SpecifiedMsCodeCoverage = specifiedMsCodeCoverage;
+            }
+            public UserRunSettingsAnalysisResult() { }
+
+            public bool Suitable { get; set; }
+
+            public bool SpecifiedMsCodeCoverage { get; set; }
+
+            public List<ICoverageProject> ProjectsWithFCCMsTestAdapter { get; set; } = new List<ICoverageProject>();
+        }
+
         [SetUp]
         public void SetupSut()
         {
@@ -67,20 +83,31 @@ namespace FineCodeCoverageTests.MsCodeCoverage
         {
             SetupAppOptionsProvider(useMsCodeCoverage);
 
+            var msCodeCoverageTestAdapterPath = InitializeMsCodeCoverageTestAdapterPath();
+
             var mockTestOperation = new Mock<ITestOperation>();
+            var coverageProjectWithRunSettings1 = CreateCoverageProject("RunSettings1");
+            var coverageProjectWithRunSettings2 = CreateCoverageProject("RunSettings2");
             mockTestOperation.Setup(testOperation => testOperation.GetCoverageProjectsAsync()).ReturnsAsync(new List<ICoverageProject>
             {
-                CreateCoverageProject("RunSettings1"),
-                CreateCoverageProject("RunSettings2"),
+                coverageProjectWithRunSettings1,
+                coverageProjectWithRunSettings2,
                 CreateCoverageProject(null),
             });
 
             var mockUserRunSettingsService = autoMocker.GetMock<IUserRunSettingsService>();
-            mockUserRunSettingsService.Setup(userRunSettingsService => userRunSettingsService.CheckUserRunSettingsSuitability(new List<string>
-            {
-                "RunSettings1",
-                "RunSettings2",
-            }, useMsCodeCoverage)).Returns((false, false));
+            var runSettingsTemplate = autoMocker.GetMock<IRunSettingsTemplate>().Object;
+            mockUserRunSettingsService.Setup(userRunSettingsService => userRunSettingsService.Analyse(
+                new List<ICoverageProject>
+                {
+                    coverageProjectWithRunSettings1,
+                    coverageProjectWithRunSettings2
+                }, 
+                useMsCodeCoverage,
+                runSettingsTemplate,
+                msCodeCoverageTestAdapterPath
+                )
+            ).Returns( new UserRunSettingsAnalysisResult());
 
             var collectionStatus = await msCodeCoverageRunSettingsService.IsCollectingAsync(mockTestOperation.Object);
             Assert.AreEqual(MsCodeCoverageCollectionStatus.NotCollecting, collectionStatus);
@@ -109,7 +136,9 @@ namespace FineCodeCoverageTests.MsCodeCoverage
             mockTestOperation.Setup(testOperation => testOperation.GetCoverageProjectsAsync()).ReturnsAsync(coverageProjects);
 
             var mockUserRunSettingsService = autoMocker.GetMock<IUserRunSettingsService>();
-            mockUserRunSettingsService.Setup(userRunSettingsService => userRunSettingsService.CheckUserRunSettingsSuitability(It.IsAny<IEnumerable<string>>(), It.IsAny<bool>())).Returns((true,false));
+            mockUserRunSettingsService.Setup(
+                userRunSettingsService => userRunSettingsService.Analyse(It.IsAny<IEnumerable<ICoverageProject>>(), It.IsAny<bool>(),It.IsAny<IRunSettingsTemplate>(),It.IsAny<string>())
+            ).Returns( new UserRunSettingsAnalysisResult(true, false));
 
             await msCodeCoverageRunSettingsService.IsCollectingAsync(mockTestOperation.Object);
             
@@ -137,7 +166,9 @@ namespace FineCodeCoverageTests.MsCodeCoverage
             mockTestOperation.Setup(testOperation => testOperation.GetCoverageProjectsAsync()).ReturnsAsync(coverageProjects);
 
             var mockUserRunSettingsService = autoMocker.GetMock<IUserRunSettingsService>();
-            mockUserRunSettingsService.Setup(userRunSettingsService => userRunSettingsService.CheckUserRunSettingsSuitability(It.IsAny<IEnumerable<string>>(), It.IsAny<bool>())).Returns((true, false));
+            mockUserRunSettingsService.Setup(
+                userRunSettingsService => userRunSettingsService.Analyse(It.IsAny<IEnumerable<ICoverageProject>>(), It.IsAny<bool>(), It.IsAny<IRunSettingsTemplate>(), It.IsAny<string>())
+            ).Returns(new UserRunSettingsAnalysisResult(true, false));
 
             await msCodeCoverageRunSettingsService.IsCollectingAsync(mockTestOperation.Object);
 
@@ -170,12 +201,12 @@ namespace FineCodeCoverageTests.MsCodeCoverage
         [Test]
         public async Task Should_Be_Collecting_When_Suitable_RunSettings_Specified_Ms_Data_Collector_And_Projects_Without_RunSettings()
         {
-            var mockBuiltInRunSettingsTemplate = autoMocker.GetMock<IBuiltInRunSettingsTemplate>();
+            var mockRunSettingsTemplate = autoMocker.GetMock<IRunSettingsTemplate>();
             var templateReplaceResult = new TemplateReplaceResult
             {
                 Replaced = "<Root/>",
             };
-            mockBuiltInRunSettingsTemplate.Setup(birst => birst.Replace(It.IsAny<string>(), It.IsAny<IRunSettingsTemplateReplacements>())).Returns(templateReplaceResult);
+            mockRunSettingsTemplate.Setup(runSettingsTemplate => runSettingsTemplate.Replace(It.IsAny<string>(), It.IsAny<IRunSettingsTemplateReplacements>())).Returns(templateReplaceResult);
             var coverageProjects = new List<ICoverageProject>
             {
                 new Mock<ICoverageProject>().Object
@@ -187,12 +218,12 @@ namespace FineCodeCoverageTests.MsCodeCoverage
         [Test]
         public async Task Should_Be_Collecting_When_Suitable_RunSettings_Did_Not_Specify_Ms_Data_Collector_And_Projects_Without_RunSettings_And_Use_MsCodeCoverage()
         {
-            var mockBuiltInRunSettingsTemplate = autoMocker.GetMock<IBuiltInRunSettingsTemplate>();
+            var mockRunSettingsTemplate = autoMocker.GetMock<IRunSettingsTemplate>();
             var templateReplaceResult = new TemplateReplaceResult
             {
                 Replaced = "<Root/>",
             };
-            mockBuiltInRunSettingsTemplate.Setup(birst => birst.Replace(It.IsAny<string>(), It.IsAny<IRunSettingsTemplateReplacements>())).Returns(templateReplaceResult);
+            mockRunSettingsTemplate.Setup(runSettingsTemplate => runSettingsTemplate.Replace(It.IsAny<string>(), It.IsAny<IRunSettingsTemplateReplacements>())).Returns(templateReplaceResult);
             var coverageProjects = new List<ICoverageProject>
             {
                 new Mock<ICoverageProject>().Object
@@ -212,10 +243,11 @@ namespace FineCodeCoverageTests.MsCodeCoverage
             Assert.AreEqual(MsCodeCoverageCollectionStatus.NotCollecting, msCodeCoverageCollectionStatus);
         }
 
-        [Test]
-        public async Task Should_Shim_Copy_Projects_Without_RunSettings_With_Replaced_Test_Adapter_When_Suitable()
+        [TestCase(true)]
+        [TestCase(false)]
+        public async Task Should_Shim_Copy_Projects_Without_RunSettings_And_Projects_With_Templates_With_Replaced_Test_Adapter_When_Collecting(bool shimProjectsWithRunSettings)
         {
-            var mockBuiltInRunSettingsTemplate = autoMocker.GetMock<IBuiltInRunSettingsTemplate>();
+            var mockRunSettingsTemplate = autoMocker.GetMock<IRunSettingsTemplate>();
             var templateReplaceResultDidNotReplace = new TemplateReplaceResult
             {
                 Replaced = "<Root/>",
@@ -225,8 +257,8 @@ namespace FineCodeCoverageTests.MsCodeCoverage
                 Replaced = "<Root/>",
                 ReplacedTestAdapter = true
             };
-            mockBuiltInRunSettingsTemplate.SetupSequence(
-                birst => birst.Replace(It.IsAny<string>(), It.IsAny<IRunSettingsTemplateReplacements>()))
+            mockRunSettingsTemplate.SetupSequence(
+                runSettingsTemplate => runSettingsTemplate.Replace(It.IsAny<string>(), It.IsAny<IRunSettingsTemplateReplacements>()))
                 .Returns(templateReplaceResultDidNotReplace)
                 .Returns(templateReplaceResultReplaced);
 
@@ -242,12 +274,38 @@ namespace FineCodeCoverageTests.MsCodeCoverage
                 coverageProjectWithoutRunSettings,
                 coverageProjectWithoutRunSettingsReplacedTestAdapter
             };
-            var msCodeCoverageCollectionStatus = await IsCollectingWhenAllProjectsHaveSuitableRunSettings(false, coverageProjects, true);
 
+            var runSettingsProjectsForShim = shimProjectsWithRunSettings ? new List<ICoverageProject> { coverageProjectWithRunSettings } : Enumerable.Empty<ICoverageProject>().ToList();
+            var msCodeCoverageCollectionStatus = await IsCollectingWhenAllProjectsHaveSuitableRunSettings(false, coverageProjects, true, runSettingsProjectsForShim);
 
-            autoMocker.Verify<IShimCopier>(shimCopier => shimCopier.Copy(shimPath, new List<ICoverageProject> { coverageProjectWithoutRunSettingsReplacedTestAdapter }));
+            runSettingsProjectsForShim.Add(coverageProjectWithoutRunSettingsReplacedTestAdapter);
+            autoMocker.Verify<IShimCopier>(shimCopier => shimCopier.Copy(shimPath, runSettingsProjectsForShim));
         }
 
+        [Test]
+        public async Task Should_Not_Shim_Copy_If_Error()
+        {
+            SetupAppOptionsProvider();
+
+            var mockCustomRunSettingsTemplateProvider = autoMocker.GetMock<ICustomRunSettingsTemplateProvider>();
+            mockCustomRunSettingsTemplateProvider.Setup(thrower => thrower.Provide(It.IsAny<string>(), It.IsAny<string>())).Throws(new Exception());
+
+            var mockTestOperation = new Mock<ITestOperation>();
+            mockTestOperation.Setup(testOperation => testOperation.SolutionDirectory).Returns(solutionDirectory);
+
+            var coverageProjects = new List<ICoverageProject> { CreateCoverageProject(null, null, null, null, null, null, @"SomeProject\SomeProject.csproj") };
+            mockTestOperation.Setup(testOperation => testOperation.GetCoverageProjectsAsync()).ReturnsAsync(coverageProjects);
+
+            var mockUserRunSettingsService = autoMocker.GetMock<IUserRunSettingsService>();
+            mockUserRunSettingsService.Setup(
+                userRunSettingsService => userRunSettingsService.Analyse(It.IsAny<IEnumerable<ICoverageProject>>(), It.IsAny<bool>(), It.IsAny<IRunSettingsTemplate>(), It.IsAny<string>())
+            ).Returns(new UserRunSettingsAnalysisResult { Suitable = true, SpecifiedMsCodeCoverage = false, ProjectsWithFCCMsTestAdapter = new List<ICoverageProject>()});
+
+            await msCodeCoverageRunSettingsService.IsCollectingAsync(mockTestOperation.Object);
+            autoMocker.Verify<IShimCopier>(shimCopier => shimCopier.Copy(It.IsAny<string>(), It.IsAny<IEnumerable<ICoverageProject>>()), Times.Never());
+        }
+
+        
         [Test]
         public async Task Should_Write_Pretty_Replaced_Configured_Custom_Templates_When_Available()
         {
@@ -275,15 +333,15 @@ namespace FineCodeCoverageTests.MsCodeCoverage
             mockCustomRunSettingsTemplateProvider.Setup(customRunSettingsProvider => customRunSettingsProvider.Provide("SomeProject", solutionDirectory))
                 .Returns(customRunSettingsTemplateDetails);
 
-            var mockBuiltInRunSettingsTemplate = autoMocker.GetMock<IBuiltInRunSettingsTemplate>();
+            var mockRunSettingsTemplate = autoMocker.GetMock<IRunSettingsTemplate>();
             var templateReplaceResult = new TemplateReplaceResult
             {
                 Replaced = @"<RunConfiguration>
                                 <ResultsDirectory>ProjectOutputFolder</ResultsDirectory>
 </RunConfiguration>",
             };
-            mockBuiltInRunSettingsTemplate.Setup(birst => birst.ConfigureCustom("Custom Template")).Returns("Configured Custom Template");
-            mockBuiltInRunSettingsTemplate.Setup(birst => birst.Replace("Configured Custom Template", runSettingsTemplateReplacements)).Returns(templateReplaceResult);
+            mockRunSettingsTemplate.Setup(runSettingsTemplate => runSettingsTemplate.ConfigureCustom("Custom Template")).Returns("Configured Custom Template");
+            mockRunSettingsTemplate.Setup(runSettingsTemplate => runSettingsTemplate.Replace("Configured Custom Template", runSettingsTemplateReplacements)).Returns(templateReplaceResult);
             
             await IsCollectingWhenAllProjectsHaveSuitableRunSettings(false, coverageProjects, true);
 
@@ -322,15 +380,15 @@ namespace FineCodeCoverageTests.MsCodeCoverage
             mockCustomRunSettingsTemplateProvider.Setup(customRunSettingsProvider => customRunSettingsProvider.Provide("SomeProject", solutionDirectory))
                 .Returns(customRunSettingsTemplateDetails);
 
-            var mockBuiltInRunSettingsTemplate = autoMocker.GetMock<IBuiltInRunSettingsTemplate>();
+            var mockRunSettingsTemplate = autoMocker.GetMock<IRunSettingsTemplate>();
             var templateReplaceResult = new TemplateReplaceResult
             {
                 Replaced = @"<RunConfiguration>
                                 <ResultsDirectory>ProjectOutputFolder</ResultsDirectory>
 </RunConfiguration>",
             };
-            mockBuiltInRunSettingsTemplate.Setup(birst => birst.ConfigureCustom("Custom Template")).Returns("Configured Custom Template");
-            mockBuiltInRunSettingsTemplate.Setup(birst => birst.Replace("Configured Custom Template", runSettingsTemplateReplacements)).Returns(templateReplaceResult);
+            mockRunSettingsTemplate.Setup(runSettingsTemplate => runSettingsTemplate.ConfigureCustom("Custom Template")).Returns("Configured Custom Template");
+            mockRunSettingsTemplate.Setup(runSettingsTemplate => runSettingsTemplate.Replace("Configured Custom Template", runSettingsTemplateReplacements)).Returns(templateReplaceResult);
 
             await IsCollectingWhenAllProjectsHaveSuitableRunSettings(false, coverageProjects, true);
 
@@ -356,15 +414,15 @@ namespace FineCodeCoverageTests.MsCodeCoverage
                 .Returns(runSettingsTemplateReplacements);
 
 
-            var mockBuiltInRunSettingsTemplate = autoMocker.GetMock<IBuiltInRunSettingsTemplate>();
+            var mockRunSettingsTemplate = autoMocker.GetMock<IRunSettingsTemplate>();
             var templateReplaceResult = new TemplateReplaceResult
             {
                 Replaced = @"<RunConfiguration>
                                 <ResultsDirectory>ProjectOutputFolder</ResultsDirectory>
 </RunConfiguration>",
             };
-            mockBuiltInRunSettingsTemplate.Setup(birst => birst.Template).Returns("Default template");
-            mockBuiltInRunSettingsTemplate.Setup(birst => birst.Replace("Default template", runSettingsTemplateReplacements)).Returns(templateReplaceResult);
+            mockRunSettingsTemplate.Setup(runSettingsTemplate => runSettingsTemplate.ToString()).Returns("Default template");
+            mockRunSettingsTemplate.Setup(runSettingsTemplate => runSettingsTemplate.Replace("Default template", runSettingsTemplateReplacements)).Returns(templateReplaceResult);
 
             await IsCollectingWhenAllProjectsHaveSuitableRunSettings(false, coverageProjects, true);
 
@@ -394,15 +452,15 @@ namespace FineCodeCoverageTests.MsCodeCoverage
                 .Returns(runSettingsTemplateReplacements);
 
 
-            var mockBuiltInRunSettingsTemplate = autoMocker.GetMock<IBuiltInRunSettingsTemplate>();
+            var mockRunSettingsTemplate = autoMocker.GetMock<IRunSettingsTemplate>();
             var templateReplaceResult = new TemplateReplaceResult
             {
                 Replaced = @"<RunConfiguration>
                                 <ResultsDirectory>ProjectOutputFolder</ResultsDirectory>
 </RunConfiguration>",
             };
-            mockBuiltInRunSettingsTemplate.Setup(birst => birst.Template).Returns("Default template");
-            mockBuiltInRunSettingsTemplate.Setup(birst => birst.Replace("Default template", runSettingsTemplateReplacements)).Returns(templateReplaceResult);
+            mockRunSettingsTemplate.Setup(runSettingsTemplate => runSettingsTemplate.ToString()).Returns("Default template");
+            mockRunSettingsTemplate.Setup(runSettingsTemplate => runSettingsTemplate.Replace("Default template", runSettingsTemplateReplacements)).Returns(templateReplaceResult);
 
             await IsCollectingWhenAllProjectsHaveSuitableRunSettings(false, coverageProjects, true);
 
@@ -433,12 +491,11 @@ namespace FineCodeCoverageTests.MsCodeCoverage
 
         private Task<MsCodeCoverageCollectionStatus> ThrowGettingProjectRunSettings(Exception exception)
         {
+            SetupAppOptionsProvider();
+
             var mockCustomRunSettingsTemplateProvider = autoMocker.GetMock<ICustomRunSettingsTemplateProvider>();
-            
             mockCustomRunSettingsTemplateProvider.Setup(thrower => thrower.Provide(It.IsAny<string>(), It.IsAny<string>())).Throws(exception);
 
-
-            SetupAppOptionsProvider();
             var mockTestOperation = new Mock<ITestOperation>();
             mockTestOperation.Setup(testOperation => testOperation.SolutionDirectory).Returns(solutionDirectory);
 
@@ -446,7 +503,9 @@ namespace FineCodeCoverageTests.MsCodeCoverage
             mockTestOperation.Setup(testOperation => testOperation.GetCoverageProjectsAsync()).ReturnsAsync(coverageProjects);
 
             var mockUserRunSettingsService = autoMocker.GetMock<IUserRunSettingsService>();
-            mockUserRunSettingsService.Setup(userRunSettingsService => userRunSettingsService.CheckUserRunSettingsSuitability(It.IsAny<IEnumerable<string>>(), It.IsAny<bool>())).Returns((true, false));
+            mockUserRunSettingsService.Setup(
+                userRunSettingsService => userRunSettingsService.Analyse(It.IsAny<IEnumerable<ICoverageProject>>(), It.IsAny<bool>(), It.IsAny<IRunSettingsTemplate>(), It.IsAny<string>())
+            ).Returns(new UserRunSettingsAnalysisResult(true, false));
 
             return msCodeCoverageRunSettingsService.IsCollectingAsync(mockTestOperation.Object);
         }
@@ -472,12 +531,12 @@ namespace FineCodeCoverageTests.MsCodeCoverage
             var mockProjectRunSettingsGenerator = autoMocker.GetMock<IProjectRunSettingsGenerator>();
             mockProjectRunSettingsGenerator.Setup(thrower => thrower.WriteProjectsRunSettingsAsync(It.IsAny<IEnumerable<ICoverageProjectRunSettings>>())).Throws(exception);
 
-            var builtInRunSettingsTemplate = autoMocker.GetMock<IBuiltInRunSettingsTemplate>();
+            var mockRunSettingsTemplate = autoMocker.GetMock<IRunSettingsTemplate>();
             var replaceResult = new TemplateReplaceResult
             {
                 Replaced = "<Root/>"
             };
-            builtInRunSettingsTemplate.Setup(birst => birst.Replace(It.IsAny<string>(), It.IsAny<IRunSettingsTemplateReplacements>())).Returns(replaceResult);
+            mockRunSettingsTemplate.Setup(runSettingsTemplate => runSettingsTemplate.Replace(It.IsAny<string>(), It.IsAny<IRunSettingsTemplateReplacements>())).Returns(replaceResult);
 
             SetupAppOptionsProvider();
             var mockTestOperation = new Mock<ITestOperation>();
@@ -487,7 +546,9 @@ namespace FineCodeCoverageTests.MsCodeCoverage
             mockTestOperation.Setup(testOperation => testOperation.GetCoverageProjectsAsync()).ReturnsAsync(coverageProjects);
 
             var mockUserRunSettingsService = autoMocker.GetMock<IUserRunSettingsService>();
-            mockUserRunSettingsService.Setup(userRunSettingsService => userRunSettingsService.CheckUserRunSettingsSuitability(It.IsAny<IEnumerable<string>>(), It.IsAny<bool>())).Returns((true, false));
+            mockUserRunSettingsService.Setup(
+                userRunSettingsService => userRunSettingsService.Analyse(It.IsAny<IEnumerable<ICoverageProject>>(), It.IsAny<bool>(), It.IsAny<IRunSettingsTemplate>(), It.IsAny<string>())
+            ).Returns(new UserRunSettingsAnalysisResult(true, false));
 
             return msCodeCoverageRunSettingsService.IsCollectingAsync(mockTestOperation.Object);
         }
@@ -499,12 +560,12 @@ namespace FineCodeCoverageTests.MsCodeCoverage
             var mockProjectRunSettingsGenerator = autoMocker.GetMock<IProjectRunSettingsGenerator>();
             mockProjectRunSettingsGenerator.Setup(thrower => thrower.WriteProjectsRunSettingsAsync(It.IsAny<IEnumerable<ICoverageProjectRunSettings>>())).Throws(new Exception());
 
-            var builtInRunSettingsTemplate = autoMocker.GetMock<IBuiltInRunSettingsTemplate>();
+            var mockRunSettingsTemplate = autoMocker.GetMock<IRunSettingsTemplate>();
             var replaceResult = new TemplateReplaceResult
             {
                 Replaced = "<Root/>"
             };
-            builtInRunSettingsTemplate.Setup(birst => birst.Replace(It.IsAny<string>(), It.IsAny<IRunSettingsTemplateReplacements>())).Returns(replaceResult);
+            mockRunSettingsTemplate.Setup(runSettingsTemplate => runSettingsTemplate.Replace(It.IsAny<string>(), It.IsAny<IRunSettingsTemplateReplacements>())).Returns(replaceResult);
 
             SetupAppOptionsProvider();
             var mockTestOperation = new Mock<ITestOperation>();
@@ -518,7 +579,9 @@ namespace FineCodeCoverageTests.MsCodeCoverage
             mockTestOperation.Setup(testOperation => testOperation.GetCoverageProjectsAsync()).ReturnsAsync(coverageProjects);
 
             var mockUserRunSettingsService = autoMocker.GetMock<IUserRunSettingsService>();
-            mockUserRunSettingsService.Setup(userRunSettingsService => userRunSettingsService.CheckUserRunSettingsSuitability(It.IsAny<IEnumerable<string>>(), It.IsAny<bool>())).Returns((true, false));
+            mockUserRunSettingsService.Setup(
+                userRunSettingsService => userRunSettingsService.Analyse(It.IsAny<IEnumerable<ICoverageProject>>(), It.IsAny<bool>(), It.IsAny<IRunSettingsTemplate>(), It.IsAny<string>())
+            ).Returns(new UserRunSettingsAnalysisResult(true, false));
 
             await msCodeCoverageRunSettingsService.IsCollectingAsync(mockTestOperation.Object);
 
@@ -532,12 +595,12 @@ namespace FineCodeCoverageTests.MsCodeCoverage
             mockProjectRunSettingsGenerator.Setup(thrower => thrower.WriteProjectsRunSettingsAsync(It.IsAny<IEnumerable<ICoverageProjectRunSettings>>())).Throws(new Exception());
             mockProjectRunSettingsGenerator.Setup(thrower => thrower.RemoveGeneratedProjectSettingsAsync(It.IsAny<IEnumerable<ICoverageProject>>())).Throws(new Exception());
 
-            var builtInRunSettingsTemplate = autoMocker.GetMock<IBuiltInRunSettingsTemplate>();
+            var mockRunSettingsTemplate = autoMocker.GetMock<IRunSettingsTemplate>();
             var replaceResult = new TemplateReplaceResult
             {
                 Replaced = "<Root/>"
             };
-            builtInRunSettingsTemplate.Setup(birst => birst.Replace(It.IsAny<string>(), It.IsAny<IRunSettingsTemplateReplacements>())).Returns(replaceResult);
+            mockRunSettingsTemplate.Setup(runSettingsTemplate => runSettingsTemplate.Replace(It.IsAny<string>(), It.IsAny<IRunSettingsTemplateReplacements>())).Returns(replaceResult);
 
             SetupAppOptionsProvider();
             var mockTestOperation = new Mock<ITestOperation>();
@@ -549,7 +612,9 @@ namespace FineCodeCoverageTests.MsCodeCoverage
             mockTestOperation.Setup(testOperation => testOperation.GetCoverageProjectsAsync()).ReturnsAsync(coverageProjects);
 
             var mockUserRunSettingsService = autoMocker.GetMock<IUserRunSettingsService>();
-            mockUserRunSettingsService.Setup(userRunSettingsService => userRunSettingsService.CheckUserRunSettingsSuitability(It.IsAny<IEnumerable<string>>(), It.IsAny<bool>())).Returns((true, false));
+            mockUserRunSettingsService.Setup(
+                userRunSettingsService => userRunSettingsService.Analyse(It.IsAny<IEnumerable<ICoverageProject>>(), It.IsAny<bool>(), It.IsAny<IRunSettingsTemplate>(), It.IsAny<string>())
+            ).Returns(new UserRunSettingsAnalysisResult(true,false));
 
             Assert.DoesNotThrowAsync(() => msCodeCoverageRunSettingsService.IsCollectingAsync(mockTestOperation.Object));
         }
@@ -574,7 +639,12 @@ namespace FineCodeCoverageTests.MsCodeCoverage
             msCodeCoverageRunSettingsService.Initialize(null, null, CancellationToken.None);
         }
 
-        private Task<MsCodeCoverageCollectionStatus> IsCollectingWhenAllProjectsHaveSuitableRunSettings(bool useMsCodeCoverage = true,List<ICoverageProject> coverageProjects = null,bool specifiedMsDataCollector = false)
+        private Task<MsCodeCoverageCollectionStatus> IsCollectingWhenAllProjectsHaveSuitableRunSettings(
+            bool useMsCodeCoverage = true,
+            List<ICoverageProject> coverageProjects = null,
+            bool specifiedMsDataCollector = false,
+            List<ICoverageProject> RunSettingsProjectsWithFCCMsTestAdapter = null
+            )
         {
             SetupAppOptionsProvider(useMsCodeCoverage);
             var mockTestOperation = new Mock<ITestOperation>();
@@ -584,7 +654,14 @@ namespace FineCodeCoverageTests.MsCodeCoverage
             mockTestOperation.Setup(testOperation => testOperation.GetCoverageProjectsAsync()).ReturnsAsync(coverageProjects);
 
             var mockUserRunSettingsService = autoMocker.GetMock<IUserRunSettingsService>();
-            mockUserRunSettingsService.Setup(userRunSettingsService => userRunSettingsService.CheckUserRunSettingsSuitability(It.IsAny<IEnumerable<string>>(), It.IsAny<bool>())).Returns((true, specifiedMsDataCollector));
+            mockUserRunSettingsService.Setup(
+                userRunSettingsService => userRunSettingsService.Analyse(It.IsAny<IEnumerable<ICoverageProject>>(), It.IsAny<bool>(),It.IsAny<IRunSettingsTemplate>(), It.IsAny<string>())
+            ).Returns(new UserRunSettingsAnalysisResult
+            {
+                Suitable = true,
+                SpecifiedMsCodeCoverage = specifiedMsDataCollector,
+                ProjectsWithFCCMsTestAdapter = RunSettingsProjectsWithFCCMsTestAdapter ?? Enumerable.Empty<ICoverageProject>().ToList()
+            });
 
             return msCodeCoverageRunSettingsService.IsCollectingAsync(mockTestOperation.Object);
         }

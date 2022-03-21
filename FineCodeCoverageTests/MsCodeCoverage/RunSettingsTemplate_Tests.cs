@@ -1,15 +1,17 @@
 ﻿using NUnit.Framework;
 using FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage;
+using System.Xml.Linq;
+using System.Xml.XPath;
 
 namespace FineCodeCoverageTests.MsCodeCoverage
 {
-    public class BuiltInRunSettingsTemplate_Tests
+    public class RunSettingsTemplate_Tests
     {
         [Test]
         public void Should_Be_Replaceable()
         {
-            var builtInRunSettingsTemplate = new BuiltInRunSettingsTemplate();
-            var template = builtInRunSettingsTemplate.Template;
+            var runSettingsTemplate = new RunSettingsTemplate();
+            var template = runSettingsTemplate.ToString();
 
             var replacements = new TestRunSettingsTemplateReplacements
             {
@@ -101,7 +103,7 @@ namespace FineCodeCoverageTests.MsCodeCoverage
                 </DataCollectionRunSettings>
             </RunSettings>";
 
-            var result = builtInRunSettingsTemplate.Replace(template, replacements);
+            var result = runSettingsTemplate.Replace(template, replacements);
 
             XmlAssert.NoXmlDifferences(result.Replaced, expected);
         }
@@ -109,15 +111,15 @@ namespace FineCodeCoverageTests.MsCodeCoverage
         [Test]
         public void Should_Be_ReplacedTestAdapter_When_Template_Has_The_FCC_TestAdapter_Placeholder()
         {
-            var builtInRunSettingsTemplate = new BuiltInRunSettingsTemplate();
-            var template = builtInRunSettingsTemplate.Template;
-            Assert.True(builtInRunSettingsTemplate.Replace(template, new TestRunSettingsTemplateReplacements()).ReplacedTestAdapter);
+            var runSettingsTemplate = new RunSettingsTemplate();
+            var template = runSettingsTemplate.ToString();
+            Assert.True(runSettingsTemplate.Replace(template, new TestRunSettingsTemplateReplacements()).ReplacedTestAdapter);
         }
 
         [Test]
-        public void Should_Be_ReplacedTestAdapter_When_Custom_Template_Does_Not_Have_FCC_TestAdapter_Placeholder()
+        public void Should_Be_ReplacedTestAdapter_False_When_Custom_Template_Does_Not_Have_FCC_TestAdapter_Placeholder()
         {
-            var builtInRunSettingsTemplate = new BuiltInRunSettingsTemplate();
+            var runSettingsTemplate = new RunSettingsTemplate();
             var customTemplate = @"
                 <RunSettings>
                     <RunConfiguration>
@@ -125,11 +127,35 @@ namespace FineCodeCoverageTests.MsCodeCoverage
                 </RunConfiguration>
                 </RunSettings>
 ";
-            Assert.False(builtInRunSettingsTemplate.Replace(customTemplate, new TestRunSettingsTemplateReplacements()).ReplacedTestAdapter);
+            Assert.False(runSettingsTemplate.Replace(customTemplate, new TestRunSettingsTemplateReplacements()).ReplacedTestAdapter);
+        }
+    
+        [TestCase("%fcc_testadapter%", true)]
+        [TestCase("", false)]
+        public void Should_HasReplaceableTestAdapter_When_Has_FCC_TestAdapter_Placeholder(string toReplace, bool expected)
+        {
+            var runSettingsTemplate = new RunSettingsTemplate();
+            Assert.AreEqual(expected,runSettingsTemplate.HasReplaceableTestAdapter(toReplace));
+        }
+
+        [Test]
+        public void Should_Be_FCC_Generated_If_FCCGenerated_Element_Exists()
+        {
+            var runSettingsTemplate = new RunSettingsTemplate();
+            var xpathNavigable = XDocument.Parse("<FCCGenerated/>").ToXPathNavigable();
+            Assert.True(runSettingsTemplate.FCCGenerated(xpathNavigable));
+        }
+
+        [Test]
+        public void Should_Not_Be_FCC_Generated_If_FCCGenerated_Element_Exists()
+        {
+            var runSettingsTemplate = new RunSettingsTemplate();
+            var xpathNavigable = XDocument.Parse("<Not/>").ToXPathNavigable();
+            Assert.False(runSettingsTemplate.FCCGenerated(xpathNavigable));
         }
     }
 
-    public class BuiltInRunSettingsTemplate_ConfigureCustom_Tests
+    public class RunSettingsTemplate_ConfigureCustom_Tests
     {
         private const string nonReplacedRunConfiguration = @"<RunConfiguration>
                     <ResultsDirectory>Path</ResultsDirectory>
@@ -549,11 +575,11 @@ namespace FineCodeCoverageTests.MsCodeCoverage
 
         private void ConfiguredCustomReplaceTest(string custom,string expected,IRunSettingsTemplateReplacements replacements)
         {
-            var builtInRunSettingsTemplate = new BuiltInRunSettingsTemplate();
+            var runSettingsTemplate = new RunSettingsTemplate();
 
-            var customTemplate = builtInRunSettingsTemplate.ConfigureCustom(custom);
+            var customTemplate = runSettingsTemplate.ConfigureCustom(custom);
 
-            var replaced = builtInRunSettingsTemplate.Replace(customTemplate, replacements).Replaced;
+            var replaced = runSettingsTemplate.Replace(customTemplate, replacements).Replaced;
 
             XmlAssert.NoXmlDifferences(replaced, expected);
         }
