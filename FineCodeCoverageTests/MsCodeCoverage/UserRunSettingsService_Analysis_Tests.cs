@@ -190,7 +190,7 @@ namespace FineCodeCoverageTests.MsCodeCoverage
             mockFileUtil.Setup(f => f.ReadAllText("Path1")).Returns(suitableXmlAsUseMsCodeCoverage);
             mockFileUtil.Setup(f => f.ReadAllText("Path2")).Returns(suitableXmlAsUseMsCodeCoverage);
 
-            var analysisResult = userRunSettingsService.Analyse(CreateCoverageProjectsWithRunSettings( new string[] { "Path1", "Path2" }), true, null, null);
+            var analysisResult = userRunSettingsService.Analyse(CreateCoverageProjectsWithRunSettings(new string[] { "Path1", "Path2" }), true, null);
             Assert.True(analysisResult.Suitable);
             mockFileUtil.VerifyAll();
         }
@@ -215,27 +215,23 @@ namespace FineCodeCoverageTests.MsCodeCoverage
                 </RunSettings>";
             mockFileUtil.Setup(f => f.ReadAllText("Path2")).Returns(specifiesMsDataCollector);
 
-            var analysisResult = userRunSettingsService.Analyse(CreateCoverageProjectsWithRunSettings( new string[] { "Path1", "Path2" }), true,null,null);
+            var analysisResult = userRunSettingsService.Analyse(CreateCoverageProjectsWithRunSettings(new string[] { "Path1", "Path2" }), true, null);
             Assert.True(analysisResult.SpecifiedMsCodeCoverage);
         }
 
         [Test]
         public void Should_Be_SpecifiedMsCodeCoverage_False_When_All_Suitable_And_None_Specifies_Ms_Collector()
         {
-            var mockFileUtil = new Mock<IFileUtil>();
             var suitableXmlAsUseMsCodeCoverage = "<?xml version='1.0' encoding='utf-8'?><RunSettings/>";
             mockFileUtil.Setup(f => f.ReadAllText("Path1")).Returns(suitableXmlAsUseMsCodeCoverage);
 
-            var userRunSettingsService = new UserRunSettingsService(mockFileUtil.Object);
-
-            var analysisResult = userRunSettingsService.Analyse(CreateCoverageProjectsWithRunSettings( new string[] { "Path1" }), true, null, null);
+            var analysisResult = userRunSettingsService.Analyse(CreateCoverageProjectsWithRunSettings(new string[] { "Path1" }), true, null);
             Assert.False(analysisResult.SpecifiedMsCodeCoverage);
         }
 
         [Test]
         public void Should_Be_Unsuitable_If_Any_Are_Unsuitable()
         {
-            var mockFileUtil = new Mock<IFileUtil>();
             var suitableXmlAsUseMsCodeCoverage = "<?xml version='1.0' encoding='utf-8'?><RunSettings/>";
             mockFileUtil.Setup(f => f.ReadAllText("Path1")).Returns(suitableXmlAsUseMsCodeCoverage);
             var specifiesMsDataCollector = "<?xml version='1.0' encoding='utf-8'?>" +
@@ -252,9 +248,7 @@ namespace FineCodeCoverageTests.MsCodeCoverage
                 </RunSettings>";
             mockFileUtil.Setup(f => f.ReadAllText("Path2")).Returns(specifiesMsDataCollector);
 
-            var userRunSettingsService = new UserRunSettingsService(mockFileUtil.Object);
-
-            var analysisResult = userRunSettingsService.Analyse(CreateCoverageProjectsWithRunSettings(new string[] { "Path1", "Path2" }), false, null, null);
+            var analysisResult = userRunSettingsService.Analyse(CreateCoverageProjectsWithRunSettings(new string[] { "Path1", "Path2" }), false, null);
             Assert.False(analysisResult.Suitable);
             Assert.False(analysisResult.SpecifiedMsCodeCoverage);
         }
@@ -267,14 +261,14 @@ namespace FineCodeCoverageTests.MsCodeCoverage
             var userRunSettingsPath = "some.runsettings";
             mockFileUtil.Setup(f => f.ReadAllText(userRunSettingsPath)).Returns(runSettingsNoTestAdaptersPath);
             var projectsWithTestAdapter = CreateCoverageProjectsWithRunSettings(userRunSettingsPath);
-            var analysisResult = userRunSettingsService.Analyse(projectsWithTestAdapter, true, null, null);
+            var analysisResult = userRunSettingsService.Analyse(projectsWithTestAdapter, true, null);
             Assert.AreEqual(projectsWithTestAdapter, analysisResult.ProjectsWithFCCMsTestAdapter);
         }
 
         [Test]
         public void Should_Have_Project_With_FCCMsTestAdapter_If_Has_Replaceable_Test_Adapter()
         {
-            var mockRunSettingsTemplate = new Mock<IRunSettingsTemplate>();
+            var mockRunSettingsTemplate = autoMocker.GetMock<IRunSettingsTemplate>();
             mockRunSettingsTemplate.Setup(runSettingsTemplate => runSettingsTemplate.HasReplaceableTestAdapter("The paths")).Returns(true);
             var runSettingsTestAdaptersPath = @"<?xml version='1.0' encoding='utf-8'?>
                 <RunSettings>
@@ -286,7 +280,7 @@ namespace FineCodeCoverageTests.MsCodeCoverage
             var userRunSettingsPath = "some.runsettings";
             mockFileUtil.Setup(f => f.ReadAllText(userRunSettingsPath)).Returns(runSettingsTestAdaptersPath);
             var projectsWithTestAdapter = CreateCoverageProjectsWithRunSettings(userRunSettingsPath);
-            var analysisResult = userRunSettingsService.Analyse(projectsWithTestAdapter, true, mockRunSettingsTemplate.Object, null);
+            var analysisResult = userRunSettingsService.Analyse(projectsWithTestAdapter, true, null);
             Assert.AreEqual(projectsWithTestAdapter, analysisResult.ProjectsWithFCCMsTestAdapter);
         }
 
@@ -304,7 +298,7 @@ namespace FineCodeCoverageTests.MsCodeCoverage
             var userRunSettingsPath = "some.runsettings";
             mockFileUtil.Setup(f => f.ReadAllText(userRunSettingsPath)).Returns(runSettingsTestAdaptersPath);
             var projectsWithTestAdapter = CreateCoverageProjectsWithRunSettings(userRunSettingsPath);
-            var analysisResult = userRunSettingsService.Analyse(projectsWithTestAdapter, true, new Mock<IRunSettingsTemplate>().Object, fccMsTestAdapterPath);
+            var analysisResult = userRunSettingsService.Analyse(projectsWithTestAdapter, true, fccMsTestAdapterPath);
             Assert.AreEqual(projectsWithTestAdapter, analysisResult.ProjectsWithFCCMsTestAdapter);
         }
 
@@ -321,7 +315,7 @@ namespace FineCodeCoverageTests.MsCodeCoverage
             var userRunSettingsPath = "some.runsettings";
             mockFileUtil.Setup(f => f.ReadAllText(userRunSettingsPath)).Returns(runSettingsTestAdaptersPath);
             var projectsWithTestAdapter = CreateCoverageProjectsWithRunSettings(userRunSettingsPath);
-            var analysisResult = userRunSettingsService.Analyse(projectsWithTestAdapter, true, new Mock<IRunSettingsTemplate>().Object, "FCCPath");
+            var analysisResult = userRunSettingsService.Analyse(projectsWithTestAdapter, true, "FCCPath");
             Assert.IsEmpty(analysisResult.ProjectsWithFCCMsTestAdapter);
         }
 

@@ -78,7 +78,7 @@ namespace FineCodeCoverage.Impl
 
         internal Action<Func<System.Threading.Tasks.Task>> RunAsync = (taskProvider) =>
         {
-            _ = ThreadHelper.JoinableTaskFactory.RunAsync(taskProvider);
+            ThreadHelper.JoinableTaskFactory.Run(taskProvider);
         };
 
         private async Task TestExecutionStartingAsync(IOperation operation)

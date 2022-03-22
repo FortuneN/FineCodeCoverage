@@ -1,4 +1,5 @@
-﻿using FineCodeCoverage.Engine.Model;
+﻿using FineCodeCoverage.Core.Utilities;
+using FineCodeCoverage.Engine.Model;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.IO;
@@ -9,27 +10,34 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
     [Export(typeof(IShimCopier))]
     internal class ShimCopier : IShimCopier
     {
+        private readonly IFileUtil fileUtil;
+
+        [ImportingConstructor]
+        public ShimCopier(IFileUtil fileUtil)
+        {
+            this.fileUtil = fileUtil;
+        }
         private void CopyShim(string shimPath, string outputFolder)
         {
             string destination = Path.Combine(outputFolder, Path.GetFileName(shimPath));
-            if (!File.Exists(destination))
+            if (!fileUtil.Exists(destination))
             {
-                File.Copy(shimPath, destination);
+                fileUtil.Copy(shimPath, destination);
             }
         }
 
-        private void CopyShimForNetFrameworkProjects(string shimPath, IEnumerable<ICoverageProject> coverageProjects)
+        private void CopyShim(string shimPath, IEnumerable<ICoverageProject> coverageProjects)
         {
-            var netFrameworkCoverageProjects = coverageProjects.Where(cp => !cp.IsDotNetSdkStyle());
-            foreach (var netFrameworkCoverageProject in netFrameworkCoverageProjects)
+            foreach (var coverageProject in coverageProjects)
             {
-                CopyShim(shimPath, netFrameworkCoverageProject.ProjectOutputFolder);
+                CopyShim(shimPath, coverageProject.ProjectOutputFolder);
             }
         }
 
         public void Copy(string shimPath, IEnumerable<ICoverageProject> coverageProjects)
         {
-            CopyShimForNetFrameworkProjects(shimPath, coverageProjects);
+            var netFrameworkCoverageProjects = coverageProjects.Where(cp => cp.IsDotNetFramework);
+            CopyShim(shimPath, netFrameworkCoverageProjects);
         }
     }
 

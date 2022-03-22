@@ -27,6 +27,7 @@ namespace FineCodeCoverage.Engine.Model
         private readonly bool canUseMsBuildWorkspace;
         private XElement projectFileXElement;
         private IAppOptions settings;
+        private string targetFramework;
         private readonly string fccFolderName = "fine-code-coverage";
         private readonly string buildOutputFolderName = "build-output";
         private string buildOutputPath;
@@ -358,6 +359,26 @@ namespace FineCodeCoverage.Engine.Model
         public List<string> IncludedReferencedProjects { get; set; } = new List<string>();
         public bool Is64Bit { get; set; }
         public string RunSettingsFile { get; set; }
+        public bool IsDotNetFramework { get; private set; }
+        public string TargetFramework {
+            get => targetFramework;
+            set
+            {
+                targetFramework = value;
+                switch (targetFramework) {
+                    case "Framework35":
+                    case "Framework40":
+                    case "Framework45":
+                        IsDotNetFramework = true;
+                        break;
+                    case "FrameworkCore10":
+                    case "FrameworkUap10":
+                    case "None":
+                        break;
+                }
+
+            }
+        }
 
         public async Task StepAsync(string stepName, Func<ICoverageProject, Task> action)
         {

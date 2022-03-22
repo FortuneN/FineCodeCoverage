@@ -1,20 +1,15 @@
-﻿using FineCodeCoverage.Engine.MsTestPlatform;
-using Moq;
+﻿using Moq;
 using NUnit.Framework;
-using System.Xml;
 using Microsoft.VisualStudio.TestWindow.Extensibility;
 using System.IO;
-using System.Globalization;
 using System.Xml.XPath;
-using System;
 using System.Collections.Generic;
-using FineCodeCoverage.Options;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel;
 using AutoMoq;
 using System.Threading;
 using FineCodeCoverage.Core.Utilities;
-using FineCodeCoverage.Engine.Model;
 using FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage;
+using System;
 
 namespace FineCodeCoverageTests.MsCodeCoverage
 {
@@ -37,55 +32,110 @@ namespace FineCodeCoverageTests.MsCodeCoverage
 
         [TestCase(RunSettingConfigurationInfoState.Discovery)]
         [TestCase(RunSettingConfigurationInfoState.None)]
-        public void Should_Not_Process_When_Not_Test_Execution(RunSettingConfigurationInfoState state)
+        public void Should_Not_Delegate_To_UserRunSettingsService_When_Not_Test_Execution(RunSettingConfigurationInfoState state)
+        {
+            SetuserRunSettingsProjectDetailsLookup(false);
+            msCodeCoverageRunSettingsService.collectionStatus = MsCodeCoverageCollectionStatus.Collecting;
+
+            ShouldNotDelegateToUserRunSettingsService(state);
+        }
+
+        [TestCase(MsCodeCoverageCollectionStatus.NotCollecting)]
+        [TestCase(MsCodeCoverageCollectionStatus.Error)]
+        public void Should_Not_Delegate_To_UserRunSettingsService_When_Is_Not_Collecting(MsCodeCoverageCollectionStatus status)
+        {
+            msCodeCoverageRunSettingsService.collectionStatus = MsCodeCoverageCollectionStatus.NotCollecting;
+            SetuserRunSettingsProjectDetailsLookup(false);
+            
+            ShouldNotDelegateToUserRunSettingsService(RunSettingConfigurationInfoState.Execution);
+        }
+
+        [Test]
+        public void Should_Not_Delegate_To_UserRunSettingsService_When_No_User_RunSettings()
+        {
+            msCodeCoverageRunSettingsService.collectionStatus = MsCodeCoverageCollectionStatus.Collecting;
+            SetuserRunSettingsProjectDetailsLookup(true);
+
+            ShouldNotDelegateToUserRunSettingsService(RunSettingConfigurationInfoState.Execution);
+        }
+
+        private void ShouldNotDelegateToUserRunSettingsService(RunSettingConfigurationInfoState state)
         {
             var mockRunSettingsConfigurationInfo = new Mock<IRunSettingsConfigurationInfo>();
             mockRunSettingsConfigurationInfo.Setup(ci => ci.RequestState).Returns(state);
+
+            autoMocker.GetMock<IUserRunSettingsService>()
+                .Setup(userRunSettingsService => userRunSettingsService.AddFCCRunSettings(
+                    It.IsAny<IXPathNavigable>(),
+                    It.IsAny<IRunSettingsConfigurationInfo>(),
+                    It.IsAny<Dictionary<string, IUserRunSettingsProjectDetails>>(),
+                    It.IsAny<string>()
+                )).Returns(new Mock<IXPathNavigable>().Object);
             Assert.IsNull(msCodeCoverageRunSettingsService.AddRunSettings(null, mockRunSettingsConfigurationInfo.Object, null));
         }
 
-        [Test]
-        public void Should_Not_Process_When_Runsettings_Created_From_Template()
+
+
+        private void SetuserRunSettingsProjectDetailsLookup(bool empty)
         {
-            var xPathNavigable = new Mock<IXPathNavigable>().Object;
-            autoMocker.GetMock<IRunSettingsTemplate>().Setup(runSettingsTemplate => runSettingsTemplate.FCCGenerated(xPathNavigable)).Returns(true);
-            var mockRunSettingsConfigurationInfo = new Mock<IRunSettingsConfigurationInfo>();
-            mockRunSettingsConfigurationInfo.Setup(ci => ci.RequestState).Returns(RunSettingConfigurationInfoState.Execution);
-            Assert.IsNull(msCodeCoverageRunSettingsService.AddRunSettings(xPathNavigable, mockRunSettingsConfigurationInfo.Object, null));
+            var userRunSettingsProjectDetailsLookup = new Dictionary<string, IUserRunSettingsProjectDetails>();
+            if (!empty)
+            {
+                userRunSettingsProjectDetailsLookup.Add("", null); // an entry
+            }
+            msCodeCoverageRunSettingsService.userRunSettingsProjectDetailsLookup = userRunSettingsProjectDetailsLookup;
         }
 
         [Test]
-        public void Should_UserRunSettingsService_AddFCCRunSettings_When_Execute_And_UserRunSettings()
+        public void Should_Delegate_To_UserRunSettingsService_With_UserRunSettingsProjectDetailsLookup_And_FCC_Ms_TestAdapter_Path_When_Applicable()
         {
             var inputRunSettingDocument = new Mock<IXPathNavigable>().Object;
-            var mockRunSettingsTemplate = autoMocker.GetMock<IRunSettingsTemplate>();
-            mockRunSettingsTemplate.Setup(runSettingsTemplate => runSettingsTemplate.FCCGenerated(inputRunSettingDocument)).Returns(false);
 
             var mockRunSettingsConfigurationInfo = new Mock<IRunSettingsConfigurationInfo>();
             mockRunSettingsConfigurationInfo.Setup(ci => ci.RequestState).Returns(RunSettingConfigurationInfoState.Execution);
-            var testContainers = new List<ITestContainer>();
-            mockRunSettingsConfigurationInfo.Setup(ci => ci.TestContainers).Returns(testContainers);
+            var runSettingsConfigurationInfo = mockRunSettingsConfigurationInfo.Object;
 
-            var ct = CancellationToken.None;
-            autoMocker.GetMock<IToolFolder>().Setup(toolFolder => toolFolder.EnsureUnzipped(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<ZipDetails>(), ct)).Returns("ZipDestination");
-            var msCodeCoveragePath = Path.Combine("ZipDestination", "build", "netstandard1.0");
-            msCodeCoverageRunSettingsService.Initialize(null, null, ct);
+            var fccMsTestAdapter = GetFCCMsTestAdapterPath();
 
-            // collecting
-            var mockCoverageProject = new Mock<ICoverageProject>();
-            mockCoverageProject.Setup(cp => cp.TestDllFile).Returns("Test.dll");
-            msCodeCoverageRunSettingsService.userRunSettingsProjectDetailsLookup = new Dictionary<string, IUserRunSettingsProjectDetails> { };
-            
+            // IsCollecting would set this
+            var userRunSettingsProjectDetailsLookup = new Dictionary<string, IUserRunSettingsProjectDetails>
+            {
+                { "",null} // an entry
+            };
+            msCodeCoverageRunSettingsService.userRunSettingsProjectDetailsLookup = userRunSettingsProjectDetailsLookup;
+            msCodeCoverageRunSettingsService.collectionStatus = MsCodeCoverageCollectionStatus.Collecting;
 
-            var runSettingsTemplateReplacements = new Mock<IRunSettingsTemplateReplacements>().Object;
-            var mockRunSettingsTemplateReplacementsFactory = autoMocker.GetMock<IRunSettingsTemplateReplacementsFactory>();
-            mockRunSettingsTemplateReplacementsFactory.Setup(f => f.Create(testContainers, msCodeCoverageRunSettingsService.userRunSettingsProjectDetailsLookup, msCodeCoveragePath)).Returns(runSettingsTemplateReplacements);
 
             var mockUserRunSettingsService = autoMocker.GetMock<IUserRunSettingsService>();
             var fccRunSettingDocument = new Mock<IXPathNavigable>().Object;
-            mockUserRunSettingsService.Setup(userRunSettingsService => userRunSettingsService.AddFCCRunSettings(mockRunSettingsTemplate.Object, runSettingsTemplateReplacements, inputRunSettingDocument)).Returns(fccRunSettingDocument);
+            var addFCCRunSettingsSetup = mockUserRunSettingsService.Setup(userRunSettingsService => userRunSettingsService.AddFCCRunSettings(
+                inputRunSettingDocument, 
+                runSettingsConfigurationInfo,
+                It.IsAny<Dictionary<string,IUserRunSettingsProjectDetails>>(), 
+                fccMsTestAdapter)
+            ).Returns(fccRunSettingDocument);
 
-            Assert.AreSame(fccRunSettingDocument,msCodeCoverageRunSettingsService.AddRunSettings(inputRunSettingDocument, mockRunSettingsConfigurationInfo.Object, null));
+            Assert.AreSame(fccRunSettingDocument, msCodeCoverageRunSettingsService.AddRunSettings(inputRunSettingDocument, mockRunSettingsConfigurationInfo.Object, null));
+
+            var addFCCRunSettingsInvocation = mockUserRunSettingsService.Invocations[0];
+            Assert.AreSame(userRunSettingsProjectDetailsLookup, addFCCRunSettingsInvocation.Arguments[2]);
         }
+
+        private string GetFCCMsTestAdapterPath()
+        {
+            autoMocker.GetMock<IToolFolder>()
+                .Setup(
+                    toolFolder => toolFolder.EnsureUnzipped(
+                        It.IsAny<string>(),
+                        It.IsAny<string>(),
+                        It.IsAny<ZipDetails>(),
+                        It.IsAny<CancellationToken>())
+                )
+                .Returns("ZipDestination");
+
+            msCodeCoverageRunSettingsService.Initialize(null, null, CancellationToken.None);
+            return Path.Combine("ZipDestination", "build", "netstandard1.0");
+        }
+    
     }
 }

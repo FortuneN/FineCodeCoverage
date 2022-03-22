@@ -5,13 +5,15 @@ using System.ComponentModel.Composition;
 using System.Xml.Linq;
 using System.Xml.XPath;
 using System.Linq;
+using Microsoft.VisualStudio.TestWindow.Extensibility;
 
 namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
 {
     [Export(typeof(IUserRunSettingsService))]
     internal class UserRunSettingsService : IUserRunSettingsService
     {
-        private IRunSettingsTemplate runSettingsTemplate;
+        private readonly IRunSettingsTemplate runSettingsTemplate;
+        private readonly IRunSettingsTemplateReplacementsFactory runSettingsTemplateReplacementsFactory;
         private readonly IFileUtil fileUtil;
         private XDocument runSettingsDoc;
         private string fccMsTestAdapterPath;
@@ -26,15 +28,20 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
         }
 
         [ImportingConstructor]
-        public UserRunSettingsService(IFileUtil fileUtil)
+        public UserRunSettingsService(
+            IFileUtil fileUtil, 
+            IRunSettingsTemplate runSettingsTemplate, 
+            IRunSettingsTemplateReplacementsFactory runSettingsTemplateReplacementsFactory
+        )
         {
             this.fileUtil = fileUtil;
+            this.runSettingsTemplate = runSettingsTemplate;
+            this.runSettingsTemplateReplacementsFactory = runSettingsTemplateReplacementsFactory;
         }
 
         #region analysis
-        public IUserRunSettingsAnalysisResult Analyse(IEnumerable<ICoverageProject> coverageProjectsWithRunSettings, bool useMsCodeCoverage, IRunSettingsTemplate runSettingsTemplate, string fccMsTestAdapterPath)
+        public IUserRunSettingsAnalysisResult Analyse(IEnumerable<ICoverageProject> coverageProjectsWithRunSettings, bool useMsCodeCoverage, string fccMsTestAdapterPath)
         {
-            this.runSettingsTemplate = runSettingsTemplate;
             this.fccMsTestAdapterPath = fccMsTestAdapterPath;
             List<ICoverageProject> projectsWithFCCMsTestAdapter = new List<ICoverageProject>();
             var specifiedMsCodeCoverage = false;
@@ -124,18 +131,33 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
 
         #endregion
 
-        public IXPathNavigable AddFCCRunSettings(IRunSettingsTemplate runSettingsTemplate, IRunSettingsTemplateReplacements replacements, IXPathNavigable inputRunSettingDocument)
+        #region AddFCCRunSettings
+        
+        public IXPathNavigable AddFCCRunSettings(IXPathNavigable inputRunSettingDocument, IRunSettingsConfigurationInfo configurationInfo, Dictionary<string, IUserRunSettingsProjectDetails> userRunSettingsProjectDetailsLookup, string fccMsTestAdapterPath)
         {
-            this.runSettingsTemplate = runSettingsTemplate;
+            if (!runSettingsTemplate.FCCGenerated(inputRunSettingDocument))
+            {
+                return AddFCCRunSettingsActual(inputRunSettingDocument,configurationInfo,userRunSettingsProjectDetailsLookup,fccMsTestAdapterPath);
+            }
+            return null;
+        }
+
+        private IXPathNavigable AddFCCRunSettingsActual(IXPathNavigable inputRunSettingDocument, IRunSettingsConfigurationInfo configurationInfo, Dictionary<string, IUserRunSettingsProjectDetails> userRunSettingsProjectDetailsLookup, string fccMsTestAdapterPath)
+        {
             var navigator = inputRunSettingDocument.CreateNavigator();
             navigator.MoveToFirstChild();
             var clonedNavigator = navigator.Clone();
-            ConfigureRunConfiguration(navigator, replacements);
-            EnsureMsDataCollector(clonedNavigator, replacements);
+            var replacements = runSettingsTemplateReplacementsFactory.Create(
+                configurationInfo.TestContainers, 
+                userRunSettingsProjectDetailsLookup, 
+                fccMsTestAdapterPath
+            );
+            EnsureTestAdaptersPathsAndReplace(navigator, replacements);
+            EnsureCorrectMsDataCollectorAndReplace(clonedNavigator, replacements);
             return navigator;
         }
 
-        private void ConfigureRunConfiguration(XPathNavigator xpathNavigator, IRunSettingsTemplateReplacements replacements)
+        private void EnsureTestAdaptersPathsAndReplace(XPathNavigator xpathNavigator, IRunSettingsTemplateReplacements replacements)
         {
             var movedToRunConfiguration = xpathNavigator.MoveToChild("RunConfiguration", "");
             if (movedToRunConfiguration)
@@ -157,7 +179,7 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
             xpathNavigator.OuterXml = replaceResult.Replaced;
         }
 
-        private void EnsureMsDataCollector(XPathNavigator xpathNavigator, IRunSettingsTemplateReplacements replacements)
+        private void EnsureCorrectMsDataCollectorAndReplace(XPathNavigator xpathNavigator, IRunSettingsTemplateReplacements replacements)
         {
             var addedMsDataCollector = true;
             var movedToDataCollectionRunSettings = xpathNavigator.MoveToChild("DataCollectionRunSettings", "");
@@ -171,7 +193,8 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
                     if (msDataCollectorNavigator != null)
                     {
                         addedMsDataCollector = false;
-                        FixUpMsDataCollector(msDataCollectorNavigator, replacements);
+                        EnsureCorrectCoberturaFormat(msDataCollectorNavigator);
+                        ReplaceExcludesIncludes(msDataCollectorNavigator.Clone(), replacements);
                     }
                     else
                     {
@@ -213,12 +236,6 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
             msDataCollectorNavigator.OuterXml = replaceResult.Replaced;
         }
 
-        private void FixUpMsDataCollector(XPathNavigator navigator, IRunSettingsTemplateReplacements replacements)
-        {
-            EnsureCorrectCoberturaFormat(navigator);
-            ReplaceExcludesIncludes(navigator.Clone(), replacements);
-        }
-
         private void EnsureCorrectCoberturaFormat(XPathNavigator navigator)
         {
             var movedToConfiguration = navigator.MoveToChild("Configuration", "");
@@ -242,6 +259,8 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
                 navigator.AppendChild("<Configuration><Format>Cobertura</Format></Configuration>");
             }
         }
+        
+        #endregion
     }
 
 }

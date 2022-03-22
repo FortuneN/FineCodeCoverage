@@ -2,7 +2,7 @@
 
 namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
 {
-    internal interface ITemplateReplaceResult
+    internal interface ITemplateReplacementResult
     {
         string Replaced { get; }
         
@@ -13,7 +13,7 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
     {
         string FCCMarkerElementName { get; }
         
-        ITemplateReplaceResult Replace(string runSettingsTemplate, IRunSettingsTemplateReplacements replacements);
+        ITemplateReplacementResult Replace(string runSettingsTemplate, IRunSettingsTemplateReplacements replacements);
         
         string ConfigureCustom(string runSettingsTemplate);
 

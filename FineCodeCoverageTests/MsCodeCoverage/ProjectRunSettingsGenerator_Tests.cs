@@ -8,6 +8,7 @@ using FineCodeCoverage.Engine.Model;
 using System;
 using FineCodeCoverage.Core.Utilities;
 using System.IO;
+using System.Xml.Linq;
 
 namespace FineCodeCoverageTests.MsCodeCoverage
 {
@@ -36,6 +37,16 @@ namespace FineCodeCoverageTests.MsCodeCoverage
         private List<ICoverageProjectRunSettings> coverageProjectsRunSettings;
         private string generatedRunSettingsInOutputFolderPath1;
         private string generatedRunSettingsInOutputFolderPath2;
+        private const string runSettings1 = IXPathNavigableExtensions.XmlDeclaration + @"
+            <RunSettings>
+<RunConfiguration/>
+            </RunSettings>
+";
+        private const string runSettings2 = IXPathNavigableExtensions.XmlDeclaration + @"
+            <RunSettings>
+                        <RunConfiguration/>
+            </RunSettings>
+";
 
         [SetUp]
         public void Setup()
@@ -46,8 +57,8 @@ namespace FineCodeCoverageTests.MsCodeCoverage
             projectId2 = Guid.NewGuid();
             coverageProjectsRunSettings = new List<ICoverageProjectRunSettings>
             {
-                new TestCoverageProjectRunSettings(projectId1, "OutputFolder1","Project1","RunSettings1"),
-                new TestCoverageProjectRunSettings(projectId2, "OutputFolder2","Project2","RunSettings2"),
+                new TestCoverageProjectRunSettings(projectId1, "OutputFolder1","Project1",runSettings1),
+                new TestCoverageProjectRunSettings(projectId2, "OutputFolder2","Project2",runSettings2),
             };
             generatedRunSettingsInOutputFolderPath1 = Path.Combine("OutputFolder1", "Project1-fcc-mscodecoverage-generated.runsettings");
             generatedRunSettingsInOutputFolderPath2 = Path.Combine("OutputFolder2", "Project2-fcc-mscodecoverage-generated.runsettings");
@@ -76,8 +87,10 @@ namespace FineCodeCoverageTests.MsCodeCoverage
             await projectRunSettingsGenerator.WriteProjectsRunSettingsAsync(coverageProjectsRunSettings);
             if (success)
             {
-                mockFileUtil.Verify(f => f.WriteAllText(generatedRunSettingsInOutputFolderPath1, "RunSettings1"));
-                mockFileUtil.Verify(f => f.WriteAllText(generatedRunSettingsInOutputFolderPath2, "RunSettings2"));
+                var prettyRunSettings1 = XDocument.Parse(runSettings1).FormatXml();
+                var prettyRunSettings2 = XDocument.Parse(runSettings2).FormatXml();
+                mockFileUtil.Verify(f => f.WriteAllText(generatedRunSettingsInOutputFolderPath1, prettyRunSettings1));
+                mockFileUtil.Verify(f => f.WriteAllText(generatedRunSettingsInOutputFolderPath2, prettyRunSettings2));
             }
             else
             {

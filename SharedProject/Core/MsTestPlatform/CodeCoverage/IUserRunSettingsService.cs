@@ -1,6 +1,6 @@
 ﻿using FineCodeCoverage.Engine.Model;
+using Microsoft.VisualStudio.TestWindow.Extensibility;
 using System.Collections.Generic;
-using System.Xml.Linq;
 using System.Xml.XPath;
 
 namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
@@ -13,8 +13,8 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
 
     internal interface IUserRunSettingsService
     {
-        IXPathNavigable AddFCCRunSettings(IRunSettingsTemplate runSettingsTemplate, IRunSettingsTemplateReplacements replacements, IXPathNavigable inputRunSettingDocument);
-        IUserRunSettingsAnalysisResult Analyse(IEnumerable<ICoverageProject> coverageProjectsWithRunSettings, bool useMsCodeCoverage,IRunSettingsTemplate runSettingsTemplate, string fccMsTestAdapterPath);
+        IUserRunSettingsAnalysisResult Analyse(IEnumerable<ICoverageProject> coverageProjectsWithRunSettings, bool useMsCodeCoverage, string fccMsTestAdapterPath);
+        IXPathNavigable AddFCCRunSettings(IXPathNavigable inputRunSettingDocument, IRunSettingsConfigurationInfo configurationInfo, Dictionary<string, IUserRunSettingsProjectDetails> userRunSettingsProjectDetailsLookup, string fccMsTestAdapterPath);
     }
 
 }

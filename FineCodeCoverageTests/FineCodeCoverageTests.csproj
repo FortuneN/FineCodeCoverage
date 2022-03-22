@@ -72,6 +72,9 @@
     <Reference Include="nunit.framework, Version=3.13.1.0, Culture=neutral, PublicKeyToken=2638cd05610744eb, processorArchitecture=MSIL">
       <HintPath>..\packages\NUnit.3.13.1\lib\net45\nunit.framework.dll</HintPath>
     </Reference>
+    <Reference Include="StructureMap, Version=4.7.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\StructureMap.4.7.1\lib\net45\StructureMap.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Collections.Immutable, Version=1.2.3.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\packages\System.Collections.Immutable.1.5.0\lib\netstandard2.0\System.Collections.Immutable.dll</HintPath>
@@ -109,7 +112,10 @@
     <Compile Include="CoverageToolOutput_Tests\SolutionFolderProvider_Tests.cs" />
     <Compile Include="CoverageUtilManager_Tests.cs" />
     <Compile Include="Events\EventAggregator.cs" />
+    <Compile Include="MsCodeCoverage\ShimCopier_Tests.cs" />
+    <Compile Include="MsCodeCoverage\TemplatedRunSettingsService_Tests.cs" />
     <Compile Include="MsCodeCoverage\CustomRunSettingsTemplateProvider_Tests.cs" />
+    <Compile Include="MsCodeCoverage\Helpers\IXPathNavigableExtensions.cs" />
     <Compile Include="MsCodeCoverage\RunSettingsHelper_Tests.cs" />
     <Compile Include="MsCodeCoverage\RunSettingsTemplate_Tests.cs" />
     <Compile Include="MsCodeCoverage\MsCodeCoverageRunSettingsService_Collect_Tests.cs" />
@@ -117,11 +123,13 @@
     <Compile Include="MsCodeCoverage\MsCodeCoverageRunSettingsService_Initialize_Tests.cs" />
     <Compile Include="MsCodeCoverage\MsCodeCoverageRunSettingsService_IRunSettingsService_Tests.cs" />
     <Compile Include="MsCodeCoverage\ProjectRunSettingsGenerator_Tests.cs" />
+    <Compile Include="MsCodeCoverage\Implementations\TestRunSettingsTemplateReplacements.cs" />
     <Compile Include="MsCodeCoverage\UserRunSettingsService_AddFCCSettings_Tests.cs" />
     <Compile Include="MsCodeCoverage\UserRunSettingsService_Analysis_Tests.cs" />
     <Compile Include="MsCodeCoverage\RunSettingsTemplateReplacementsFactory_Tests.cs" />
     <Compile Include="Test helpers\MefOrderAssertions.cs" />
     <Compile Include="Test helpers\TestThreadHelper.cs" />
+    <Compile Include="Test helpers\XmlAssert.cs" />
     <Compile Include="ToolFolder_Tests.cs" />
     <Compile Include="ToolZipProvider_Tests.cs" />
     <Compile Include="CoverletDataCollectorGeneratedCobertura_Tests.cs" />

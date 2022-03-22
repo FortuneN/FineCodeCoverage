@@ -6,6 +6,7 @@ using Task = System.Threading.Tasks.Task;
 using FineCodeCoverage.Engine.Model;
 using System.Linq;
 using FineCodeCoverage.Core.Utilities;
+using System.Xml.Linq;
 
 namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
 {
@@ -55,8 +56,10 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
 
         private async Task WriteProjectRunSettingsAsync(Guid projectGuid, string projectRunSettingsFilePath, string projectRunSettings)
         {
+
             if (await vsRunSettingsWriter.WriteRunSettingsFilePathAsync(projectGuid, projectRunSettingsFilePath))
             {
+                projectRunSettings = XDocument.Parse(projectRunSettings).FormatXml();
                 fileUtil.WriteAllText(projectRunSettingsFilePath, projectRunSettings);
             }
         }

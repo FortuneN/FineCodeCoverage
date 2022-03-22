@@ -33,7 +33,6 @@ namespace FineCodeCoverageTests.MsCodeCoverage
 
     internal static class ReplacementsAssertions
     {
-
         public static void AssertAllEmpty(IRunSettingsTemplateReplacements replacements)
         {
             Assert.IsEmpty(replacements.ModulePathsExclude);
@@ -361,7 +360,6 @@ namespace FineCodeCoverageTests.MsCodeCoverage
             var replacements = runSettingsTemplateReplacementsFactory.Create(testContainers, userRunSettingsProjectDetailsLookup, null);
             ReplacementsAssertions.AssertAllEmpty(replacements);
         }
-
 
         private string ModulePathElement(string value)
         {

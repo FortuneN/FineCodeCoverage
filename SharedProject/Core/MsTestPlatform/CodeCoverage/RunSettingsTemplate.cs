@@ -42,7 +42,7 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
 
         public string FCCMarkerElementName { get; } = "FCCGenerated";
 
-        private class TemplateReplaceResult : ITemplateReplaceResult
+        private class TemplateReplaceResult : ITemplateReplacementResult
         {
             public string Replaced { get; set; }
 
@@ -144,7 +144,7 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
             return template;
         }
 
-        public ITemplateReplaceResult Replace(string runSettingsTemplate, IRunSettingsTemplateReplacements replacements)
+        public ITemplateReplacementResult Replace(string runSettingsTemplate, IRunSettingsTemplateReplacements replacements)
         {
             var replacedTestAdapter = HasReplaceableTestAdapter(runSettingsTemplate);
             var runSettings = runSettingsTemplate

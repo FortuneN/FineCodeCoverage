@@ -1,5 +1,4 @@
 ﻿using FineCodeCoverage.Engine.Model;
-using FineCodeCoverage.Options;
 using Microsoft.VisualStudio.TestWindow.Extensibility;
 using System.Collections.Generic;
 

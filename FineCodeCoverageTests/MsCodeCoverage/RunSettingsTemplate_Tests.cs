@@ -2,6 +2,7 @@
 using FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage;
 using System.Xml.Linq;
 using System.Xml.XPath;
+using FineCodeCoverageTests.Test_helpers;
 
 namespace FineCodeCoverageTests.MsCodeCoverage
 {
@@ -375,8 +376,6 @@ namespace FineCodeCoverageTests.MsCodeCoverage
             ConfiguredCustomReplaceTest(custom, expected, replacements);
         }
 
-
-
         [Test]
         public void Should_AddEnabledReplacementAttributeIfNotPresent_To_Existing_Ms_DataCollector()
         {
@@ -417,8 +416,6 @@ namespace FineCodeCoverageTests.MsCodeCoverage
 
             ConfiguredCustomReplaceTest(custom, expected, replacements);
         }
-
-        
 
         [Test]
         public void Should_Add_Cobertura_Format_To_Existing_Configuration_Element_If_Not_Present()

@@ -26,6 +26,8 @@ namespace FineCodeCoverage.Engine.Model
         IAppOptions Settings { get; }
         string TestDllFile { get; set; }
         Guid Id { get; set; }
+        bool IsDotNetFramework { get; }
+        string TargetFramework { get; set; }
 
         bool IsDotNetSdkStyle();
         Task StepAsync(string stepName, Func<ICoverageProject, Task> action);

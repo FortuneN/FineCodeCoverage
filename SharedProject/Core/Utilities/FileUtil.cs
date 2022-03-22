@@ -68,5 +68,10 @@ namespace FineCodeCoverage.Core.Utilities
         {
             return File.Exists(filePath);
         }
+
+        public void Copy(string source, string destination)
+        {
+            File.Copy(source, destination);
+        }
     }
 }

@@ -27,7 +27,7 @@ namespace FineCodeCoverage.Impl
             return GetCoverageProjectsAsync(testRunRequest.Configuration);
         }
 
-        private async System.Threading.Tasks.Task<List<ICoverageProject>> GetCoverageProjectsAsync(TestConfiguration testConfiguration)
+        private async Task<List<ICoverageProject>> GetCoverageProjectsAsync(TestConfiguration testConfiguration)
         {
             var userRunSettings = testConfiguration.UserRunSettings;
             var testContainers = testConfiguration.Containers;
@@ -39,7 +39,7 @@ namespace FineCodeCoverage.Impl
                 project.ProjectName = container.ProjectName;
                 project.TestDllFile = container.Source;
                 project.Is64Bit = container.TargetPlatform.ToString().ToLower().Equals("x64");
-
+                project.TargetFramework = container.TargetFramework.ToString();
                 var containerData = container.ProjectData;
                 project.ProjectFile = container.ProjectData.ProjectFilePath;
                 project.Id = containerData.Id;

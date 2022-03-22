@@ -76,6 +76,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Core\Model\ICoverageProject.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Model\ICoverageProjectFactory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Model\ReferencedProject.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\MsTestPlatform\CodeCoverage\ITemplatedRunSettingsService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\MsTestPlatform\CodeCoverage\RunSettingsTemplate.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\MsTestPlatform\CodeCoverage\CustomRunSettingsTemplateProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\MsTestPlatform\CodeCoverage\IRunSettingsTemplate.cs" />
@@ -93,6 +94,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Core\MsTestPlatform\CodeCoverage\ProjectRunSettingsGenerator.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\MsTestPlatform\CodeCoverage\RunSettingsTemplateReplacementsFactory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\MsTestPlatform\CodeCoverage\ShimCopier.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\MsTestPlatform\CodeCoverage\TemplatedRunSettingsService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\MsTestPlatform\CodeCoverage\UserRunSettingsService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\MsTestPlatform\CodeCoverage\VsRunSettingsWriter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\MsTestPlatform\CodeCoverage\XPathNavigatorExtensions.cs" />
@@ -147,6 +149,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\ToolZip\ToolFolder.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\ToolZip\ToolZipProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\LinqToXmlUtil.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\Tryer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\VsThreading\IThreadHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\ZipFileWrapper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColorProvider.cs" />
