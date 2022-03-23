@@ -31,6 +31,9 @@ but there may be a preview version that you want to use.  This can be configured
 Configuration is available with Visual Studio settings and project msbuild properties.  All visual studio settings can be overridden from test project settings and some settings 
 can only be set in project files.
 
+The coverage tools that FCC leverages are by default installed into the FineCodeCoverage directory within `Environment.SpecialFolder.LocalApplicationData`.
+This can be changed with the ToolsDirectory Visual Studio option.  Ensure that this containing directory exists and upon restart the tools will be installed within.
+
 ---
 
 ### <a href="https://www.youtube.com/watch?v=Rae5bTE2D3o" target="_blank">Watch Introduction Video</a>
@@ -145,6 +148,8 @@ CoverletConsoleGlobal			   Specify true to use your own dotnet tools global inst
 
 FCCSolutionOutputDirectoryName     To have fcc output visible in a sub folder of your solution provide this name
 AdjacentBuildOutput                If your tests are dependent upon their path set this to true.
+
+ToolsDirectory                     Folder to which copy tools subfolder. Must alredy exist. Requires restart of VS.
 
 The "CoverletConsole" settings have precedence Local / CustomPath / Global.
 
