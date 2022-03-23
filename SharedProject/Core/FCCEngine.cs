@@ -380,7 +380,7 @@ namespace FineCodeCoverage.Engine
         {
             if (!this.disposed)
             {
-                if (disposing)
+                if (disposing && cancellationTokenSource != null)
                 {
                     cancellationTokenSource.Dispose();
                 }
