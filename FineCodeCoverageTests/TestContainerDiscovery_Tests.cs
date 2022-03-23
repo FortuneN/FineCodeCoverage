@@ -7,6 +7,7 @@ using FineCodeCoverage.Core.Utilities;
 using FineCodeCoverage.Engine;
 using FineCodeCoverage.Engine.Model;
 using FineCodeCoverage.Engine.MsTestPlatform;
+using FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage;
 using FineCodeCoverage.Impl;
 using FineCodeCoverage.Options;
 using Microsoft.VisualStudio.TestWindow.Extensibility;
@@ -18,11 +19,14 @@ namespace Test
     public class TestContainerDiscovery_Tests
     {
         private AutoMoqer mocker;
+        private TestContainerDiscoverer testContainerDiscoverer;
+
         private void RaiseOperationStateChanged(TestOperationStates testOperationStates,IOperation operation = null)
         {
             var args = operation == null ? new OperationStateChangedEventArgs(testOperationStates) : new OperationStateChangedEventArgs(operation, (RequestStates)testOperationStates);
             mocker.GetMock<IOperationState>().Raise(s => s.StateChanged += null, args);
         }
+        
         private void RaiseTestExecutionStarting(IOperation operation = null)
         {
             RaiseOperationStateChanged(TestOperationStates.TestExecutionStarting,operation);
@@ -42,6 +46,7 @@ namespace Test
         {
             mocker.Verify<IFCCEngine>(engine => engine.ReloadCoverage(It.IsAny<Func<Task<List<ICoverageProject>>>>()), Times.Never());
         }
+
         private void SetUpOptions(Action<Mock<IAppOptions>> setupAppOptions)
         {
             var mockAppOptions = new Mock<IAppOptions>();
@@ -66,7 +71,7 @@ namespace Test
             mocker = new AutoMoqer();
             var mockDisposeAwareTaskRunner = mocker.GetMock<IDisposeAwareTaskRunner>();
             mockDisposeAwareTaskRunner.Setup(runner => runner.RunAsync(It.IsAny<Func<Task>>())).Callback<Func<Task>>(async taskProvider => await taskProvider());
-            var testContainerDiscoverer = mocker.Create<TestContainerDiscoverer>();
+            testContainerDiscoverer = mocker.Create<TestContainerDiscoverer>();
             testContainerDiscoverer.RunAsync = (taskProvider) =>
             {
                 taskProvider().Wait();
@@ -117,6 +122,36 @@ namespace Test
         }
 
         [Test]
+        public void Should_Stop_Ms_CodeCoverage_When_TestExecutionStarting_And_Ms_Code_Coverage_Collecting()
+        {
+            var mockMsCodeCoverageRunSettingsService = SetMsCodeCoverageCollecting();
+            mockMsCodeCoverageRunSettingsService.Verify(
+                msCodeCoverageRunSettingsService => msCodeCoverageRunSettingsService.StopCoverage(),
+                Times.Never
+            );
+
+            RaiseTestExecutionStarting();
+
+            mockMsCodeCoverageRunSettingsService.Verify(
+                msCodeCoverageRunSettingsService => msCodeCoverageRunSettingsService.StopCoverage()
+            );
+        }
+
+        private Mock<IMsCodeCoverageRunSettingsService> SetMsCodeCoverageCollecting()
+        {
+            var mockMsCodeCoverageRunSettingsService = mocker.GetMock<IMsCodeCoverageRunSettingsService>();
+            mockMsCodeCoverageRunSettingsService.Setup(
+                msCodeCoverageRunSettingsService =>
+                msCodeCoverageRunSettingsService.IsCollectingAsync(It.IsAny<ITestOperation>())
+            ).ReturnsAsync(MsCodeCoverageCollectionStatus.Collecting);
+
+            SetUpOptions(mockOptions => mockOptions.Setup(options => options.Enabled).Returns(true));
+            RaiseTestExecutionStarting();
+            return mockMsCodeCoverageRunSettingsService;
+        }
+
+
+        [Test]
         public void Should_Not_ReloadCoverage_When_TestExecutionStarting_And_Settings_RunInParallel_Is_False()
         {
             SetUpOptions(mockAppOptions =>
@@ -155,6 +190,23 @@ namespace Test
             RaiseTestExecutionFinished(operation);
 
             mocker.Verify<IFCCEngine>(engine => engine.ReloadCoverage(It.IsAny<Func<Task<List<ICoverageProject>>>>()));
+        }
+
+        [Test]
+        public void Should_Collect_Ms_Code_Coverage_When_TestExecutionFinished_And_Ms_Code_Coverage_Collecting()
+        {
+            SetMsCodeCoverageCollecting();
+
+            var operation = new Mock<IOperation>().Object;
+            var testOperation = new Mock<ITestOperation>().Object;
+            var mockTestOperationFactory = mocker.GetMock<ITestOperationFactory>();
+            mockTestOperationFactory.Setup(testOperationFactory => testOperationFactory.Create(operation)).Returns(testOperation);
+
+            RaiseTestExecutionFinished(operation);
+            mocker.Verify<IMsCodeCoverageRunSettingsService>(
+                msCodeCoverageRunSettingsService =>
+                msCodeCoverageRunSettingsService.CollectAsync(operation, testOperation)
+            );
         }
 
         [Test]

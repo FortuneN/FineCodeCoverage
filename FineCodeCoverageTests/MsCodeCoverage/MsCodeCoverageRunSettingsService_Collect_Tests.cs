@@ -12,12 +12,13 @@ using FineCodeCoverage.Engine;
 using System.Threading.Tasks;
 using FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage;
 using FineCodeCoverageTests.Test_helpers;
+using FineCodeCoverage.Engine.ReportGenerator;
 
 namespace FineCodeCoverageTests.MsCodeCoverage
 {
     internal class MsCodeCoverageRunSettingsService_Collect_Tests
     {
-        // todo if logic stays the same - log when no cobertura / clean up
+        private AutoMoqer autoMocker;
 
         [Test]
         public async Task Should_FCCEngine_RunAndProcessReport_With_CoberturaResults()
@@ -39,11 +40,27 @@ namespace FineCodeCoverageTests.MsCodeCoverage
             await RunAndProcessReportAsync(null, Array.Empty<string>());
         }
 
+        [Test]
+        public async Task Should_Combined_Log_When_No_Cobertura_Files()
+        {
+            await RunAndProcessReportAsync(null, Array.Empty<string>());
+            autoMocker.Verify<ILogger>(logger => logger.Log("No cobertura files for ms code coverage."));
+            autoMocker.Verify<IReportGeneratorUtil>(
+                reportGenerator => reportGenerator.LogCoverageProcess("No cobertura files for ms code coverage.")
+            );
+
+        }
+
         private async Task RunAndProcessReportAsync(IEnumerable<Uri> resultsUris,string[] expectedCoberturaFiles)
         {
-            var autoMocker = new AutoMoqer();
+            autoMocker = new AutoMoqer();
             var mockToolFolder = autoMocker.GetMock<IToolFolder>();
-            mockToolFolder.Setup(tf => tf.EnsureUnzipped(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<ZipDetails>(), It.IsAny<CancellationToken>())).Returns("ZipDestination");
+            mockToolFolder.Setup(tf => tf.EnsureUnzipped(
+                It.IsAny<string>(), 
+                It.IsAny<string>(), 
+                It.IsAny<ZipDetails>(), 
+                It.IsAny<CancellationToken>()
+            )).Returns("ZipDestination");
             
             var msCodeCoverageRunSettingsService = autoMocker.Create<MsCodeCoverageRunSettingsService>();
             msCodeCoverageRunSettingsService.threadHelper = new TestThreadHelper();
@@ -55,6 +72,7 @@ namespace FineCodeCoverageTests.MsCodeCoverage
             mockOperation.Setup(operation => operation.GetRunSettingsDataCollectorResultUri(new Uri(RunSettingsHelper.MsDataCollectorUri))).Returns(resultsUris);
             
             await msCodeCoverageRunSettingsService.CollectAsync(mockOperation.Object, new Mock<ITestOperation>().Object);
+            
             mockFccEngine.Verify(engine => engine.RunAndProcessReport(
                     It.Is<string[]>(coberturaFiles => !expectedCoberturaFiles.Except(coberturaFiles).Any() && !coberturaFiles.Except(expectedCoberturaFiles).Any()), It.IsAny<Action>()
                 )

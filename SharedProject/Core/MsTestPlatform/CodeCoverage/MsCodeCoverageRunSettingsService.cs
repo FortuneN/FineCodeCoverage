@@ -123,31 +123,41 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
             await InitializeIsCollectingAsync(testOperation);
 
             IUserRunSettingsAnalysisResult analysisResult = await TryAnalyseUserRunSettingsAsync();
-            if (analysisResult == null) return MsCodeCoverageCollectionStatus.Error;
-
-            var coverageProjectsForShim = analysisResult.ProjectsWithFCCMsTestAdapter;
-
-            if (analysisResult.Suitable)
+            if (analysisResult != null)
             {
-                await PrepareCoverageProjectsAsync();
-                SetUserRunSettingsProjectDetails();
-                if (coverageProjectsByType.HasTemplated())
+                var coverageProjectsForShim = analysisResult.ProjectsWithFCCMsTestAdapter;
+
+                if (analysisResult.Suitable)
                 {
-                    await GenerateTemplatedAsync(
-                        analysisResult.SpecifiedMsCodeCoverage, 
-                        coverageProjectsForShim, 
-                        testOperation.SolutionDirectory
-                    );
+                    await PrepareCoverageProjectsAsync();
+                    SetUserRunSettingsProjectDetails();
+                    if (coverageProjectsByType.HasTemplated())
+                    {
+                        await GenerateTemplatedAsync(
+                            analysisResult.SpecifiedMsCodeCoverage,
+                            coverageProjectsForShim,
+                            testOperation.SolutionDirectory
+                        );
+                    }
+                    else
+                    {
+                        await CollectingUserRunSettingsAsync();
+                    }
                 }
-                else
-                {
-                    await CollectingUserRunSettingsAsync();
-                }
+
+                CopyShimWhenCollecting(coverageProjectsForShim);
             }
-
-            CopyShimWhenCollecting(coverageProjectsForShim);
-
+            
+            ReportEndOfCoverageRunIfError();
             return collectionStatus;
+        }
+
+        private void ReportEndOfCoverageRunIfError()
+        {
+            if (collectionStatus == MsCodeCoverageCollectionStatus.Error)
+            {
+                reportGeneratorUtil.EndOfCoverageRun();
+            }
         }
 
         private async Task InitializeIsCollectingAsync(ITestOperation testOperation)
@@ -171,6 +181,7 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
             }
             catch (Exception exc)
             {
+                collectionStatus = MsCodeCoverageCollectionStatus.Error;
                 await CombinedLogExceptionAsync(exc, "Exception analysing runsettings files");
             }
             return analysisResult;

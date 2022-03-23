@@ -124,6 +124,14 @@ namespace FineCodeCoverageTests.MsCodeCoverage
             Assert.AreEqual(MsCodeCoverageCollectionStatus.Error, status);
         }
 
+        [Test]
+        public async Task Should_Report_End_Of_CoverageRun_If_Error()
+        {
+            var exception = new Exception("Msg");
+            await Throw_Exception_From_UserRunSettingsService_Analyse(exception);
+            autoMocker.Verify<IReportGeneratorUtil>(reportGeneratorUtil => reportGeneratorUtil.EndOfCoverageRun());
+        }
+
         private Task<MsCodeCoverageCollectionStatus> Throw_Exception_From_UserRunSettingsService_Analyse(Exception exception)
         {
             SetupIUserRunSettingsServiceAnalyseAny().Throws(exception);
