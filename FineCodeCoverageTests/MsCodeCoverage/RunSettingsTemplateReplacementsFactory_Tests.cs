@@ -641,5 +641,7 @@ namespace FineCodeCoverageTests.MsCodeCoverage
         public bool IncludeTestAssembly { get; set; }
 
         public bool IncludeReferencedProjects { get; set; }
+
+        public string ToolsDirectory => throw new NotImplementedException();
     }
 }
