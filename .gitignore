@@ -21,6 +21,3 @@ x64/
 *.ncrunchsolution
 *.ncrunchproject
 _NCrunch_WebCompiler
-/.fcc
-/fcc.xml
-/fineCodeCoverageSettings.xml
