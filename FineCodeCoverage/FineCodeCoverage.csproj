@@ -117,7 +117,6 @@
       <Link>ZippedTools\reportGenerator.4.7.1.zip</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <None Include="README.md" />
     <!--
     <None Include="Key.snk" />
 	-->
