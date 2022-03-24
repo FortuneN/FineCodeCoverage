@@ -9,12 +9,12 @@ namespace FineCodeCoverageTests.MsCodeCoverage
     public class RunSettingsTemplate_Tests
     {
         [Test]
-        public void Should_Be_Replaceable()
+        public void Should_Be_Replaceable_With_Recommended_You_Do_Not_Change_Elements_When_Not_Provided()
         {
             var runSettingsTemplate = new RunSettingsTemplate();
             var template = runSettingsTemplate.ToString();
 
-            var replacements = new TestRunSettingsTemplateReplacements
+            var replacements = new RunSettingsTemplateReplacements
             {
                 AttributesExclude = "<AttributesExclude/>",
                 AttributesInclude = "<AttributesInclude/>",
@@ -34,8 +34,7 @@ namespace FineCodeCoverageTests.MsCodeCoverage
                 TestAdapter = "testadapter"
             };
 
-            var xmlDeclaration = "<?xml version='1.0' encoding='utf-8'?>";
-            var expected = xmlDeclaration +  $@"
+            var expected = XmlHelper.XmlDeclaration +  $@"
             <RunSettings>
                 <RunConfiguration>
                     <ResultsDirectory>{replacements.ResultsDirectory}</ResultsDirectory>
@@ -95,6 +94,10 @@ namespace FineCodeCoverageTests.MsCodeCoverage
                                     {replacements.PublicKeyTokensInclude}
                                     </Include>
                                 </PublicKeyTokens>
+                                <UseVerifiableInstrumentation>True</UseVerifiableInstrumentation>
+                                <AllowLowIntegrityProcesses>True</AllowLowIntegrityProcesses>
+                                <CollectFromChildProcesses>True</CollectFromChildProcesses>
+                                <CollectAspDotNet>False</CollectAspDotNet>
                                 </CodeCoverage>
                                 <Format>Cobertura</Format>
                                 <FCCGenerated/>
@@ -104,7 +107,7 @@ namespace FineCodeCoverageTests.MsCodeCoverage
                 </DataCollectionRunSettings>
             </RunSettings>";
 
-            var result = runSettingsTemplate.Replace(template, replacements);
+            var result = runSettingsTemplate.ReplaceTemplate(template, replacements);
 
             XmlAssert.NoXmlDifferences(result.Replaced, expected);
         }
@@ -114,7 +117,7 @@ namespace FineCodeCoverageTests.MsCodeCoverage
         {
             var runSettingsTemplate = new RunSettingsTemplate();
             var template = runSettingsTemplate.ToString();
-            Assert.True(runSettingsTemplate.Replace(template, new TestRunSettingsTemplateReplacements()).ReplacedTestAdapter);
+            Assert.True(runSettingsTemplate.ReplaceTemplate(template, new RunSettingsTemplateReplacements()).ReplacedTestAdapter);
         }
 
         [Test]
@@ -127,8 +130,9 @@ namespace FineCodeCoverageTests.MsCodeCoverage
                         <TestAdaptersPaths>No placeholder</TestAdaptersPaths>
                 </RunConfiguration>
                 </RunSettings>
-";
-            Assert.False(runSettingsTemplate.Replace(customTemplate, new TestRunSettingsTemplateReplacements()).ReplacedTestAdapter);
+            ";
+            var configuredCustomTemplate = runSettingsTemplate.ConfigureCustom(customTemplate);
+            Assert.False(runSettingsTemplate.ReplaceTemplate(configuredCustomTemplate, new RunSettingsTemplateReplacements()).ReplacedTestAdapter);
         }
     
         [TestCase("%fcc_testadapter%", true)]
@@ -153,6 +157,38 @@ namespace FineCodeCoverageTests.MsCodeCoverage
             var runSettingsTemplate = new RunSettingsTemplate();
             var xpathNavigable = XDocument.Parse("<Not/>").ToXPathNavigable();
             Assert.False(runSettingsTemplate.FCCGenerated(xpathNavigable));
+        }
+    
+        [Test]
+        public void Should_Not_Add_Recommended_You_Do_Not_Change_Elements_When_Provided()
+        {
+            var template = @"
+            <RunSettings>
+                <RunConfiguration>
+                </RunConfiguration>
+                <DataCollectionRunSettings>
+                    <DataCollectors>
+                        <DataCollector friendlyName='Code Coverage' enabled='{replacements.Enabled}'>
+                            <Configuration>
+                                <CodeCoverage>
+                                <UseVerifiableInstrumentation>False</UseVerifiableInstrumentation>
+                                <AllowLowIntegrityProcesses>False</AllowLowIntegrityProcesses>
+                                <CollectFromChildProcesses>False</CollectFromChildProcesses>
+                                <CollectAspDotNet>True</CollectAspDotNet>
+                                </CodeCoverage>
+                                <Format>Cobertura</Format>
+                                <FCCGenerated/>
+                            </Configuration>
+                        </DataCollector>
+                    </DataCollectors>
+                </DataCollectionRunSettings>
+            </RunSettings>";
+
+            var runSettingsTemplate = new RunSettingsTemplate();
+            var result = runSettingsTemplate.ReplaceTemplate(template, new RunSettingsTemplateReplacements());
+
+            XmlAssert.NoXmlDifferences(result.Replaced, template);
+
         }
     }
 
@@ -180,7 +216,7 @@ namespace FineCodeCoverageTests.MsCodeCoverage
                 </DataCollectionRunSettings>
             </RunSettings>";
 
-            var replacements = new TestRunSettingsTemplateReplacements
+            var replacements = new RunSettingsTemplateReplacements
             {
                 ResultsDirectory = "results directory",
                 TestAdapter = "ms collector path"
@@ -228,7 +264,7 @@ namespace FineCodeCoverageTests.MsCodeCoverage
                 </DataCollectionRunSettings>
             </RunSettings>";
 
-            var replacements = new TestRunSettingsTemplateReplacements
+            var replacements = new RunSettingsTemplateReplacements
             {
                 ResultsDirectory = "results directory",
                 TestAdapter = "ms collector path"
@@ -290,7 +326,7 @@ namespace FineCodeCoverageTests.MsCodeCoverage
                 {customDataCollectionPart}
             </RunSettings>";
 
-            var replacements = new TestRunSettingsTemplateReplacements
+            var replacements = new RunSettingsTemplateReplacements
             {
                 AttributesExclude = "<AttributesExclude/>",
                 AttributesInclude = "<AttributesInclude/>",
@@ -394,7 +430,7 @@ namespace FineCodeCoverageTests.MsCodeCoverage
                 </DataCollectionRunSettings>
             </RunSettings>";
 
-            var replacements = new TestRunSettingsTemplateReplacements
+            var replacements = new RunSettingsTemplateReplacements
             {
                 Enabled = "enabledreplaced"
             };
@@ -434,7 +470,7 @@ namespace FineCodeCoverageTests.MsCodeCoverage
                 </DataCollectionRunSettings>
             </RunSettings>";
 
-            var replacements = new TestRunSettingsTemplateReplacements
+            var replacements = new RunSettingsTemplateReplacements
             {
             };
 
@@ -474,7 +510,7 @@ namespace FineCodeCoverageTests.MsCodeCoverage
                 </DataCollectionRunSettings>
             </RunSettings>";
 
-            var replacements = new TestRunSettingsTemplateReplacements
+            var replacements = new RunSettingsTemplateReplacements
             {
             };
 
@@ -513,7 +549,7 @@ namespace FineCodeCoverageTests.MsCodeCoverage
                 </DataCollectionRunSettings>
             </RunSettings>";
 
-            var replacements = new TestRunSettingsTemplateReplacements
+            var replacements = new RunSettingsTemplateReplacements
             {
             };
 
@@ -548,7 +584,7 @@ namespace FineCodeCoverageTests.MsCodeCoverage
                 </DataCollectionRunSettings>
             </RunSettings>";
 
-            var replacements = new TestRunSettingsTemplateReplacements
+            var replacements = new RunSettingsTemplateReplacements
             {
             };
 
@@ -576,7 +612,7 @@ namespace FineCodeCoverageTests.MsCodeCoverage
 
             var customTemplate = runSettingsTemplate.ConfigureCustom(custom);
 
-            var replaced = runSettingsTemplate.Replace(customTemplate, replacements).Replaced;
+            var replaced = runSettingsTemplate.Replace(customTemplate, replacements);
 
             XmlAssert.NoXmlDifferences(replaced, expected);
         }

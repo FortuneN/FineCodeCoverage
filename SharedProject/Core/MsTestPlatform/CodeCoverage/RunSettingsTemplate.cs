@@ -1,5 +1,6 @@
 ﻿using FineCodeCoverage.Core.Utilities;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Xml.Linq;
 using System.Xml.XPath;
@@ -40,7 +41,15 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
         public string DataCollectorsElement { get; }
         public string MsDataCollectorElement { get; }
 
-        public string FCCMarkerElementName { get; } = "FCCGenerated";
+        private const string fccMarkerElementName = "FCCGenerated";
+        
+        private readonly List<(string elementName, string value)> recommendedYouDoNotChangeElementsDetails = new List<(string elementName, string value)>
+        {
+            ("UseVerifiableInstrumentation", "True"),
+            ("AllowLowIntegrityProcesses", "True"),
+            ("CollectFromChildProcesses", "True"),
+            ("CollectAspDotNet", "False")
+        };
 
         private class TemplateReplaceResult : ITemplateReplacementResult
         {
@@ -116,7 +125,7 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
             </PublicKeyTokens>
           </CodeCoverage>
           <Format>Cobertura</Format>
-          <{FCCMarkerElementName}/>
+          <{fccMarkerElementName}/>
         </Configuration>
       </DataCollector>
 ";
@@ -144,31 +153,65 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
             return template;
         }
 
-        public ITemplateReplacementResult Replace(string runSettingsTemplate, IRunSettingsTemplateReplacements replacements)
+        public ITemplateReplacementResult ReplaceTemplate(string runSettingsTemplate, IRunSettingsTemplateReplacements replacements)
         {
             var replacedTestAdapter = HasReplaceableTestAdapter(runSettingsTemplate);
-            var runSettings = runSettingsTemplate
-                      .Replace(replacementLookups.ResultsDirectory, replacements.ResultsDirectory)
-                      .Replace(replacementLookups.TestAdapter, replacements.TestAdapter)
-                      .Replace(replacementLookups.Enabled, replacements.Enabled)
-                      .Replace(replacementLookups.ModulePathsExclude, replacements.ModulePathsExclude)
-                      .Replace(replacementLookups.ModulePathsInclude, replacements.ModulePathsInclude)
-                      .Replace(replacementLookups.FunctionsExclude, replacements.FunctionsExclude)
-                      .Replace(replacementLookups.FunctionsInclude, replacements.FunctionsInclude)
-                      .Replace(replacementLookups.AttributesExclude, replacements.AttributesExclude)
-                      .Replace(replacementLookups.AttributesInclude, replacements.AttributesInclude)
-                      .Replace(replacementLookups.SourcesExclude, replacements.SourcesExclude)
-                      .Replace(replacementLookups.SourcesInclude, replacements.SourcesInclude)
-                      .Replace(replacementLookups.CompanyNamesExclude, replacements.CompanyNamesExclude)
-                      .Replace(replacementLookups.CompanyNamesInclude, replacements.CompanyNamesInclude)
-                      .Replace(replacementLookups.PublicKeyTokensExclude, replacements.PublicKeyTokensExclude)
-                      .Replace(replacementLookups.PublicKeyTokensInclude, replacements.PublicKeyTokensInclude);
+            var replacedRunSettingsTemplate = Replace(runSettingsTemplate, replacements);
+
             return new TemplateReplaceResult
             {
                 ReplacedTestAdapter = replacedTestAdapter,
-                Replaced = runSettings
+                Replaced = AddRecommendedYouDoNotChangeElementsIfNotProvided(replacedRunSettingsTemplate)
             };
         }
+
+        private string AddRecommendedYouDoNotChangeElementsIfNotProvided(string replacedRunSettingsTemplate)
+        {
+            var templateDocument = XDocument.Parse(replacedRunSettingsTemplate);
+            var msDataCollectorCodeCoverageElement = GetMsDataCollectorCodeCoverageElement(templateDocument);
+            if (msDataCollectorCodeCoverageElement != null)
+            {
+                foreach (var recommendedYouDoNotChangeElementDetails in recommendedYouDoNotChangeElementsDetails)
+                {
+                    var elementName = recommendedYouDoNotChangeElementDetails.elementName;
+                    var value = recommendedYouDoNotChangeElementDetails.value;
+                    var recommendedYouDoNotChangeElement = msDataCollectorCodeCoverageElement.Element(elementName);
+                    if (recommendedYouDoNotChangeElement == null)
+                    {
+                        msDataCollectorCodeCoverageElement.Add(XElement.Parse($"<{elementName}>{value}</{elementName}>"));
+                    }
+                }
+            }
+            return templateDocument.ToXmlString();
+        }
+
+        private XElement GetMsDataCollectorCodeCoverageElement(XDocument templateDocument)
+        {
+            var dataCollectors = templateDocument.GetStrictDescendant("RunSettings/DataCollectionRunSettings/DataCollectors");
+            var msDataCollector = RunSettingsHelper.FindMsDataCollector(dataCollectors);
+            return msDataCollector.GetStrictDescendant("Configuration/CodeCoverage");
+        }
+
+        public string Replace(string templatedXml, IRunSettingsTemplateReplacements replacements)
+        {
+            return templatedXml
+                .Replace(replacementLookups.ResultsDirectory, replacements.ResultsDirectory)
+                .Replace(replacementLookups.TestAdapter, replacements.TestAdapter)
+                .Replace(replacementLookups.Enabled, replacements.Enabled)
+                .Replace(replacementLookups.ModulePathsExclude, replacements.ModulePathsExclude)
+                .Replace(replacementLookups.ModulePathsInclude, replacements.ModulePathsInclude)
+                .Replace(replacementLookups.FunctionsExclude, replacements.FunctionsExclude)
+                .Replace(replacementLookups.FunctionsInclude, replacements.FunctionsInclude)
+                .Replace(replacementLookups.AttributesExclude, replacements.AttributesExclude)
+                .Replace(replacementLookups.AttributesInclude, replacements.AttributesInclude)
+                .Replace(replacementLookups.SourcesExclude, replacements.SourcesExclude)
+                .Replace(replacementLookups.SourcesInclude, replacements.SourcesInclude)
+                .Replace(replacementLookups.CompanyNamesExclude, replacements.CompanyNamesExclude)
+                .Replace(replacementLookups.CompanyNamesInclude, replacements.CompanyNamesInclude)
+                .Replace(replacementLookups.PublicKeyTokensExclude, replacements.PublicKeyTokensExclude)
+                .Replace(replacementLookups.PublicKeyTokensInclude, replacements.PublicKeyTokensInclude);
+        }
+
 
         #region custom
         private void EnsureRunConfigurationEssentials(XElement runConfiguration)
@@ -241,9 +284,9 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
 
         private void AddFCCGeneratedIfNotPresent(XElement msDataCollectorConfiguration)
         {
-            if (msDataCollectorConfiguration.Element(FCCMarkerElementName) == null)
+            if (msDataCollectorConfiguration.Element(fccMarkerElementName) == null)
             {
-                msDataCollectorConfiguration.Add(XElement.Parse($"<{FCCMarkerElementName}/>"));
+                msDataCollectorConfiguration.Add(XElement.Parse($"<{fccMarkerElementName}/>"));
             }
         }
 
@@ -285,7 +328,7 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
         public bool FCCGenerated(IXPathNavigable inputRunSettingDocument)
         {
             var navigator = inputRunSettingDocument.CreateNavigator();
-            return navigator.SelectSingleNode($"//{FCCMarkerElementName}") != null;
+            return navigator.SelectSingleNode($"//{fccMarkerElementName}") != null;
             
         }
 

@@ -11,9 +11,8 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
 
     internal interface IRunSettingsTemplate
     {
-        string FCCMarkerElementName { get; }
-        
-        ITemplateReplacementResult Replace(string runSettingsTemplate, IRunSettingsTemplateReplacements replacements);
+        ITemplateReplacementResult ReplaceTemplate(string runSettingsTemplate, IRunSettingsTemplateReplacements replacements);
+        string Replace(string templatedXml, IRunSettingsTemplateReplacements replacements);
         
         string ConfigureCustom(string runSettingsTemplate);
 

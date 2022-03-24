@@ -115,7 +115,7 @@
     <Compile Include="MsCodeCoverage\ShimCopier_Tests.cs" />
     <Compile Include="MsCodeCoverage\TemplatedRunSettingsService_Tests.cs" />
     <Compile Include="MsCodeCoverage\CustomRunSettingsTemplateProvider_Tests.cs" />
-    <Compile Include="MsCodeCoverage\Helpers\IXPathNavigableExtensions.cs" />
+    <Compile Include="MsCodeCoverage\Helpers\XmlHelper.cs" />
     <Compile Include="MsCodeCoverage\RunSettingsHelper_Tests.cs" />
     <Compile Include="MsCodeCoverage\RunSettingsTemplate_Tests.cs" />
     <Compile Include="MsCodeCoverage\MsCodeCoverageRunSettingsService_Collect_Tests.cs" />
@@ -123,7 +123,7 @@
     <Compile Include="MsCodeCoverage\MsCodeCoverageRunSettingsService_Initialize_Tests.cs" />
     <Compile Include="MsCodeCoverage\MsCodeCoverageRunSettingsService_IRunSettingsService_Tests.cs" />
     <Compile Include="MsCodeCoverage\ProjectRunSettingsGenerator_Tests.cs" />
-    <Compile Include="MsCodeCoverage\Implementations\TestRunSettingsTemplateReplacements.cs" />
+    <Compile Include="MsCodeCoverage\Implementations\RunSettingsTemplateReplacements.cs" />
     <Compile Include="MsCodeCoverage\UserRunSettingsService_AddFCCSettings_Tests.cs" />
     <Compile Include="MsCodeCoverage\UserRunSettingsService_Analysis_Tests.cs" />
     <Compile Include="MsCodeCoverage\RunSettingsTemplateReplacementsFactory_Tests.cs" />

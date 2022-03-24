@@ -32,7 +32,7 @@ namespace FineCodeCoverageTests.MsCodeCoverage
             var mockRunSettingsTemplate = autoMocker.GetMock<IRunSettingsTemplate>();
             mockRunSettingsTemplate.Setup(runSettingsTemplate => runSettingsTemplate.ToString()).Returns("<MockRunSettingsTemplate/>");
 
-            var runSettingsTemplateReplacements = new TestRunSettingsTemplateReplacements();
+            var runSettingsTemplateReplacements = new RunSettingsTemplateReplacements();
             var mockRunSettingsTemplateReplacementFactory = autoMocker.GetMock<IRunSettingsTemplateReplacementsFactory>();
             mockRunSettingsTemplateReplacementFactory.Setup(
                 runSettingsTemplateReplacementsFactory =>
@@ -42,7 +42,7 @@ namespace FineCodeCoverageTests.MsCodeCoverage
             var result = await templatedRunSettingsService.GenerateAsync(coverageProjects, "SolutionDirectory", "FccTestAdapterPath");
 
             mockRunSettingsTemplate.Verify(
-                runSettingsTemplate => runSettingsTemplate.Replace(
+                runSettingsTemplate => runSettingsTemplate.ReplaceTemplate(
                     "<MockRunSettingsTemplate/>",
                     runSettingsTemplateReplacements)
             );
@@ -71,7 +71,7 @@ namespace FineCodeCoverageTests.MsCodeCoverage
 
             
             mockRunSettingsTemplate.Verify(
-                runSettingsTemplate => runSettingsTemplate.Replace(
+                runSettingsTemplate => runSettingsTemplate.ReplaceTemplate(
                     "<ConfiguredCustom/>",
                     runSettingsTemplateReplacements)
             );
@@ -148,7 +148,7 @@ namespace FineCodeCoverageTests.MsCodeCoverage
             var mockRunSettingsTemplate = autoMocker.GetMock<IRunSettingsTemplate>();
             mockRunSettingsTemplate.SetupSequence(
                 runSettingsTemplate =>
-                runSettingsTemplate.Replace(It.IsAny<string>(), It.IsAny<IRunSettingsTemplateReplacements>())
+                runSettingsTemplate.ReplaceTemplate(It.IsAny<string>(), It.IsAny<IRunSettingsTemplateReplacements>())
             ).Returns(
                 new TemplateReplaceResult
                 {
@@ -192,7 +192,7 @@ namespace FineCodeCoverageTests.MsCodeCoverage
             var mockRunSettingsTemplate = autoMocker.GetMock<IRunSettingsTemplate>();
             mockRunSettingsTemplate.Setup(
                 runSettingsTemplate =>
-                runSettingsTemplate.Replace(It.IsAny<string>(), It.IsAny<IRunSettingsTemplateReplacements>())
+                runSettingsTemplate.ReplaceTemplate(It.IsAny<string>(), It.IsAny<IRunSettingsTemplateReplacements>())
             ).Returns(templateReplacementResult);
         }
 
@@ -206,7 +206,7 @@ namespace FineCodeCoverageTests.MsCodeCoverage
 
         private IRunSettingsTemplateReplacements SetupReplacements()
         {
-            var runSettingsTemplateReplacements = new TestRunSettingsTemplateReplacements();
+            var runSettingsTemplateReplacements = new RunSettingsTemplateReplacements();
             var mockRunSettingsTemplateReplacementFactory = autoMocker.GetMock<IRunSettingsTemplateReplacementsFactory>();
             mockRunSettingsTemplateReplacementFactory.Setup(
                 runSettingsTemplateReplacementsFactory =>

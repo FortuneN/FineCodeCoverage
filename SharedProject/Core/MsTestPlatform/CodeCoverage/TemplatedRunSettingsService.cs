@@ -164,7 +164,7 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
         {
             var replacements = runSettingsTemplateReplacementsFactory.Create(coverageProject, fccMsTestAdapterPath);
 
-            return this.runSettingsTemplate.Replace(runSettingsTemplate, replacements);
+            return this.runSettingsTemplate.ReplaceTemplate(runSettingsTemplate, replacements);
         }
 
         public Task CleanUpAsync(List<ICoverageProject> coverageProjects)

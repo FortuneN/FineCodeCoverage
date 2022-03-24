@@ -37,12 +37,12 @@ namespace FineCodeCoverageTests.MsCodeCoverage
         private List<ICoverageProjectRunSettings> coverageProjectsRunSettings;
         private string generatedRunSettingsInOutputFolderPath1;
         private string generatedRunSettingsInOutputFolderPath2;
-        private const string runSettings1 = IXPathNavigableExtensions.XmlDeclaration + @"
+        private const string runSettings1 = XmlHelper.XmlDeclaration + @"
             <RunSettings>
 <RunConfiguration/>
             </RunSettings>
 ";
-        private const string runSettings2 = IXPathNavigableExtensions.XmlDeclaration + @"
+        private const string runSettings2 = XmlHelper.XmlDeclaration + @"
             <RunSettings>
                         <RunConfiguration/>
             </RunSettings>

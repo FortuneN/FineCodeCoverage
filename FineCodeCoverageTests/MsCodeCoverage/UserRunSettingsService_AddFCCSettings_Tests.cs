@@ -95,7 +95,7 @@ $@"<RunSettings>
         [Test]
         public void Should_Create_Replacements()
         {
-            var xPathNavigable = IXPathNavigableExtensions.CreateXPathNavigable("<RunSettings/>");
+            var xPathNavigable = XmlHelper.CreateXPathNavigable("<RunSettings/>");
 
             var mockRunSettingsConfigurationInfo = new Mock<IRunSettingsConfigurationInfo>();
             var testContainers = new List<ITestContainer> { new Mock<ITestContainer>().Object};
@@ -112,7 +112,7 @@ $@"<RunSettings>
                     projectDetailsLookup,
                     "fccMsTestAdapterPath"
                 )
-            ).Returns(new TestRunSettingsTemplateReplacements());
+            ).Returns(new RunSettingsTemplateReplacements());
 
             userRunSettingsService.AddFCCRunSettings(
                 xPathNavigable, 
@@ -141,7 +141,7 @@ $@"<RunSettings>
             {unchangedDataCollectionRunSettings}
         </RunSettings>
         ";
-            TestAddFCCSettings(runSettings, expectedRunSettings, new TestRunSettingsTemplateReplacements
+            TestAddFCCSettings(runSettings, expectedRunSettings, new RunSettingsTemplateReplacements
             {
                 ResultsDirectory = resultsDirectory,
                 TestAdapter = testAdapter
@@ -165,7 +165,7 @@ $@"<RunSettings>
             </RunConfiguration>
             {unchangedDataCollectionRunSettings}
         </RunSettings>";
-            TestAddFCCSettings(runSettings, expectedRunSettings, new TestRunSettingsTemplateReplacements
+            TestAddFCCSettings(runSettings, expectedRunSettings, new RunSettingsTemplateReplacements
             {
                 TestAdapter = "MsTestAdapter"
             });
@@ -190,7 +190,7 @@ $@"<RunSettings>
             </RunConfiguration>
             {unchangedDataCollectionRunSettings}
         </RunSettings>";
-            TestAddFCCSettings(runSettings, expectedRunSettings, new TestRunSettingsTemplateReplacements
+            TestAddFCCSettings(runSettings, expectedRunSettings, new RunSettingsTemplateReplacements
             {
                 TestAdapter = "MsTestAdapter"
             });
@@ -216,7 +216,7 @@ $@"<RunSettings>
         </RunSettings>
         ";
 
-            TestAddFCCSettings(runSettings, expectedRunSettings, new TestRunSettingsTemplateReplacements
+            TestAddFCCSettings(runSettings, expectedRunSettings, new RunSettingsTemplateReplacements
             {
                 CompanyNamesInclude = "<CompanyName>Replacement</CompanyName>",
                 Enabled = "true"
@@ -246,7 +246,7 @@ $@"<RunSettings>
         </RunSettings>
         ";
 
-            TestAddFCCSettings(runSettings, expectedRunSettings, new TestRunSettingsTemplateReplacements
+            TestAddFCCSettings(runSettings, expectedRunSettings, new RunSettingsTemplateReplacements
             {
                 CompanyNamesInclude = "<CompanyName>Replacement</CompanyName>",
                 Enabled = "true"
@@ -279,7 +279,7 @@ $@"<RunSettings>
         </RunSettings>
         ";
 
-            TestAddFCCSettings(runSettings, expectedRunSettings, new TestRunSettingsTemplateReplacements
+            TestAddFCCSettings(runSettings, expectedRunSettings, new RunSettingsTemplateReplacements
             {
                 CompanyNamesInclude = "<CompanyName>Replacement</CompanyName>",
                 Enabled = "true"
@@ -367,7 +367,7 @@ $@"<RunSettings>
         </RunSettings>
         ";
 
-            TestAddFCCSettings(runSettings, expectedRunSettings, new TestRunSettingsTemplateReplacements
+            TestAddFCCSettings(runSettings, expectedRunSettings, new RunSettingsTemplateReplacements
             {
                 AttributesExclude = "<A>ExcludeReplacement</A>",
                 AttributesInclude = "<A>IncludeReplacement</A>",
@@ -432,7 +432,7 @@ $@"<RunSettings>
             </DataCollectionRunSettings>
         </RunSettings>
         ";
-            TestAddFCCSettings(runSettings, expectedRunSettings, new TestRunSettingsTemplateReplacements
+            TestAddFCCSettings(runSettings, expectedRunSettings, new RunSettingsTemplateReplacements
             {
                 CompanyNamesInclude = "<CompanyName>Replacement</CompanyName>",
                 CompanyNamesExclude = "Not replaced",
@@ -469,7 +469,7 @@ $@"<RunSettings>
             </DataCollectionRunSettings>
         </RunSettings>
         ";
-            TestAddFCCSettings(runSettings, expectedRunSettings, new TestRunSettingsTemplateReplacements());
+            TestAddFCCSettings(runSettings, expectedRunSettings, new RunSettingsTemplateReplacements());
         }
 
         [Test]
@@ -505,7 +505,7 @@ $@"<RunSettings>
         </RunSettings>
         ";
 
-            TestAddFCCSettings(runSettings, expectedRunSettings, new TestRunSettingsTemplateReplacements());
+            TestAddFCCSettings(runSettings, expectedRunSettings, new RunSettingsTemplateReplacements());
         }
 
         [Test]
@@ -556,7 +556,7 @@ $@"<RunSettings>
                     </DataCollectionRunSettings>
                 </RunSettings>                
 ";
-            TestAddFCCSettings("<RunSettings/>", expectedRunSettings, new TestRunSettingsTemplateReplacements { Enabled = "true"});
+            TestAddFCCSettings("<RunSettings/>", expectedRunSettings, new RunSettingsTemplateReplacements { Enabled = "true"});
         }
 
         private void TestAddFCCSettings(string runSettings, string expectedFccRunSettings, IRunSettingsTemplateReplacements runSettingsTemplateReplacements)
@@ -569,7 +569,7 @@ $@"<RunSettings>
 
         private string AddFCCSettings(string runSettings, IRunSettingsTemplateReplacements runSettingsTemplateReplacements)
         {
-            var xpathNavigable = IXPathNavigableExtensions.CreateXPathNavigable(runSettings);
+            var xpathNavigable = XmlHelper.CreateXPathNavigable(runSettings);
             var mockRunSettingsTemplateReplacementsFactory = autoMocker.GetMock<IRunSettingsTemplateReplacementsFactory>();
             mockRunSettingsTemplateReplacementsFactory.Setup(
                 runSettingsTemplateReplacementsFactory => runSettingsTemplateReplacementsFactory.Create(

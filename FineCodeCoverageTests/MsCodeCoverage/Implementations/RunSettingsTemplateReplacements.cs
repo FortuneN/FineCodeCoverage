@@ -9,7 +9,7 @@ namespace FineCodeCoverageTests.MsCodeCoverage
         public bool ReplacedTestAdapter { get; set; }
     }
 
-    internal class TestRunSettingsTemplateReplacements : IRunSettingsTemplateReplacements
+    internal class RunSettingsTemplateReplacements : IRunSettingsTemplateReplacements
     {
         public string Enabled { get; set; }
 

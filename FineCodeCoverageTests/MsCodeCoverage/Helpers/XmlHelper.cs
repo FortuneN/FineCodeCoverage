@@ -5,7 +5,7 @@ using System.Globalization;
 
 namespace FineCodeCoverageTests.MsCodeCoverage
 {
-    internal static class IXPathNavigableExtensions
+    internal static class XmlHelper
     {
         public const string XmlDeclaration = "<?xml version='1.0' encoding='utf-8'?>";
 
