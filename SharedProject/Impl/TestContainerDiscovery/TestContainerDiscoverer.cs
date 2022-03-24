@@ -12,6 +12,7 @@ using Microsoft.VisualStudio.TestWindow.Extensibility;
 using Task = System.Threading.Tasks.Task;
 using Microsoft.VisualStudio.Utilities;
 using FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage;
+using System.Diagnostics;
 
 namespace FineCodeCoverage.Impl
 {
@@ -180,12 +181,20 @@ namespace FineCodeCoverage.Impl
             }
         }
 
-        private void CoverageCancelled(string logMessage)
+        private Task CoverageCancelledAsync(string logMessage)
         {
             CombinedLog(logMessage);
             reportGeneratorUtil.EndOfCoverageRun(); // not necessarily true but get desired result
             fccEngine.StopCoverage();
-            // not necessary for ms code coverage as only runs when TestExecutionFinished
+            return NotifyMsCodeCoverageTestExecutionNotFinishedIfCollectingAsync();
+        }
+
+        private async Task NotifyMsCodeCoverageTestExecutionNotFinishedIfCollectingAsync()
+        {
+            if (msCodeCoverageCollectionStatus == MsCodeCoverageCollectionStatus.Collecting)
+            {
+                await msCodeCoverageRunSettingsService.TestExecutionNotFinishedAsync();
+            }
         }
 
         private void OperationState_StateChanged(object sender, OperationStateChangedEventArgs e)
@@ -197,7 +206,7 @@ namespace FineCodeCoverage.Impl
                     if (e.State == TestOperationStates.TestExecutionCanceling)
                     {
                         cancelling = true;
-                        CoverageCancelled("Test execution cancelling - running coverage will be cancelled.");
+                        await CoverageCancelledAsync("Test execution cancelling - running coverage will be cancelled.");
                     }
 
 
@@ -214,7 +223,7 @@ namespace FineCodeCoverage.Impl
 
                     if (e.State == TestOperationStates.TestExecutionCancelAndFinished && !cancelling)
                     {
-                        CoverageCancelled("There has been an issue running tests. See the Tests output window pane.");
+                        await CoverageCancelledAsync("There has been an issue running tests. See the Tests output window pane.");
                     }
 
                 }

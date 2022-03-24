@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage;
 using FineCodeCoverageTests.Test_helpers;
 using FineCodeCoverage.Engine.ReportGenerator;
+using FineCodeCoverage.Engine.Model;
 
 namespace FineCodeCoverageTests.MsCodeCoverage
 {
@@ -70,8 +71,10 @@ namespace FineCodeCoverageTests.MsCodeCoverage
 
             var mockOperation = new Mock<IOperation>();
             mockOperation.Setup(operation => operation.GetRunSettingsDataCollectorResultUri(new Uri(RunSettingsHelper.MsDataCollectorUri))).Returns(resultsUris);
-            
-            await msCodeCoverageRunSettingsService.CollectAsync(mockOperation.Object, new Mock<ITestOperation>().Object);
+
+            var mockTestOperation = new Mock<ITestOperation>();
+            mockTestOperation.Setup(testOperation => testOperation.GetCoverageProjectsAsync()).ReturnsAsync(new List<ICoverageProject>());
+            await msCodeCoverageRunSettingsService.CollectAsync(mockOperation.Object, mockTestOperation.Object);
             
             mockFccEngine.Verify(engine => engine.RunAndProcessReport(
                     It.Is<string[]>(coberturaFiles => !expectedCoberturaFiles.Except(coberturaFiles).Any() && !coberturaFiles.Except(expectedCoberturaFiles).Any()), It.IsAny<Action>()

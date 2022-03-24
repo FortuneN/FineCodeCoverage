@@ -11,5 +11,6 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
         Task<MsCodeCoverageCollectionStatus> IsCollectingAsync(ITestOperation testOperation);
         Task CollectAsync(IOperation operation, ITestOperation testOperation);
         void StopCoverage();
+        Task TestExecutionNotFinishedAsync();
     }    
 }

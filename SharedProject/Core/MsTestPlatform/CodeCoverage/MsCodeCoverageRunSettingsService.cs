@@ -91,7 +91,7 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
             IAppOptionsProvider appOptionsProvider,
             ICoverageToolOutputManager coverageOutputManager,
             IUserRunSettingsService userRunSettingsService,
-            ITemplatedRunSettingsService projectRunSettingsFromTemplateService,
+            ITemplatedRunSettingsService templatedRunSettingsService,
             IShimCopier shimCopier,
             ILogger logger,
             IReportGeneratorUtil reportGeneratorUtil
@@ -105,7 +105,7 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
             this.logger = logger;
             this.reportGeneratorUtil = reportGeneratorUtil;
             this.userRunSettingsService = userRunSettingsService;
-            this.templatedRunSettingsService = projectRunSettingsFromTemplateService;
+            this.templatedRunSettingsService = templatedRunSettingsService;
         }
 
         public void Initialize(string appDataFolder, IFCCEngine fccEngine, CancellationToken cancellationToken)
@@ -166,6 +166,7 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
             useMsCodeCoverage = appOptionsProvider.Get().MsCodeCoverage;
             coverageProjectsByType = await CoverageProjectsByType.CreateAsync(testOperation);
             userRunSettingsProjectDetailsLookup = null;
+            await templatedRunSettingsService.CleanUpAsync(coverageProjectsByType.RunSettings);
         }
 
         private async Task<IUserRunSettingsAnalysisResult> TryAnalyseUserRunSettingsAsync()
@@ -279,6 +280,8 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
 
         public async Task CollectAsync(IOperation operation, ITestOperation testOperation)
         {
+            var coverageProjectsByType = await CoverageProjectsByType.CreateAsync(testOperation);
+            await templatedRunSettingsService.CleanUpAsync(coverageProjectsByType.RunSettings);
             var resultsUris = operation.GetRunSettingsMsDataCollectorResultUri();
             var coberturaFiles = new string[0];
             if (resultsUris != null)
@@ -291,14 +294,7 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
                 await CombinedLogAsync("No cobertura files for ms code coverage.");
             }
 
-            fccEngine.RunAndProcessReport(coberturaFiles,() =>
-            {
-                threadHelper.JoinableTaskFactory.Run(async () =>
-                {
-                    List<ICoverageProject> coverageProjects = await testOperation.GetCoverageProjectsAsync();
-                    await templatedRunSettingsService.CleanUpAsync(coverageProjects);
-                });
-            });
+            fccEngine.RunAndProcessReport(coberturaFiles);
         }
 
         public void StopCoverage()
@@ -330,7 +326,13 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
                 reportGeneratorUtil.LogCoverageProcess(reason);
             });
         }
+
         #endregion
+
+        public Task TestExecutionNotFinishedAsync()
+        {
+            return templatedRunSettingsService.CleanUpAsync(coverageProjectsByType.Templated);
+        }
 
     }
 
