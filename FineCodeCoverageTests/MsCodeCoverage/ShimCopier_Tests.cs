@@ -58,7 +58,7 @@ namespace FineCodeCoverageTests.MsCodeCoverage
             
             shimCopier.Copy("ShimPath", coverageProjects);
 
-            mockFileUtil.Verify(file => file.Copy("ShimPath", shimDestination), Times.Never);
+            mockFileUtil.Verify(file => file.Copy("ShimPath", shimDestination), Times.Never());
         }
 
         private ICoverageProject CreateCoverageProject(string projectOutputFolder, bool isNetFramework)
