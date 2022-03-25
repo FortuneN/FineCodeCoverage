@@ -145,10 +145,18 @@ namespace Test
         public void Should_Notify_MsCodeCoverage_When_Test_Execution_Not_Finished_IfCollectingAsync(MsCodeCoverageCollectionStatus status, bool cancelling)
         {
             var mockMsCodeCoverageRunSettingsService = SetMsCodeCoverageCollecting(status);
-            RaiseOperationStateChanged(cancelling ? TestOperationStates.TestExecutionCanceling : TestOperationStates.TestExecutionCancelAndFinished);
+            var operation = new Mock<IOperation>().Object;
+            var mockTestOperationFactory = mocker.GetMock<ITestOperationFactory>();
+            var testOperation = new Mock<ITestOperation>().Object;
+            mockTestOperationFactory.Setup(testOperationFactory => testOperationFactory.Create(operation)).Returns(testOperation);
+
+            RaiseOperationStateChanged(
+                cancelling ? TestOperationStates.TestExecutionCanceling : TestOperationStates.TestExecutionCancelAndFinished, 
+                operation
+            );
             var times = status == MsCodeCoverageCollectionStatus.Collecting ? Times.Once() : Times.Never();
             mockMsCodeCoverageRunSettingsService.Verify(
-                msCodeCoverageRunSettingsService => msCodeCoverageRunSettingsService.TestExecutionNotFinishedAsync(), times
+                msCodeCoverageRunSettingsService => msCodeCoverageRunSettingsService.TestExecutionNotFinishedAsync(testOperation), times
             );
         }
 
@@ -220,7 +228,7 @@ namespace Test
             RaiseTestExecutionFinished(operation);
             mocker.Verify<IMsCodeCoverageRunSettingsService>(
                 msCodeCoverageRunSettingsService =>
-                msCodeCoverageRunSettingsService.CollectAsync(operation)
+                msCodeCoverageRunSettingsService.CollectAsync(operation,testOperation)
             );
         }
 

@@ -9,8 +9,8 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
     {
         void Initialize(string appDataFolder,IFCCEngine fccEngine, CancellationToken cancellationToken);
         Task<MsCodeCoverageCollectionStatus> IsCollectingAsync(ITestOperation testOperation);
-        Task CollectAsync(IOperation operation);
+        Task CollectAsync(IOperation operation, ITestOperation testOperation);
         void StopCoverage();
-        Task TestExecutionNotFinishedAsync();
+        Task TestExecutionNotFinishedAsync(ITestOperation testOperation);
     }    
 }

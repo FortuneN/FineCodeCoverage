@@ -137,7 +137,7 @@ namespace FineCodeCoverage.Impl
             
             if (msCodeCoverageCollectionStatus == MsCodeCoverageCollectionStatus.Collecting)
             {
-                await msCodeCoverageRunSettingsService.CollectAsync(operation);
+                await msCodeCoverageRunSettingsService.CollectAsync(operation, testOperation);
             }
             else
             {
@@ -181,19 +181,20 @@ namespace FineCodeCoverage.Impl
             }
         }
 
-        private Task CoverageCancelledAsync(string logMessage)
+        private Task CoverageCancelledAsync(string logMessage, IOperation operation)
         {
             CombinedLog(logMessage);
             reportGeneratorUtil.EndOfCoverageRun(); // not necessarily true but get desired result
             fccEngine.StopCoverage();
-            return NotifyMsCodeCoverageTestExecutionNotFinishedIfCollectingAsync();
+            return NotifyMsCodeCoverageTestExecutionNotFinishedIfCollectingAsync(operation);
         }
 
-        private async Task NotifyMsCodeCoverageTestExecutionNotFinishedIfCollectingAsync()
+        private async Task NotifyMsCodeCoverageTestExecutionNotFinishedIfCollectingAsync(IOperation operation)
         {
             if (msCodeCoverageCollectionStatus == MsCodeCoverageCollectionStatus.Collecting)
             {
-                await msCodeCoverageRunSettingsService.TestExecutionNotFinishedAsync();
+                var testOperation = testOperationFactory.Create(operation);
+                await msCodeCoverageRunSettingsService.TestExecutionNotFinishedAsync(testOperation);
             }
         }
 
@@ -206,7 +207,7 @@ namespace FineCodeCoverage.Impl
                     if (e.State == TestOperationStates.TestExecutionCanceling)
                     {
                         cancelling = true;
-                        await CoverageCancelledAsync("Test execution cancelling - running coverage will be cancelled.");
+                        await CoverageCancelledAsync("Test execution cancelling - running coverage will be cancelled.",e.Operation);
                     }
 
 
@@ -223,7 +224,7 @@ namespace FineCodeCoverage.Impl
 
                     if (e.State == TestOperationStates.TestExecutionCancelAndFinished && !cancelling)
                     {
-                        await CoverageCancelledAsync("There has been an issue running tests. See the Tests output window pane.");
+                        await CoverageCancelledAsync("There has been an issue running tests. See the Tests output window pane.",e.Operation);
                     }
 
                 }

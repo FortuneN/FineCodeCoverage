@@ -160,13 +160,14 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
             }
         }
 
-        private async Task InitializeIsCollectingAsync(ITestOperation testOperation)
+        private Task InitializeIsCollectingAsync(ITestOperation testOperation)
         {
             collectionStatus = MsCodeCoverageCollectionStatus.NotCollecting;
             useMsCodeCoverage = appOptionsProvider.Get().MsCodeCoverage;
-            coverageProjectsByType = await CoverageProjectsByType.CreateAsync(testOperation);
+            //coverageProjectsByType = await CoverageProjectsByType.CreateAsync(testOperation);
             userRunSettingsProjectDetailsLookup = null;
-            await templatedRunSettingsService.CleanUpAsync(coverageProjectsByType.RunSettings);
+            //await templatedRunSettingsService.CleanUpAsync(coverageProjectsByType.RunSettings);
+            return CleanUpAsync(testOperation);
         }
 
         private async Task<IUserRunSettingsAnalysisResult> TryAnalyseUserRunSettingsAsync()
@@ -278,9 +279,9 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
 
         #endregion
 
-        public async Task CollectAsync(IOperation operation)
+        public async Task CollectAsync(IOperation operation, ITestOperation testOperation)
         {
-            await templatedRunSettingsService.CleanUpAsync(coverageProjectsByType.Templated);
+            await CleanUpAsync(testOperation);
             var resultsUris = operation.GetRunSettingsMsDataCollectorResultUri();
             var coberturaFiles = new string[0];
             if (resultsUris != null)
@@ -328,11 +329,16 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
 
         #endregion
 
-        public Task TestExecutionNotFinishedAsync()
+        public Task TestExecutionNotFinishedAsync(ITestOperation testOperation)
         {
-            return templatedRunSettingsService.CleanUpAsync(coverageProjectsByType.Templated);
+            return CleanUpAsync(testOperation);
         }
 
+        private async Task CleanUpAsync(ITestOperation testOperation)
+        {
+            coverageProjectsByType = await CoverageProjectsByType.CreateAsync(testOperation);
+            await templatedRunSettingsService.CleanUpAsync(coverageProjectsByType.RunSettings);
+        }
     }
 
     public static class IRunSettingsConfigurationInfoExtensions { 

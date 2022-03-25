@@ -21,7 +21,7 @@ namespace FineCodeCoverageTests.MsCodeCoverage
     internal class MsCodeCoverageRunSettingsService_Test_Execution_Not_Finished_Tests
     {
         [Test]
-        public async Task Should_Clean_Up_Templated_Coverage_Projects()
+        public async Task Should_Clean_Up_RunSettings_Coverage_Projects()
         {
             var autoMocker = new AutoMoqer();
             var msCodeCoverageRunSettingsService = autoMocker.Create<MsCodeCoverageRunSettingsService>();
@@ -30,19 +30,21 @@ namespace FineCodeCoverageTests.MsCodeCoverage
 
             // is collecting
             var mockTestOperation = new Mock<ITestOperation>();
-            var templateCoverageProject = CreateCoverageProject(null);
+            var runSettingsCoverageProject = CreateCoverageProject(".runsettings");
             var coverageProjects = new List<ICoverageProject>
             {
-                templateCoverageProject,
-                CreateCoverageProject(".runsettings")
+                runSettingsCoverageProject,
+                CreateCoverageProject(null)
+                
             };
             mockTestOperation.Setup(testOperation => testOperation.GetCoverageProjectsAsync()).ReturnsAsync(coverageProjects);
+            
             await msCodeCoverageRunSettingsService.IsCollectingAsync(mockTestOperation.Object);
 
-            await msCodeCoverageRunSettingsService.TestExecutionNotFinishedAsync();
+            await msCodeCoverageRunSettingsService.TestExecutionNotFinishedAsync(mockTestOperation.Object);
 
             autoMocker.Verify<ITemplatedRunSettingsService>(
-                templatedRunSettingsService => templatedRunSettingsService.CleanUpAsync(new List<ICoverageProject> { templateCoverageProject })
+                templatedRunSettingsService => templatedRunSettingsService.CleanUpAsync(new List<ICoverageProject> { runSettingsCoverageProject })
             );
         }
 
@@ -57,7 +59,7 @@ namespace FineCodeCoverageTests.MsCodeCoverage
     internal class MsCodeCoverageRunSettingsService_Collect_Tests
     {
         private AutoMoqer autoMocker;
-        private ICoverageProject templateCoverageProject;
+        private ICoverageProject runSettingsCoverageProject;
 
         [Test]
         public async Task Should_FCCEngine_RunAndProcessReport_With_CoberturaResults()
@@ -87,15 +89,14 @@ namespace FineCodeCoverageTests.MsCodeCoverage
             autoMocker.Verify<IReportGeneratorUtil>(
                 reportGenerator => reportGenerator.LogCoverageProcess("No cobertura files for ms code coverage.")
             );
-
         }
 
         [Test]
-        public async Task Should_Clean_Up_Template_Coverage_Projects_From_IsCollecting()
+        public async Task Should_Clean_Up_RunSettings_Coverage_Projects_From_IsCollecting()
         {
             await RunAndProcessReportAsync(null, Array.Empty<string>());
             autoMocker.Verify<ITemplatedRunSettingsService>(
-                templatedRunSettingsService => templatedRunSettingsService.CleanUpAsync(new List<ICoverageProject> { templateCoverageProject })
+                templatedRunSettingsService => templatedRunSettingsService.CleanUpAsync(new List<ICoverageProject> { runSettingsCoverageProject })
             );
         }
 
@@ -122,18 +123,18 @@ namespace FineCodeCoverageTests.MsCodeCoverage
 
             // IsCollecting
             var mockTestOperation = new Mock<ITestOperation>();
-            templateCoverageProject = CreateCoverageProject(null);
+            runSettingsCoverageProject = CreateCoverageProject(".runsettings");
             var coverageProjects = new List<ICoverageProject>
             {
-                templateCoverageProject,
-                CreateCoverageProject(".runsettings")
+                CreateCoverageProject(null),
+                runSettingsCoverageProject
             };
             mockTestOperation.Setup(testOperation => testOperation.GetCoverageProjectsAsync()).ReturnsAsync(coverageProjects);
             var mockAppOptionsProvider = autoMocker.GetMock<IAppOptionsProvider>();
             mockAppOptionsProvider.Setup(appOptionsProvider => appOptionsProvider.Get()).Returns(new Mock<IAppOptions>().Object);
             await msCodeCoverageRunSettingsService.IsCollectingAsync(mockTestOperation.Object);
 
-            await msCodeCoverageRunSettingsService.CollectAsync(mockOperation.Object);
+            await msCodeCoverageRunSettingsService.CollectAsync(mockOperation.Object, mockTestOperation.Object);
             
             mockFccEngine.Verify(engine => engine.RunAndProcessReport(
                     It.Is<string[]>(coberturaFiles => !expectedCoberturaFiles.Except(coberturaFiles).Any() && !coberturaFiles.Except(expectedCoberturaFiles).Any()), It.IsAny<Action>()
