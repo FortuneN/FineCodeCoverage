@@ -7,7 +7,7 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
     {
         List<string> ExcludedReferencedProjects { get; set; }
         List<string> IncludedReferencedProjects { get; set; }
-        string OutputFolder { get; set; }
+        string CoverageOutputFolder { get; set; }
         IMsCodeCoverageOptions Settings { get; set; }
         string TestDllFile { get; set; }
     }

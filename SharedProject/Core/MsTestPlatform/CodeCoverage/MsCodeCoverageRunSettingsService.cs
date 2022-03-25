@@ -26,7 +26,7 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
         private class UserRunSettingsProjectDetails : IUserRunSettingsProjectDetails
         {
             public IMsCodeCoverageOptions Settings { get; set; }
-            public string OutputFolder { get; set; }
+            public string CoverageOutputFolder { get; set; }
             public string TestDllFile { get; set; }
             public List<string> ExcludedReferencedProjects { get; set; }
             public List<string> IncludedReferencedProjects { get; set; }
@@ -250,7 +250,7 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
                 var userRunSettingsProjectDetails = new UserRunSettingsProjectDetails
                 {
                     Settings = coverageProjectWithRunSettings.Settings,
-                    OutputFolder = coverageProjectWithRunSettings.ProjectOutputFolder,
+                    CoverageOutputFolder = coverageProjectWithRunSettings.CoverageOutputFolder,
                     TestDllFile = coverageProjectWithRunSettings.TestDllFile,
                     ExcludedReferencedProjects = coverageProjectWithRunSettings.ExcludedReferencedProjects,
                     IncludedReferencedProjects = coverageProjectWithRunSettings.IncludedReferencedProjects

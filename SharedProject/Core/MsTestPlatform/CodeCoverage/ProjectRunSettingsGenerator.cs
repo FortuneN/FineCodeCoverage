@@ -56,8 +56,8 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
 
         private async Task WriteProjectRunSettingsAsync(Guid projectGuid, string projectRunSettingsFilePath, string projectRunSettings)
         {
-
-            if (await vsRunSettingsWriter.WriteRunSettingsFilePathAsync(projectGuid, projectRunSettingsFilePath))
+            var ok = await vsRunSettingsWriter.WriteRunSettingsFilePathAsync(projectGuid, projectRunSettingsFilePath);
+            if (ok)
             {
                 projectRunSettings = XDocument.Parse(projectRunSettings).FormatXml();
                 fileUtil.WriteAllText(projectRunSettingsFilePath, projectRunSettings);

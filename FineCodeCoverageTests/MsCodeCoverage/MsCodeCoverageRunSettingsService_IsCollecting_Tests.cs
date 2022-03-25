@@ -228,7 +228,7 @@ namespace FineCodeCoverageTests.MsCodeCoverage
             Assert.AreSame(projectSettings, userRunSettingsProjectDetails.Settings);
             Assert.AreSame(excludedReferencedProjects, userRunSettingsProjectDetails.ExcludedReferencedProjects);
             Assert.AreSame(includedReferencedProjects, userRunSettingsProjectDetails.IncludedReferencedProjects);
-            Assert.AreEqual("OutputFolder", userRunSettingsProjectDetails.OutputFolder);
+            Assert.AreEqual("OutputFolder", userRunSettingsProjectDetails.CoverageOutputFolder);
             Assert.AreEqual("Test.dll", userRunSettingsProjectDetails.TestDllFile);
         }
 
@@ -515,7 +515,7 @@ namespace FineCodeCoverageTests.MsCodeCoverage
         private ICoverageProject CreateCoverageProject(
             string runSettingsFile,
             IAppOptions settings = null,
-            string outputFolder = "",
+            string coverageOutputFolder = "",
             string testDllFile = "", 
             List<string> excludedReferencedProjects = null,
             List<string> includedReferencedProjects = null,
@@ -524,7 +524,7 @@ namespace FineCodeCoverageTests.MsCodeCoverage
         {
             var mockCoverageProject = new Mock<ICoverageProject>();
             mockCoverageProject.Setup(cp => cp.RunSettingsFile).Returns(runSettingsFile);
-            mockCoverageProject.Setup(cp => cp.ProjectOutputFolder).Returns(outputFolder);
+            mockCoverageProject.Setup(cp => cp.CoverageOutputFolder).Returns(coverageOutputFolder);
             mockCoverageProject.Setup(cp => cp.TestDllFile).Returns(testDllFile);
             mockCoverageProject.Setup(cp => cp.ExcludedReferencedProjects).Returns(excludedReferencedProjects);
             mockCoverageProject.Setup(cp => cp.IncludedReferencedProjects).Returns(includedReferencedProjects);

@@ -59,7 +59,7 @@ namespace FineCodeCoverageTests.MsCodeCoverage
         {
             public List<string> ExcludedReferencedProjects { get; set; }
             public List<string> IncludedReferencedProjects { get; set; }
-            public string OutputFolder { get; set; }
+            public string CoverageOutputFolder { get; set; }
             public IMsCodeCoverageOptions Settings { get; set; }
             public string TestDllFile { get; set; }
         }
@@ -84,7 +84,7 @@ namespace FineCodeCoverageTests.MsCodeCoverage
                     "Source1",
                     new TestUserRunSettingsProjectDetails
                     {
-                        OutputFolder = "",
+                        CoverageOutputFolder = "",
                         Settings = new TestMsCodeCoverageOptions{ IncludeTestAssembly = true},
                         ExcludedReferencedProjects = new List<string>(),
                         IncludedReferencedProjects = new List<string>(),
@@ -111,7 +111,7 @@ namespace FineCodeCoverageTests.MsCodeCoverage
                     "Source1",
                     new TestUserRunSettingsProjectDetails
                     {
-                        OutputFolder = outputFolder1,
+                        CoverageOutputFolder = outputFolder1,
                         Settings = new TestMsCodeCoverageOptions{ IncludeTestAssembly = true},
                         ExcludedReferencedProjects = new List<string>(),
                         IncludedReferencedProjects = new List<string>(),
@@ -121,7 +121,7 @@ namespace FineCodeCoverageTests.MsCodeCoverage
                     "Source2",
                     new TestUserRunSettingsProjectDetails
                     {
-                        OutputFolder = outputFolder2,
+                        CoverageOutputFolder = outputFolder2,
                         Settings = new TestMsCodeCoverageOptions{ IncludeTestAssembly = true},
                         ExcludedReferencedProjects = new List<string>(),
                         IncludedReferencedProjects = new List<string>(),
@@ -173,7 +173,7 @@ namespace FineCodeCoverageTests.MsCodeCoverage
                     "Source1",
                     new TestUserRunSettingsProjectDetails
                     {
-                        OutputFolder = "",
+                        CoverageOutputFolder = "",
                         Settings = CreateSettings("1"),
                         ExcludedReferencedProjects = new List<string>(),
                         IncludedReferencedProjects = new List<string>(),
@@ -183,7 +183,7 @@ namespace FineCodeCoverageTests.MsCodeCoverage
                     "Source2",
                     new TestUserRunSettingsProjectDetails
                     {
-                        OutputFolder = "",
+                        CoverageOutputFolder = "",
                         Settings = CreateSettings("2"),
                         ExcludedReferencedProjects = new List<string>(),
                         IncludedReferencedProjects = new List<string>(),
@@ -234,7 +234,7 @@ namespace FineCodeCoverageTests.MsCodeCoverage
                     "Source1",
                     new TestUserRunSettingsProjectDetails
                     {
-                        OutputFolder = "",
+                        CoverageOutputFolder = "",
                         Settings = new TestMsCodeCoverageOptions{
                             IncludeTestAssembly = includeTestAssembly1,
                             ModulePathsExclude = new string[]{ "ModulePathExclude"}
@@ -248,7 +248,7 @@ namespace FineCodeCoverageTests.MsCodeCoverage
                     "Source2",
                     new TestUserRunSettingsProjectDetails
                     {
-                        OutputFolder = "",
+                        CoverageOutputFolder = "",
                         Settings = new TestMsCodeCoverageOptions{ IncludeTestAssembly = includeTestAssembly2},
                         ExcludedReferencedProjects = new List<string>(),
                         IncludedReferencedProjects = new List<string>(),
@@ -287,7 +287,7 @@ namespace FineCodeCoverageTests.MsCodeCoverage
                     "Source1",
                     new TestUserRunSettingsProjectDetails
                     {
-                        OutputFolder = "",
+                        CoverageOutputFolder = "",
                         Settings = new TestMsCodeCoverageOptions{
                             IncludeTestAssembly = true,
                             ModulePathsExclude = new string[]{ "ModulePathExclude"},
@@ -301,7 +301,7 @@ namespace FineCodeCoverageTests.MsCodeCoverage
                     "Source2",
                     new TestUserRunSettingsProjectDetails
                     {
-                        OutputFolder = "",
+                        CoverageOutputFolder = "",
                         Settings = new TestMsCodeCoverageOptions{ IncludeTestAssembly = true},
                         ExcludedReferencedProjects = new List<string>{ "ExcludedReferenced2"},
                         IncludedReferencedProjects = new List<string>{ "IncludedReferenced2" },
@@ -341,7 +341,7 @@ namespace FineCodeCoverageTests.MsCodeCoverage
                     "Source1",
                     new TestUserRunSettingsProjectDetails
                     {
-                        OutputFolder = "",
+                        CoverageOutputFolder = "",
                         Settings = new TestMsCodeCoverageOptions{ IncludeTestAssembly = true},
                         ExcludedReferencedProjects = new List<string>(),
                         IncludedReferencedProjects = new List<string>(),
@@ -351,7 +351,7 @@ namespace FineCodeCoverageTests.MsCodeCoverage
                     "Source2",
                     new TestUserRunSettingsProjectDetails
                     {
-                        OutputFolder = "",
+                        CoverageOutputFolder = "",
                         Settings = new TestMsCodeCoverageOptions{ IncludeTestAssembly = true},
                         ExcludedReferencedProjects = new List<string>(),
                         IncludedReferencedProjects = new List<string>(),
@@ -414,11 +414,11 @@ namespace FineCodeCoverageTests.MsCodeCoverage
         }
 
         [Test]
-        public void Should_Set_The_ResultsDirectory_To_The_Project_ProjectOutputFolder()
+        public void Should_Set_The_ResultsDirectory_To_The_Project_CoverageOutputFolder()
         {
-            var coverageProject = CreateCoverageProject(mock => mock.Setup(cp => cp.ProjectOutputFolder).Returns("ProjectOutputFolder"));
+            var coverageProject = CreateCoverageProject(mock => mock.Setup(cp => cp.CoverageOutputFolder).Returns("CoverageOutputFolder"));
             var replacements = runSettingsTemplateReplacementsFactory.Create(coverageProject,null);
-            Assert.AreEqual("ProjectOutputFolder", replacements.ResultsDirectory);
+            Assert.AreEqual("CoverageOutputFolder", replacements.ResultsDirectory);
         }
 
         [Test]
