@@ -177,9 +177,9 @@ namespace FineCodeCoverage.Engine
                 if (coverageProject.HasFailed)
                 {
                     var coverageStagePrefix = String.IsNullOrEmpty(coverageProject.FailureStage) ? "" : $"{coverageProject.FailureStage} ";
-                    var failureMessage = $"{coverageProject.FailureStage}({coverageProject.ProjectName}) Failed";
+                    var failureMessage = $"{coverageProject.FailureStage}({coverageProject.ProjectName}) Failed.";
                     logger.Log(failureMessage, coverageProject.FailureDescription);
-                    reportGeneratorUtil.LogCoverageProcess(failureMessage + Environment.NewLine + coverageProject.FailureDescription);
+                    reportGeneratorUtil.LogCoverageProcess(failureMessage + "  See the FCC Output Pane");
                 }
 
             }
@@ -270,7 +270,7 @@ namespace FineCodeCoverage.Engine
                             GetLogReloadCoverageStatusMessage(ReloadCoverageStatus.Error),
                             innerException
                         );
-                        reportGeneratorUtil.LogCoverageProcess(innerException.ToString());
+                        reportGeneratorUtil.LogCoverageProcess("An exception occurred. See the FCC Output Pane");
                         break;
                     case System.Threading.Tasks.TaskStatus.RanToCompletion:
                         LogReloadCoverageStatus(ReloadCoverageStatus.Done);

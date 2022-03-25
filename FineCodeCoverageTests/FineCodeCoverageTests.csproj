@@ -160,6 +160,12 @@
       <Name>FineCodeCoverage</Name>
     </ProjectReference>
   </ItemGroup>
+  <PropertyGroup Label="FineCodeCoverage">
+    <Exclude>
+      [NUnit3.TestAdapter]*
+      [Moq]*
+    </Exclude>
+  </PropertyGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
