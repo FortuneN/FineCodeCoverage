@@ -43,9 +43,17 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
 
         private const string fccMarkerElementName = "FCCGenerated";
         
-        private readonly List<(string elementName, string value)> recommendedYouDoNotChangeElementsDetails = new List<(string elementName, string value)>
+        private readonly List<(string elementName, string value)> recommendedYouDoNotChangeElementsNetCore = new List<(string elementName, string value)>
         {
             ("UseVerifiableInstrumentation", "True"),
+            ("AllowLowIntegrityProcesses", "True"),
+            ("CollectFromChildProcesses", "True"),
+            ("CollectAspDotNet", "False")
+        };
+
+        private readonly List<(string elementName, string value)> recommendedYouDoNotChangeElementsNetFramework = new List<(string elementName, string value)>
+        {
+            ("UseVerifiableInstrumentation", "False"),
             ("AllowLowIntegrityProcesses", "True"),
             ("CollectFromChildProcesses", "True"),
             ("CollectAspDotNet", "False")
@@ -153,7 +161,11 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
             return template;
         }
 
-        public ITemplateReplacementResult ReplaceTemplate(string runSettingsTemplate, IRunSettingsTemplateReplacements replacements)
+        public ITemplateReplacementResult ReplaceTemplate(
+            string runSettingsTemplate, 
+            IRunSettingsTemplateReplacements replacements, 
+            bool isNetFramework
+        )
         {
             var replacedTestAdapter = HasReplaceableTestAdapter(runSettingsTemplate);
             var replacedRunSettingsTemplate = Replace(runSettingsTemplate, replacements);
@@ -161,16 +173,17 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
             return new TemplateReplaceResult
             {
                 ReplacedTestAdapter = replacedTestAdapter,
-                Replaced = AddRecommendedYouDoNotChangeElementsIfNotProvided(replacedRunSettingsTemplate)
+                Replaced = AddRecommendedYouDoNotChangeElementsIfNotProvided(replacedRunSettingsTemplate,isNetFramework)
             };
         }
 
-        private string AddRecommendedYouDoNotChangeElementsIfNotProvided(string replacedRunSettingsTemplate)
+        private string AddRecommendedYouDoNotChangeElementsIfNotProvided(string replacedRunSettingsTemplate, bool isNetFramework)
         {
             var templateDocument = XDocument.Parse(replacedRunSettingsTemplate);
             var msDataCollectorCodeCoverageElement = GetMsDataCollectorCodeCoverageElement(templateDocument);
             if (msDataCollectorCodeCoverageElement != null)
             {
+                var recommendedYouDoNotChangeElementsDetails = isNetFramework ? recommendedYouDoNotChangeElementsNetFramework : recommendedYouDoNotChangeElementsNetCore;
                 foreach (var recommendedYouDoNotChangeElementDetails in recommendedYouDoNotChangeElementsDetails)
                 {
                     var elementName = recommendedYouDoNotChangeElementDetails.elementName;

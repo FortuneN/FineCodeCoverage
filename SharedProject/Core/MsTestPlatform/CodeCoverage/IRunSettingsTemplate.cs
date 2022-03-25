@@ -11,7 +11,10 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
 
     internal interface IRunSettingsTemplate
     {
-        ITemplateReplacementResult ReplaceTemplate(string runSettingsTemplate, IRunSettingsTemplateReplacements replacements);
+        ITemplateReplacementResult ReplaceTemplate(
+            string runSettingsTemplate, 
+            IRunSettingsTemplateReplacements replacements, 
+            bool isNetFrameworkProject);
         string Replace(string templatedXml, IRunSettingsTemplateReplacements replacements);
         
         string ConfigureCustom(string runSettingsTemplate);

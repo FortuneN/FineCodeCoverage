@@ -107,7 +107,7 @@ namespace FineCodeCoverageTests.MsCodeCoverage
                 </DataCollectionRunSettings>
             </RunSettings>";
 
-            var result = runSettingsTemplate.ReplaceTemplate(template, replacements);
+            var result = runSettingsTemplate.ReplaceTemplate(template, replacements, true);
 
             XmlAssert.NoXmlDifferences(result.Replaced, expected);
         }
@@ -117,7 +117,7 @@ namespace FineCodeCoverageTests.MsCodeCoverage
         {
             var runSettingsTemplate = new RunSettingsTemplate();
             var template = runSettingsTemplate.ToString();
-            Assert.True(runSettingsTemplate.ReplaceTemplate(template, new RunSettingsTemplateReplacements()).ReplacedTestAdapter);
+            Assert.True(runSettingsTemplate.ReplaceTemplate(template, new RunSettingsTemplateReplacements(), true).ReplacedTestAdapter);
         }
 
         [Test]
@@ -132,7 +132,7 @@ namespace FineCodeCoverageTests.MsCodeCoverage
                 </RunSettings>
             ";
             var configuredCustomTemplate = runSettingsTemplate.ConfigureCustom(customTemplate);
-            Assert.False(runSettingsTemplate.ReplaceTemplate(configuredCustomTemplate, new RunSettingsTemplateReplacements()).ReplacedTestAdapter);
+            Assert.False(runSettingsTemplate.ReplaceTemplate(configuredCustomTemplate, new RunSettingsTemplateReplacements(), true).ReplacedTestAdapter);
         }
     
         [TestCase("%fcc_testadapter%", true)]
@@ -185,7 +185,7 @@ namespace FineCodeCoverageTests.MsCodeCoverage
             </RunSettings>";
 
             var runSettingsTemplate = new RunSettingsTemplate();
-            var result = runSettingsTemplate.ReplaceTemplate(template, new RunSettingsTemplateReplacements());
+            var result = runSettingsTemplate.ReplaceTemplate(template, new RunSettingsTemplateReplacements(), true);
 
             XmlAssert.NoXmlDifferences(result.Replaced, template);
 
