@@ -41,8 +41,9 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
             return success;
         }
 
-        public async Task RemoveRunSettingsFilePathAsync(Guid projectGuid)
+        public async Task<bool> RemoveRunSettingsFilePathAsync(Guid projectGuid)
         {
+            var ok = false;
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
             var vsSolution = serviceProvider.GetService(typeof(SVsSolution)) as IVsSolution;
             Assumes.Present(vsSolution);
@@ -50,9 +51,10 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
             {
                 if (vsHierarchy is IVsBuildPropertyStorage vsBuildPropertyStorage)
                 {
-                    vsBuildPropertyStorage.RemoveProperty(projectRunSettingsFilePathElementName, null, 1);
+                    ok = vsBuildPropertyStorage.RemoveProperty(projectRunSettingsFilePathElementName, null, 1) == VSConstants.S_OK;
                 }
             }
+            return ok;
         }
 
     }
