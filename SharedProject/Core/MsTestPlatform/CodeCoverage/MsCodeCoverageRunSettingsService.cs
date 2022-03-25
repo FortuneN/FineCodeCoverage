@@ -164,9 +164,7 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
         {
             collectionStatus = MsCodeCoverageCollectionStatus.NotCollecting;
             useMsCodeCoverage = appOptionsProvider.Get().MsCodeCoverage;
-            //coverageProjectsByType = await CoverageProjectsByType.CreateAsync(testOperation);
             userRunSettingsProjectDetailsLookup = null;
-            //await templatedRunSettingsService.CleanUpAsync(coverageProjectsByType.RunSettings);
             return CleanUpAsync(testOperation);
         }
 
