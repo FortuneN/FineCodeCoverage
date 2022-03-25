@@ -7,6 +7,7 @@ using Microsoft.VisualStudio.TestWindow.Extensibility;
 using System.Linq;
 using FineCodeCoverage.Engine.Model;
 using System;
+using System.Diagnostics.CodeAnalysis;
 
 namespace FineCodeCoverageTests.MsCodeCoverage
 {
@@ -576,6 +577,7 @@ namespace FineCodeCoverageTests.MsCodeCoverage
         }
     }
 
+    [ExcludeFromCodeCoverage]
     internal class TestCoverageProjectOptions : IAppOptions
     {
         public string[] Exclude => throw new NotImplementedException();

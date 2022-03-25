@@ -171,6 +171,16 @@ namespace FineCodeCoverageTests.MsCodeCoverage
 
         }
 
+        [Test]
+        public async Task Clean_Up_Should_Remove_Generated_Project_RunSettings()
+        {
+            var coverageProjects = new List<ICoverageProject> { new Mock<ICoverageProject>().Object};
+            await templatedRunSettingsService.CleanUpAsync(coverageProjects);
+            autoMocker.Verify<IProjectRunSettingsGenerator>(
+                projectRunSettingsGenerator => projectRunSettingsGenerator.RemoveGeneratedProjectSettingsAsync(coverageProjects)
+            );
+        }
+
         private Moq.Language.Flow.ISetup<ICustomRunSettingsTemplateProvider, CustomRunSettingsTemplateDetails> SetupICustomRunSettingsTemplateProviderAllIsAny()
         {
             var mockCustomRunSettingsTemplateProvider = autoMocker.GetMock<ICustomRunSettingsTemplateProvider>();

@@ -86,7 +86,7 @@ namespace FineCodeCoverageTests.MsCodeCoverage
 
         [TestCase(true)]
         [TestCase(false)]
-        public async Task Will_Try_Analyse_Projects_With_Runsettings(bool useMsCodeCoverageOption)
+        public async Task Should_Try_Analyse_Projects_With_Runsettings(bool useMsCodeCoverageOption)
         {
             SetupAppOptionsProvider(useMsCodeCoverageOption);
 
@@ -106,6 +106,39 @@ namespace FineCodeCoverageTests.MsCodeCoverage
                     fccMsTestAdapterPath)
                 );
             
+        }
+
+        [Test] // in case shutdown visual studio before normal clean up operation
+        public async Task Should_CleanUp_Projects_With_RunSettings_First()
+        {
+            var coverageProjectWithRunSettings = CreateCoverageProject(".runsettings");
+            var coverageProjects = new List<ICoverageProject> { coverageProjectWithRunSettings, CreateCoverageProject(null) };
+            var testOperation = SetUpTestOperation(coverageProjects);
+
+            var cleanedUp = false;
+            var mockUserRunSettingsService = autoMocker.GetMock<IUserRunSettingsService>();
+            mockUserRunSettingsService.Setup(
+                userRunSettingsService => userRunSettingsService.Analyse(
+                    It.IsAny<IEnumerable<ICoverageProject>>(),
+                    It.IsAny<bool>(),
+                    It.IsAny<string>()
+                )
+            ).Callback(() =>
+            {
+                Assert.True(cleanedUp);
+            });
+
+            var mockTemplatedRunSettingsService = autoMocker.GetMock<ITemplatedRunSettingsService>();
+            mockTemplatedRunSettingsService.Setup(
+                templatedRunSettingsService => 
+                templatedRunSettingsService.CleanUpAsync(new List<ICoverageProject> { coverageProjectWithRunSettings})
+            ).Callback(() =>
+            {
+                cleanedUp = true;
+            });
+            await msCodeCoverageRunSettingsService.IsCollectingAsync(testOperation);
+
+            mockUserRunSettingsService.VerifyAll();
         }
 
         [Test]

@@ -14,12 +14,50 @@ using FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage;
 using FineCodeCoverageTests.Test_helpers;
 using FineCodeCoverage.Engine.ReportGenerator;
 using FineCodeCoverage.Engine.Model;
+using FineCodeCoverage.Options;
 
 namespace FineCodeCoverageTests.MsCodeCoverage
 {
+    internal class MsCodeCoverageRunSettingsService_Test_Execution_Not_Finished_Tests
+    {
+        [Test]
+        public async Task Should_Clean_Up_Templated_Coverage_Projects()
+        {
+            var autoMocker = new AutoMoqer();
+            var msCodeCoverageRunSettingsService = autoMocker.Create<MsCodeCoverageRunSettingsService>();
+            var mockAppOptionsProvider = autoMocker.GetMock<IAppOptionsProvider>();
+            mockAppOptionsProvider.Setup(appOptionsProvider => appOptionsProvider.Get()).Returns(new Mock<IAppOptions>().Object);
+
+            // is collecting
+            var mockTestOperation = new Mock<ITestOperation>();
+            var templateCoverageProject = CreateCoverageProject(null);
+            var coverageProjects = new List<ICoverageProject>
+            {
+                templateCoverageProject,
+                CreateCoverageProject(".runsettings")
+            };
+            mockTestOperation.Setup(testOperation => testOperation.GetCoverageProjectsAsync()).ReturnsAsync(coverageProjects);
+            await msCodeCoverageRunSettingsService.IsCollectingAsync(mockTestOperation.Object);
+
+            await msCodeCoverageRunSettingsService.TestExecutionNotFinishedAsync();
+
+            autoMocker.Verify<ITemplatedRunSettingsService>(
+                templatedRunSettingsService => templatedRunSettingsService.CleanUpAsync(new List<ICoverageProject> { templateCoverageProject })
+            );
+        }
+
+        private ICoverageProject CreateCoverageProject(string runSettingsFile)
+        {
+            var mockCoverageProject = new Mock<ICoverageProject>();
+            mockCoverageProject.Setup(coverageProject => coverageProject.RunSettingsFile).Returns(runSettingsFile);
+            return mockCoverageProject.Object;
+        }
+    }
+
     internal class MsCodeCoverageRunSettingsService_Collect_Tests
     {
         private AutoMoqer autoMocker;
+        private ICoverageProject templateCoverageProject;
 
         [Test]
         public async Task Should_FCCEngine_RunAndProcessReport_With_CoberturaResults()
@@ -52,6 +90,15 @@ namespace FineCodeCoverageTests.MsCodeCoverage
 
         }
 
+        [Test]
+        public async Task Should_Clean_Up_Template_Coverage_Projects_From_IsCollecting()
+        {
+            await RunAndProcessReportAsync(null, Array.Empty<string>());
+            autoMocker.Verify<ITemplatedRunSettingsService>(
+                templatedRunSettingsService => templatedRunSettingsService.CleanUpAsync(new List<ICoverageProject> { templateCoverageProject })
+            );
+        }
+
         private async Task RunAndProcessReportAsync(IEnumerable<Uri> resultsUris,string[] expectedCoberturaFiles)
         {
             autoMocker = new AutoMoqer();
@@ -71,15 +118,34 @@ namespace FineCodeCoverageTests.MsCodeCoverage
 
             var mockOperation = new Mock<IOperation>();
             mockOperation.Setup(operation => operation.GetRunSettingsDataCollectorResultUri(new Uri(RunSettingsHelper.MsDataCollectorUri))).Returns(resultsUris);
+            
 
+            // IsCollecting
             var mockTestOperation = new Mock<ITestOperation>();
-            mockTestOperation.Setup(testOperation => testOperation.GetCoverageProjectsAsync()).ReturnsAsync(new List<ICoverageProject>());
-            await msCodeCoverageRunSettingsService.CollectAsync(mockOperation.Object, mockTestOperation.Object);
+            templateCoverageProject = CreateCoverageProject(null);
+            var coverageProjects = new List<ICoverageProject>
+            {
+                templateCoverageProject,
+                CreateCoverageProject(".runsettings")
+            };
+            mockTestOperation.Setup(testOperation => testOperation.GetCoverageProjectsAsync()).ReturnsAsync(coverageProjects);
+            var mockAppOptionsProvider = autoMocker.GetMock<IAppOptionsProvider>();
+            mockAppOptionsProvider.Setup(appOptionsProvider => appOptionsProvider.Get()).Returns(new Mock<IAppOptions>().Object);
+            await msCodeCoverageRunSettingsService.IsCollectingAsync(mockTestOperation.Object);
+
+            await msCodeCoverageRunSettingsService.CollectAsync(mockOperation.Object);
             
             mockFccEngine.Verify(engine => engine.RunAndProcessReport(
                     It.Is<string[]>(coberturaFiles => !expectedCoberturaFiles.Except(coberturaFiles).Any() && !coberturaFiles.Except(expectedCoberturaFiles).Any()), It.IsAny<Action>()
                 )
             );
+        }
+
+        private ICoverageProject CreateCoverageProject(string runSettingsFile)
+        {
+            var mockCoverageProject = new Mock<ICoverageProject>();
+            mockCoverageProject.Setup(coverageProject => coverageProject.RunSettingsFile).Returns(runSettingsFile);
+            return mockCoverageProject.Object;
         }
     }
 }

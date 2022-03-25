@@ -130,14 +130,14 @@ namespace FineCodeCoverage.Impl
 
             var testOperation = testOperationFactory.Create(operation);
 
-            if(!CoverageConditionsMet(testOperation, settings))
+            if (!CoverageConditionsMet(testOperation, settings))
             {
                 return;
             }
             
             if (msCodeCoverageCollectionStatus == MsCodeCoverageCollectionStatus.Collecting)
             {
-                await msCodeCoverageRunSettingsService.CollectAsync(operation, testOperation);
+                await msCodeCoverageRunSettingsService.CollectAsync(operation);
             }
             else
             {

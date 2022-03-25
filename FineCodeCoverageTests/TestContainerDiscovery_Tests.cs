@@ -6,7 +6,6 @@ using AutoMoq;
 using FineCodeCoverage.Core.Utilities;
 using FineCodeCoverage.Engine;
 using FineCodeCoverage.Engine.Model;
-using FineCodeCoverage.Engine.MsTestPlatform;
 using FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage;
 using FineCodeCoverage.Impl;
 using FineCodeCoverage.Options;
@@ -16,7 +15,7 @@ using NUnit.Framework;
 
 namespace Test
 {
-    public class TestContainerDiscovery_Tests
+    internal class TestContainerDiscovery_Tests
     {
         private AutoMoqer mocker;
         private TestContainerDiscoverer testContainerDiscoverer;
@@ -137,13 +136,29 @@ namespace Test
             );
         }
 
-        private Mock<IMsCodeCoverageRunSettingsService> SetMsCodeCoverageCollecting()
+        [TestCase(MsCodeCoverageCollectionStatus.Collecting,true)]
+        [TestCase(MsCodeCoverageCollectionStatus.NotCollecting,true)]
+        [TestCase(MsCodeCoverageCollectionStatus.Error,true)]
+        [TestCase(MsCodeCoverageCollectionStatus.Collecting, false)]
+        [TestCase(MsCodeCoverageCollectionStatus.NotCollecting, false)]
+        [TestCase(MsCodeCoverageCollectionStatus.Error, false)]
+        public void Should_Notify_MsCodeCoverage_When_Test_Execution_Not_Finished_IfCollectingAsync(MsCodeCoverageCollectionStatus status, bool cancelling)
+        {
+            var mockMsCodeCoverageRunSettingsService = SetMsCodeCoverageCollecting(status);
+            RaiseOperationStateChanged(cancelling ? TestOperationStates.TestExecutionCanceling : TestOperationStates.TestExecutionCancelAndFinished);
+            var times = status == MsCodeCoverageCollectionStatus.Collecting ? Times.Once() : Times.Never();
+            mockMsCodeCoverageRunSettingsService.Verify(
+                msCodeCoverageRunSettingsService => msCodeCoverageRunSettingsService.TestExecutionNotFinishedAsync(), times
+            );
+        }
+
+        private Mock<IMsCodeCoverageRunSettingsService> SetMsCodeCoverageCollecting(MsCodeCoverageCollectionStatus status = MsCodeCoverageCollectionStatus.Collecting)
         {
             var mockMsCodeCoverageRunSettingsService = mocker.GetMock<IMsCodeCoverageRunSettingsService>();
             mockMsCodeCoverageRunSettingsService.Setup(
                 msCodeCoverageRunSettingsService =>
                 msCodeCoverageRunSettingsService.IsCollectingAsync(It.IsAny<ITestOperation>())
-            ).ReturnsAsync(MsCodeCoverageCollectionStatus.Collecting);
+            ).ReturnsAsync(status);
 
             SetUpOptions(mockOptions => mockOptions.Setup(options => options.Enabled).Returns(true));
             RaiseTestExecutionStarting();
@@ -205,7 +220,7 @@ namespace Test
             RaiseTestExecutionFinished(operation);
             mocker.Verify<IMsCodeCoverageRunSettingsService>(
                 msCodeCoverageRunSettingsService =>
-                msCodeCoverageRunSettingsService.CollectAsync(operation, testOperation)
+                msCodeCoverageRunSettingsService.CollectAsync(operation)
             );
         }
 

@@ -278,10 +278,9 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
 
         #endregion
 
-        public async Task CollectAsync(IOperation operation, ITestOperation testOperation)
+        public async Task CollectAsync(IOperation operation)
         {
-            var coverageProjectsByType = await CoverageProjectsByType.CreateAsync(testOperation);
-            await templatedRunSettingsService.CleanUpAsync(coverageProjectsByType.RunSettings);
+            await templatedRunSettingsService.CleanUpAsync(coverageProjectsByType.Templated);
             var resultsUris = operation.GetRunSettingsMsDataCollectorResultUri();
             var coberturaFiles = new string[0];
             if (resultsUris != null)
