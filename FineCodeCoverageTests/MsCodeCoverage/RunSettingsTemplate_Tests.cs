@@ -8,11 +8,13 @@ namespace FineCodeCoverageTests.MsCodeCoverage
 {
     public class RunSettingsTemplate_Tests
     {
-        [Test]
-        public void Should_Be_Replaceable_With_Recommended_You_Do_Not_Change_Elements_When_Not_Provided()
+        [TestCase(true)]
+        [TestCase(false)]
+        public void Should_Be_Replaceable_With_Recommended_You_Do_Not_Change_Elements_When_Not_Provided(bool isDotNetFramework)
         {
             var runSettingsTemplate = new RunSettingsTemplate();
             var template = runSettingsTemplate.ToString();
+            var useVerifiableInstrumentation = isDotNetFramework ? "False" : "True";
 
             var replacements = new RunSettingsTemplateReplacements
             {
@@ -94,7 +96,7 @@ namespace FineCodeCoverageTests.MsCodeCoverage
                                     {replacements.PublicKeyTokensInclude}
                                     </Include>
                                 </PublicKeyTokens>
-                                <UseVerifiableInstrumentation>True</UseVerifiableInstrumentation>
+                                <UseVerifiableInstrumentation>{useVerifiableInstrumentation}</UseVerifiableInstrumentation>
                                 <AllowLowIntegrityProcesses>True</AllowLowIntegrityProcesses>
                                 <CollectFromChildProcesses>True</CollectFromChildProcesses>
                                 <CollectAspDotNet>False</CollectAspDotNet>
@@ -107,7 +109,7 @@ namespace FineCodeCoverageTests.MsCodeCoverage
                 </DataCollectionRunSettings>
             </RunSettings>";
 
-            var result = runSettingsTemplate.ReplaceTemplate(template, replacements, true);
+            var result = runSettingsTemplate.ReplaceTemplate(template, replacements, isDotNetFramework);
 
             XmlAssert.NoXmlDifferences(result.Replaced, expected);
         }

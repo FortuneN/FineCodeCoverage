@@ -22,10 +22,12 @@ namespace FineCodeCoverageTests.MsCodeCoverage
             templatedRunSettingsService = autoMocker.Create<TemplatedRunSettingsService>();
         }
 
-        [Test]
-        public async Task Should_Create_Run_Settings_From_Template()
+        [TestCase(true)]
+        [TestCase(false)]
+        public async Task Should_Create_Run_Settings_From_Template(bool isDotNetFramework)
         {
             var mockCoverageProject = new Mock<ICoverageProject>();
+            mockCoverageProject.SetupGet(cp => cp.IsDotNetFramework).Returns(isDotNetFramework);
             var coverageProject = mockCoverageProject.Object;
             var coverageProjects = new List<ICoverageProject> { coverageProject};
 
@@ -44,7 +46,7 @@ namespace FineCodeCoverageTests.MsCodeCoverage
             mockRunSettingsTemplate.Verify(
                 runSettingsTemplate => runSettingsTemplate.ReplaceTemplate(
                     "<MockRunSettingsTemplate/>",
-                    runSettingsTemplateReplacements, It.IsAny<bool>())
+                    runSettingsTemplateReplacements,isDotNetFramework)
             );
 
         }
