@@ -38,27 +38,29 @@ namespace FineCodeCoverageTests.MsCodeCoverage
         }
     }
 
+    internal class UserRunSettingsAnalysisResult : IUserRunSettingsAnalysisResult
+    {
+        public UserRunSettingsAnalysisResult(bool suitable, bool specifiedMsCodeCoverage)
+        {
+            Suitable = suitable;
+            SpecifiedMsCodeCoverage = specifiedMsCodeCoverage;
+        }
+        public UserRunSettingsAnalysisResult() { }
+
+        public bool Suitable { get; set; }
+
+        public bool SpecifiedMsCodeCoverage { get; set; }
+
+        public List<ICoverageProject> ProjectsWithFCCMsTestAdapter { get; set; } = new List<ICoverageProject>();
+    }
+
     internal class MsCodeCoverageRunSettingsService_IsCollecting_Tests
     {
         private AutoMoqer autoMocker;
         private MsCodeCoverageRunSettingsService msCodeCoverageRunSettingsService;
         private const string solutionDirectory = "SolutionDirectory";
         
-        private class UserRunSettingsAnalysisResult : IUserRunSettingsAnalysisResult
-        {
-            public UserRunSettingsAnalysisResult(bool suitable, bool specifiedMsCodeCoverage)
-            {
-                Suitable = suitable;
-                SpecifiedMsCodeCoverage = specifiedMsCodeCoverage;
-            }
-            public UserRunSettingsAnalysisResult() { }
-
-            public bool Suitable { get; set; }
-
-            public bool SpecifiedMsCodeCoverage { get; set; }
-
-            public List<ICoverageProject> ProjectsWithFCCMsTestAdapter { get; set; } = new List<ICoverageProject>();
-        }
+        
 
         private class ExceptionReason : IExceptionReason
         {

@@ -25,6 +25,14 @@ namespace FineCodeCoverageTests.MsCodeCoverage
         {
             var autoMocker = new AutoMoqer();
             var msCodeCoverageRunSettingsService = autoMocker.Create<MsCodeCoverageRunSettingsService>();
+
+
+            var mockUserRunSettingsService = autoMocker.GetMock<IUserRunSettingsService>();
+            mockUserRunSettingsService.Setup(
+                userRunSettingsService =>
+                userRunSettingsService.Analyse(It.IsAny<IEnumerable<ICoverageProject>>(), It.IsAny<bool>(), It.IsAny<string>())
+            ).Returns(new UserRunSettingsAnalysisResult());
+
             var mockAppOptionsProvider = autoMocker.GetMock<IAppOptionsProvider>();
             mockAppOptionsProvider.Setup(appOptionsProvider => appOptionsProvider.Get()).Returns(new Mock<IAppOptions>().Object);
 

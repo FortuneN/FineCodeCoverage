@@ -131,7 +131,6 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
             IUserRunSettingsAnalysisResult analysisResult = await TryAnalyseUserRunSettingsAsync();
             if (analysisResult.Ok())
             {
-                
                 await SetUpForCollectionAsync(
                     analysisResult.ProjectsWithFCCMsTestAdapter,
                     analysisResult.SpecifiedMsCodeCoverage,
@@ -149,7 +148,7 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
             await PrepareCoverageProjectsAsync();
             SetUserRunSettingsProjectDetails();
             
-            await GenerateTemplatedRunSettingsAsync(
+            await GenerateTemplatedRunSettingsIfRequiredAsync(
                 specifiedMsCodeCoverageInRunSettings,
                 coverageProjectsForShim,
                 solutionDirectory
@@ -178,41 +177,67 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
             IUserRunSettingsAnalysisResult analysisResult = null;
             try
             {
-                analysisResult = userRunSettingsService.Analyse(
+                analysisResult = await AnalyseUserRunSettingsAsync();
+            }
+            catch (Exception exc)
+            {
+                await ExceptionAnalysingUserRunSettingsAsync(exc);
+            }
+
+            return analysisResult;
+        }
+
+        private Task ExceptionAnalysingUserRunSettingsAsync(Exception exc)
+        {
+            collectionStatus = MsCodeCoverageCollectionStatus.Error;
+            return CombinedLogExceptionAsync(exc, "Exception analysing runsettings files");
+        }
+
+        private async Task<IUserRunSettingsAnalysisResult> AnalyseUserRunSettingsAsync()
+        {
+            var analysisResult = userRunSettingsService.Analyse(
                     coverageProjectsByType.RunSettings,
                     useMsCodeCoverage,
                     fccMsTestAdapterPath
                 );
-            }
-            catch (Exception exc)
-            {
-                collectionStatus = MsCodeCoverageCollectionStatus.Error;
-                await CombinedLogExceptionAsync(exc, "Exception analysing runsettings files");
-            }
 
-            if (analysisResult.Ok())
+            if (analysisResult.Suitable)
             {
                 await CollectingIfUserRunSettingsOnlyAsync();
             }
+
             return analysisResult;
         }
 
-        private async Task GenerateTemplatedRunSettingsAsync(
+        private async Task GenerateTemplatedRunSettingsIfRequiredAsync(
             bool runSettingsSpecifiedMsCodeCoverage, 
             List<ICoverageProject> coverageProjectsForShim, 
             string solutionDirectory
         )
         {
-            if (coverageProjectsByType.HasTemplated() && (useMsCodeCoverage || runSettingsSpecifiedMsCodeCoverage))
+            if (ShouldGenerateTemplatedRunSettings(runSettingsSpecifiedMsCodeCoverage))
             {
-                var generationResult = await templatedRunSettingsService.GenerateAsync(
-                    coverageProjectsByType.Templated, 
-                    solutionDirectory, 
-                    fccMsTestAdapterPath
-                );
-
-                await ProcessTemplateGenerationResultAsync(generationResult, coverageProjectsForShim);
+                await GenerateTemplatedRunSettingsAsync(coverageProjectsForShim, solutionDirectory);
             }
+        }
+        private async Task GenerateTemplatedRunSettingsAsync(
+            List<ICoverageProject> coverageProjectsForShim,
+            string solutionDirectory
+        )
+        {
+            var generationResult = await templatedRunSettingsService.GenerateAsync(
+                coverageProjectsByType.Templated,
+                solutionDirectory,
+                fccMsTestAdapterPath
+            );
+
+            await ProcessTemplateGenerationResultAsync(generationResult, coverageProjectsForShim);
+        }
+
+
+        private bool ShouldGenerateTemplatedRunSettings(bool runSettingsSpecifiedMsCodeCoverage)
+        {
+            return coverageProjectsByType.HasTemplated() && (useMsCodeCoverage || runSettingsSpecifiedMsCodeCoverage);
         }
 
         private async Task ProcessTemplateGenerationResultAsync(IProjectRunSettingsFromTemplateResult generationResult, List<ICoverageProject> coverageProjectsForShim)
