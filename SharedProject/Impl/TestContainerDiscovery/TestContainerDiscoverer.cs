@@ -202,37 +202,47 @@ namespace FineCodeCoverage.Impl
         {
             RunAsync(async () =>
             {
-                try
-                {
-                    if (e.State == TestOperationStates.TestExecutionCanceling)
-                    {
-                        cancelling = true;
-                        await CoverageCancelledAsync("Test execution cancelling - running coverage will be cancelled.",e.Operation);
-                    }
-
-
-                    if (e.State == TestOperationStates.TestExecutionStarting)
-                    {
-                        await TestExecutionStartingAsync(e.Operation);
-                        cancelling = false;
-                    }
-
-                    if (e.State == TestOperationStates.TestExecutionFinished)
-                    {
-                        await TestExecutionFinishedAsync(e.Operation);
-                    }
-
-                    if (e.State == TestOperationStates.TestExecutionCancelAndFinished && !cancelling)
-                    {
-                        await CoverageCancelledAsync("There has been an issue running tests. See the Tests output window pane.",e.Operation);
-                    }
-
-                }
-                catch (Exception exception)
-                {
-                    logger.Log("Error processing unit test events", exception);
-                }
+                await TryAndLogExceptionAsync(() => OperationState_StateChangedAsync(e));
             });
+        }
+
+        private async Task OperationState_StateChangedAsync(OperationStateChangedEventArgs e)
+        {
+            if (e.State == TestOperationStates.TestExecutionCanceling)
+            {
+                cancelling = true;
+                await CoverageCancelledAsync("Test execution cancelling - running coverage will be cancelled.", e.Operation);
+            }
+
+
+            if (e.State == TestOperationStates.TestExecutionStarting)
+            {
+                await TestExecutionStartingAsync(e.Operation);
+                cancelling = false;
+            }
+
+            if (e.State == TestOperationStates.TestExecutionFinished)
+            {
+                await TestExecutionFinishedAsync(e.Operation);
+            }
+
+            if (e.State == TestOperationStates.TestExecutionCancelAndFinished && !cancelling)
+            {
+                await CoverageCancelledAsync("There has been an issue running tests. See the Tests output window pane.", e.Operation);
+            }
+        }
+
+        private async Task TryAndLogExceptionAsync(Func<Task> action)
+        {
+            try
+            {
+                await action();
+                    
+            }
+            catch (Exception exception)
+            {
+                logger.Log("Error processing unit test events", exception);
+            }
         }
     }
 }
