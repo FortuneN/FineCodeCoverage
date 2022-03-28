@@ -6,6 +6,12 @@ using FineCodeCoverage.Engine;
 
 namespace FineCodeCoverage.Output
 {
+    internal class FCCGithub
+    {
+        internal const string Readme = "https://github.com/FortuneN/FineCodeCoverage/blob/master/README.md";
+        internal const string Issues = "https://github.com/FortuneN/FineCodeCoverage/issues";
+    }
+
     public interface IScriptManager
     {
         event EventHandler ClearFCCWindowLogsEvent;
@@ -23,9 +29,8 @@ namespace FineCodeCoverage.Output
     public class ScriptManager : IScriptManager
     {
         internal const string payPal = "https://paypal.me/FortuneNgwenya";
-        internal const string githubIssues = "https://github.com/FortuneN/FineCodeCoverage/issues";
+        
         internal const string marketPlaceRateAndReview = "https://marketplace.visualstudio.com/items?itemName=FortuneNgwenya.FineCodeCoverage&ssr=false#review-details";
-        internal const string githubReadme = "https://github.com/FortuneN/FineCodeCoverage/blob/master/README.md";
         private readonly ISourceFileOpener sourceFileOpener;
         private readonly IProcess process;
         private readonly IEventAggregator eventAggregator;
@@ -48,7 +53,7 @@ namespace FineCodeCoverage.Output
 
         public void ReadReadMe()
         {
-            process.Start(githubReadme);
+            process.Start(FCCGithub.Readme);
         }
 
         public void BuyMeACoffee()
@@ -58,7 +63,7 @@ namespace FineCodeCoverage.Output
 
         public void LogIssueOrSuggestion()
         {
-            process.Start(githubIssues);
+            process.Start(FCCGithub.Issues);
         }
 
         public void RateAndReview()

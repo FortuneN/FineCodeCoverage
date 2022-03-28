@@ -14,6 +14,7 @@ using FineCodeCoverage.Options;
 using FineCodeCoverage.Engine.ReportGenerator;
 using System.Threading.Tasks;
 using FineCodeCoverage.Core.Utilities.VsThreading;
+using FineCodeCoverage.Output;
 
 namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
 {
@@ -125,6 +126,7 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
             await InitializeIsCollectingAsync(testOperation);
             if( runMsCodeCoverage == RunMsCodeCoverage.No)
             {
+                logger.Log($"See option {nameof(IAppOptions.RunMsCodeCoverage)} for a better ( Beta ) experience.  {FCCGithub.Readme}");
                 reportGeneratorUtil.LogCoverageProcess($"See option {nameof(IAppOptions.RunMsCodeCoverage)} for a better ( Beta ) experience. View readme.");
             }
             else
