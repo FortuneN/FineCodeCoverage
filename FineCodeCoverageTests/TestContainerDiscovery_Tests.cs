@@ -208,7 +208,7 @@ namespace Test
             {
                 mockAppOptions.Setup(o => o.Enabled).Returns(true);
                 mockAppOptions.Setup(o => o.RunInParallel).Returns(true);
-                mockAppOptions.Setup(o => o.MsCodeCoverage).Returns(true);
+                mockAppOptions.Setup(o => o.RunMsCodeCoverage).Returns(RunMsCodeCoverage.Yes);
             });
             RaiseTestExecutionFinished(operation);
 

@@ -14,5 +14,12 @@ namespace FineCodeCoverage.Core.Utilities
             var attributes = customAttributeProvider.GetCustomAttributes(typeof(TCustomAttribute), inherit);
             return attributes as TCustomAttribute[];
         }
+
+        public static PropertyInfo[] GetInterfacePropertyInfos(this Type type)
+        {
+            return (new Type[] { type })
+                   .Concat(type.GetInterfaces())
+                   .SelectMany(i => i.GetProperties()).ToArray();
+        }
     }
 }

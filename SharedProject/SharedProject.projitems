@@ -180,13 +180,19 @@
     <Compile Include="$(MSBuildThisFileDirectory)Impl\TestContainerDiscovery\TestOperationFactory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\TestContainerDiscovery\TestRunResponse.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\Vsix.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Options\AppOptions.cs">
+    <Compile Include="$(MSBuildThisFileDirectory)Options\AppOptionsPage.cs">
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="$(MSBuildThisFileDirectory)Options\AppOptionsProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\IAppOptions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\IAppOptionsProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\IAppOptionsStorageProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Options\IJsonConvertService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Options\IWritableSettingsStore.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Options\IWritableSettingsStoreProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Options\JsonConvertService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Options\VsWritableSettingsStore.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Options\VsWritableSettingsStoreProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Output\ClearUICommand.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Output\DpiChangedMessage.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Output\EnvironmentFont.cs" />

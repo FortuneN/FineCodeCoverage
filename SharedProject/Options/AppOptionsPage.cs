@@ -1,11 +1,13 @@
 ﻿using System.ComponentModel;
 using Microsoft.VisualStudio.Shell;
-using EnvDTE;
 using Microsoft;
+using System;
+using Microsoft.VisualStudio.Shell.Interop;
+using EnvDTE80;
 
 namespace FineCodeCoverage.Options
 {
-    internal class AppOptions : DialogPage, IAppOptions
+    internal class AppOptionsPage : DialogPage, IAppOptions
     {
         private const string runCategory = "Run";
         private const string environmentCategory = "Environment";
@@ -16,35 +18,30 @@ namespace FineCodeCoverage.Options
         private const string reportCategory = "Report";
         private const string uiCategory = "UI";
         private const string msExcludeIncludeCategory = "Ms Exclude / Include";
+        private static readonly Lazy<IAppOptionsStorageProvider> lazyAppOptionsStorageProvider = new Lazy<IAppOptionsStorageProvider>(GetAppOptionsStorageProvider);
 
-        public AppOptions():this(false)
+        private static IAppOptionsStorageProvider GetAppOptionsStorageProvider()
         {
-            
-        }
-        internal AppOptions(bool isReadOnly)
-        {
-            if (!isReadOnly && AppOptionsStorageProvider == null)
+            IAppOptionsStorageProvider appOptionsStorageProvider = null;
+            ThreadHelper.JoinableTaskFactory.Run(async () =>
             {
-                ThreadHelper.JoinableTaskFactory.Run(async () =>
-                {
-                    await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-                    var dte = (DTE)ServiceProvider.GlobalProvider.GetService(typeof(DTE));
-                    var sp = new ServiceProvider(dte as Microsoft.VisualStudio.OLE.Interop.IServiceProvider);
-                    var componentModel = sp.GetService(typeof(Microsoft.VisualStudio.ComponentModelHost.SComponentModel)) as Microsoft.VisualStudio.ComponentModelHost.IComponentModel;
-                    Assumes.Present(componentModel);
-                    AppOptionsStorageProvider = componentModel.GetService<IAppOptionsStorageProvider>();
-                });
-            }
+                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                var dte = (DTE2)ServiceProvider.GlobalProvider.GetService(typeof(SDTE));
+                var sp = new ServiceProvider(dte as Microsoft.VisualStudio.OLE.Interop.IServiceProvider);
+                var componentModel = sp.GetService(typeof(Microsoft.VisualStudio.ComponentModelHost.SComponentModel)) as Microsoft.VisualStudio.ComponentModelHost.IComponentModel;
+                Assumes.Present(componentModel);
+                appOptionsStorageProvider = componentModel.GetService<IAppOptionsStorageProvider>();
+            });
+            return appOptionsStorageProvider;
         }
-        internal IAppOptionsStorageProvider AppOptionsStorageProvider { get; set; }
 
         [Category(runCategory)]
-        [Description("Specifies whether or not coverage output is enabled")]
-        public bool Enabled { get; set; } = true;
+        [Description("Specifies whether or not coverage output is enabled!")]
+        public bool Enabled { get; set; }
 
         [Category(runCategory)]
-        [Description("Specifies whether or not the ms code coverage is used (BETA)")]
-        public bool MsCodeCoverage { get; set; } = false;
+        [Description("Specifies whether or not the ms code coverage is used (BETA).  No, IfInRunSettings, Yes")]
+        public RunMsCodeCoverage RunMsCodeCoverage { get; set; }
 
         [Category(excludeIncludeCategory)]
         [Description(
@@ -89,13 +86,13 @@ namespace FineCodeCoverage.Options
         @"Glob patterns specifying source files to exclude (multiple)
 		Use file path or directory path with globbing (e.g. **/Migrations/*)
 		")]
-        public string[] ExcludeByFile { get; set; } = new[] { "**/Migrations/*" };
+        public string[] ExcludeByFile { get; set; }
 
         [Category(excludeIncludeCategory)]
         [Description(
         @"Specifies whether to report code coverage of the test assembly
 		")]
-        public bool IncludeTestAssembly { get; set; } = true;
+        public bool IncludeTestAssembly { get; set; }
 
         [Category(excludeIncludeCategory)]
         [Description(
@@ -106,7 +103,7 @@ namespace FineCodeCoverage.Options
 		[GeneratedCode] => Present in the System.CodeDom.Compiler namespace
 		[MyCustomExcludeFromCodeCoverage] => Any custom attribute that you may define
 		")]
-        public string[] ExcludeByAttribute { get; set; } = new[] { "GeneratedCode" };
+        public string[] ExcludeByAttribute { get; set; }
 
         [Description("Specify true to not wait for tests to finish before running coverage")]
         [Category(runCategory)]
@@ -114,7 +111,7 @@ namespace FineCodeCoverage.Options
 
         [Description("Specify false to prevent coverage when tests fail.  Cannot be used in conjunction with RunInParallel")]
         [Category(runCategory)]
-        public bool RunWhenTestsFail { get; set; } = true;
+        public bool RunWhenTestsFail { get; set; }
 
         [Description("Specify a value to only run coverage based upon the number of executing tests.  Cannot be used in conjunction with RunInParallel")]
         [Category(runCategory)]
@@ -126,7 +123,7 @@ namespace FineCodeCoverage.Options
 
         [Description("Specify false for global and project options to be used for coverlet data collector configuration elements when not specified in runsettings")]
         [Category(coverletCategory)]
-        public bool RunSettingsOnly { get; set; } = true;
+        public bool RunSettingsOnly { get; set; }
 
         [Description("Specify true to use your own dotnet tools global install of coverlet console.")]
         [Category(coverletCategory)]
@@ -158,15 +155,15 @@ namespace FineCodeCoverage.Options
 
         [Category(reportCategory)]
         [Description("When cyclomatic complexity exceeds this value for a method then the method will be present in the risk hotspots tab.")]
-        public int ThresholdForCyclomaticComplexity { get; set; } = 30;
+        public int ThresholdForCyclomaticComplexity { get; set; }
 
         [Category(reportCategory)]
         [Description("When npath complexity exceeds this value for a method then the method will be present in the risk hotspots tab. OpenCover only")]
-        public int ThresholdForNPathComplexity { get; set; } = 200;
+        public int ThresholdForNPathComplexity { get; set; }
         
         [Category(reportCategory)]
         [Description("When crap score exceeds this value for a method then the method will be present in the risk hotspots tab. OpenCover only")]
-        public int ThresholdForCrapScore { get; set; } = 15;
+        public int ThresholdForCrapScore { get; set; }
 
         [Category(uiCategory)]
         [Description("Use Environment / Fonts and Colors for editor Coverage colouring")]
@@ -178,7 +175,7 @@ namespace FineCodeCoverage.Options
 
         [Category(reportCategory)]
         [Description("Set to false to show classes in report in short form.")]
-        public bool NamespacedClasses { get; set; } = true;
+        public bool NamespacedClasses { get; set; }
 
         [Category(reportCategory)]
         [Description("Set to true to hide classes, namespaces and assemblies that are fully covered.")]
@@ -234,12 +231,12 @@ namespace FineCodeCoverage.Options
 
         public override void SaveSettingsToStorage()
         {
-            AppOptionsStorageProvider.SaveSettingsToStorage(this);
+            lazyAppOptionsStorageProvider.Value.SaveSettingsToStorage(this);
         }
 
         public override void LoadSettingsFromStorage()
         {
-            AppOptionsStorageProvider.LoadSettingsFromStorage(this);
+            lazyAppOptionsStorageProvider.Value.LoadSettingsFromStorage(this);
         }
 
     }

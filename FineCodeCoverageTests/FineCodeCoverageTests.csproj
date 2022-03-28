@@ -110,6 +110,7 @@
     <Compile Include="CoverageToolOutput_Tests\CoverageToolOutput_Exports_Tests.cs" />
     <Compile Include="CoverageToolOutput_Tests\FccOutputExistenceCoverageToolOutputFolderSolutionProvider_Tests.cs" />
     <Compile Include="CoverageToolOutput_Tests\SolutionFolderProvider_Tests.cs" />
+    <Compile Include="AppOptionsProvider_Tests.cs" />
     <Compile Include="CoverageUtilManager_Tests.cs" />
     <Compile Include="MsCodeCoverage\ShimCopier_Tests.cs" />
     <Compile Include="MsCodeCoverage\TemplatedRunSettingsService_Tests.cs" />

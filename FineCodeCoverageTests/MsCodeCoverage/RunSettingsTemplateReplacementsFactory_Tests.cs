@@ -580,51 +580,51 @@ namespace FineCodeCoverageTests.MsCodeCoverage
     [ExcludeFromCodeCoverage]
     internal class TestCoverageProjectOptions : IAppOptions
     {
-        public string[] Exclude => throw new NotImplementedException();
+        public string[] Exclude { get; set; }
 
-        public string[] ExcludeByAttribute => throw new NotImplementedException();
+        public string[] ExcludeByAttribute { get; set; }
 
-        public string[] ExcludeByFile => throw new NotImplementedException();
+        public string[] ExcludeByFile { get; set; }
 
-        public string[] Include => throw new NotImplementedException();
+        public string[] Include { get; set; }
 
-        public bool RunInParallel => throw new NotImplementedException();
+        public bool RunInParallel { get; set; }
 
-        public int RunWhenTestsExceed => throw new NotImplementedException();
+        public int RunWhenTestsExceed { get; set; }
 
-        public bool RunWhenTestsFail => throw new NotImplementedException();
+        public bool RunWhenTestsFail { get; set; }
 
-        public bool RunSettingsOnly => throw new NotImplementedException();
+        public bool RunSettingsOnly { get; set; }
 
-        public bool CoverletConsoleGlobal => throw new NotImplementedException();
+        public bool CoverletConsoleGlobal { get; set; }
 
-        public string CoverletConsoleCustomPath => throw new NotImplementedException();
+        public string CoverletConsoleCustomPath { get; set; }
 
-        public bool CoverletConsoleLocal => throw new NotImplementedException();
+        public bool CoverletConsoleLocal { get; set; }
 
-        public string CoverletCollectorDirectoryPath => throw new NotImplementedException();
+        public string CoverletCollectorDirectoryPath { get; set; }
 
-        public string OpenCoverCustomPath => throw new NotImplementedException();
+        public string OpenCoverCustomPath { get; set; }
 
-        public string FCCSolutionOutputDirectoryName => throw new NotImplementedException();
+        public string FCCSolutionOutputDirectoryName { get; set; }
 
-        public int ThresholdForCyclomaticComplexity => throw new NotImplementedException();
+        public int ThresholdForCyclomaticComplexity { get; set; }
 
-        public int ThresholdForNPathComplexity => throw new NotImplementedException();
+        public int ThresholdForNPathComplexity { get; set; }
 
-        public int ThresholdForCrapScore => throw new NotImplementedException();
+        public int ThresholdForCrapScore { get; set; }
 
-        public bool CoverageColoursFromFontsAndColours => throw new NotImplementedException();
+        public bool CoverageColoursFromFontsAndColours { get; set; }
 
-        public bool StickyCoverageTable => throw new NotImplementedException();
+        public bool StickyCoverageTable { get; set; }
 
-        public bool NamespacedClasses => throw new NotImplementedException();
+        public bool NamespacedClasses { get; set; }
 
-        public bool HideFullyCovered => throw new NotImplementedException();
+        public bool HideFullyCovered { get; set; }
 
-        public bool AdjacentBuildOutput => throw new NotImplementedException();
+        public bool AdjacentBuildOutput { get; set; }
 
-        public bool MsCodeCoverage { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public FineCodeCoverage.Options.RunMsCodeCoverage RunMsCodeCoverage { get; set; }
         public string[] ModulePathsExclude { get; set; }
         public string[] ModulePathsInclude { get; set; }
         public string[] CompanyNamesExclude { get; set; }
@@ -644,6 +644,6 @@ namespace FineCodeCoverageTests.MsCodeCoverage
 
         public bool IncludeReferencedProjects { get; set; }
 
-        public string ToolsDirectory => throw new NotImplementedException();
+        public string ToolsDirectory { get; set; }
     }
 }

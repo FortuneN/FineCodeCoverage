@@ -112,7 +112,7 @@ namespace Test
             };
 
             var mockedAppOptions = mocker.GetMock<IAppOptions>();
-            mockedAppOptions.Setup(x => x.MsCodeCoverage).Returns(false);
+            mockedAppOptions.Setup(x => x.RunMsCodeCoverage).Returns(RunMsCodeCoverage.No);
             var mockAppOptionsProvider = mocker.GetMock<IAppOptionsProvider>();
             mockAppOptionsProvider.Setup(x => x.Get()).Returns(mockedAppOptions.Object);
         }

@@ -38,7 +38,7 @@ namespace FineCodeCoverage.Output
 	[ProvideMenuResource("Menus.ctmenu", 1)]
 	[Export(typeof(OutputToolWindowPackage))]
 	[InstalledProductRegistration(Vsix.Name, Vsix.Description, Vsix.Id)]
-	[ProvideOptionPage(typeof(AppOptions), Vsix.Name, "General", 0, 0, true)]
+	[ProvideOptionPage(typeof(AppOptionsPage), Vsix.Name, "General", 0, 0, true)]
 	[PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
 	[ProvideToolWindow(typeof(OutputToolWindow), Style = VsDockStyle.Tabbed, DockedHeight = 300, Window = EnvDTE.Constants.vsWindowKindOutput)]
 	public sealed class OutputToolWindowPackage : AsyncPackage

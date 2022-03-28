@@ -83,14 +83,25 @@ namespace FineCodeCoverageTests.MsCodeCoverage
             autoMocker = new AutoMoqer();
             msCodeCoverageRunSettingsService = autoMocker.Create<MsCodeCoverageRunSettingsService>();
             msCodeCoverageRunSettingsService.threadHelper = new TestThreadHelper();
-            SetupAppOptionsProvider();
+            SetupAppOptionsProvider(RunMsCodeCoverage.Yes);
+        }
+
+        [Test]
+        public async Task Should_Not_Be_Collecting_If_RunMsCodeCoverage_No()
+        {
+            SetupAppOptionsProvider(RunMsCodeCoverage.No);
+            var testOperation = SetUpTestOperation(new List<ICoverageProject> {  });
+            var collectionStatus = await msCodeCoverageRunSettingsService.IsCollectingAsync(testOperation);
+
+            Assert.AreEqual(MsCodeCoverageCollectionStatus.NotCollecting, collectionStatus);
         }
 
         [TestCase(true)]
         [TestCase(false)]
         public async Task Should_Try_Analyse_Projects_With_Runsettings(bool useMsCodeCoverageOption)
         {
-            SetupAppOptionsProvider(useMsCodeCoverageOption);
+            var runMsCodeCoverage = useMsCodeCoverageOption ? RunMsCodeCoverage.Yes : RunMsCodeCoverage.IfInRunSettings;
+            SetupAppOptionsProvider(runMsCodeCoverage);
 
             var fccMsTestAdapterPath = InitializeFCCMsTestAdapterPath();
 
@@ -176,7 +187,7 @@ namespace FineCodeCoverageTests.MsCodeCoverage
         [Test]
         public async Task Should_Prepare_Coverage_Projects_When_Suitable()
         {
-            SetupAppOptionsProvider(false);
+            SetupAppOptionsProvider(RunMsCodeCoverage.IfInRunSettings);
 
             var mockTemplatedCoverageProject = new Mock<ICoverageProject>();
             var mockCoverageProjects = new List<Mock<ICoverageProject>>
@@ -201,7 +212,7 @@ namespace FineCodeCoverageTests.MsCodeCoverage
         [Test]
         public async Task Should_Set_UserRunSettingsProjectDetailsLookup_For_IRunSettingsService_When_Suitable()
         {
-            SetupAppOptionsProvider(false);
+            SetupAppOptionsProvider(RunMsCodeCoverage.IfInRunSettings);
 
             var projectSettings = new Mock<IAppOptions>().Object;
             var excludedReferencedProjects = new List<string>();
@@ -279,7 +290,8 @@ namespace FineCodeCoverageTests.MsCodeCoverage
 
         public async Task GenerateRunSettingsFromTemplate(bool msCodeCoverageOptions, bool runSettingsSpecifiedMsCodeCoverage)
         {
-            SetupAppOptionsProvider(msCodeCoverageOptions);
+            var runMsCodeCoverage = msCodeCoverageOptions ? RunMsCodeCoverage.Yes : RunMsCodeCoverage.IfInRunSettings;
+            SetupAppOptionsProvider(runMsCodeCoverage);
             SetupIUserRunSettingsServiceAnalyseAny().Returns(new UserRunSettingsAnalysisResult(true, runSettingsSpecifiedMsCodeCoverage));
 
             var fccMsTestAdapterPath = InitializeFCCMsTestAdapterPath();
@@ -390,7 +402,7 @@ namespace FineCodeCoverageTests.MsCodeCoverage
         [Test]
         public async Task Should_Not_Be_Collecting_When_Template_Projects_And_Do_Not_Ms_Collect()
         {
-            SetupAppOptionsProvider(false);
+            SetupAppOptionsProvider(RunMsCodeCoverage.IfInRunSettings);
             SetupIUserRunSettingsServiceAnalyseAny().Returns(new UserRunSettingsAnalysisResult(true, false));
 
             var coverageProjects = new List<ICoverageProject>
@@ -475,11 +487,11 @@ namespace FineCodeCoverageTests.MsCodeCoverage
             return mockTestOperation.Object;
         }
 
-        private void SetupAppOptionsProvider(bool useMsCodeCoverage = true)
+        private void SetupAppOptionsProvider(RunMsCodeCoverage runMsCodeCoverage)
         {
             var mockAppOptionsProvider = autoMocker.GetMock<IAppOptionsProvider>();
             var mockOptions = new Mock<IAppOptions>();
-            mockOptions.Setup(options => options.MsCodeCoverage).Returns(useMsCodeCoverage);
+            mockOptions.Setup(options => options.RunMsCodeCoverage).Returns(runMsCodeCoverage);
             mockAppOptionsProvider.Setup(appOptionsProvider => appOptionsProvider.Get()).Returns(mockOptions.Object);
         }
 

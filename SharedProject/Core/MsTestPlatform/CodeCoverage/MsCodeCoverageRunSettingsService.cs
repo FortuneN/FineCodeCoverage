@@ -80,6 +80,8 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
         private bool useMsCodeCoverage;
         
         internal MsCodeCoverageCollectionStatus collectionStatus; // for tests
+        private RunMsCodeCoverage runMsCodeCoverage;
+
         private bool IsCollecting => collectionStatus == MsCodeCoverageCollectionStatus.Collecting;
 
         internal IThreadHelper threadHelper = new VsThreadHelper();
@@ -121,7 +123,12 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
         public async Task<MsCodeCoverageCollectionStatus> IsCollectingAsync(ITestOperation testOperation)
         {
             await InitializeIsCollectingAsync(testOperation);
-            await TrySetUpForCollectionAsync(testOperation.SolutionDirectory);
+            
+            if (runMsCodeCoverage != RunMsCodeCoverage.No)
+            {
+                await TrySetUpForCollectionAsync(testOperation.SolutionDirectory);
+            }
+            
             ReportEndOfCoverageRunIfError();
             return collectionStatus;
         }
@@ -167,7 +174,8 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
         private Task InitializeIsCollectingAsync(ITestOperation testOperation)
         {
             collectionStatus = MsCodeCoverageCollectionStatus.NotCollecting;
-            useMsCodeCoverage = appOptionsProvider.Get().MsCodeCoverage;
+            runMsCodeCoverage = appOptionsProvider.Get().RunMsCodeCoverage;
+            useMsCodeCoverage = runMsCodeCoverage == RunMsCodeCoverage.Yes;
             userRunSettingsProjectDetailsLookup = null;
             return CleanUpAsync(testOperation);
         }
