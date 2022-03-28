@@ -9,15 +9,21 @@ namespace FineCodeCoverage.Options
 {
     internal class AppOptionsPage : DialogPage, IAppOptions
     {
-        private const string runCategory = "Run";
-        private const string environmentCategory = "Environment";
-        private const string excludeIncludeCategory = "Exclude / Include";
-        private const string coverletCategory = "Coverlet";
-        private const string openCoverCategory = "OpenCover";
-        private const string outputCategory = "Output";
-        private const string reportCategory = "Report";
-        private const string uiCategory = "UI";
-        private const string msExcludeIncludeCategory = "Ms Exclude / Include";
+        private const string oldRunCategory = "Run ( Coverlet / OpenCover )";
+        private const string commonRunCategory = "Run ( Common )";
+        private const string commonEnvironmentCategory = "Environment ( Common )";
+        private const string coverletExcludeIncludeCategory = "Exclude / Include ( Coverlet )";
+        private const string oldExcludeIncludeCategory = "Exclude / Include ( Coverlet / OpenCover )";
+        private const string commonExcludeIncludeCategory = "Exclude / Include ( Common )";
+        private const string msExcludeIncludeCategory = "Exclude / Include ( Microsoft )";
+        private const string coverletToolCategory = "Tool ( Coverlet )";
+        private const string openCoverToolCategory = "Tool ( OpenCover )";
+        private const string oldOutputCategory = "Output ( Coverlet / OpenCover )";
+        private const string commonOutputCategory = "Output ( Common )";
+        private const string commonReportCategory = "Report ( Common )";
+        private const string openCoverReportCategory = "Report ( OpenCover )";
+        private const string commonUiCategory = "UI ( Common )";
+        
         private static readonly Lazy<IAppOptionsStorageProvider> lazyAppOptionsStorageProvider = new Lazy<IAppOptionsStorageProvider>(GetAppOptionsStorageProvider);
 
         private static IAppOptionsStorageProvider GetAppOptionsStorageProvider()
@@ -35,15 +41,47 @@ namespace FineCodeCoverage.Options
             return appOptionsStorageProvider;
         }
 
-        [Category(runCategory)]
-        [Description("Specifies whether or not coverage output is enabled!")]
+        #region run
+        #region common run category
+        [Category(commonRunCategory)]
+        [Description("Specifies whether or not coverage output is enabled")]
         public bool Enabled { get; set; }
 
-        [Category(runCategory)]
+        [Category(commonRunCategory)]
         [Description("Specifies whether or not the ms code coverage is used (BETA).  No, IfInRunSettings, Yes")]
         public RunMsCodeCoverage RunMsCodeCoverage { get; set; }
 
-        [Category(excludeIncludeCategory)]
+        [Description("Specify false to prevent coverage when tests fail.  Cannot be used in conjunction with RunInParallel")]
+        [Category(commonRunCategory)]
+        public bool RunWhenTestsFail { get; set; }
+
+        [Description("Specify a value to only run coverage based upon the number of executing tests.  Cannot be used in conjunction with RunInParallel")]
+        [Category(commonRunCategory)]
+        public int RunWhenTestsExceed { get; set; }
+        #endregion
+
+        #region old run
+        [Description("Specify true to not wait for tests to finish before running OpenCover / Coverlet coverage")]
+        [Category(oldRunCategory)]
+        public bool RunInParallel { get; set; }
+        #endregion
+        #endregion
+
+        #region exclude / include
+        #region common exclude include
+        [Category(commonExcludeIncludeCategory)]
+        [Description("Set to true to add all referenced projects to Include.")]
+        public bool IncludeReferencedProjects { get; set; }
+
+        [Category(commonExcludeIncludeCategory)]
+        [Description(
+        @"Specifies whether to report code coverage of the test assembly
+		")]
+        public bool IncludeTestAssembly { get; set; }
+        #endregion
+
+        #region old exclude include
+        [Category(oldExcludeIncludeCategory)]
         [Description(
         @"Filter expressions to exclude specific modules and types (multiple)
 		
@@ -60,7 +98,7 @@ namespace FineCodeCoverage.Options
 		")]
         public string[] Exclude { get; set; }
 
-        [Category(excludeIncludeCategory)]
+        [Category(oldExcludeIncludeCategory)]
         [Description(
         @"Filter expressions to include specific modules and types (multiple)
 		
@@ -77,24 +115,14 @@ namespace FineCodeCoverage.Options
 		")]
         public string[] Include { get; set; }
 
-        [Category(excludeIncludeCategory)]
-        [Description("Set to true to add all referenced projects to Include.")]
-        public bool IncludeReferencedProjects { get; set; }
-
-        [Category(excludeIncludeCategory)]
+        [Category(oldExcludeIncludeCategory)]
         [Description(
         @"Glob patterns specifying source files to exclude (multiple)
 		Use file path or directory path with globbing (e.g. **/Migrations/*)
 		")]
         public string[] ExcludeByFile { get; set; }
 
-        [Category(excludeIncludeCategory)]
-        [Description(
-        @"Specifies whether to report code coverage of the test assembly
-		")]
-        public bool IncludeTestAssembly { get; set; }
-
-        [Category(excludeIncludeCategory)]
+        [Category(oldExcludeIncludeCategory)]
         [Description(
         @"Attributes to exclude from code coverage (multiple)
 
@@ -104,83 +132,9 @@ namespace FineCodeCoverage.Options
 		[MyCustomExcludeFromCodeCoverage] => Any custom attribute that you may define
 		")]
         public string[] ExcludeByAttribute { get; set; }
+        #endregion
 
-        [Description("Specify true to not wait for tests to finish before running coverage")]
-        [Category(runCategory)]
-        public bool RunInParallel { get; set; }
-
-        [Description("Specify false to prevent coverage when tests fail.  Cannot be used in conjunction with RunInParallel")]
-        [Category(runCategory)]
-        public bool RunWhenTestsFail { get; set; }
-
-        [Description("Specify a value to only run coverage based upon the number of executing tests.  Cannot be used in conjunction with RunInParallel")]
-        [Category(runCategory)]
-        public int RunWhenTestsExceed { get; set; }
-
-        [Description("Folder to which copy tools subfolder. Must alredy exist. Requires restart of VS.")]
-        [Category(environmentCategory)]
-        public string ToolsDirectory { get; set; }
-
-        [Description("Specify false for global and project options to be used for coverlet data collector configuration elements when not specified in runsettings")]
-        [Category(coverletCategory)]
-        public bool RunSettingsOnly { get; set; }
-
-        [Description("Specify true to use your own dotnet tools global install of coverlet console.")]
-        [Category(coverletCategory)]
-        public bool CoverletConsoleGlobal { get; set; }
-
-        [Description("Specify true to use your own dotnet tools local install of coverlet console.")]
-        [Category(coverletCategory)]
-        public bool CoverletConsoleLocal { get; set; }
-
-        [Description("Specify path to coverlet console exe if you need functionality that the FCC version does not provide.")]
-        [Category(coverletCategory)]
-        public string CoverletConsoleCustomPath { get; set; }
-
-        [Description("Specify path to directory containing coverlet collector files if you need functionality that the FCC version does not provide.")]
-        [Category(coverletCategory)]
-        public string CoverletCollectorDirectoryPath { get; set; }
-
-        [Description("Specify path to open cover exe if you need functionality that the FCC version does not provide.")]
-        [Category(openCoverCategory)]
-        public string OpenCoverCustomPath { get; set; }
-
-        [Description("To have fcc output visible in a sub folder of your solution provide this name")]
-        [Category(outputCategory)]
-        public string FCCSolutionOutputDirectoryName { get; set; }
-
-        [Description("If your tests are dependent upon their path set this to true.")]
-        [Category(outputCategory)]
-        public bool AdjacentBuildOutput { get; set; }
-
-        [Category(reportCategory)]
-        [Description("When cyclomatic complexity exceeds this value for a method then the method will be present in the risk hotspots tab.")]
-        public int ThresholdForCyclomaticComplexity { get; set; }
-
-        [Category(reportCategory)]
-        [Description("When npath complexity exceeds this value for a method then the method will be present in the risk hotspots tab. OpenCover only")]
-        public int ThresholdForNPathComplexity { get; set; }
-        
-        [Category(reportCategory)]
-        [Description("When crap score exceeds this value for a method then the method will be present in the risk hotspots tab. OpenCover only")]
-        public int ThresholdForCrapScore { get; set; }
-
-        [Category(uiCategory)]
-        [Description("Use Environment / Fonts and Colors for editor Coverage colouring")]
-        public bool CoverageColoursFromFontsAndColours { get; set; }
-
-        [Category(reportCategory)]
-        [Description("Set to true for coverage table to have a sticky thead.")]
-        public bool StickyCoverageTable { get; set; }
-
-        [Category(reportCategory)]
-        [Description("Set to false to show classes in report in short form.")]
-        public bool NamespacedClasses { get; set; }
-
-        [Category(reportCategory)]
-        [Description("Set to true to hide classes, namespaces and assemblies that are fully covered.")]
-        public bool HideFullyCovered { get; set; }
-
+        #region ms exclude include
         [Category(msExcludeIncludeCategory)]
         [Description("Multiple regexes that match assemblies specified by assembly name or file path - for exclusion")]
         public string[] ModulePathsExclude { get; set; }
@@ -228,6 +182,92 @@ namespace FineCodeCoverage.Options
         [Category(msExcludeIncludeCategory)]
         [Description("Multiple regexes that match procedures, functions, or methods by fully qualified name, including the parameter list. - for inclusion")]
         public string[] FunctionsInclude { get; set; }
+        #endregion
+
+        #region coverlet only 
+        [Description("Specify false for global and project options to be used for coverlet data collector configuration elements when not specified in runsettings")]
+        [Category(coverletExcludeIncludeCategory)]
+        public bool RunSettingsOnly { get; set; }
+        #endregion
+        #endregion
+
+        #region output
+        #region common output
+        [Description("To have fcc output visible in a sub folder of your solution provide this name")]
+        [Category(commonOutputCategory)]
+        public string FCCSolutionOutputDirectoryName { get; set; }
+        #endregion
+
+        #region old output
+        [Description("If your tests are dependent upon their path set this to true. OpenCover / Coverlet")]
+        [Category(oldOutputCategory)]
+        public bool AdjacentBuildOutput { get; set; }
+        #endregion
+        #endregion
+
+        #region common environment
+        [Description("Folder to which copy tools subfolder. Must alredy exist. Requires restart of VS.")]
+        [Category(commonEnvironmentCategory)]
+        public string ToolsDirectory { get; set; }
+        #endregion
+
+        #region common ui
+        [Category(commonUiCategory)]
+        [Description("Use Environment / Fonts and Colors for editor Coverage colouring")]
+        public bool CoverageColoursFromFontsAndColours { get; set; }
+        #endregion
+
+        #region common report category
+        [Category(commonReportCategory)]
+        [Description("When cyclomatic complexity exceeds this value for a method then the method will be present in the risk hotspots tab.")]
+        public int ThresholdForCyclomaticComplexity { get; set; }
+
+        [Category(commonReportCategory)]
+        [Description("Set to true for coverage table to have a sticky thead.")]
+        public bool StickyCoverageTable { get; set; }
+
+        [Category(commonReportCategory)]
+        [Description("Set to false to show classes in report in short form.")]
+        public bool NamespacedClasses { get; set; }
+
+        [Category(commonReportCategory)]
+        [Description("Set to true to hide classes, namespaces and assemblies that are fully covered.")]
+        public bool HideFullyCovered { get; set; }
+        #endregion
+
+        #region OpenCover report category
+        [Category(openCoverReportCategory)]
+        [Description("When npath complexity exceeds this value for a method then the method will be present in the risk hotspots tab. OpenCover only")]
+        public int ThresholdForNPathComplexity { get; set; }
+
+        [Category(openCoverReportCategory)]
+        [Description("When crap score exceeds this value for a method then the method will be present in the risk hotspots tab. OpenCover only")]
+        public int ThresholdForCrapScore { get; set; }
+        #endregion
+
+        #region coverlet tool only
+        [Description("Specify true to use your own dotnet tools global install of coverlet console.")]
+        [Category(coverletToolCategory)]
+        public bool CoverletConsoleGlobal { get; set; }
+
+        [Description("Specify true to use your own dotnet tools local install of coverlet console.")]
+        [Category(coverletToolCategory)]
+        public bool CoverletConsoleLocal { get; set; }
+
+        [Description("Specify path to coverlet console exe if you need functionality that the FCC version does not provide.")]
+        [Category(coverletToolCategory)]
+        public string CoverletConsoleCustomPath { get; set; }
+
+        [Description("Specify path to directory containing coverlet collector files if you need functionality that the FCC version does not provide.")]
+        [Category(coverletToolCategory)]
+        public string CoverletCollectorDirectoryPath { get; set; }
+        #endregion
+
+        #region open cover tool only
+        [Description("Specify path to open cover exe if you need functionality that the FCC version does not provide.")]
+        [Category(openCoverToolCategory)]
+        public string OpenCoverCustomPath { get; set; }
+        #endregion
 
         public override void SaveSettingsToStorage()
         {
