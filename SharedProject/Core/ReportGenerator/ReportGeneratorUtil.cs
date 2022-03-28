@@ -1389,32 +1389,41 @@ risk-hotspots > div > table > thead > tr > th:last-of-type > a:last-of-type {
 							coverageLogContainer.appendChild(coverageLogElement);
 							container.appendChild(coverageLogContainer);
 						}}
-						function addLogMessageElement(message){{
-							var logElement = document.createElement('div');
-							var fccOutputPanePart = 'FCC Output Pane';
-							var fccOutputPaneStartIndex = message.indexOf(fccOutputPanePart);
-							if(fccOutputPaneStartIndex != -1){{
-								if(fccOutputPaneStartIndex != 0){{
-									var before = message.substring(0,fccOutputPaneStartIndex);
+						function addExternalMessage(logElement,message,matchLinkPart, externalFn){{
+							var matched = false;
+							var startIndex = message.indexOf(matchLinkPart);
+							if(startIndex != -1){{
+								matched = true;
+								if(startIndex != 0){{
+									var before = message.substring(0,startIndex);
 									var beforeEl = document.createElement('span');
 									beforeEl.innerText = before;
 									logElement.appendChild(beforeEl);
 								}}
-								var openFccPanelLink = document.createElement('a');
-								openFccPanelLink.innerText = fccOutputPanePart;
-								openFccPanelLink.href = '#';
-								openFccPanelLink.onclick = function(){{
-									window.external.{nameof(ScriptManager.ShowFCCOutputPane)}();
+								var externalLink = document.createElement('a');
+								externalLink.innerText = matchLinkPart;
+								externalLink.href = '#';
+								externalLink.onclick = function(){{
+									window.external[externalFn]();
 									return false; 
 								}}
-								logElement.appendChild(openFccPanelLink);
-								var after = message.substring(fccOutputPaneStartIndex + fccOutputPanePart.length);
+								logElement.appendChild(externalLink);
+								var after = message.substring(startIndex + matchLinkPart.length);
 								if(after != ''){{
 									var afterEl = document.createElement('span');
 									afterEl.innerText = after;
 									logElement.appendChild(afterEl);
 								}}
-							}}else{{
+							}}
+							return matched;
+						}}
+						function addLogMessageElement(message){{
+							var logElement = document.createElement('div');
+							var matched = addExternalMessage(logElement,message,'FCC Output Pane','{nameof(ScriptManager.ShowFCCOutputPane)}');
+							if(!matched){{
+								matched = addExternalMessage(logElement,message,'View readme','{nameof(ScriptManager.ReadReadMe)}');
+							}}
+							if(!matched){{
 								logElement.innerText = message;
 							}}
 							

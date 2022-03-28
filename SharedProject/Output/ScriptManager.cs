@@ -25,6 +25,7 @@ namespace FineCodeCoverage.Output
         internal const string payPal = "https://paypal.me/FortuneNgwenya";
         internal const string githubIssues = "https://github.com/FortuneN/FineCodeCoverage/issues";
         internal const string marketPlaceRateAndReview = "https://marketplace.visualstudio.com/items?itemName=FortuneNgwenya.FineCodeCoverage&ssr=false#review-details";
+        internal const string githubReadme = "https://github.com/FortuneN/FineCodeCoverage/blob/master/README.md";
         private readonly ISourceFileOpener sourceFileOpener;
         private readonly IProcess process;
         private readonly IEventAggregator eventAggregator;
@@ -43,6 +44,11 @@ namespace FineCodeCoverage.Output
         public void OpenFile(string assemblyName, string qualifiedClassName, int file, int line)
         {
             openFileTask = sourceFileOpener.OpenFileAsync(assemblyName, qualifiedClassName, file, line);
+        }
+
+        public void ReadReadMe()
+        {
+            process.Start(githubReadme);
         }
 
         public void BuyMeACoffee()
