@@ -1,15 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 using AutoMoq;
 using FineCodeCoverage.Core.Utilities;
-using FineCodeCoverage.Engine;
-using FineCodeCoverage.Engine.Coverlet;
-using FineCodeCoverage.Engine.Model;
-using FineCodeCoverage.Engine.OpenCover;
 using FineCodeCoverage.Options;
 using Moq;
 using NUnit.Framework;
@@ -382,7 +375,6 @@ namespace FineCodeCoverageTests
         public void Should_Log_If_Exception_When_SaveSettingsToStorage()
         {
             var exception = new Exception();
-            var mockWritableSettingsStore = autoMocker.GetMock<IWritableSettingsStore>();
             mockWritableSettingsStore.Setup(
                 writeableSettingsStore => writeableSettingsStore.SetString("FineCodeCoverage", nameof(IAppOptions.Enabled), It.IsAny<string>())
             ).Throws(exception);
