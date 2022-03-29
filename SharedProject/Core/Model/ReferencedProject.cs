@@ -18,7 +18,7 @@ namespace FineCodeCoverage.Core.Model
 		public ReferencedProject(string projectPath)
         {
 			this.projectPath = projectPath;
-			AssemblyName = GetAssemblyName(XElementUtil.Load(projectPath, true), Path.GetFileNameWithoutExtension(projectPath));
+			AssemblyName = GetAssemblyName(LinqToXmlUtil.Load(projectPath, true), Path.GetFileNameWithoutExtension(projectPath));
 		}
 
 		private string GetAssemblyName(XElement projectFileXElement, string fallbackName = null)
@@ -55,7 +55,7 @@ namespace FineCodeCoverage.Core.Model
 					</PropertyGroup>
 					...
 				 */
-				var projectFileXElement = XElementUtil.Load(projectPath, true);
+				var projectFileXElement = LinqToXmlUtil.Load(projectPath, true);
 				var excludeFromCodeCoverageProperty = projectFileXElement.XPathSelectElement($"/PropertyGroup/{excludeFromCodeCoveragePropertyName}");
 
 				return excludeFromCodeCoverageProperty != null;

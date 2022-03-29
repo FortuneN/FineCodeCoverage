@@ -27,6 +27,7 @@ namespace FineCodeCoverage.Engine.Model
         private readonly bool canUseMsBuildWorkspace;
         private XElement projectFileXElement;
         private IAppOptions settings;
+        private string targetFramework;
         private readonly string fccFolderName = "fine-code-coverage";
         private readonly string buildOutputFolderName = "build-output";
         private string buildOutputPath;
@@ -153,6 +154,7 @@ namespace FineCodeCoverage.Engine.Model
         public string FailureStage { get; set; }
         public bool HasFailed => !string.IsNullOrWhiteSpace(FailureStage) || !string.IsNullOrWhiteSpace(FailureDescription);
         public string ProjectFile { get; set; }
+        public Guid Id { get; set; }
         public string ProjectName { get; set; }
         public string CoverageOutputFile => Path.Combine(CoverageOutputFolder, $"{ProjectName}.coverage.xml");
 
@@ -347,7 +349,7 @@ namespace FineCodeCoverage.Engine.Model
             {
                 if (projectFileXElement == null)
                 {
-                    projectFileXElement = XElementUtil.Load(ProjectFile, true);
+                    projectFileXElement = LinqToXmlUtil.Load(ProjectFile, true);
                 }
                 return projectFileXElement;
 
@@ -357,6 +359,26 @@ namespace FineCodeCoverage.Engine.Model
         public List<string> IncludedReferencedProjects { get; set; } = new List<string>();
         public bool Is64Bit { get; set; }
         public string RunSettingsFile { get; set; }
+        public bool IsDotNetFramework { get; private set; }
+        public string TargetFramework {
+            get => targetFramework;
+            set
+            {
+                targetFramework = value;
+                switch (targetFramework) {
+                    case "Framework35":
+                    case "Framework40":
+                    case "Framework45":
+                        IsDotNetFramework = true;
+                        break;
+                    case "FrameworkCore10":
+                    case "FrameworkUap10":
+                    case "None":
+                        break;
+                }
+
+            }
+        }
 
         public async Task StepAsync(string stepName, Func<ICoverageProject, Task> action)
         {
@@ -380,7 +402,7 @@ namespace FineCodeCoverage.Engine.Model
             }
         }
 
-        public async Task<CoverageProjectFileSynchronizationDetails> PrepareForCoverageAsync(CancellationToken cancellationToken)
+        public async Task<CoverageProjectFileSynchronizationDetails> PrepareForCoverageAsync(CancellationToken cancellationToken,bool synchronizeBuildOuput = true)
         {
             cancellationToken.ThrowIfCancellationRequested();
             EnsureDirectories();
@@ -388,8 +410,12 @@ namespace FineCodeCoverage.Engine.Model
             cancellationToken.ThrowIfCancellationRequested();
             CleanFCCDirectory();
 
-            cancellationToken.ThrowIfCancellationRequested();
-            var synchronizationDetails = SynchronizeBuildOutput();
+            CoverageProjectFileSynchronizationDetails synchronizationDetails = null;
+            if (synchronizeBuildOuput)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                synchronizationDetails = SynchronizeBuildOutput();
+            }
 
             cancellationToken.ThrowIfCancellationRequested();
             await SetIncludedExcludedReferencedProjectsAsync();
@@ -406,7 +432,7 @@ namespace FineCodeCoverage.Engine.Model
 
         private void SetIncludedReferencedProjects(List<ReferencedProject> referencedProjects)
         {
-            if (settings.IncludeReferencedProjects)
+            if (Settings.IncludeReferencedProjects)
             {
                 IncludedReferencedProjects = referencedProjects.Select(referencedProject => referencedProject.AssemblyName).ToList();
             }

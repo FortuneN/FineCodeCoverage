@@ -7,6 +7,7 @@ using FineCodeCoverage.Core.Utilities;
 using FineCodeCoverage.Engine.Cobertura;
 using FineCodeCoverage.Engine.Model;
 using FineCodeCoverage.Engine.MsTestPlatform;
+using FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage;
 using FineCodeCoverage.Engine.ReportGenerator;
 using FineCodeCoverage.Impl;
 using FineCodeCoverage.Options;
@@ -16,13 +17,19 @@ namespace FineCodeCoverage.Engine
 {
     internal enum ReloadCoverageStatus { Start, Done, Cancelled, Error, Initializing };
 
+    internal class DisplayCoverageResultState
+    {
+        public CancellationTokenSource CancellationTokenSource { get; set; }
+        public Action CleanUp { get; set; }
+    }
+
     [Export(typeof(IFCCEngine))]
     internal class FCCEngine : IFCCEngine,IDisposable
     {
         internal int InitializeWait { get; set; } = 5000;
         internal const string initializationFailedMessagePrefix = "Initialization failed.  Please check the following error which may be resolved by reopening visual studio which will start the initialization process again.";
         private CancellationTokenSource cancellationTokenSource;
-        
+
         public event UpdateMarginTagsDelegate UpdateMarginTags;
         
         public string AppDataFolderPath { get; private set; }
@@ -30,12 +37,13 @@ namespace FineCodeCoverage.Engine
         private bool IsVsShutdown => disposeAwareTaskRunner.DisposalToken.IsCancellationRequested;
 
         private readonly ICoverageUtilManager coverageUtilManager;
-        private readonly ICoberturaUtil coberturaUtil;
+        private readonly ICoberturaUtil coberturaUtil;        
+        private readonly IMsCodeCoverageRunSettingsService msCodeCoverageRunSettingsService;
         private readonly IMsTestPlatformUtil msTestPlatformUtil;
         private readonly IReportGeneratorUtil reportGeneratorUtil;
         private readonly ILogger logger;
         private readonly IAppDataFolder appDataFolder;
-        
+
         private IInitializeStatusProvider initializeStatusProvider;
         private readonly ICoverageToolOutputManager coverageOutputManager;
         internal System.Threading.Tasks.Task reloadCoverageTask;
@@ -44,18 +52,18 @@ namespace FineCodeCoverage.Engine
 #pragma warning restore IDE0052 // Remove unread private members
         private readonly IEventAggregator eventAggregator;
         private readonly IDisposeAwareTaskRunner disposeAwareTaskRunner;
-
         private bool disposed = false;
 
         [ImportingConstructor]
         public FCCEngine(
             ICoverageUtilManager coverageUtilManager,
             ICoberturaUtil coberturaUtil,
-            IMsTestPlatformUtil msTestPlatformUtil,
+            IMsTestPlatformUtil msTestPlatformUtil,            
             IReportGeneratorUtil reportGeneratorUtil,
             ILogger logger,
             IAppDataFolder appDataFolder,
             ICoverageToolOutputManager coverageOutputManager,
+            IMsCodeCoverageRunSettingsService msCodeCoverageRunSettingsService,
             ISolutionEvents solutionEvents,
             IAppOptionsProvider appOptionsProvider,
             IEventAggregator eventAggregator,
@@ -80,6 +88,7 @@ namespace FineCodeCoverage.Engine
             this.reportGeneratorUtil = reportGeneratorUtil;
             this.logger = logger;
             this.appDataFolder = appDataFolder;
+            this.msCodeCoverageRunSettingsService = msCodeCoverageRunSettingsService;
         }
 
         internal string GetLogReloadCoverageStatusMessage(ReloadCoverageStatus reloadCoverageStatus)
@@ -101,6 +110,7 @@ namespace FineCodeCoverage.Engine
             reportGeneratorUtil.Initialize(AppDataFolderPath, cancellationToken);
             msTestPlatformUtil.Initialize(AppDataFolderPath, cancellationToken);
             coverageUtilManager.Initialize(AppDataFolderPath, cancellationToken);
+            msCodeCoverageRunSettingsService.Initialize(AppDataFolderPath, this,cancellationToken);
         }
 
         public void ClearUI()
@@ -116,7 +126,7 @@ namespace FineCodeCoverage.Engine
         }
 
         public void StopCoverage()
-        {
+        {           
             if (cancellationTokenSource != null)
             {
                 try
@@ -139,11 +149,11 @@ namespace FineCodeCoverage.Engine
             return cancellationTokenSource;
         }
 
-        private async System.Threading.Tasks.Task<string[]> RunCoverageAsync(List<ICoverageProject> coverageProjects,CancellationToken cancellationToken)
+        private async System.Threading.Tasks.Task<string[]> RunCoverageAsync(List<ICoverageProject> coverageProjects,CancellationToken vsShutdownLinkedCancellationToken)
         {
             // process pipeline
 
-            await PrepareCoverageProjectsAsync(coverageProjects, cancellationToken);
+            await PrepareCoverageProjectsAsync(coverageProjects, vsShutdownLinkedCancellationToken);
 
             foreach (var coverageProject in coverageProjects)
             {
@@ -155,7 +165,7 @@ namespace FineCodeCoverage.Engine
                     var runCoverToolMessage = $"Run {coverageTool} ({project.ProjectName})";
                     logger.Log(runCoverToolMessage);
                     reportGeneratorUtil.LogCoverageProcess(runCoverToolMessage);
-                    await coverageUtilManager.RunCoverageAsync(project, cancellationToken);
+                    await coverageUtilManager.RunCoverageAsync(project, vsShutdownLinkedCancellationToken);
                     
                     var duration = DateTime.Now - start;
                     var durationMessage = $"Completed coverage for ({coverageProject.ProjectName}) : {duration}";
@@ -167,9 +177,9 @@ namespace FineCodeCoverage.Engine
                 if (coverageProject.HasFailed)
                 {
                     var coverageStagePrefix = String.IsNullOrEmpty(coverageProject.FailureStage) ? "" : $"{coverageProject.FailureStage} ";
-                    var failureMessage = $"{coverageProject.FailureStage}({coverageProject.ProjectName}) Failed";
+                    var failureMessage = $"{coverageProject.FailureStage}({coverageProject.ProjectName}) Failed.";
                     logger.Log(failureMessage, coverageProject.FailureDescription);
-                    reportGeneratorUtil.LogCoverageProcess(failureMessage + Environment.NewLine + coverageProject.FailureDescription);
+                    reportGeneratorUtil.LogCoverageProcess(failureMessage + "  See the FCC Output Pane");
                 }
 
             }
@@ -198,16 +208,17 @@ namespace FineCodeCoverage.Engine
             RaiseUpdateOutputWindow(reportHtml);
         }
 
-        private async System.Threading.Tasks.Task<(List<CoverageLine> coverageLines,string reportFilePath)> RunAndProcessReportAsync(string[] coverOutputFiles,string reportOutputFolder,CancellationToken cancellationToken)
+        private async System.Threading.Tasks.Task<(List<CoverageLine> coverageLines,string reportFilePath)> RunAndProcessReportAsync(string[] coverOutputFiles, CancellationToken vsShutdownLinkedCancellationToken)
         {
-            cancellationToken.ThrowIfCancellationRequested();
-            var result = await reportGeneratorUtil.GenerateAsync(coverOutputFiles,reportOutputFolder,cancellationToken);
+            var reportOutputFolder = coverageOutputManager.GetReportOutputFolder();
+            vsShutdownLinkedCancellationToken.ThrowIfCancellationRequested();
+            var result = await reportGeneratorUtil.GenerateAsync(coverOutputFiles,reportOutputFolder,vsShutdownLinkedCancellationToken);
 
-            cancellationToken.ThrowIfCancellationRequested();
+            vsShutdownLinkedCancellationToken.ThrowIfCancellationRequested();
             logger.Log("Processing cobertura");
             var coverageLines = coberturaUtil.ProcessCoberturaXml(result.UnifiedXmlFile);
 
-            cancellationToken.ThrowIfCancellationRequested();
+            vsShutdownLinkedCancellationToken.ThrowIfCancellationRequested();
             logger.Log("Processing report");
             string processedReport = reportGeneratorUtil.ProcessUnifiedHtml(result.UnifiedHtml, reportOutputFolder);
             return (coverageLines, processedReport);
@@ -242,8 +253,9 @@ namespace FineCodeCoverage.Engine
             }
         }
 
-        private void DisplayCoverageResult(System.Threading.Tasks.Task<(List<CoverageLine> coverageLines, string reportHtml)> t, object cts)
+        private void DisplayCoverageResult(System.Threading.Tasks.Task<(List<CoverageLine> coverageLines, string reportHtml)> t, object state)
         {
+            var displayCoverageResultState = (DisplayCoverageResultState)state;
             if (!IsVsShutdown)
             {
                 switch (t.Status)
@@ -258,7 +270,7 @@ namespace FineCodeCoverage.Engine
                             GetLogReloadCoverageStatusMessage(ReloadCoverageStatus.Error),
                             innerException
                         );
-                        reportGeneratorUtil.LogCoverageProcess(innerException.ToString());
+                        reportGeneratorUtil.LogCoverageProcess("An exception occurred. See the FCC Output Pane");
                         break;
                     case System.Threading.Tasks.TaskStatus.RanToCompletion:
                         LogReloadCoverageStatus(ReloadCoverageStatus.Done);
@@ -270,8 +282,8 @@ namespace FineCodeCoverage.Engine
 
                 reportGeneratorUtil.EndOfCoverageRun();
             }
-            
-            ((CancellationTokenSource)cts).Dispose();
+            displayCoverageResultState.CleanUp?.Invoke();
+            displayCoverageResultState.CancellationTokenSource.Dispose();
         }
 
         private async System.Threading.Tasks.Task PollInitializedStatusAsync(CancellationToken cancellationToken)
@@ -296,45 +308,66 @@ namespace FineCodeCoverage.Engine
             }
         }
 
+        public void RunAndProcessReport(string[] coberturaFiles, Action cleanUp = null)
+        {
+            RunCancellableCoverageTask(async (vsShutdownLinkedCancellationToken) =>
+            {
+                List<CoverageLine> coverageLines = null;
+                string reportHtml = null;
+
+                if (coberturaFiles.Any())
+                {
+                    (coverageLines, reportHtml) = await RunAndProcessReportAsync(coberturaFiles, vsShutdownLinkedCancellationToken);
+                }
+                return (coverageLines, reportHtml);
+            }, cleanUp);
+        }
+
+        private void RunCancellableCoverageTask(
+            Func<CancellationToken,System.Threading.Tasks.Task<(List<CoverageLine>, string)>> taskCreator, Action cleanUp)
+        {
+            var vsLinkedCancellationTokenSource = Reset();
+            var vsShutdownLinkedCancellationToken = vsLinkedCancellationTokenSource.Token;
+            disposeAwareTaskRunner.RunAsync(() =>
+            {
+                reloadCoverageTask = System.Threading.Tasks.Task.Run(async () =>
+                {
+                    await PollInitializedStatusAsync(vsShutdownLinkedCancellationToken);
+                    var result = await taskCreator(vsShutdownLinkedCancellationToken);
+                    return result;
+
+                }, vsShutdownLinkedCancellationToken)
+                .ContinueWith(DisplayCoverageResult, new DisplayCoverageResultState { CancellationTokenSource = vsLinkedCancellationTokenSource, CleanUp = cleanUp}, System.Threading.Tasks.TaskScheduler.Default);
+                return reloadCoverageTask;
+            });
+        }
+
         public void ReloadCoverage(Func<System.Threading.Tasks.Task<List<ICoverageProject>>> coverageRequestCallback)
         {
-            var cts = Reset();
-            var cancellationToken = cts.Token;
-            disposeAwareTaskRunner.RunAsync(() =>
-              {
-                  reloadCoverageTask = System.Threading.Tasks.Task.Run(async () =>
-                  {
-                      List<CoverageLine> coverageLines = null;
-                      string reportHtml = null;
+            RunCancellableCoverageTask(async (vsShutdownLinkedCancellationToken) =>
+            {
+                List<CoverageLine> coverageLines = null;
+                string reportHtml = null;
 
-                      await PollInitializedStatusAsync(cancellationToken);
+                await PollInitializedStatusAsync(vsShutdownLinkedCancellationToken);
 
-                      reportGeneratorUtil.LogCoverageProcess("Starting coverage - full details in FCC Output Pane");
-                      LogReloadCoverageStatus(ReloadCoverageStatus.Start);
+                reportGeneratorUtil.LogCoverageProcess("Starting coverage - full details in FCC Output Pane");
+                LogReloadCoverageStatus(ReloadCoverageStatus.Start);
 
-                      var coverageProjects = await coverageRequestCallback();
-                      cancellationToken.ThrowIfCancellationRequested();
-                      coverageOutputManager.SetProjectCoverageOutputFolder(coverageProjects);
-                      var reportOutputFolder = coverageOutputManager.GetReportOutputFolder();
+                var coverageProjects = await coverageRequestCallback();
+                vsShutdownLinkedCancellationToken.ThrowIfCancellationRequested();
 
-                      var coverOutputFiles = await RunCoverageAsync(coverageProjects, cancellationToken);
+                coverageOutputManager.SetProjectCoverageOutputFolder(coverageProjects);
+                
 
-                      if (coverOutputFiles.Any())
-                      {
-                          var (lines, report) = await RunAndProcessReportAsync(coverOutputFiles, reportOutputFolder, cancellationToken);
-                          coverageLines = lines;
-                          reportHtml = report;
-                      }
+                var coverOutputFiles = await RunCoverageAsync(coverageProjects, vsShutdownLinkedCancellationToken);
+                if (coverOutputFiles.Any())
+                {
+                    (coverageLines, reportHtml) = await RunAndProcessReportAsync(coverOutputFiles, vsShutdownLinkedCancellationToken);
+                }
 
-                      return (coverageLines, reportHtml);
-
-                  }, cancellationToken)
-                    .ContinueWith(DisplayCoverageResult,cts, System.Threading.Tasks.TaskScheduler.Default);
-                  return reloadCoverageTask;
-
-              });
-            
-
+                return (coverageLines, reportHtml);
+            },null);
         }
 
         public void Dispose()
@@ -355,7 +388,6 @@ namespace FineCodeCoverage.Engine
                 disposed = true;
             }
         }
-
     }
 
 }

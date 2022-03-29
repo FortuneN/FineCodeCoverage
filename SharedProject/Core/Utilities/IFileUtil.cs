@@ -10,5 +10,7 @@
         string EnsureAbsolute(string directory, string possiblyRelativeTo);
         string ParentDirectoryPath(string filePath);
         void TryDeleteDirectory(string directory);
+        bool Exists(string filePath);
+        void Copy(string source, string destination);
     }
 }

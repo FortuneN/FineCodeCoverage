@@ -28,7 +28,7 @@ namespace FineCodeCoverage.Impl
         {
             try
             {
-                return new TestOperation(new Operation(operation), coverageProjectFactory, runSettingsRetriever);
+                return new TestOperation(new TestRunRequest(operation), coverageProjectFactory, runSettingsRetriever);
             }
             catch (PropertyDoesNotExistException propertyDoesNotExistException)
             {

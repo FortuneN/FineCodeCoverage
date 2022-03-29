@@ -34,7 +34,7 @@ namespace Test
         public void LogIssueOrSuggestion_Should_Open_Github_Issues()
         {
             scriptManager.LogIssueOrSuggestion();
-            mockProcess.Verify(p => p.Start(ScriptManager.githubIssues));
+            mockProcess.Verify(p => p.Start(FCCGithub.Issues));
         }
 
         [Test]

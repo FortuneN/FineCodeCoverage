@@ -63,6 +63,15 @@ namespace FineCodeCoverage.Core.Utilities
         {
             File.WriteAllText(path, contents);
         }
-       
+
+        public bool Exists(string filePath)
+        {
+            return File.Exists(filePath);
+        }
+
+        public void Copy(string source, string destination)
+        {
+            File.Copy(source, destination);
+        }
     }
 }

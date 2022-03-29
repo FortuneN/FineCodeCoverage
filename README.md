@@ -6,30 +6,82 @@ Download this extension from the [Visual Studio Market Place ( vs 2019 )](https:
 or download from [releases](https://github.com/FortuneN/FineCodeCoverage/releases).  Older versions can be obtained from [here](https://ci.appveyor.com/project/FortuneN/finecodecoverage/history).
 
 ---
-Prerequisites
+## Prerequisites
 
 Only that the test adapters are nuget packages.  For instance, the NUnit Test Adapter extension is not sufficient.
-FCC will copy your test dll and dependencies to a sub folder this may affect your tests.  The alternative is to set the option AdjacentBuildOutput to true.
+
 
 ---
 
-Introduction
+## Introduction
 
-Fine Code Coverage works by reacting to the visual studio test explorer, providing coverage from each test project containing tests that you have selected 
-to run.  This coverage is presented as a single unified report in the Fine Code Coverage Tool Window as well as coloured margins alongside your code.
-This coverage is not dynamic and represents the coverage obtained from the last time you executed tests.
-When the coverage becomes outdated, you can click the 'FCC Clear UI' button in Tools or run coverage again.
+Fine Code Coverage provides code coverage using one of 3 different coverage tools.  In previous releases there were two coverage tools being utilised, OpenCover and Coverlet that will be referred to as 'old coverage'.  
+Microsoft now provides a free coverage solution that you can choose to use by setting the Visual Studio Fine Code Coverage enumeration option RunMsCodeCoverage.  This will probably be the preferred coverage 
+tool for most developers.  It is currently in Beta.   
+
+With the old coverage it was possible for FCC to provide an abstraction over each tool's exclusion / inclusion options.  This abstraction does not work for MS code coverage.  
+Thus you will find that there are separate configuration options for Ms coverage vs old coverage and options that are common to the two.
+Configuration is available with Visual Studio options and project msbuild properties.  All visual studio settings can be overridden from test project settings and some settings 
+can only be set in project files.
+
+Regardless of the coverage tool employed the process begins with FCC reacting to the test explorer in visual studio.  One of the 3 coverage tools provides the coverage results that are presented as a single unified report in the Fine Code Coverage Tool Window.  The report shows line and branch coverage and risk hotspots with the facility to open your class files that will have coloured margins to indicate uncovered or partially covered code.  
+This coverage is not dynamic and represents the coverage obtained from the last time you executed tests.  When the coverage becomes outdated, you can click the 'FCC Clear UI' button in Tools or run coverage again.
 
 Details of how FCC is progressing with code coverage can be found in the Coverage Log tab in the Fine Code Coverage Tool Window with more detailed logs in the FCC Output Window Pane.  If you experience issues then providing the logs from the output window will help to understand the nature of the problem.
 
-The coverage is provided by either [OpenCover](https://github.com/OpenCover/opencover) for old style projects and [Coverlet](https://github.com/coverlet-coverage/coverlet) 
-for new style sdk projects.  FCC provides an abstraction over both so that it is possible to ignore the differences between the two but there are circumstances where 
-it is important to be aware of cover tool that will be run.  This is most apparent when Coverlet is used, please read on for the specifics.  
-The other scenario would be when you want to use a specific version of the coverage tool.  FCC will keep up to date with Coverlet and OpenCover 
-but there may be a preview version that you want to use.  This can be configured.  
+## Why use MS Code Coverage ?
 
-Configuration is available with Visual Studio settings and project msbuild properties.  All visual studio settings can be overridden from test project settings and some settings 
-can only be set in project files.
+With the old coverage FCC needed to copy your test dll and dependencies and run OpenCover or Coverlet on those files. This is not necessary with ms code coverage.
+The old coverage would wait until tests have finished before starting the coverage tool to re-run all tests.  This is not necessary with ms code coverage.
+The old coverage was based upon every test.  Ms code coverage is coverage from the tests you select in the test explorer.
+
+## How to utilize MS Code Coverage with FCC ?
+
+Firstly you need to change the RunMsCodeCoverage option from No.
+
+Ms code coverage requires a [runsettings](https://docs.microsoft.com/en-us/visualstudio/test/configure-unit-tests-by-using-a-dot-runsettings-file?view=vs-2022) file that is configured appropriately for 
+code coverage. This requires that you have the ms code coverage package and have pointed to it with the TestAdaptersPaths element as well as specifying the ms data collector.  [Exclusions and inclusions](https://docs.microsoft.com/en-us/visualstudio/test/customizing-code-coverage-analysis?view=vs-2022#include-or-exclude-assemblies-and-members) 
+are also specified in the runsettings.  I don't think that the documentation is clear enough on how this works so you may want to look at [this issue](https://github.com/microsoft/vstest/issues/3462).
+
+FCC does not require you to do this.  If you do not provide a runsettings and RunMsCodeCoverage is Yes then FCC will generate one.  If RunMsCodeCoverage is IfInRunSettings then if the project has runsettings that includes the ms data collector element configured correctly then FCC will process the collected results.
+
+## Run settings generation from template
+
+FCC includes the ms code coverage package and will create the necessary runsettings file for each test project being run from the test explorer window. 
+The exclusions and inclusions will come from visual studio options or from the project file in a similar manner to the old coverage.  As ms code coverage uses regex and has different methods of exclusion / inclusion to 
+Coverlet and OpenCover there are ms specific Visual Studio options and project elements.
+
+As FCC provides a runsettings file for each test project ( if you have not provided a solution wide or project specific ) it has to write the RunSettingsFilePath element in the project file.  
+Although FCC removes this element from the project file it will still show as git modified.
+
+FCC creates the runsettings from a template using string replacement.  If so desired you can provide your own templates.  FCC will look for fcc-ms-runsettings-template.xml in the project directory or the solution directory.
+Your template needs to be a valid xml document but does not need to supply all of the run settings elements.  FCC will add the replaceable ResultsDirectory and TestAdaptersPaths ( and the container RunConfiguration element if necessary) 
+elements if not present.  FCC will also add the ms DataCollector / Configuration / CodeCoverage replaceable elements if not present.  It will also add the non exclusion / inclusion recommended CodeCoverage elements AllowLowIntegrityProcesses, CollectFromChildProcesses, CollectAspDotNet and UseVerifiableInstrumentation if not provided.  UseVerifiableInstrumentation will be false for .Net Framework.
+To see the generated run settings use the RunSettingsFilePath element in the project file.  
+
+For a custom template, that provides its own elements that would otherwise have been provided by FCC, to participate in template replacement you need to add strings of the type %fcc_replace%.  
+Excludes and includes follow the format "%fcc_modulepaths_exclude%".  For FCC to supply the fcc provided ms code coverage path to TestAdaptersPaths use %fcc_testadapter%.
+
+## Non template run settings interception
+It is also possible to use your own runsettings file and have FCC add to it and replace.  FCC will ensure that the TestAdaptersPaths element is present as well as the ms data collector.  Unlike with a template, if the ms data collector is present then the xml only has replacement applied to it. 
+
+## Run settings defaults and merging
+
+Ms code coverage does provide a default Configuration / CodeCoverage element if not provided.  It will also add some default exclusions if not present or merge them in unless you add the attribute mergeDefaults='false'.
+For instance it Attributes exclude ExcludeFromCodeCoverageAttribute.
+If you are interested see ...\AppData\Local\FineCodeCoverage\msCodeCoverage\_version_\build\netstandard1.0\Microsoft.VisualStudio.TraceDataCollector.dll and the DynamicCoverageDataCollector.
+
+
+## Problems with ms code coverage
+Please check [troubleshooting](https://docs.microsoft.com/en-us/visualstudio/test/troubleshooting-code-coverage?view=vs-2022) before reporting an issue.
+
+## Old style coverage
+
+Dlls are copied to a sub folder of project output folder which may affect your tests.  The alternative is to set the option AdjacentBuildOutput to true.
+The coverage is provided by either [OpenCover](https://github.com/OpenCover/opencover) for old style projects and [Coverlet](https://github.com/coverlet-coverage/coverlet) 
+for new style sdk projects.  Although FCC provides an abstraction over both so that it is possible to ignore the differences between the two but there are circumstances where 
+it is important to be aware of cover tool that will be run.  This is most apparent when Coverlet is used, please read on for the specifics.  
+The other scenario would be when you want to use a specific version of the coverage tool. This can be configured.  
 
 The coverage tools that FCC leverages are by default installed into the FineCodeCoverage directory within `Environment.SpecialFolder.LocalApplicationData`.
 This can be changed with the ToolsDirectory Visual Studio option.  Ensure that this containing directory exists and upon restart the tools will be installed within.
@@ -82,6 +134,9 @@ Run a(some) unit test(s) and ...
   <IncludeTestAssembly>
 	True
   </IncludeTestAssembly>
+  <ModulePathsExclude>
+   .*Fabrikam.Math.UnitTest.dll
+  </ModulePathsExclude>
 </PropertyGroup>
 ```
 
@@ -117,54 +172,39 @@ If you are using option 1) then project and global options will only be used whe
 
 #### Options
 ```
+*** Common
 CoverageColoursFromFontsAndColours Specify true to use Environment / Fonts and Colors / Text Editor for editor Coverage colouring ( if present).
                                    Coverage Touched Area / Coverage Not Touched Area / Coverage Partially Touched Area.
 								   When false colours used are Green, Red and Gold.
-Enabled							   Specifies whether or not coverage output is enabled
-RunInParallel					   By default tests run and then coverage is performed.  Set to true to run coverage immediately
-RunWhenTestsFail				   By default coverage runs when tests fail.  Set to false to prevent this.  **Cannot be used in conjunction with RunInParallel**
-RunWhenTestsExceed				   Specify a value to only run coverage based upon the number of executing tests. **Cannot be used in conjunction with RunInParallel**
-Exclude							   Filter expressions to exclude specific modules and types (multiple values)
-Include							   Filter expressions to include specific modules and types (multiple values)
-IncludeReferencedProjects          Set to true to add all referenced projects to Include.
-ExcludeByFile					   Glob patterns specifying source files to exclude e.g. **/Migrations/* (multiple values)
-ExcludeByAttribute				   Attributes to exclude from code coverage (multiple values)
-IncludeTestAssembly				   Specifies whether to report code coverage of the test assembly
+
+FCCSolutionOutputDirectoryName     To have fcc output visible in a sub folder of your solution provide this name
+
+ToolsDirectory                     Folder to which copy tools subfolder. Must alredy exist. Requires restart of VS.
 
 ThresholdForCyclomaticComplexity   When [cyclomatic complexity](https://en.wikipedia.org/wiki/Cyclomatic_complexity) exceeds this value for a method then the method will be present in the risk hotspots tab. 
-ThresholdForNPathComplexity        When [npath complexity](https://en.wikipedia.org/wiki/Cyclomatic_complexity) exceeds this value for a method then the method will be present in the risk hotspots tab. OpenCover only.
-ThresholdForCrapScore              When [crap score](https://testing.googleblog.com/2011/02/this-code-is-crap.html) exceeds this value for a method then the method will be present in the risk hotspots tab. OpenCover only. 
 
 StickyCoverageTable                Set to true for coverage table to have a sticky thead.
 NamespacedClasses                  Set to false to show classes in report in short form. Affects grouping.
 HideFullyCovered                   Set to true to hide classes, namespaces and assemblies that are fully covered.
 
-RunSettingsOnly					   Specify false for global and project options to be used for coverlet data collector configuration elements when not specified in runsettings
-CoverletCollectorDirectoryPath	   Specify path to directory containing coverlet collector files if you need functionality that the FCC version does not provide.
+Enabled							   Specifies whether or not coverage output is enabled
+RunWhenTestsFail				   By default coverage runs when tests fail.  Set to false to prevent this.  **Cannot be used in conjunction with RunInParallel**
+RunWhenTestsExceed				   Specify a value to only run coverage based upon the number of executing tests. **Cannot be used in conjunction with RunInParallel**
+RunMsCodeCoverage                  Change to IfInRunSettings to only collect with configured runsettings.  Yes for runsettings generation.
 
-CoverletConsoleLocal			   Specify true to use your own dotnet tools local install of coverlet console.
-CoverletConsoleCustomPath		   Specify path to coverlet console exe if you need functionality that the FCC version does not provide.
-CoverletConsoleGlobal			   Specify true to use your own dotnet tools global install of coverlet console.
+IncludeTestAssembly				   Specifies whether to report code coverage of the test assembly
+IncludeReferencedProjects          Set to true to add all referenced projects to Include.
 
-FCCSolutionOutputDirectoryName     To have fcc output visible in a sub folder of your solution provide this name
+*** OpenCover / Coverlet
 AdjacentBuildOutput                If your tests are dependent upon their path set this to true.
 
-ToolsDirectory                     Folder to which copy tools subfolder. Must alredy exist. Requires restart of VS.
+Exclude							   Filter expressions to exclude specific modules and types (multiple values)
+Include							   Filter expressions to include specific modules and types (multiple values)
+ExcludeByFile					   Glob patterns specifying source files to exclude e.g. **/Migrations/* (multiple values)
+ExcludeByAttribute				   Attributes to exclude from code coverage (multiple values)
+RunInParallel					   By default OpenCover / Coverlet tests run and then coverage is performed.  Set to true to run coverage immediately
 
-The "CoverletConsole" settings have precedence Local / CustomPath / Global.
-
-Both 'Exclude' and 'Include' options can be used together but 'Exclude' takes precedence.
-
-You can ignore a method or an entire class from code coverage by creating and applying the [ExcludeFromCodeCoverage] attribute present in the System.Diagnostics.CodeAnalysis namespace.
-You can also ignore additional attributes by adding to the 'ExcludeByAttributes' list (short name or full name supported) e.g. :
-[GeneratedCode] => Present in System.CodeDom.Compiler namespace
-[MyCustomExcludeFromCodeCoverage] => Any custom attribute that you may define
-
- 
-```
-
-#### Filter Expressions
-```
+Filter expressions
 Wildcards
 * => matches zero or more characters
 		
@@ -174,7 +214,44 @@ Examples
 [*]Coverlet.Core.Instrumentation.* => All types belonging to Coverlet.Core.Instrumentation namespace in any assembly
 [coverlet.*.tests]* => All types in any assembly starting with coverlet. and ending with .tests
 
+
 Both 'Exclude' and 'Include' options can be used together but 'Exclude' takes precedence.
+
+You can ignore a method or an entire class from code coverage by creating and applying the [ExcludeFromCodeCoverage] attribute present in the System.Diagnostics.CodeAnalysis namespace.
+You can also ignore additional attributes by adding to the 'ExcludeByAttributes' list (short name or full name supported) e.g. :
+[GeneratedCode] => Present in System.CodeDom.Compiler namespace
+[MyCustomExcludeFromCodeCoverage] => Any custom attribute that you may define
+
+*** MS Code Coverage each multiple regexes to be transformed into runsettings elements
+ModulePathsExclude
+ModulePathsInclude
+CompanyNamesExclude
+CompanyNamesInclude
+PublicKeyTokensExclude
+PublicKeyTokensInclude
+SourcesExclude
+SourcesInclude
+AttributesExclude
+AttributesInclude
+FunctionsExclude
+FunctionsInclude
+
+*** Coverlet
+RunSettingsOnly					   Specify false for global and project options to be used for coverlet data collector configuration elements when not specified in runsettings
+CoverletCollectorDirectoryPath	   Specify path to directory containing coverlet collector files if you need functionality that the FCC version does not provide.
+CoverletConsoleLocal			   Specify true to use your own dotnet tools local install of coverlet console.
+CoverletConsoleCustomPath		   Specify path to coverlet console exe if you need functionality that the FCC version does not provide.
+CoverletConsoleGlobal			   Specify true to use your own dotnet tools global install of coverlet console.
+
+The "CoverletConsole" settings have precedence Local / CustomPath / Global.
+
+*** OpenCover
+OpenCoverCustomPath                Specify path to open cover exe if you need functionality that the FCC version does not provide.
+ThresholdForNPathComplexity        When [npath complexity](https://en.wikipedia.org/wiki/Cyclomatic_complexity) exceeds this value for a method then the method will be present in the risk hotspots tab. OpenCover only.
+ThresholdForCrapScore              When [crap score](https://testing.googleblog.com/2011/02/this-code-is-crap.html) exceeds this value for a method then the method will be present in the risk hotspots tab. OpenCover only. 
+
+
+ 
 ```
 
 ## FCC Output

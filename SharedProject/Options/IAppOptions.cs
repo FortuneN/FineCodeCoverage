@@ -1,32 +1,56 @@
 ﻿namespace FineCodeCoverage.Options
 {
-    public interface IAppOptions
+    internal interface IFCCCommonOptions
     {
-        bool Enabled { get; }
-        string[] Exclude { get; }
-        string[] ExcludeByAttribute { get; }
-        string[] ExcludeByFile { get; }
-        string[] Include { get; }
-        bool IncludeTestAssembly { get; }
-        bool RunInParallel { get; }
-        int RunWhenTestsExceed { get; }
-        string ToolsDirectory { get; }
-        bool RunWhenTestsFail { get; }
-        bool RunSettingsOnly { get; }
-        bool CoverletConsoleGlobal { get; }
-        string CoverletConsoleCustomPath { get; }
-        bool CoverletConsoleLocal { get; }
-        string CoverletCollectorDirectoryPath { get; }
-        string OpenCoverCustomPath { get; }
-        string FCCSolutionOutputDirectoryName { get; }
-        int ThresholdForCyclomaticComplexity { get; }
-        int ThresholdForNPathComplexity { get; }
-        int ThresholdForCrapScore { get; }
-        bool CoverageColoursFromFontsAndColours { get; }
-        bool StickyCoverageTable { get; }
-        bool NamespacedClasses { get; }
-        bool HideFullyCovered { get; }
-        bool AdjacentBuildOutput { get; }
-        bool IncludeReferencedProjects { get; }
+        bool Enabled { get; set; }
+        bool IncludeTestAssembly { get; set; }
+        bool IncludeReferencedProjects { get; set; }
+    }
+
+    internal interface IMsCodeCoverageIncludesExcludesOptions
+    {
+        string[] ModulePathsExclude { get; set; }
+        string[] ModulePathsInclude { get; set; }
+        string[] CompanyNamesExclude { get; set; }
+        string[] CompanyNamesInclude { get; set; }
+        string[] PublicKeyTokensExclude { get; set; }
+        string[] PublicKeyTokensInclude { get; set; }
+        string[] SourcesExclude { get; set; }
+        string[] SourcesInclude { get; set; }
+        string[] AttributesExclude { get; set; }
+        string[] AttributesInclude { get; set; }
+        string[] FunctionsInclude { get; set; }
+        string[] FunctionsExclude { get; set; }
+    }
+    internal interface IMsCodeCoverageOptions : IMsCodeCoverageIncludesExcludesOptions, IFCCCommonOptions { }
+
+    internal enum RunMsCodeCoverage { No, IfInRunSettings, Yes }
+
+    internal interface IAppOptions : IMsCodeCoverageOptions, IFCCCommonOptions
+    {
+        string[] Exclude { get; set; }
+        string[] ExcludeByAttribute { get; set; }
+        string[] ExcludeByFile { get; set; }
+        string[] Include { get; set; }
+        bool RunInParallel { get; set; }
+        int RunWhenTestsExceed { get; set; }
+        string ToolsDirectory { get; set; }
+        bool RunWhenTestsFail { get; set; }
+        bool RunSettingsOnly { get; set; }
+        bool CoverletConsoleGlobal { get; set; }
+        string CoverletConsoleCustomPath { get; set; }
+        bool CoverletConsoleLocal { get; set; }
+        string CoverletCollectorDirectoryPath { get; set; }
+        string OpenCoverCustomPath { get; set; }
+        string FCCSolutionOutputDirectoryName { get; set; }
+        int ThresholdForCyclomaticComplexity { get; set; }
+        int ThresholdForNPathComplexity { get; set; }
+        int ThresholdForCrapScore { get; set; }
+        bool CoverageColoursFromFontsAndColours { get; set; }
+        bool StickyCoverageTable { get; set; }
+        bool NamespacedClasses { get; set; }
+        bool HideFullyCovered { get; set; }
+        bool AdjacentBuildOutput { get; set; }
+        RunMsCodeCoverage RunMsCodeCoverage { get; set; } 
     }
 }

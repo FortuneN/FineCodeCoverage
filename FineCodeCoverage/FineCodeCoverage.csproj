@@ -81,21 +81,6 @@
       <Link>Resources\reportparts.xml</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="ZippedTools\coverlet.collector.3.0.3.zip">
-      <IncludeInVSIX>true</IncludeInVSIX>
-    </Content>
-    <Content Include="ZippedTools\coverlet.console.3.0.3.zip">
-      <IncludeInVSIX>true</IncludeInVSIX>
-    </Content>
-    <Content Include="ZippedTools\microsoft.testplatform.16.9.1.zip">
-      <IncludeInVSIX>true</IncludeInVSIX>
-    </Content>
-    <Content Include="ZippedTools\openCover.4.7.922.zip">
-      <IncludeInVSIX>true</IncludeInVSIX>
-    </Content>
-    <Content Include="ZippedTools\reportGenerator.4.7.1.zip">
-      <IncludeInVSIX>true</IncludeInVSIX>
-    </Content>
     <VSCTCompile Include="..\Shared Files\OutputToolWindowPackage.vsct">
       <Link>OutputToolWindowPackage.vsct</Link>
       <ResourceName>Menus.ctmenu</ResourceName>
@@ -106,6 +91,30 @@
     </Content>
     <Content Include="..\Shared Files\Resources\OutputToolWindowCommand.png">
       <Link>Resources\OutputToolWindowCommand.png</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="..\Shared Files\ZippedTools\coverlet.collector.3.0.3.zip">
+      <Link>ZippedTools\coverlet.collector.3.0.3.zip</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="..\Shared Files\ZippedTools\coverlet.console.3.0.3.zip">
+      <Link>ZippedTools\coverlet.console.3.0.3.zip</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="..\Shared Files\ZippedTools\microsoft.codecoverage.17.1.0.zip">
+      <Link>ZippedTools\microsoft.codecoverage.17.1.0.zip</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="..\Shared Files\ZippedTools\microsoft.testplatform.16.9.1.zip">
+      <Link>ZippedTools\microsoft.testplatform.16.9.1.zip</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="..\Shared Files\ZippedTools\openCover.4.7.922.zip">
+      <Link>ZippedTools\openCover.4.7.922.zip</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="..\Shared Files\ZippedTools\reportGenerator.4.7.1.zip">
+      <Link>ZippedTools\reportGenerator.4.7.1.zip</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <!--
@@ -142,6 +151,9 @@
     <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="16.8.3038">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Newtonsoft.Json">
+      <Version>13.0.1</Version>
     </PackageReference>
     <PackageReference Include="ReflectObject">
       <Version>1.0.0</Version>
