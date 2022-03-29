@@ -4,6 +4,9 @@ using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Text.Tagging;
 using FineCodeCoverage.Engine;
 using Microsoft.VisualStudio.Shell;
+using FineCodeCoverage.Core.Utilities;
+using System.Collections.Generic;
+using FineCodeCoverage.Engine.Model;
 
 namespace FineCodeCoverage.Impl
 {
@@ -11,35 +14,38 @@ namespace FineCodeCoverage.Impl
 	[TagType(typeof(CoverageLineGlyphTag))]
 	[Name(Vsix.TaggerProviderName)]
 	[Export(typeof(ITaggerProvider))]
-	internal class CoverageLineGlyphTaggerProvider : ITaggerProvider
+	internal class CoverageLineGlyphTaggerProvider : ITaggerProvider, IListener<NewCoverageLinesMessage>
 	{
-        private readonly IFCCEngine fccEngine;
+        private readonly IEventAggregator eventAggregator;
         private readonly ICoverageColoursProvider coverageColoursProvider;
+        private List<CoverageLine> lastCoverageLines;
 
         [ImportingConstructor]
 		public CoverageLineGlyphTaggerProvider(
-            IFCCEngine fccEngine, 
+            IEventAggregator eventAggregator, 
             ICoverageColoursProvider coverageColoursProvider)
         {
-            this.fccEngine = fccEngine;
-            fccEngine.UpdateMarginTags += FccEngine_UpdateMarginTags;
+            eventAggregator.AddListener(this);
+            this.eventAggregator = eventAggregator;
             this.coverageColoursProvider = coverageColoursProvider;
-        }
-
-        private void FccEngine_UpdateMarginTags(UpdateMarginTagsEventArgs e)
-        {
-#pragma warning disable VSTHRD102 // Implement internal logic asynchronously
-			ThreadHelper.JoinableTaskFactory.Run(async () =>
-#pragma warning restore VSTHRD102 // Implement internal logic asynchronously
-			{
-				await coverageColoursProvider.PrepareAsync();
-			});
-			
         }
 
         public ITagger<T> CreateTagger<T>(ITextBuffer textBuffer) where T : ITag
 		{
-			return new CoverageLineGlyphTagger(textBuffer, fccEngine) as ITagger<T>;
+			var coverageLineGlyphTagger =  new CoverageLineGlyphTagger(textBuffer, lastCoverageLines);
+            eventAggregator.AddListener(coverageLineGlyphTagger, false);
+            return coverageLineGlyphTagger as ITagger<T>;
 		}
-	}
+
+        public void Handle(NewCoverageLinesMessage message)
+        {
+            lastCoverageLines = message.CoverageLines;
+#pragma warning disable VSTHRD102 // Implement internal logic asynchronously
+            ThreadHelper.JoinableTaskFactory.Run(async () =>
+#pragma warning restore VSTHRD102 // Implement internal logic asynchronously
+            {
+                await coverageColoursProvider.PrepareAsync();
+            });
+        }
+    }
 }

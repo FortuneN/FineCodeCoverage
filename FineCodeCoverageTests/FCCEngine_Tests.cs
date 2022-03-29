@@ -30,11 +30,6 @@ namespace Test
             updatedMarginTags = false;
             mocker = new AutoMoqer();
             fccEngine = mocker.Create<FCCEngine>();
-            fccEngine.UpdateMarginTags += (UpdateMarginTagsEventArgs e) =>
-            {
-                updatedMarginTags = true;
-            };
-
         }
 
         [Test]
@@ -70,29 +65,20 @@ namespace Test
             fccEngine.Initialize(null, CancellationToken.None);
             Assert.AreEqual("some path", fccEngine.AppDataFolderPath);
         }
-    
-        [Test]
-        public void Should_UpdateMarginTags_And_Set_Null_CoverageLines_When_ClearUI()
-        {
-            fccEngine.CoverageLines = new List<CoverageLine>();
-            fccEngine.ClearUI();
-            Assert.IsTrue(updatedMarginTags);
-            Assert.IsNull(fccEngine.CoverageLines);
-        }
 
         [Test]
-        public void Should_Begin_With_Null_CoverageLines()
+        public void Should_Send_NewCoverageLinesMessage_With_Null_CoverageLines_When_ClearUI()
         {
-            Assert.IsNull(fccEngine.CoverageLines);
+            fccEngine.ClearUI();
+            mocker.Verify<IEventAggregator>(ea => ea.SendMessage(It.Is<NewCoverageLinesMessage>(msg => msg.CoverageLines == null), null));
         }
+
     }
 
     public class FCCEngine_ReloadCoverage_Tests
     {
         private AutoMoqer mocker;
         private FCCEngine fccEngine;
-        private List<UpdateMarginTagsEventArgs> updateMarginTagsEvents;
-        private List<List<CoverageLine>> updateMarginTagsCoverageLines;
 
         [SetUp]
         public void SetUp()
@@ -101,15 +87,6 @@ namespace Test
             var mockDisposeAwareTaskRunner = mocker.GetMock<IDisposeAwareTaskRunner>();
             mockDisposeAwareTaskRunner.Setup(runner => runner.RunAsync(It.IsAny<Func<Task>>())).Callback<Func<Task>>(async taskProvider => await taskProvider());
             fccEngine = mocker.Create<FCCEngine>();
-
-            updateMarginTagsEvents = new List<UpdateMarginTagsEventArgs>();
-            updateMarginTagsCoverageLines = new List<List<CoverageLine>>();
-
-            fccEngine.UpdateMarginTags += (UpdateMarginTagsEventArgs e) =>
-            {
-                updateMarginTagsEvents.Add(e);
-                updateMarginTagsCoverageLines.Add(fccEngine.CoverageLines);
-            };
 
             var mockedAppOptions = mocker.GetMock<IAppOptions>();
             mockedAppOptions.Setup(x => x.RunMsCodeCoverage).Returns(RunMsCodeCoverage.No);
@@ -354,11 +331,6 @@ namespace Test
         private void VerifyLogsReloadCoverageStatus(ReloadCoverageStatus reloadCoverageStatus)
         {
             mocker.Verify<ILogger>(l => l.Log(fccEngine.GetLogReloadCoverageStatusMessage(reloadCoverageStatus)));
-        }
-
-        private void VerifyClearUIEvents(int eventNumber)
-        {
-            Assert.Null(updateMarginTagsCoverageLines[eventNumber]);
         }
 
         private async Task<(string reportGeneratedHtmlContent, List<CoverageLine> updatedCoverageLines)> RunToCompletion(bool noCoverageProjects)
