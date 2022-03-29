@@ -211,6 +211,7 @@ namespace FineCodeCoverageTests.MsCodeCoverage
                     <DataCollectors>
                         <DataCollector friendlyName='Code Coverage' enabled='true'>
                             <Configuration>
+                                <CodeCoverage/>
                                 <Format>Cobertura</Format>
                             </Configuration>
                         </DataCollector>
@@ -236,6 +237,7 @@ namespace FineCodeCoverageTests.MsCodeCoverage
                     <DataCollectors>
                         <DataCollector friendlyName='Code Coverage' enabled='true'>
                             <Configuration>
+                                <CodeCoverage/>
                                 <Format>Cobertura</Format>
                                 <FCCGenerated/>
                             </Configuration>
@@ -259,6 +261,7 @@ namespace FineCodeCoverageTests.MsCodeCoverage
                     <DataCollectors>
                         <DataCollector friendlyName='Code Coverage' enabled='true'>
                             <Configuration>
+                                <CodeCoverage/>
                                 <Format>Cobertura</Format>
                             </Configuration>
                         </DataCollector>
@@ -283,6 +286,7 @@ namespace FineCodeCoverageTests.MsCodeCoverage
                     <DataCollectors>
                         <DataCollector friendlyName='Code Coverage' enabled='true'>
                             <Configuration>
+                                <CodeCoverage/>
                                 <Format>Cobertura</Format>
                                 <FCCGenerated/>
                             </Configuration>
@@ -424,6 +428,7 @@ namespace FineCodeCoverageTests.MsCodeCoverage
                     <DataCollectors>
                         <DataCollector friendlyName='Code Coverage'>
                             <Configuration>
+                                <CodeCoverage/>
                                 <Format>Cobertura</Format>
                                 <FCCGenerated/>
                             </Configuration>
@@ -444,6 +449,7 @@ namespace FineCodeCoverageTests.MsCodeCoverage
                     <DataCollectors>
                         <DataCollector friendlyName='Code Coverage' enabled='{replacements.Enabled}'>
                             <Configuration>
+                                <CodeCoverage/>
                                 <Format>Cobertura</Format>
                                 <FCCGenerated/>
                             </Configuration>
@@ -465,6 +471,7 @@ namespace FineCodeCoverageTests.MsCodeCoverage
                     <DataCollectors>
                         <DataCollector friendlyName='Code Coverage' enabled='true'>
                             <Configuration>
+                                <CodeCoverage/>
                                 <FCCGenerated/>
                             </Configuration>
                         </DataCollector>
@@ -483,8 +490,9 @@ namespace FineCodeCoverageTests.MsCodeCoverage
                     <DataCollectors>
                         <DataCollector friendlyName='Code Coverage' enabled='true'>
                             <Configuration>
-                                <Format>Cobertura</Format>
+                                <CodeCoverage/>
                                 <FCCGenerated/>
+                                <Format>Cobertura</Format>
                             </Configuration>
                         </DataCollector>
                     </DataCollectors>
@@ -504,6 +512,7 @@ namespace FineCodeCoverageTests.MsCodeCoverage
                     <DataCollectors>
                         <DataCollector friendlyName='Code Coverage' enabled='true'>
                             <Configuration>
+                                <CodeCoverage/>
                                 <Format>Xml</Format>
                                 <FCCGenerated/>
                             </Configuration>
@@ -523,6 +532,7 @@ namespace FineCodeCoverageTests.MsCodeCoverage
                     <DataCollectors>
                         <DataCollector friendlyName='Code Coverage' enabled='true'>
                             <Configuration>
+                                <CodeCoverage/>
                                 <Format>Cobertura</Format>
                                 <FCCGenerated/>
                             </Configuration>
@@ -544,6 +554,7 @@ namespace FineCodeCoverageTests.MsCodeCoverage
                     <DataCollectors>
                         <DataCollector friendlyName='Code Coverage' enabled='true'>
                             <Configuration>
+                                <CodeCoverage/>
                                 <Format>Cobertura</Format>
                             </Configuration>
                         </DataCollector>
@@ -562,6 +573,7 @@ namespace FineCodeCoverageTests.MsCodeCoverage
                     <DataCollectors>
                         <DataCollector friendlyName='Code Coverage' enabled='true'>
                             <Configuration>
+                                <CodeCoverage/>
                                 <Format>Cobertura</Format>
                                 <FCCGenerated/>
                             </Configuration>
@@ -574,7 +586,7 @@ namespace FineCodeCoverageTests.MsCodeCoverage
         }
 
         [Test]
-        public void Should_Add_Configuration_Element_If_Not_Present_To_Existing_Ms_DataCollector()
+        public void Should_Add_Replaceable_Configuration_Element_If_Not_Present_To_Existing_Ms_DataCollector()
         {
             var custom = $@"
             <RunSettings>
@@ -588,6 +600,7 @@ namespace FineCodeCoverageTests.MsCodeCoverage
 
             var replacements = new RunSettingsTemplateReplacements
             {
+                PublicKeyTokensInclude = "<PublicKeyTokensInclude/>"
             };
 
             var expected = $@"
@@ -597,6 +610,123 @@ namespace FineCodeCoverageTests.MsCodeCoverage
                     <DataCollectors>
                         <DataCollector friendlyName='Code Coverage' enabled='true'>
                             <Configuration>
+                                <CodeCoverage>
+                                    <ModulePaths>
+                                      <Exclude>
+                                      </Exclude>
+                                      <Include>
+                                      </Include>
+                                    </ModulePaths>
+                                    <Functions>
+                                      <Exclude>
+                                      </Exclude>
+                                      <Include>
+                                      </Include>
+                                    </Functions>
+                                    <Attributes>
+                                      <Exclude>
+                                      </Exclude>
+                                      <Include>
+                                      </Include>
+                                    </Attributes>
+                                    <Sources>
+                                      <Exclude>
+                                      </Exclude>
+                                      <Include>
+                                      </Include>
+                                    </Sources>
+                                    <CompanyNames>
+                                      <Exclude>
+                                      </Exclude>
+                                      <Include>
+                                      </Include>
+                                    </CompanyNames>
+                                    <PublicKeyTokens>
+                                      <Exclude>
+                                      </Exclude>
+                                      <Include>
+                                        <PublicKeyTokensInclude/>
+                                      </Include>
+                                    </PublicKeyTokens>
+                                  </CodeCoverage>
+                                <Format>Cobertura</Format>
+                                <FCCGenerated/>
+                            </Configuration>
+                        </DataCollector>
+                    </DataCollectors>
+                </DataCollectionRunSettings>
+            </RunSettings>";
+
+            ConfiguredCustomReplaceTest(custom, expected, replacements);
+        }
+
+        [Test]
+        public void Should_Add_Replaceable_CodeCoverage_Element_If_Not_Present_To_Existing_Ms_DataCollector()
+        {
+            var custom = $@"
+            <RunSettings>
+                {nonReplacedRunConfiguration}
+                <DataCollectionRunSettings>
+                    <DataCollectors>
+                        <DataCollector friendlyName='Code Coverage' enabled='true'>
+                            <Configuration>
+                            </Configuration>
+                        </DataCollector>
+                    </DataCollectors>
+                </DataCollectionRunSettings>
+            </RunSettings>";
+
+            var replacements = new RunSettingsTemplateReplacements
+            {
+                PublicKeyTokensInclude = "<PublicKeyTokensInclude/>"
+            };
+
+            var expected = $@"
+            <RunSettings>
+                {nonReplacedRunConfiguration}
+                <DataCollectionRunSettings>
+                    <DataCollectors>
+                        <DataCollector friendlyName='Code Coverage' enabled='true'>
+                            <Configuration>
+                                <CodeCoverage>
+                                    <ModulePaths>
+                                      <Exclude>
+                                      </Exclude>
+                                      <Include>
+                                      </Include>
+                                    </ModulePaths>
+                                    <Functions>
+                                      <Exclude>
+                                      </Exclude>
+                                      <Include>
+                                      </Include>
+                                    </Functions>
+                                    <Attributes>
+                                      <Exclude>
+                                      </Exclude>
+                                      <Include>
+                                      </Include>
+                                    </Attributes>
+                                    <Sources>
+                                      <Exclude>
+                                      </Exclude>
+                                      <Include>
+                                      </Include>
+                                    </Sources>
+                                    <CompanyNames>
+                                      <Exclude>
+                                      </Exclude>
+                                      <Include>
+                                      </Include>
+                                    </CompanyNames>
+                                    <PublicKeyTokens>
+                                      <Exclude>
+                                      </Exclude>
+                                      <Include>
+                                        <PublicKeyTokensInclude/>
+                                      </Include>
+                                    </PublicKeyTokens>
+                                  </CodeCoverage>
                                 <Format>Cobertura</Format>
                                 <FCCGenerated/>
                             </Configuration>

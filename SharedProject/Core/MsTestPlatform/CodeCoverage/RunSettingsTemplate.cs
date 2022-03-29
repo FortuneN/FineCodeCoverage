@@ -42,6 +42,8 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
         public string MsDataCollectorElement { get; }
 
         private const string fccMarkerElementName = "FCCGenerated";
+        private string msDataCollectorConfigurationElement;
+        private string msDataCollectorCodeCoverageElement;
         
         private readonly List<(string elementName, string value)> recommendedYouDoNotChangeElementsNetCore = new List<(string elementName, string value)>
         {
@@ -78,11 +80,8 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
     <CollectSourceInformation>False</CollectSourceInformation>
   </RunConfiguration>
 ";
-
-            MsDataCollectorElement = $@"
-      <DataCollector friendlyName='Code Coverage' enabled='{replacementLookups.Enabled}'>
-        <Configuration>
-          <CodeCoverage>
+            msDataCollectorCodeCoverageElement = $@"
+        <CodeCoverage>
             <ModulePaths>
               <Exclude>
                 {replacementLookups.ModulePathsExclude}
@@ -132,9 +131,17 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
               </Include>
             </PublicKeyTokens>
           </CodeCoverage>
+";
+            msDataCollectorConfigurationElement = $@"
+        <Configuration>
+          {msDataCollectorCodeCoverageElement}
           <Format>Cobertura</Format>
           <{fccMarkerElementName}/>
         </Configuration>
+";
+            MsDataCollectorElement = $@"
+      <DataCollector friendlyName='Code Coverage' enabled='{replacementLookups.Enabled}'>
+        {msDataCollectorConfigurationElement}
       </DataCollector>
 ";
             DataCollectorsElement = $@"
@@ -238,9 +245,9 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
             AddIfNotPresent(runSettingsElement, "RunConfiguration", RunConfigurationElement, EnsureRunConfigurationEssentials,true);
         }
 
-        private void AddIfNotPresent(XElement parent,string elementName,string elementAsString,Action<XElement> elsePath = null,bool addFirst = true)
+        private void AddIfNotPresent(XElement parent,string elementName,string elementAsString,Action<XElement> presentPath = null,bool addFirst = true)
         {
-            AddIfNotPresent(parent, p => p.Element(elementName), elementAsString, elsePath, addFirst);
+            AddIfNotPresent(parent, p => p.Element(elementName), elementAsString, presentPath, addFirst);
         }
 
         private void AddIfNotPresent(XElement parent, Func<XElement,XElement> find,string elementAsString, Action<XElement> presentPath = null,bool addFirst = true)
@@ -277,13 +284,13 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
 
         private XElement GetOrAddConfigurationElement(XElement msDataCollector)
         {
-            var msDataCollectorConfiguration = msDataCollector.Element("Configuration");
-            if (msDataCollectorConfiguration == null)
-            {
-                msDataCollectorConfiguration = new XElement("Configuration");
-                msDataCollector.Add(msDataCollectorConfiguration);
-            }
-            return msDataCollectorConfiguration;
+            AddIfNotPresent(msDataCollector, "Configuration", msDataCollectorConfigurationElement, AddCodeCoverageIfNotPresent,false);
+            return msDataCollector.Element("Configuration");
+        }
+
+        private void AddCodeCoverageIfNotPresent(XElement configurationElement)
+        {
+            AddIfNotPresent(configurationElement, "CodeCoverage", msDataCollectorCodeCoverageElement, null, true);
         }
 
         private void AddEnabledReplacementAttributeIfNotPresent(XElement msDataCollector)
@@ -308,7 +315,7 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
             var formatElement = configuration.Element("Format");
             if (formatElement == null)
             {
-                configuration.AddFirst(new XElement("Format", "Cobertura"));
+                configuration.Add(new XElement("Format", "Cobertura"));
             }
             else
             {
