@@ -17,6 +17,11 @@ namespace FineCodeCoverage.Engine
 {
     internal enum ReloadCoverageStatus { Start, Done, Cancelled, Error, Initializing };
 
+    internal class NewCoverageLinesMessage
+    {
+        public List<CoverageLine> CoverageLines { get; set; }
+    }
+
     internal class DisplayCoverageResultState
     {
         public CancellationTokenSource CancellationTokenSource { get; set; }
@@ -30,10 +35,7 @@ namespace FineCodeCoverage.Engine
         internal const string initializationFailedMessagePrefix = "Initialization failed.  Please check the following error which may be resolved by reopening visual studio which will start the initialization process again.";
         private CancellationTokenSource cancellationTokenSource;
 
-        public event UpdateMarginTagsDelegate UpdateMarginTags;
-        
         public string AppDataFolderPath { get; private set; }
-        public List<CoverageLine> CoverageLines { get; internal set; }
         private bool IsVsShutdown => disposeAwareTaskRunner.DisposalToken.IsCancellationRequested;
 
         private readonly ICoverageUtilManager coverageUtilManager;
@@ -115,8 +117,7 @@ namespace FineCodeCoverage.Engine
 
         public void ClearUI()
         {
-            CoverageLines = null;
-            UpdateMarginTags?.Invoke(new UpdateMarginTagsEventArgs());
+            ClearCoverageLines();
             ClearOutputWindow(true);
         }
 
@@ -139,8 +140,7 @@ namespace FineCodeCoverage.Engine
         
         private CancellationTokenSource Reset()
         {
-            CoverageLines = null;
-            UpdateMarginTags?.Invoke(new UpdateMarginTagsEventArgs());
+            ClearCoverageLines();
 
             StopCoverage();
 
@@ -197,10 +197,19 @@ namespace FineCodeCoverage.Engine
             eventAggregator.SendMessage(new NewReportMessage { Report = reportHtml });
         }
 
+        private void ClearCoverageLines()
+        {
+            RaiseCoverageLines(null);
+        }
+
+        private void RaiseCoverageLines(List<CoverageLine> coverageLines)
+        {
+            eventAggregator.SendMessage(new NewCoverageLinesMessage { CoverageLines = coverageLines});
+        }
+
         private void UpdateUI(List<CoverageLine> coverageLines, string reportHtml)
         {
-            CoverageLines = coverageLines;
-            UpdateMarginTags?.Invoke(new UpdateMarginTagsEventArgs());
+            RaiseCoverageLines(coverageLines);
             if (reportHtml == null)
             {
                 reportHtml = reportGeneratorUtil.BlankReport(true);
