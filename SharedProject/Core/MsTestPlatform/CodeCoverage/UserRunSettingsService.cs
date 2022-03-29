@@ -193,8 +193,9 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
                     if (msDataCollectorNavigator != null)
                     {
                         addedMsDataCollector = false;
+                        var msDataCollectorNavigatorClone = msDataCollectorNavigator.Clone();
                         EnsureCorrectCoberturaFormat(msDataCollectorNavigator);
-                        ReplaceExcludesIncludes(msDataCollectorNavigator.Clone(), replacements);
+                        ReplaceExcludesIncludes(msDataCollectorNavigatorClone, replacements);
                     }
                     else
                     {
@@ -236,27 +237,27 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
             msDataCollectorNavigator.OuterXml = replaced;
         }
 
-        private void EnsureCorrectCoberturaFormat(XPathNavigator navigator)
+        private void EnsureCorrectCoberturaFormat(XPathNavigator msDataCollectorNavigator)
         {
-            var movedToConfiguration = navigator.MoveToChild("Configuration", "");
+            var movedToConfiguration = msDataCollectorNavigator.MoveToChild("Configuration", "");
             if (movedToConfiguration)
             {
-                var movedToFormat = navigator.MoveToChild("Format", "");
+                var movedToFormat = msDataCollectorNavigator.MoveToChild("Format", "");
                 if (movedToFormat)
                 {
-                    if (navigator.InnerXml != "Cobertura")
+                    if (msDataCollectorNavigator.InnerXml != "Cobertura")
                     {
-                        navigator.InnerXml = "Cobertura";
+                        msDataCollectorNavigator.InnerXml = "Cobertura";
                     }
                 }
                 else
                 {
-                    navigator.AppendChild("<Format>Cobertura</Format>");
+                    msDataCollectorNavigator.AppendChild("<Format>Cobertura</Format>");
                 }
             }
             else
             {
-                navigator.AppendChild("<Configuration><Format>Cobertura</Format></Configuration>");
+                msDataCollectorNavigator.AppendChild("<Configuration><Format>Cobertura</Format></Configuration>");
             }
         }
         
