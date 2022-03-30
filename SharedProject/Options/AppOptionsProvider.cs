@@ -1,6 +1,5 @@
 ﻿using System;
 using System.ComponentModel.Composition;
-using Microsoft.VisualStudio.Settings;
 using System.Reflection;
 using FineCodeCoverage.Core.Utilities;
 
@@ -27,7 +26,7 @@ namespace FineCodeCoverage.Options
             this.logger = logger;
             this.writableSettingsStoreProvider = writableSettingsStoreProvider;
             this.jsonConvertService = jsonConvertService;
-            appOptionsPropertyInfos =typeof(IAppOptions).GetInterfacePropertyInfos();
+            appOptionsPropertyInfos =typeof(IAppOptions).GetPublicProperties();
         }
 
         public void RaiseOptionsChanged(IAppOptions appOptions)

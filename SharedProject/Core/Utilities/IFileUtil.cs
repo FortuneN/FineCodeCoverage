@@ -8,9 +8,10 @@
         bool DirectoryExists(string directory);
         void TryEmptyDirectory(string directory);
         string EnsureAbsolute(string directory, string possiblyRelativeTo);
-        string ParentDirectoryPath(string filePath);
+        string FileDirectoryPath(string filePath);
         void TryDeleteDirectory(string directory);
         bool Exists(string filePath);
         void Copy(string source, string destination);
+        string DirectoryParentPath(string directoryPath);
     }
 }
