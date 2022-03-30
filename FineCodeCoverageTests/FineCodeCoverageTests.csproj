@@ -141,7 +141,7 @@
     <Compile Include="ProcessResponseProcessor_Tests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="FCCEngine_Tests.cs" />
-    <Compile Include="CoverageProject_Tests.cs" />
+    <Compile Include="CoverageProject_Settings_Tests.cs" />
     <Compile Include="Initializer_Tests.cs" />
     <Compile Include="CoverletUtil_Tests.cs" />
     <Compile Include="CoverletConsole_Tests.cs" />

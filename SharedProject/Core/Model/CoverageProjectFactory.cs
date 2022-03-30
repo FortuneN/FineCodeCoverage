@@ -16,7 +16,8 @@ namespace FineCodeCoverage.Engine.Model
         private readonly IAppOptionsProvider appOptionsProvider;
         private readonly IFileSynchronizationUtil fileSynchronizationUtil;
         private readonly ILogger logger;
-		private readonly DTE2 dte;
+        private readonly ICoverageProjectSettingsManager coverageProjectSettingsManager;
+        private readonly DTE2 dte;
         private bool canUseMsBuildWorkspace = true;
 
         [ImportingConstructor]
@@ -24,12 +25,14 @@ namespace FineCodeCoverage.Engine.Model
 			IAppOptionsProvider appOptionsProvider,
 			IFileSynchronizationUtil fileSynchronizationUtil, 
 			ILogger logger,
-			[Import(typeof(SVsServiceProvider))]
+            ICoverageProjectSettingsManager coverageProjectSettingsManager,
+            [Import(typeof(SVsServiceProvider))]
 			IServiceProvider serviceProvider)
         {
             this.appOptionsProvider = appOptionsProvider;
             this.fileSynchronizationUtil = fileSynchronizationUtil;
             this.logger = logger;
+            this.coverageProjectSettingsManager = coverageProjectSettingsManager;
             ThreadHelper.ThrowIfNotOnUIThread();
             dte = (DTE2)serviceProvider.GetService(typeof(DTE));
         }
@@ -47,7 +50,13 @@ namespace FineCodeCoverage.Engine.Model
         }
         public ICoverageProject Create()
         {
-			return new CoverageProject(appOptionsProvider,fileSynchronizationUtil, logger, dte, canUseMsBuildWorkspace);
+			return new CoverageProject(
+                appOptionsProvider,
+                fileSynchronizationUtil, 
+                logger, 
+                dte, 
+                coverageProjectSettingsManager,
+                canUseMsBuildWorkspace);
         }
     }
 }
