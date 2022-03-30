@@ -137,6 +137,18 @@ Run a(some) unit test(s) and ...
   <ModulePathsExclude>
    .*Fabrikam.Math.UnitTest.dll
   </ModulePathsExclude>
+  <!-- and more -->
+</PropertyGroup>
+```
+or **( necessary if storing project settings outside your project file and using msbuild Import )**
+```
+<PropertyGroup>
+  <FineCodeCoverage>
+    <Enabled>
+	  True
+    </Enabled>
+    <!-- and more -->
+  </FineCodeCoverage>
 </PropertyGroup>
 ```
 
