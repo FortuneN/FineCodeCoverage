@@ -33,7 +33,7 @@ namespace FineCodeCoverage.Core.Utilities
             return directory;
         }
 
-        public string ParentDirectoryPath(string filePath)
+        public string FileDirectoryPath(string filePath)
         {
             return new FileInfo(filePath).Directory.FullName;
         }
@@ -72,6 +72,16 @@ namespace FineCodeCoverage.Core.Utilities
         public void Copy(string source, string destination)
         {
             File.Copy(source, destination);
+        }
+
+        public string DirectoryParentPath(string directoryPath)
+        {
+            var parentDirectory = new DirectoryInfo(directoryPath).Parent;
+            if(parentDirectory == null)
+            {
+                return null;
+            }
+            return parentDirectory.FullName;
         }
     }
 }

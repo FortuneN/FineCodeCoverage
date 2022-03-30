@@ -293,7 +293,7 @@ namespace FineCodeCoverageTests
 
             var appOptions = act();
 
-            var appOptionsPropertyInfos = typeof(IAppOptions).GetInterfacePropertyInfos();
+            var appOptionsPropertyInfos = typeof(IAppOptions).GetPublicProperties();
             foreach(var appOptionsPropertyInfo in appOptionsPropertyInfos)
             {
                 if (appOptionsPropertyInfo.PropertyType.IsValueType)
@@ -329,7 +329,7 @@ namespace FineCodeCoverageTests
         [Test]
         public void IAppOptions_Should_Have_A_Getter_And_Setter_For_Each_Property()
         {
-            var propertyInfos = typeof(IAppOptions).GetInterfacePropertyInfos();
+            var propertyInfos = typeof(IAppOptions).GetPublicProperties();
             Assert.True(propertyInfos.All(pi => pi.GetMethod != null && pi.SetMethod != null));
         }
 

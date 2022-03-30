@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace FineCodeCoverage.Core.Utilities
 {
@@ -15,11 +12,15 @@ namespace FineCodeCoverage.Core.Utilities
             return attributes as TCustomAttribute[];
         }
 
-        public static PropertyInfo[] GetInterfacePropertyInfos(this Type type)
+        public static PropertyInfo[] GetPublicProperties(this Type type)
         {
+            if (!type.IsInterface)
+                return type.GetProperties();
+
             return (new Type[] { type })
                    .Concat(type.GetInterfaces())
                    .SelectMany(i => i.GetProperties()).ToArray();
         }
+
     }
 }

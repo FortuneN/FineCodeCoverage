@@ -74,11 +74,17 @@
     <Compile Include="$(MSBuildThisFileDirectory)Core\Model\CoverageProjectFactory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Model\CoverageProjectFileSynchronizationDetails.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Model\CoverageProjectSettingsManager.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Model\CoverageProjectSettingsProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Model\FCCSettingsFilesProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Model\ICoverageProject.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Model\ICoverageProjectFactory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Model\ICoverageProjectSettingsManager.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Model\ICoverageProjectSettingsProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Model\IFCCSettingsFilesProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Model\ISettingsMerger.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Model\IVsBuildFCCSettingsProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Model\ReferencedProject.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Model\SettingsMerger.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Model\VsBuildFCCSettingsProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\MsTestPlatform\CodeCoverage\ITemplatedRunSettingsService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\MsTestPlatform\CodeCoverage\RunSettingsTemplate.cs" />
