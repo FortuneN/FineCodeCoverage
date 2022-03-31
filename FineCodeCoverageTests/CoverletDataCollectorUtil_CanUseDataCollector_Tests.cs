@@ -5,6 +5,7 @@ using FineCodeCoverage.Core.Coverlet;
 using FineCodeCoverage.Core.Utilities;
 using FineCodeCoverage.Engine.Coverlet;
 using FineCodeCoverage.Engine.Model;
+using FineCodeCoverageTests.Test_helpers;
 using Moq;
 using NUnit.Framework;
 
@@ -22,6 +23,7 @@ namespace Test
         {
             mocker = new AutoMoqer();
             coverletDataCollectorUtil = mocker.Create<CoverletDataCollectorUtil>();
+            coverletDataCollectorUtil.ThreadHelper = new TestThreadHelper();
         }
 
         private void SetUpRunSettings(Mock<ICoverageProject> mockCoverageProject, Action<Mock<IRunSettingsCoverletConfiguration>> setup)
@@ -116,6 +118,45 @@ namespace Test
             SetupDataCollectorState(mockCoverageProject, CoverletDataCollectorState.NotPresent);
 
             Assert.True(coverletDataCollectorUtil.CanUseDataCollector(mockCoverageProject.Object));
+        }
+
+        [TestCase(UseDataCollectorElement.True, true)]
+        [TestCase(UseDataCollectorElement.Empty, true)]
+        [TestCase(UseDataCollectorElement.False, false)]
+        [TestCase(UseDataCollectorElement.None, false)]
+        public void Should_Use_Data_Collector_If_Not_Specified_In_RunSettings_And_Specified_In_ProjectFile_VSBuild(UseDataCollectorElement useDataCollector, bool expected)
+        {
+            var mockCoverageProject = new Mock<ICoverageProject>();
+            var guid = Guid.NewGuid();
+            mockCoverageProject.Setup(cp => cp.Id).Returns(guid);
+            mockCoverageProject.Setup(cp => cp.ProjectFileXElement).Returns(new XElement("Root"));
+
+
+            var mockVsBuildFCCSettingsProvider = mocker.GetMock<IVsBuildFCCSettingsProvider>();
+            var useDataCollectorElement = "";
+            if (useDataCollector != UseDataCollectorElement.None)
+            {
+                var value = "";
+                if (useDataCollector == UseDataCollectorElement.True)
+                {
+                    value = "true";
+                }
+                if (useDataCollector == UseDataCollectorElement.False)
+                {
+                    value = "false";
+                }
+                useDataCollectorElement = $"<UseDataCollector>{value}</UseDataCollector>";
+            }
+            XElement vsBuildProjectFileElement = XElement.Parse($"<FineCodeCoverage>{useDataCollectorElement}</FineCodeCoverage>");
+            mockVsBuildFCCSettingsProvider.Setup(
+                vsBuildFCCSettingsProvider =>
+                vsBuildFCCSettingsProvider.GetSettingsAsync(guid)
+            ).ReturnsAsync(vsBuildProjectFileElement);
+           
+
+
+
+            Assert.AreEqual(expected,coverletDataCollectorUtil.CanUseDataCollector(mockCoverageProject.Object));
         }
 
         [Test]

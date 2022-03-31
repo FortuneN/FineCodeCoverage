@@ -8,8 +8,7 @@ or download from [releases](https://github.com/FortuneN/FineCodeCoverage/release
 ---
 ## Prerequisites
 
-Only that the test adapters are nuget packages.  For instance, the NUnit Test Adapter extension is not sufficient.
-
+For .Net - that the test adapters are nuget packages.  For instance, the NUnit Test Adapter extension is not sufficient.
 
 ---
 
@@ -21,10 +20,10 @@ tool for most developers.  It is currently in Beta.
 
 With the old coverage it was possible for FCC to provide an abstraction over each tool's exclusion / inclusion options.  This abstraction does not work for MS code coverage.  
 Thus you will find that there are separate configuration options for Ms coverage vs old coverage and options that are common to the two.
-Configuration is available with Visual Studio options and project msbuild properties.  All visual studio settings can be overridden from test project settings and some settings 
-can only be set in project files.
+Configuration is ( mostly ) determined from Visual Studio options, finecodecoverage-settings.xml files and project msbuild properties.  All of these settings are optional.
+For options that have a project scope, these settings form a hierarchy where lower levels override or, for collections, override or merge with the level above.  This is described in detail further on.  
 
-Regardless of the coverage tool employed the process begins with FCC reacting to the test explorer in visual studio.  One of the 3 coverage tools provides the coverage results that are presented as a single unified report in the Fine Code Coverage Tool Window.  The report shows line and branch coverage and risk hotspots with the facility to open your class files that will have coloured margins to indicate uncovered or partially covered code.  
+Regardless of the coverage tool employed the process begins with FCC reacting to the test explorer in visual studio.  One of the 3 coverage tools provides the coverage results that are presented as a single unified report in the Fine Code Coverage Tool Window.  The report shows line and branch coverage and risk hotspots with the facility to open your class files, that will have coloured margins to indicate uncovered or partially covered code.  
 This coverage is not dynamic and represents the coverage obtained from the last time you executed tests.  When the coverage becomes outdated, you can click the 'FCC Clear UI' button in Tools or run coverage again.
 
 Details of how FCC is progressing with code coverage can be found in the Coverage Log tab in the Fine Code Coverage Tool Window with more detailed logs in the FCC Output Window Pane.  If you experience issues then providing the logs from the output window will help to understand the nature of the problem.
@@ -34,6 +33,8 @@ Details of how FCC is progressing with code coverage can be found in the Coverag
 With the old coverage FCC needed to copy your test dll and dependencies and run OpenCover or Coverlet on those files. This is not necessary with ms code coverage.
 The old coverage would wait until tests have finished before starting the coverage tool to re-run all tests.  This is not necessary with ms code coverage.
 The old coverage was based upon every test.  Ms code coverage is coverage from the tests you select in the test explorer.
+
+**Supports C++ !** Note that FCC has not been properly tested with C++ projects but with a simple C++ class, tested with Google Test, FCC provides coverage.
 
 ## How to utilize MS Code Coverage with FCC ?
 
@@ -48,11 +49,11 @@ FCC does not require you to do this.  If you do not provide a runsettings and Ru
 ## Run settings generation from template
 
 FCC includes the ms code coverage package and will create the necessary runsettings file for each test project being run from the test explorer window. 
-The exclusions and inclusions will come from visual studio options or from the project file in a similar manner to the old coverage.  As ms code coverage uses regex and has different methods of exclusion / inclusion to 
-Coverlet and OpenCover there are ms specific Visual Studio options and project elements.
+The exclusions and inclusions will come from the combined settings, in a similar manner to the old coverage.  As ms code coverage uses regex and has different methods of exclusion / inclusion to 
+Coverlet and OpenCover there are ms specific Visual Studio options and associated elements.
 
 As FCC provides a runsettings file for each test project ( if you have not provided a solution wide or project specific ) it has to write the RunSettingsFilePath element in the project file.  
-Although FCC removes this element from the project file it will still show as git modified.
+Although FCC clears the value of this element from the project file it is still present.
 
 FCC creates the runsettings from a template using string replacement.  If so desired you can provide your own templates.  FCC will look for fcc-ms-runsettings-template.xml in the project directory or the solution directory.
 Your template needs to be a valid xml document but does not need to supply all of the run settings elements.  FCC will add the replaceable ResultsDirectory and TestAdaptersPaths ( and the container RunConfiguration element if necessary) 
@@ -108,10 +109,42 @@ Run a(some) unit test(s) and ...
 #### See Risk Hotspots View
 ![Risk Hotspots View](Art/Output-RiskHotspots.png)
 
-#### Global (Shared) options
+## Project configuration
+
+The hierarchy is as follows :
+
+a) Visual Studio options
+
 ![Global Options](Art/Options-Global.png)
 
-#### Local (Test Project) options (override globals in your csproj/vbproj : OPTIONAL)
+
+b) finecodecoverage-settings.xml files
+
+These are found by walking up the directory structure from the project directory.
+By applying the attribute topLevel='true' to the root element the walk stops.
+
+Given finecodecoverage-settings.xml in project directory and finecodecoverage-settings.xml in the solution directory the 
+hierachy is :
+
+Visual Studio options
+
+Solution level finecodecoverage-settings.xml
+
+Project level finecodecoverage-settings.xml
+
+```
+<FineCodeCoverage>
+	<Enabled>
+		True
+	</Enabled>
+	<!-- and more -->
+</FineCodeCoverage>
+```
+
+c) msbuild project file
+
+There are two ways of supplying these settings.
+Directly in the project file
 ```
 <PropertyGroup Label="FineCodeCoverage">
   <Enabled>
@@ -140,7 +173,8 @@ Run a(some) unit test(s) and ...
   <!-- and more -->
 </PropertyGroup>
 ```
-or **( necessary if storing project settings outside your project file and using msbuild Import )**
+
+With the FineCodeCoverage element.  
 ```
 <PropertyGroup>
   <FineCodeCoverage>
@@ -151,6 +185,18 @@ or **( necessary if storing project settings outside your project file and using
   </FineCodeCoverage>
 </PropertyGroup>
 ```
+This is **necessary** if storing project settings outside your project file and using msbuild Import.
+
+It is also **necessary if** you want to have the setting element merge with that from the level above as msbuild does not
+support custom attributes.
+
+### Controlling merge
+
+The default is to overwrite each collection property.  This can be changed for all settings by setting defaultMerge='true' on the root element.
+
+If you do supply the merge attribute on a setting element then it will be used.
+
+### Project only
 
 #### Exclude Referenced Project in referenced project ( csproj/vbproj : OPTIONAL )
 ```

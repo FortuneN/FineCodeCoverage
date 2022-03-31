@@ -258,7 +258,7 @@ namespace Test
             var mockAppOptions = new Mock<IAppOptions>();
             mockAppOptions.SetupAllProperties();
             var appOptions = mockAppOptions.Object;
-
+            appOptions.Exclude = new string[] { "global" };
             var stringArrayElement = XElement.Parse($@"
 <Root>
   <Exclude>
@@ -276,6 +276,84 @@ namespace Test
 
             Assert.AreSame(appOptions, mergedSettings);
             Assert.AreEqual(new string[] { "1", "2"}, appOptions.Exclude);
+        }
+
+        [Test]
+        public void Should_Overwrite_String_Array_DefaultMerge_False()
+        {
+            var mockAppOptions = new Mock<IAppOptions>();
+            mockAppOptions.SetupAllProperties();
+            var appOptions = mockAppOptions.Object;
+            appOptions.Exclude = new string[] { "global" };
+            var stringArrayElement = XElement.Parse($@"
+<Root defaultMerge='false'>
+  <Exclude>
+    1
+    2
+  </Exclude>
+</Root>
+");
+
+            var settingsMerger = new SettingsMerger(null);
+            var mergedSettings = settingsMerger.Merge(
+                appOptions,
+                new List<XElement> { },
+                stringArrayElement);
+
+            Assert.AreSame(appOptions, mergedSettings);
+            Assert.AreEqual(new string[] { "1", "2" }, appOptions.Exclude);
+        }
+
+        [Test]
+        public void Should_Overwrite_String_Array_DefaultMerge_True_Property_Merge_false()
+        {
+            var mockAppOptions = new Mock<IAppOptions>();
+            mockAppOptions.SetupAllProperties();
+            var appOptions = mockAppOptions.Object;
+            appOptions.Exclude = new string[] { "global" };
+            var stringArrayElement = XElement.Parse($@"
+<Root defaultMerge='true'>
+  <Exclude merge='false'>
+    1
+    2
+  </Exclude>
+</Root>
+");
+
+            var settingsMerger = new SettingsMerger(null);
+            var mergedSettings = settingsMerger.Merge(
+                appOptions,
+                new List<XElement> { },
+                stringArrayElement);
+
+            Assert.AreSame(appOptions, mergedSettings);
+            Assert.AreEqual(new string[] { "1", "2" }, appOptions.Exclude);
+        }
+
+        [Test]
+        public void Should_Overwrite_String_Array_DefaultMerge_Not_Bool()
+        {
+            var mockAppOptions = new Mock<IAppOptions>();
+            mockAppOptions.SetupAllProperties();
+            var appOptions = mockAppOptions.Object;
+            appOptions.Exclude = new string[] { "global" };
+            var stringArrayElement = XElement.Parse($@"
+<Root defaultMerge='xxx'>
+  <Exclude>
+    1
+    2
+  </Exclude>
+</Root>
+");
+
+            var settingsMerger = new SettingsMerger(null);
+            var mergedSettings = settingsMerger.Merge(
+                appOptions,
+                new List<XElement> { },
+                stringArrayElement);
+
+            Assert.AreSame(appOptions, mergedSettings);
+            Assert.AreEqual(new string[] { "1", "2" }, appOptions.Exclude);
         }
 
         [Test]
@@ -312,7 +390,7 @@ namespace Test
             var appOptions = mockAppOptions.Object;
             appOptions.Exclude = new string[] { "global" };
             var stringArrayElement = XElement.Parse($@"
-<Root>
+<Root defaultMerge='false'>
   <Exclude merge='true'>
     1
     2

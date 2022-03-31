@@ -4,9 +4,13 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using FineCodeCoverage.Core.Coverlet;
 using FineCodeCoverage.Core.Utilities;
+using FineCodeCoverage.Core.Utilities.VsThreading;
 using FineCodeCoverage.Engine.Model;
+using Microsoft.VisualStudio.Shell;
+using Task = System.Threading.Tasks.Task;
 
 namespace FineCodeCoverage.Engine.Coverlet
 {
@@ -23,6 +27,7 @@ namespace FineCodeCoverage.Engine.Coverlet
         private readonly IProcessResponseProcessor processResponseProcessor;
         private readonly IToolZipProvider toolZipProvider;
         private readonly IToolFolder toolFolder;
+        private readonly IVsBuildFCCSettingsProvider vsBuildFCCSettingsProvider;
 
 
         //for tests
@@ -32,6 +37,8 @@ namespace FineCodeCoverage.Engine.Coverlet
         internal string TestAdapterPathArg { get; set; }
         internal const string zipPrefix = "coverlet.collector";
         internal const string zipDirectoryName = "coverletCollector";
+
+        internal IThreadHelper ThreadHelper = new VsThreadHelper();
 
         [ImportingConstructor]
         public CoverletDataCollectorUtil(
@@ -43,7 +50,8 @@ namespace FineCodeCoverage.Engine.Coverlet
             ICoverletDataCollectorGeneratedCobertura coverletDataCollectorGeneratedCobertura,
             IProcessResponseProcessor processResponseProcessor,
             IToolZipProvider toolZipProvider,
-            IToolFolder toolFolder
+            IToolFolder toolFolder,
+            IVsBuildFCCSettingsProvider vsBuildFCCSettingsProvider
             )
         {
             this.fileUtil = fileUtil;
@@ -55,28 +63,58 @@ namespace FineCodeCoverage.Engine.Coverlet
             this.processResponseProcessor = processResponseProcessor;
             this.toolZipProvider = toolZipProvider;
             this.toolFolder = toolFolder;
+            this.vsBuildFCCSettingsProvider = vsBuildFCCSettingsProvider;
         }
         
         private bool? GetUseDataCollectorFromProjectFile()
         {
+            bool? useDataCollector = null;
             var root = coverageProject.ProjectFileXElement;
             var propertyGroups = root.Elements().Where(el => el.Name.LocalName == "PropertyGroup");
             foreach (var propertyGroup in propertyGroups)
             {
-                var useDataCollectorElement = propertyGroup.Elements().FirstOrDefault(ig => ig.Name.LocalName == "UseDataCollector");
-                if (useDataCollectorElement != null)
+                useDataCollector = UseDataCollector(propertyGroup);
+                if (useDataCollector.HasValue)
                 {
-                    var useDataCollectorValue = useDataCollectorElement.Value.ToLower().Trim();
-                    return useDataCollectorValue == "true" || useDataCollectorValue == "";
+                    break;
                 }
                 
             }
+            return useDataCollector;
+        }
+
+        private bool? UseDataCollector(XElement xElement)
+        {
+            var useDataCollectorElement = xElement.Elements().FirstOrDefault(ig => ig.Name.LocalName == "UseDataCollector");
+            if (useDataCollectorElement != null)
+            {
+                var useDataCollectorValue = useDataCollectorElement.Value.ToLower().Trim();
+                return useDataCollectorValue == "true" || useDataCollectorValue == "";
+            }
             return null;
         }
-        
+
+        private bool? GetUseDataCollectorElement()
+        {
+            var useDataCollector = GetUseDataCollectorFromProjectFile();
+            if (!useDataCollector.HasValue)
+            {
+                ThreadHelper.JoinableTaskFactory.Run(async () =>
+                {
+                    var importedSettings = await vsBuildFCCSettingsProvider.GetSettingsAsync(coverageProject.Id);
+                    if (importedSettings != null)
+                    {
+                        useDataCollector = UseDataCollector(importedSettings);
+                    }
+                });
+            }
+
+            return useDataCollector;
+        }
+
         private bool OverriddenFromProjectFile()
         {
-            var useDataCollectorFromProjectFile = GetUseDataCollectorFromProjectFile();
+            var useDataCollectorFromProjectFile = GetUseDataCollectorElement();
             if (useDataCollectorFromProjectFile.HasValue)
             {
                 return !useDataCollectorFromProjectFile.Value;
@@ -89,7 +127,7 @@ namespace FineCodeCoverage.Engine.Coverlet
 
         private bool HasSetUseDataCollectorInProjectFile()
         {
-            var useDataCollector = GetUseDataCollectorFromProjectFile();
+            var useDataCollector = GetUseDataCollectorElement();
             return useDataCollector.HasValue && useDataCollector.Value;
         }
 
