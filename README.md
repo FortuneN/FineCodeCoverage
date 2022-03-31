@@ -8,7 +8,7 @@ or download from [releases](https://github.com/FortuneN/FineCodeCoverage/release
 ---
 ## Prerequisites
 
-Only that the test adapters are nuget packages.  For instance, the NUnit Test Adapter extension is not sufficient.
+For .Net - that the test adapters are nuget packages.  For instance, the NUnit Test Adapter extension is not sufficient.
 
 ---
 
@@ -33,6 +33,8 @@ Details of how FCC is progressing with code coverage can be found in the Coverag
 With the old coverage FCC needed to copy your test dll and dependencies and run OpenCover or Coverlet on those files. This is not necessary with ms code coverage.
 The old coverage would wait until tests have finished before starting the coverage tool to re-run all tests.  This is not necessary with ms code coverage.
 The old coverage was based upon every test.  Ms code coverage is coverage from the tests you select in the test explorer.
+
+**Supports C++ !** Note that FCC has not been properly tested with C++ projects but with a simple C++ class, tested with Google Test, FCC provides coverage.
 
 ## How to utilize MS Code Coverage with FCC ?
 
