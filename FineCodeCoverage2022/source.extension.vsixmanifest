@@ -7,7 +7,7 @@
         <MoreInfo>https://marketplace.visualstudio.com/items?itemName=FortuneNgwenya.FineCodeCoverage</MoreInfo>
         <License>Resources\LICENSE</License>
         <Icon>Resources\logo.png</Icon>
-        <PreviewImage>Resources\preview-subject.png</PreviewImage>
+        <PreviewImage>Resources\preview-coverage.png</PreviewImage>
         <Tags>visual studio; code coverage; c#; vb; .net core; coverlet; unit test; free; community edition</Tags>
     </Metadata>
     <Installation>

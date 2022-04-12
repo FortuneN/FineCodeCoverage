@@ -145,6 +145,30 @@ namespace FineCodeCoverageTests
         }
 
         [Test]
+        public void Should_Default_True_ShowCoverageInOverviewMargin()
+        {
+            DefaultTest(appOptions => appOptions.ShowCoverageInOverviewMargin = true);
+        }
+
+        [Test]
+        public void Should_Default_True_ShowCoveredInOverviewMargin()
+        {
+            DefaultTest(appOptions => appOptions.ShowCoveredInOverviewMargin = true);
+        }
+
+        [Test]
+        public void Should_Default_True_ShowUncoveredInOverviewMargin()
+        {
+            DefaultTest(appOptions => appOptions.ShowUncoveredInOverviewMargin = true);
+        }
+
+        [Test]
+        public void Should_Default_True_ShowPartiallyCoveredInOverviewMargin()
+        {
+            DefaultTest(appOptions => appOptions.ShowPartiallyCoveredInOverviewMargin = true);
+        }
+
+        [Test]
         public void Should_Not_Default_Any_Other_AppOptions_Properties()
         {
             mockWritableSettingsStore.Setup(
@@ -169,6 +193,10 @@ namespace FineCodeCoverageTests
                 nameof(IAppOptions.ThresholdForNPathComplexity),
                 nameof(IAppOptions.ThresholdForCyclomaticComplexity),
                 nameof(IAppOptions.NamespacedClasses),
+                nameof(IAppOptions.ShowCoverageInOverviewMargin),
+                nameof(IAppOptions.ShowCoveredInOverviewMargin),
+                nameof(IAppOptions.ShowUncoveredInOverviewMargin),
+                nameof(IAppOptions.ShowPartiallyCoveredInOverviewMargin)
             };
             CollectionAssert.AreEquivalent(expectedSetters.Select(s => $"set_{s}"), invocationNames);
         }
@@ -269,7 +297,11 @@ namespace FineCodeCoverageTests
                 { nameof(IAppOptions.ThresholdForCyclomaticComplexity),1},
                 { nameof(IAppOptions.ThresholdForNPathComplexity),1},
                 { nameof(IAppOptions.ToolsDirectory),"ToolsDirectory"},
-                { nameof(IAppOptions.RunMsCodeCoverage), RunMsCodeCoverage.IfInRunSettings}
+                { nameof(IAppOptions.RunMsCodeCoverage), RunMsCodeCoverage.IfInRunSettings},
+                { nameof(IAppOptions.ShowCoverageInOverviewMargin),true},
+                { nameof(IAppOptions.ShowCoveredInOverviewMargin),true},
+                { nameof(IAppOptions.ShowPartiallyCoveredInOverviewMargin),true},
+                { nameof(IAppOptions.ShowUncoveredInOverviewMargin),true},
             };
             var mockJsonConvertService = autoMocker.GetMock<IJsonConvertService>();
             mockJsonConvertService.Setup(

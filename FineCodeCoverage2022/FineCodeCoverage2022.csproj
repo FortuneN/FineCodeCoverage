@@ -57,14 +57,14 @@
       <Link>Resources\logo.png</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="..\Art\preview-subject.png">
-      <Link>Resources\preview-subject.png</Link>
-      <IncludeInVSIX>true</IncludeInVSIX>
-    </Content>
     <VSCTCompile Include="..\Shared Files\OutputToolWindowPackage.vsct">
       <Link>OutputToolWindowPackage.vsct</Link>
       <ResourceName>Menus.ctmenu</ResourceName>
     </VSCTCompile>
+    <Content Include="..\Art\preview-coverage.png">
+      <Link>Resources\preview-coverage.png</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
     <Content Include="..\Shared Files\Resources\dummyReportToProcess.html">
       <Link>Resources\dummyReportToProcess.html</Link>
       <IncludeInVSIX>true</IncludeInVSIX>

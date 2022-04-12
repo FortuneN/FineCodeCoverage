@@ -215,6 +215,22 @@ namespace FineCodeCoverage.Options
         [Category(commonUiCategory)]
         [Description("Use Environment / Fonts and Colors for editor Coverage colouring")]
         public bool CoverageColoursFromFontsAndColours { get; set; }
+
+        [Category(commonUiCategory)]
+        [Description("Set to false to prevent coverage marks in the overview margin")]
+        public bool ShowCoverageInOverviewMargin { get; set; }
+
+        [Category(commonUiCategory)]
+        [Description("Set to false to prevent covered marks in the overview margin")]
+        public bool ShowCoveredInOverviewMargin { get; set; }
+
+        [Category(commonUiCategory)]
+        [Description("Set to false to prevent uncovered marks in the overview margin")]
+        public bool ShowUncoveredInOverviewMargin { get; set; }
+
+        [Category(commonUiCategory)]
+        [Description("Set to false to prevent partially covered marks in the overview margin")]
+        public bool ShowPartiallyCoveredInOverviewMargin { get; set; }
         #endregion
 
         #region common report category

@@ -8,7 +8,6 @@ namespace FineCodeCoverage.Impl
 {
 	internal class CoverageLineGlyphFactory : IGlyphFactory
 	{
-		private enum CoverageType { Covered, Partial, NotCovered}
         private readonly ICoverageColours coverageColours;
 
         public CoverageLineGlyphFactory(ICoverageColours coverageColours)
@@ -23,31 +22,12 @@ namespace FineCodeCoverage.Impl
 				return null;
 			}
 
-			// vars
-
-			var line = tag?.CoverageLine?.Line;
-			var lineHitCount = line?.Hits ?? 0;
-			var lineConditionCoverage = line?.ConditionCoverage?.Trim();
-
-			var coverageType = CoverageType.NotCovered;
-
-			if (lineHitCount > 0)
-			{
-				coverageType = CoverageType.Covered;
-
-				if (!string.IsNullOrWhiteSpace(lineConditionCoverage) && !lineConditionCoverage.StartsWith("100"))
-				{
-					coverageType = CoverageType.Partial;
-				}
-			}
-
-			// result
-
+			var coverageType = tag.CoverageLine.GetCoverageType();
+			
 			var result = new Rectangle();
 			result.Width = 3;
 			result.Height = 16;
 			result.Fill = GetBrush(coverageType);
-			// return
 
 			return result;
 		}
