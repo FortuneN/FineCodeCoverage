@@ -86,7 +86,7 @@ The other scenario would be when you want to use a specific version of the cover
 
 The coverage tools that FCC leverages are by default installed into the FineCodeCoverage directory within `Environment.SpecialFolder.LocalApplicationData`.
 This can be changed with the ToolsDirectory Visual Studio option.  Ensure that this containing directory exists and upon restart the tools will be installed within.
-
+ 
 ---
 
 ### <a href="https://www.youtube.com/watch?v=Rae5bTE2D3o" target="_blank">Watch Introduction Video</a>
