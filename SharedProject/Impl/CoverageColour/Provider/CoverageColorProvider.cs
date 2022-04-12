@@ -21,7 +21,6 @@ namespace FineCodeCoverage.Impl
         private readonly System.Windows.Media.Color defaultCoveragePartiallyTouchedArea = System.Windows.Media.Color.FromRgb(255, 165, 0);
         private Guid categoryWithCoverage = Guid.Parse("ff349800-ea43-46c1-8c98-878e78f46501");
         private bool coverageColoursFromFontsAndColours;
-        private bool dirty = true;
         private bool canUseFontsAndColours = true;
         public System.Windows.Media.Color CoverageTouchedArea { get; set; }
 
@@ -29,7 +28,7 @@ namespace FineCodeCoverage.Impl
 
         public System.Windows.Media.Color CoveragePartiallyTouchedArea { get; set; }
 
-        
+        public event EventHandler<EventArgs> ColoursChanged;
 
         [ImportingConstructor]
         public CoverageColorProvider(
@@ -42,21 +41,29 @@ namespace FineCodeCoverage.Impl
             fontAndColorStorage = (IVsFontAndColorStorage)serviceProvider.GetService(typeof(IVsFontAndColorStorage));
             Assumes.Present(fontAndColorStorage);
             coverageColoursFromFontsAndColours = appOptionsProvider.Get().CoverageColoursFromFontsAndColours;
-            UseDefaultColoursIfNotFontsAndColours();
             appOptionsProvider.OptionsChanged += AppOptionsProvider_OptionsChanged;
             this.logger = logger;
+            DetermineColors();
         }
 
         private void AppOptionsProvider_OptionsChanged(IAppOptions appOptions)
         {
             coverageColoursFromFontsAndColours = appOptions.CoverageColoursFromFontsAndColours;
-            UseDefaultColoursIfNotFontsAndColours();
-            dirty = true;
+            DetermineColors();
         }
 
-        private void UseDefaultColoursIfNotFontsAndColours()
+        private void DetermineColors()
         {
-            if (!coverageColoursFromFontsAndColours)
+            ThreadHelper.JoinableTaskFactory.Run(DetermineColorsAsync);
+        }
+
+        private async Task DetermineColorsAsync()
+        {
+            if (coverageColoursFromFontsAndColours && canUseFontsAndColours)
+            {
+                await UpdateColoursFromFontsAndColorsAsync();
+            }
+            else
             {
                 UseDefaultColours();
             }
@@ -64,18 +71,12 @@ namespace FineCodeCoverage.Impl
 
         private void UseDefaultColours()
         {
-            CoverageTouchedArea = defaultCoverageTouchedArea;
-            CoverageNotTouchedArea = defaultCoverageNotTouchedArea;
-            CoveragePartiallyTouchedArea = defaultCoveragePartiallyTouchedArea;
+            SetColors(defaultCoverageTouchedArea, defaultCoverageNotTouchedArea, defaultCoveragePartiallyTouchedArea);
         }
 
         public async Task PrepareAsync()
         {
-            if (coverageColoursFromFontsAndColours && canUseFontsAndColours && dirty)
-            {
-                await UpdateColoursFromFontsAndColorsAsync();
-            }
-            dirty = false;
+            await DetermineColorsAsync();
         }
 
         private async Task UpdateColoursFromFontsAndColorsAsync()
@@ -99,9 +100,10 @@ namespace FineCodeCoverage.Impl
                 try
                 {
                     // https://developercommunity.visualstudio.com/t/fonts-and-colors-coverage-settings-available-in-vs/1683898
-                    CoverageTouchedArea = GetColor("Coverage Touched Area");
-                    CoverageNotTouchedArea = GetColor("Coverage Not Touched Area");
-                    CoveragePartiallyTouchedArea = GetColor("Coverage Partially Touched Area");
+                    var newCoverageTouchedArea = GetColor("Coverage Touched Area");
+                    var newCoverageNotTouchedArea = GetColor("Coverage Not Touched Area");
+                    var newCoveragePartiallyTouchedArea = GetColor("Coverage Partially Touched Area");
+                    SetColors(newCoverageTouchedArea, newCoverageNotTouchedArea, newCoveragePartiallyTouchedArea);
                     usedFontsAndColors = true;
                     
                 }catch(NotSupportedException)
@@ -116,7 +118,34 @@ namespace FineCodeCoverage.Impl
                 canUseFontsAndColours = false;
                 UseDefaultColours();
             }
-            
+        }
+
+        private void SetColors(
+            System.Windows.Media.Color coverageTouchedArea,
+            System.Windows.Media.Color coverageNotTouchedArea,
+            System.Windows.Media.Color coveragePartiallyTouchedArea
+        )
+        {
+            var fontsAndColorsChanged = FontsAndColorsChanged(coverageTouchedArea, coverageNotTouchedArea, coveragePartiallyTouchedArea);
+            if (fontsAndColorsChanged)
+            {
+                CoverageTouchedArea = coverageTouchedArea;
+                CoverageNotTouchedArea = coverageNotTouchedArea;
+                CoveragePartiallyTouchedArea = coveragePartiallyTouchedArea;
+
+                ColoursChanged?.Invoke(this, EventArgs.Empty);
+            }
+        }
+
+        private bool FontsAndColorsChanged(
+            System.Windows.Media.Color coverageTouchedArea,
+            System.Windows.Media.Color coverageNotTouchedArea,
+            System.Windows.Media.Color coveragePartiallyTouchedArea
+        )
+        {
+            return !(CoverageTouchedArea == coverageTouchedArea && 
+                CoverageNotTouchedArea == coverageNotTouchedArea && 
+                CoveragePartiallyTouchedArea == coveragePartiallyTouchedArea);
         }
 
         private System.Windows.Media.Color ParseColor(uint color)

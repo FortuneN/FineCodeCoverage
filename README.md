@@ -94,11 +94,8 @@ This can be changed with the ToolsDirectory Visual Studio option.  Ensure that t
 ### Highlights unit test code coverage
 Run a(some) unit test(s) and ...
 
-#### Get highlights on the code being tested
-![Code Being Tested](Art/preview-subject.png)
-
-#### Get highlights on the code doing the testing
-![Code Doing The Testing](Art/preview-test.png)
+#### Get highlights on the code being tested and the code doing the testing
+![Highlights](Art/preview-coverage.png)
 
 #### See Coverage View
 ![Coverage View](Art/Output-Coverage.png)
@@ -231,36 +228,41 @@ If you are using option 1) then project and global options will only be used whe
 #### Options
 ```
 *** Common
-CoverageColoursFromFontsAndColours Specify true to use Environment / Fonts and Colors / Text Editor for editor Coverage colouring ( if present).
-                                   Coverage Touched Area / Coverage Not Touched Area / Coverage Partially Touched Area.
-								   When false colours used are Green, Red and Gold.
+CoverageColoursFromFontsAndColours   Specify true to use Environment / Fonts and Colors / Text Editor for editor Coverage colouring ( if present).
+                                     Coverage Touched Area / Coverage Not Touched Area / Coverage Partially Touched Area.
+								     When false colours used are Green, Red and Gold.
 
-FCCSolutionOutputDirectoryName     To have fcc output visible in a sub folder of your solution provide this name
+ShowCoverageInOverviewMargin         Set to false to prevent coverage marks in the overview margin
+ShowCoveredInOverviewMargin          Set to false to prevent covered marks in the overview margin
+ShowUncoveredInOverviewMargin        Set to false to prevent uncovered marks in the overview margin
+ShowPartiallyCoveredInOverviewMargin Set to false to prevent partially covered marks in the overview margin
 
-ToolsDirectory                     Folder to which copy tools subfolder. Must alredy exist. Requires restart of VS.
+FCCSolutionOutputDirectoryName       To have fcc output visible in a sub folder of your solution provide this name
 
-ThresholdForCyclomaticComplexity   When [cyclomatic complexity](https://en.wikipedia.org/wiki/Cyclomatic_complexity) exceeds this value for a method then the method will be present in the risk hotspots tab. 
+ToolsDirectory                       Folder to which copy tools subfolder. Must alredy exist. Requires restart of VS.
 
-StickyCoverageTable                Set to true for coverage table to have a sticky thead.
-NamespacedClasses                  Set to false to show classes in report in short form. Affects grouping.
-HideFullyCovered                   Set to true to hide classes, namespaces and assemblies that are fully covered.
+ThresholdForCyclomaticComplexity     When [cyclomatic complexity](https://en.wikipedia.org/wiki/Cyclomatic_complexity) exceeds this value for a method then the method will be present in the risk hotspots tab. 
 
-Enabled							   Specifies whether or not coverage output is enabled
-RunWhenTestsFail				   By default coverage runs when tests fail.  Set to false to prevent this.  **Cannot be used in conjunction with RunInParallel**
-RunWhenTestsExceed				   Specify a value to only run coverage based upon the number of executing tests. **Cannot be used in conjunction with RunInParallel**
-RunMsCodeCoverage                  Change to IfInRunSettings to only collect with configured runsettings.  Yes for runsettings generation.
+StickyCoverageTable                  Set to true for coverage table to have a sticky thead.
+NamespacedClasses                    Set to false to show classes in report in short form. Affects grouping.
+HideFullyCovered                     Set to true to hide classes, namespaces and assemblies that are fully covered.
 
-IncludeTestAssembly				   Specifies whether to report code coverage of the test assembly
-IncludeReferencedProjects          Set to true to add all referenced projects to Include.
+Enabled							     Specifies whether or not coverage output is enabled
+RunWhenTestsFail				     By default coverage runs when tests fail.  Set to false to prevent this.  **Cannot be used in conjunction with RunInParallel**
+RunWhenTestsExceed				     Specify a value to only run coverage based upon the number of executing tests. **Cannot be used in conjunction with RunInParallel**
+RunMsCodeCoverage                    Change to IfInRunSettings to only collect with configured runsettings.  Yes for runsettings generation.
+
+IncludeTestAssembly				     Specifies whether to report code coverage of the test assembly
+IncludeReferencedProjects            Set to true to add all referenced projects to Include.
 
 *** OpenCover / Coverlet
-AdjacentBuildOutput                If your tests are dependent upon their path set this to true.
+AdjacentBuildOutput                  If your tests are dependent upon their path set this to true.
 
-Exclude							   Filter expressions to exclude specific modules and types (multiple values)
-Include							   Filter expressions to include specific modules and types (multiple values)
-ExcludeByFile					   Glob patterns specifying source files to exclude e.g. **/Migrations/* (multiple values)
-ExcludeByAttribute				   Attributes to exclude from code coverage (multiple values)
-RunInParallel					   By default OpenCover / Coverlet tests run and then coverage is performed.  Set to true to run coverage immediately
+Exclude							     Filter expressions to exclude specific modules and types (multiple values)
+Include							     Filter expressions to include specific modules and types (multiple values)
+ExcludeByFile					     Glob patterns specifying source files to exclude e.g. **/Migrations/* (multiple values)
+ExcludeByAttribute				     Attributes to exclude from code coverage (multiple values)
+RunInParallel					     By default OpenCover / Coverlet tests run and then coverage is performed.  Set to true to run coverage immediately
 
 Filter expressions
 Wildcards

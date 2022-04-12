@@ -11,8 +11,8 @@ namespace FineCodeCoverage
         public const string Name = "Fine Code Coverage";
         public const string Description = @"Visualize unit test code coverage easily for free in Visual Studio Community Edition (and other editions too)";
         public const string Language = "en-US";
-        public const string Version = "1.0.0";
+        public const string Version = "1.1.0";
         public const string Author = "Fortune Ngwenya";
-        public const string Tags = "visual studio, code coverage, c#, vb, .net core, coverlet, unit test, free, community edition";
+        public const string Tags = "visual studio; code coverage; c#; vb; .net core; coverlet; unit test; free; community edition";
     }
 }

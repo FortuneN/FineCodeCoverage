@@ -7,7 +7,7 @@ namespace FineCodeCoverage.Impl
 	{
 		public CoverageLine CoverageLine { get; }
 
-		public CoverageLineGlyphTag(CoverageLine coverageLine)
+        public CoverageLineGlyphTag(CoverageLine coverageLine)
 		{
 			CoverageLine = coverageLine;
 		}

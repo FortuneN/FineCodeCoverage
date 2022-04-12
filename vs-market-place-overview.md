@@ -1,4 +1,6 @@
-Supports **.NET Core** projects and **.NET Framework** projects.
+Supports **.NET Core** projects, **.NET Framework** projects and ( probably !) **C++** projects.  
+
+Please read the [README](https://github.com/FortuneN/FineCodeCoverage) for full details.
 
 Feedback and ideas are welcome [click here to let me know](https://github.com/FortuneN/FineCodeCoverage/issues)
 
@@ -7,11 +9,8 @@ Feedback and ideas are welcome [click here to let me know](https://github.com/Fo
 ## Highlights unit test code coverage
 Run a(some) unit test(s) and ...
 
-#### Get highlights on the code being tested
-![Code Being Tested](https://raw.githubusercontent.com/FortuneN/FineCodeCoverage/master/Art/preview-subject.png)
-
-#### Get highlights on the code doing the testing
-![Code Doing The Testing](https://raw.githubusercontent.com/FortuneN/FineCodeCoverage/master/Art/preview-test.png)
+#### Get highlights on the code being tested and the code doing the testing
+![Code Being Tested](https://raw.githubusercontent.com/FortuneN/FineCodeCoverage/master/Art/preview-coverage.png)
 
 #### See Coverage View
 ![Coverage View](https://raw.githubusercontent.com/FortuneN/FineCodeCoverage/master/Art/Output-Coverage.png)

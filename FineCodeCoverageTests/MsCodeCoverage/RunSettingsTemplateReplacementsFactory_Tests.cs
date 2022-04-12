@@ -645,5 +645,9 @@ namespace FineCodeCoverageTests.MsCodeCoverage
         public bool IncludeReferencedProjects { get; set; }
 
         public string ToolsDirectory { get; set; }
+        public bool ShowCoverageInOverviewMargin { get; set; }
+        public bool ShowCoveredInOverviewMargin { get; set; }
+        public bool ShowUncoveredInOverviewMargin { get; set; }
+        public bool ShowPartiallyCoveredInOverviewMargin { get; set; }
     }
 }

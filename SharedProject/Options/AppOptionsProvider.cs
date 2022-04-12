@@ -63,6 +63,10 @@ namespace FineCodeCoverage.Options
             appOptions.IncludeTestAssembly = true;
             appOptions.ExcludeByFile = new[] { "**/Migrations/*" };
             appOptions.Enabled = true;
+            appOptions.ShowCoverageInOverviewMargin = true;
+            appOptions.ShowCoveredInOverviewMargin = true;
+            appOptions.ShowPartiallyCoveredInOverviewMargin = true;
+            appOptions.ShowUncoveredInOverviewMargin = true;
         }
 
         public void LoadSettingsFromStorage(IAppOptions instance)
@@ -159,6 +163,14 @@ namespace FineCodeCoverage.Options
         public int ThresholdForCrapScore { get; set; }
 
         public bool CoverageColoursFromFontsAndColours { get; set; }
+
+        public bool ShowCoverageInOverviewMargin { get; set; }
+        
+        public bool ShowCoveredInOverviewMargin { get; set; }
+        
+        public bool ShowUncoveredInOverviewMargin { get; set; }
+        
+        public bool ShowPartiallyCoveredInOverviewMargin { get; set; }
 
         public bool StickyCoverageTable { get; set; }
 

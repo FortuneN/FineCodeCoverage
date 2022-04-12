@@ -47,6 +47,10 @@
         int ThresholdForNPathComplexity { get; set; }
         int ThresholdForCrapScore { get; set; }
         bool CoverageColoursFromFontsAndColours { get; set; }
+        bool ShowCoverageInOverviewMargin { get; set; }
+        bool ShowCoveredInOverviewMargin { get; set; }
+        bool ShowUncoveredInOverviewMargin { get; set; }
+        bool ShowPartiallyCoveredInOverviewMargin { get; set; }
         bool StickyCoverageTable { get; set; }
         bool NamespacedClasses { get; set; }
         bool HideFullyCovered { get; set; }
