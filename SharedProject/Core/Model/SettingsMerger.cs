@@ -364,6 +364,11 @@ namespace FineCodeCoverage.Engine.Model
                     return arr;
                 }
             }
+            else if (property.PropertyType.IsEnum)
+            {
+                return Enum.Parse(property.PropertyType, strValueArr.FirstOrDefault(), true);
+                
+            }
 
             else
             {

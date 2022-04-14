@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 
@@ -230,6 +231,29 @@ namespace Test
         }
 
         [Test]
+        public void Should_Overwrite_Enum_Properties()
+        {
+            var mockAppOptions = new Mock<IAppOptions>();
+            mockAppOptions.SetupAllProperties();
+            var appOptions = mockAppOptions.Object;
+
+            var enumElement = XElement.Parse($@"
+<Root>
+    <RunMsCodeCoverage>IfInRunSettings</RunMsCodeCoverage>
+</Root>
+");
+
+            var settingsMerger = new SettingsMerger(null);
+            var mergedSettings = settingsMerger.Merge(
+                appOptions,
+                new List<XElement> { },
+                enumElement);
+
+            Assert.AreSame(appOptions, mergedSettings);
+            Assert.AreEqual(RunMsCodeCoverage.IfInRunSettings, appOptions.RunMsCodeCoverage);
+        }
+
+        [Test]
         public void Should_Overwrite_String_Properties()
         {
             var mockAppOptions = new Mock<IAppOptions>();
@@ -440,18 +464,20 @@ namespace Test
             var settingsMerger = new SettingsMerger(new Mock<ILogger>().Object);
             var settingsElement = XElement.Parse($"<Root>{propertyElement}</Root>");
             var property = typeof(IAppOptions).GetPublicProperties().First(p => p.Name == propertyName);
-            if (expectedException)
-            {
-                Assert.Throws<Exception>(() =>
-                {
-                    settingsMerger.GetValueFromXml(settingsElement, property);
-                });
-            }
-            else
-            {
-                var value = settingsMerger.GetValueFromXml(settingsElement, property);
-                Assert.AreEqual(expectedConversion, value);
-            }
+            
+            var value = settingsMerger.GetValueFromXml(settingsElement, property);
+            Assert.AreEqual(expectedConversion, value);
+            
+        }
+
+        [Test]
+        public void Should_Throw_For_Unsupported_Conversion()
+        {
+            var settingsMerger = new SettingsMerger(new Mock<ILogger>().Object);
+            var settingsElement = XElement.Parse($"<Root><PropertyType/></Root>");
+            var unsupported = typeof(PropertyInfo).GetProperty(nameof(PropertyInfo.PropertyType));
+            var expectedMessage = $"Cannot handle 'PropertyType' yet";
+            Assert.Throws<Exception>(() => settingsMerger.GetValueFromXml(settingsElement, unsupported), expectedMessage);
         }
 
         static object[] XmlConversionCases()
@@ -464,7 +490,7 @@ namespace Test
             var thresholdForCrapScore = nameof(IAppOptions.ThresholdForCrapScore); // int
             var coverletConsoleCustomPath = nameof(IAppOptions.CoverletConsoleCustomPath); // string
             var exclude = nameof(IAppOptions.Exclude); // string[]
-            var noConversion = nameof(IAppOptions.RunMsCodeCoverage); // no conversion
+            var enumConversion = nameof(IAppOptions.RunMsCodeCoverage); // enum conversion
             var boolArray = @"
                 true
                 false
@@ -500,7 +526,7 @@ namespace Test
                 new object[]{ CreateElement(exclude, "true"), hideFullyCovered, null, false},
 
                 //exception for no type conversion
-                new object[]{ CreateElement(noConversion, "No"), noConversion, null, true }
+                new object[]{ CreateElement(enumConversion, "No"), enumConversion, RunMsCodeCoverage.No, false }
                 
             };
 
