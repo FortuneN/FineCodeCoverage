@@ -19,10 +19,13 @@ namespace FineCodeCoverage.Core.Utilities
             IServiceProvider serviceProvider
             )
         {
-            ThreadHelper.ThrowIfNotOnUIThread();
-            var vsSolution = (IVsSolution)serviceProvider.GetService(typeof(SVsSolution));
-            Assumes.Present(vsSolution);
-            vsSolution.AdviseSolutionEvents(this, out uint _);
+            ThreadHelper.JoinableTaskFactory.Run(async () =>
+            {
+                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                var vsSolution = (IVsSolution)serviceProvider.GetService(typeof(SVsSolution));
+                Assumes.Present(vsSolution);
+                vsSolution.AdviseSolutionEvents(this, out uint _);
+            });
         }
 
         public int OnAfterOpenProject(IVsHierarchy pHierarchy, int fAdded)

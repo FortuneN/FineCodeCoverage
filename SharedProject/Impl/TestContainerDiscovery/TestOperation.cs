@@ -34,7 +34,7 @@ namespace FineCodeCoverage.Impl
             List<ICoverageProject> coverageProjects = new List<ICoverageProject>();
             foreach (var container in testContainers)
             {
-                var project = coverageProjectFactory.Create();
+                var project = await coverageProjectFactory.CreateAsync();
                 coverageProjects.Add(project);
                 project.ProjectName = container.ProjectName;
                 project.TestDllFile = container.Source;

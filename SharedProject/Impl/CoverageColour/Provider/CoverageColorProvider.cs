@@ -5,6 +5,7 @@ using Microsoft;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Threading;
 using Task = System.Threading.Tasks.Task;
 
 namespace FineCodeCoverage.Impl
@@ -13,13 +14,13 @@ namespace FineCodeCoverage.Impl
     [Export(typeof(ICoverageColours))]
     internal class CoverageColorProvider : ICoverageColoursProvider, ICoverageColours
     {
-        private readonly IVsFontAndColorStorage fontAndColorStorage;
         private readonly ILogger logger;
         private readonly uint storeFlags = (uint)(__FCSTORAGEFLAGS.FCSF_READONLY | __FCSTORAGEFLAGS.FCSF_LOADDEFAULTS | __FCSTORAGEFLAGS.FCSF_NOAUTOCOLORS | __FCSTORAGEFLAGS.FCSF_PROPAGATECHANGES);
         private readonly System.Windows.Media.Color defaultCoverageTouchedArea = System.Windows.Media.Colors.Green;
         private readonly System.Windows.Media.Color defaultCoverageNotTouchedArea = System.Windows.Media.Colors.Red;
         private readonly System.Windows.Media.Color defaultCoveragePartiallyTouchedArea = System.Windows.Media.Color.FromRgb(255, 165, 0);
         private Guid categoryWithCoverage = Guid.Parse("ff349800-ea43-46c1-8c98-878e78f46501");
+        private AsyncLazy<IVsFontAndColorStorage> lazyIVsFontAndColorStorage;
         private bool coverageColoursFromFontsAndColours;
         private bool canUseFontsAndColours = true;
         public System.Windows.Media.Color CoverageTouchedArea { get; set; }
@@ -37,9 +38,12 @@ namespace FineCodeCoverage.Impl
             ILogger logger
         )
         {
-            ThreadHelper.ThrowIfNotOnUIThread();
-            fontAndColorStorage = (IVsFontAndColorStorage)serviceProvider.GetService(typeof(IVsFontAndColorStorage));
-            Assumes.Present(fontAndColorStorage);
+            lazyIVsFontAndColorStorage = new AsyncLazy<IVsFontAndColorStorage>(async () =>
+            {
+                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                return (IVsFontAndColorStorage)serviceProvider.GetService(typeof(IVsFontAndColorStorage));
+            }, ThreadHelper.JoinableTaskFactory);
+
             coverageColoursFromFontsAndColours = appOptionsProvider.Get().CoverageColoursFromFontsAndColours;
             appOptionsProvider.OptionsChanged += AppOptionsProvider_OptionsChanged;
             this.logger = logger;
@@ -81,6 +85,7 @@ namespace FineCodeCoverage.Impl
 
         private async Task UpdateColoursFromFontsAndColorsAsync()
         {
+            var fontAndColorStorage = await lazyIVsFontAndColorStorage.GetValueAsync();
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
             var success = fontAndColorStorage.OpenCategory(ref categoryWithCoverage, storeFlags);
             var usedFontsAndColors = false;

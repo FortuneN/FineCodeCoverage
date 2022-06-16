@@ -1,12 +1,13 @@
 ﻿using System;
 using System.ComponentModel.Composition;
-using System.Threading;
+using System.Threading.Tasks;
 using EnvDTE;
 using EnvDTE80;
 using FineCodeCoverage.Engine.FileSynchronization;
 using FineCodeCoverage.Options;
 using Microsoft.Build.Locator;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Threading;
 
 namespace FineCodeCoverage.Engine.Model
 {
@@ -17,8 +18,8 @@ namespace FineCodeCoverage.Engine.Model
         private readonly IFileSynchronizationUtil fileSynchronizationUtil;
         private readonly ILogger logger;
         private readonly ICoverageProjectSettingsManager coverageProjectSettingsManager;
-        private readonly DTE2 dte;
         private bool canUseMsBuildWorkspace = true;
+        private readonly AsyncLazy<DTE2> lazyDTE2;
 
         [ImportingConstructor]
 		public CoverageProjectFactory(
@@ -33,8 +34,12 @@ namespace FineCodeCoverage.Engine.Model
             this.fileSynchronizationUtil = fileSynchronizationUtil;
             this.logger = logger;
             this.coverageProjectSettingsManager = coverageProjectSettingsManager;
-            ThreadHelper.ThrowIfNotOnUIThread();
-            dte = (DTE2)serviceProvider.GetService(typeof(DTE));
+
+            lazyDTE2 = new AsyncLazy<DTE2>(async () =>
+            {
+                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                return (DTE2)serviceProvider.GetService(typeof(DTE));
+            },ThreadHelper.JoinableTaskFactory);
         }
 
         public void Initialize()
@@ -48,13 +53,15 @@ namespace FineCodeCoverage.Engine.Model
                 canUseMsBuildWorkspace = false;
             }
         }
-        public ICoverageProject Create()
+        public async Task<ICoverageProject> CreateAsync()
         {
-			return new CoverageProject(
+            var dte2 = await lazyDTE2.GetValueAsync();
+
+            return new CoverageProject(
                 appOptionsProvider,
                 fileSynchronizationUtil, 
                 logger, 
-                dte, 
+                dte2, 
                 coverageProjectSettingsManager,
                 canUseMsBuildWorkspace);
         }

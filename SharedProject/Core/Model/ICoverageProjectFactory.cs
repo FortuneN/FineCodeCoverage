@@ -1,8 +1,10 @@
-﻿namespace FineCodeCoverage.Engine.Model
+﻿using System.Threading.Tasks;
+
+namespace FineCodeCoverage.Engine.Model
 {
     internal interface ICoverageProjectFactory
     {
-		ICoverageProject Create();
+		Task<ICoverageProject> CreateAsync();
         void Initialize();
     }
 }
