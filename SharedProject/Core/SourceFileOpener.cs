@@ -4,8 +4,8 @@ using System.Linq;
 using EnvDTE;
 using EnvDTE80;
 using FineCodeCoverage.Engine.Cobertura;
-using Microsoft;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Threading;
 
 namespace FineCodeCoverage.Engine
 {
@@ -15,7 +15,7 @@ namespace FineCodeCoverage.Engine
         private readonly ICoberturaUtil coberturaUtil;
         private readonly IMessageBox messageBox;
         private readonly ILogger logger;
-        private readonly DTE2 dte;
+        private readonly AsyncLazy<DTE2> lazyDTE2;
 
         [ImportingConstructor]
         public SourceFileOpener(
@@ -27,9 +27,11 @@ namespace FineCodeCoverage.Engine
             this.coberturaUtil = coberturaUtil;
             this.messageBox = messageBox;
             this.logger = logger;
-            ThreadHelper.ThrowIfNotOnUIThread();
-            dte = (DTE2)serviceProvider.GetService(typeof(DTE));
-            Assumes.Present(dte);
+            lazyDTE2 = new AsyncLazy<DTE2>(async () =>
+            {
+                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                return (DTE2)serviceProvider.GetService(typeof(DTE));
+            }, ThreadHelper.JoinableTaskFactory);
         }
         public async System.Threading.Tasks.Task OpenFileAsync(string assemblyName, string qualifiedClassName, int file, int line)
         {
@@ -46,6 +48,7 @@ namespace FineCodeCoverage.Engine
             }
 
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+            var dte = await lazyDTE2.GetValueAsync();
             dte.MainWindow.Activate();
 
             foreach (var sourceFile in sourceFiles)
