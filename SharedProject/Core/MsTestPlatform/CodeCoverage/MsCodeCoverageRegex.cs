@@ -9,7 +9,7 @@
 
         public static string RegexModuleName(string moduleName)
         {
-            return $".*\\\\{moduleName}.dll^";
+            return $".*\\\\{moduleName}.dll$";
         }
     }
 
