@@ -97,8 +97,8 @@
       <Link>ZippedTools\microsoft.codecoverage.17.1.0.zip</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="..\Shared Files\ZippedTools\reportGenerator.4.7.1.zip">
-      <Link>ZippedTools\reportGenerator.4.7.1.zip</Link>
+    <Content Include="..\Shared Files\ZippedTools\reportGenerator.4.7.2.zip">
+      <Link>ZippedTools\reportGenerator.4.7.2.zip</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <None Include="source.extension.vsixmanifest">
