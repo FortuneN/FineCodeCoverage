@@ -5,7 +5,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="ReportGenerator.Core" Version="4.7.1" />
+    <Reference Include="ReportGenerator.Core">
+      <HintPath>..\Shared Files\ZippedTools\ReportGenerator.Core.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 </Project>
