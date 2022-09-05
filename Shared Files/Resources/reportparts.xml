@@ -44,5 +44,4 @@
   <ReportPart Name="ButtonFocusedTextColour" SelectedThemeColourName="CommonControlsColors.ButtonFocusedTextColorKey" />
   <ReportPart Name="ButtonHoverTextColour" SelectedThemeColourName="CommonControlsColors.ButtonHoverTextColorKey" />
   <ReportPart Name="ButtonPressedTextColour" SelectedThemeColourName="CommonControlsColors.ButtonPressedTextColorKey" />
-  
 </ReportParts>
