@@ -2,9 +2,7 @@
 
 - [ ] Let me know :)
 
-Features that have a checkmark are complete and available for
-download in the
-[CI build](http://vsixgallery.com/extension/fcc-339fe606-9d51-4fca-895c-d50375137b62/).
+Features that have a checkmark are complete and available for download in the [CI build](http://vsixgallery.com/extension/fcc-339fe606-9d51-4fca-895c-d50375137b62/).
 
 # Change log
 
