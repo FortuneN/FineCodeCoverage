@@ -60,6 +60,7 @@ public class Logger : ILogger, IShowFCCOutputPane
     {
         try
         {
+            var logTime = DateTime.Now;
             var messageList = new List<string>(message?.Select(x => x?.ToString()?.Trim(' ', '\r', '\n')).Where(x => !string.IsNullOrWhiteSpace(x)));
 
             if (!messageList.Any())
@@ -85,7 +86,7 @@ public class Logger : ILogger, IShowFCCOutputPane
 
                 if (withTitle)
                 {
-                    _pane.OutputStringThreadSafe($"{Environment.NewLine}{Vsix.Name} : {logs}{Environment.NewLine}");
+                    _pane.OutputStringThreadSafe($"{Vsix.Name} {logTime}: {logs}{Environment.NewLine}");
                 }
                 else
                 {
