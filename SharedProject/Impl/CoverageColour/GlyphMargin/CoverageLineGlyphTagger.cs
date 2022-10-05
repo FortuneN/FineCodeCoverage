@@ -8,7 +8,7 @@ namespace FineCodeCoverage.Impl
 {
 	internal class CoverageLineGlyphTagger : CoverageLineTaggerBase<CoverageLineGlyphTag>, IListener<RefreshCoverageGlyphsMessage>
 	{
-		public CoverageLineGlyphTagger(ITextBuffer textBuffer, List<CoverageLine> lastCoverageLines) : base(textBuffer, lastCoverageLines)
+		public CoverageLineGlyphTagger(ITextBuffer textBuffer, Dictionary<string, List<CoverageLine>> lastCoverageLines) : base(textBuffer, lastCoverageLines)
 		{
 		}
 

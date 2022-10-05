@@ -37,7 +37,7 @@ namespace FineCodeCoverage.Impl
             }
         }
 
-        protected override CoverageLineMarkTagger CreateTagger(ITextBuffer textBuffer, List<CoverageLine> lastCoverageLines)
+        protected override CoverageLineMarkTagger CreateTagger(ITextBuffer textBuffer, Dictionary<string, List<CoverageLine>> lastCoverageLines)
         {
             return new CoverageLineMarkTagger(textBuffer, lastCoverageLines, coverageMarginOptions);
         }

@@ -5,7 +5,7 @@ namespace FineCodeCoverage.Engine.Cobertura
 {
     interface ICoberturaUtil
     {
-		List<CoverageLine> ProcessCoberturaXml(string xmlFile);
+		Dictionary<string, List<CoverageLine>> ProcessCoberturaXml(string xmlFile);
 		string[] GetSourceFiles(string assemblyName, string qualifiedClassName, int file);
 	}
 }

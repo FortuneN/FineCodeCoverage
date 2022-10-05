@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using FineCodeCoverage.Engine.Model;
 using System.ComponentModel.Composition;
 using System.IO;
+using System.Windows.Documents;
+using System;
 
 namespace FineCodeCoverage.Engine.Cobertura
 {
@@ -67,9 +69,9 @@ namespace FineCodeCoverage.Engine.Cobertura
 		//	return jsonText;
 		//}
 
-		public List<CoverageLine> ProcessCoberturaXml(string xmlFile)
+		public Dictionary<string, List<CoverageLine>> ProcessCoberturaXml(string xmlFile)
 		{
-			var coverageLines = new List<CoverageLine>();
+			var coverageLines = new Dictionary<string, List<CoverageLine>>(StringComparer.OrdinalIgnoreCase);
 
 			coverageReport = LoadReport(xmlFile);
 
@@ -77,9 +79,15 @@ namespace FineCodeCoverage.Engine.Cobertura
 			{
 				foreach (var classs in package.Classes.Class)
 				{
-					foreach (var line in classs.Lines.Line)
+                    if (!coverageLines.TryGetValue(classs.Filename, out var classCoverageLines))
 					{
-						coverageLines.Add(new CoverageLine
+						classCoverageLines = new List<CoverageLine>();
+						coverageLines.Add(string.Intern(classs.Filename), classCoverageLines);
+                    }
+
+                    foreach (var line in classs.Lines.Line)
+					{
+                        classCoverageLines.Add(new CoverageLine
 						{
 							Package = package,
 							Class = classs,

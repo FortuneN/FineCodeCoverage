@@ -9,7 +9,7 @@ namespace FineCodeCoverage.Impl
 	internal class CoverageLineMarkTagger : CoverageLineTaggerBase<OverviewMarkTag>, IListener<CoverageMarginOptionsChangedMessage>
 	{
 		private ICoverageMarginOptions coverageMarginOptions;
-		public CoverageLineMarkTagger(ITextBuffer textBuffer, List<CoverageLine> lastCoverageLines, ICoverageMarginOptions coverageMarginOptions) : 
+		public CoverageLineMarkTagger(ITextBuffer textBuffer, Dictionary<string, List<CoverageLine>> lastCoverageLines, ICoverageMarginOptions coverageMarginOptions) : 
 			base(textBuffer, lastCoverageLines)
 		{
 			this.coverageMarginOptions = coverageMarginOptions;

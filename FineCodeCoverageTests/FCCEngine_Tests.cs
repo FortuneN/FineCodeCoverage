@@ -333,7 +333,7 @@ namespace Test
             mocker.Verify<ILogger>(l => l.Log(fccEngine.GetLogReloadCoverageStatusMessage(reloadCoverageStatus)));
         }
 
-        private async Task<(string reportGeneratedHtmlContent, List<CoverageLine> updatedCoverageLines)> RunToCompletion(bool noCoverageProjects)
+        private async Task<(string reportGeneratedHtmlContent, Dictionary<string, List<CoverageLine>> updatedCoverageLines)> RunToCompletion(bool noCoverageProjects)
         {
             var coverageProject = CreateSuitableProject().Object;
             var mockReportGenerator = mocker.GetMock<IReportGeneratorUtil>();
@@ -352,7 +352,10 @@ namespace Test
 
             var reportGeneratedHtmlContent = "<somehtml/>";
             mockReportGenerator.Setup(rg => rg.ProcessUnifiedHtml("Unified", It.IsAny<string>())).Returns(reportGeneratedHtmlContent);
-            List<CoverageLine> coverageLines = new List<CoverageLine>() { new CoverageLine() };
+            Dictionary<string, List<CoverageLine>> coverageLines = new Dictionary<string, List<CoverageLine>>()
+            {
+                { "test", new List<CoverageLine>() { new CoverageLine() } }
+            };
             mocker.GetMock<ICoberturaUtil>().Setup(coberturaUtil => coberturaUtil.ProcessCoberturaXml(It.IsAny<string>())).Returns(coverageLines);
             if (noCoverageProjects)
             {
@@ -384,8 +387,10 @@ namespace Test
                     }
                 );
 
-
-            List<CoverageLine> coverageLines = new List<CoverageLine>() { new CoverageLine() };
+            Dictionary<string, List<CoverageLine>> coverageLines = new Dictionary<string, List<CoverageLine>>()
+            {
+                { "test", new List<CoverageLine>() { new CoverageLine() } }
+            };
             mocker.GetMock<ICoberturaUtil>().Setup(coberturaUtil => coberturaUtil.ProcessCoberturaXml(It.IsAny<string>())).Returns(coverageLines);
 
             await ReloadInitializedCoverage(passedProject.Object);
