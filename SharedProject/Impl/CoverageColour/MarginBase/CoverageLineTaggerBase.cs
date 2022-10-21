@@ -34,10 +34,12 @@ namespace FineCodeCoverage.Impl
 
 		private IEnumerable<CoverageLine> GetApplicableLines(string filePath, int startLineNumber, int endLineNumber)
 		{
-			return coverageLines[filePath]
-			.AsParallel()
-			.Where(x => x.Line.Number >= startLineNumber && x.Line.Number <= endLineNumber)
-			.ToArray();
+			if (coverageLines.TryGetValue(filePath, out var lines))
+	            return lines.AsParallel()
+					.Where(x => x.Line.Number >= startLineNumber && x.Line.Number <= endLineNumber)
+					.ToArray();
+
+			return Enumerable.Empty<CoverageLine>();
 		}
 
 		public void Handle(NewCoverageLinesMessage message)
