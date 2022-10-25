@@ -6,9 +6,8 @@ namespace FineCodeCoverage.Impl
 
     internal static class CoverageLineExtensions
     {
-        public static CoverageType GetCoverageType(this CoverageLine coverageLine)
+        public static CoverageType GetCoverageType(this Engine.Cobertura.Line line)
         {
-			var line = coverageLine?.Line;
 			var lineHitCount = line?.Hits ?? 0;
 			var lineConditionCoverage = line?.ConditionCoverage?.Trim();
 

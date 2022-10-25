@@ -41,7 +41,7 @@ namespace FineCodeCoverage.Impl
             });
         }
 
-        protected override CoverageLineGlyphTagger CreateTagger(ITextBuffer textBuffer, Dictionary<string, List<CoverageLine>> lastCoverageLines)
+        protected override CoverageLineGlyphTagger CreateTagger(ITextBuffer textBuffer, SharedProject.Core.Model.FileLineCoverage lastCoverageLines)
         {
             return new CoverageLineGlyphTagger(textBuffer, lastCoverageLines);
         }

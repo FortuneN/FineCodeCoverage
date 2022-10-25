@@ -1,13 +1,14 @@
-﻿using FineCodeCoverage.Engine.Model;
+﻿using FineCodeCoverage.Engine.Cobertura;
+using FineCodeCoverage.Engine.Model;
 using Microsoft.VisualStudio.Text.Editor;
 
 namespace FineCodeCoverage.Impl
 {
 	internal class CoverageLineGlyphTag : IGlyphTag
 	{
-		public CoverageLine CoverageLine { get; }
+		public Line CoverageLine { get; }
 
-        public CoverageLineGlyphTag(CoverageLine coverageLine)
+        public CoverageLineGlyphTag(Line coverageLine)
 		{
 			CoverageLine = coverageLine;
 		}

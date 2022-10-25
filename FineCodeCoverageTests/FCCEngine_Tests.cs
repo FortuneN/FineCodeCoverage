@@ -15,6 +15,7 @@ using FineCodeCoverage.Impl;
 using FineCodeCoverage.Options;
 using Moq;
 using NUnit.Framework;
+using SharedProject.Core.Model;
 
 namespace Test
 {
@@ -333,7 +334,7 @@ namespace Test
             mocker.Verify<ILogger>(l => l.Log(fccEngine.GetLogReloadCoverageStatusMessage(reloadCoverageStatus)));
         }
 
-        private async Task<(string reportGeneratedHtmlContent, Dictionary<string, List<CoverageLine>> updatedCoverageLines)> RunToCompletion(bool noCoverageProjects)
+        private async Task<(string reportGeneratedHtmlContent, FileLineCoverage updatedCoverageLines)> RunToCompletion(bool noCoverageProjects)
         {
             var coverageProject = CreateSuitableProject().Object;
             var mockReportGenerator = mocker.GetMock<IReportGeneratorUtil>();
@@ -352,10 +353,8 @@ namespace Test
 
             var reportGeneratedHtmlContent = "<somehtml/>";
             mockReportGenerator.Setup(rg => rg.ProcessUnifiedHtml("Unified", It.IsAny<string>())).Returns(reportGeneratedHtmlContent);
-            Dictionary<string, List<CoverageLine>> coverageLines = new Dictionary<string, List<CoverageLine>>()
-            {
-                { "test", new List<CoverageLine>() { new CoverageLine() } }
-            };
+            var coverageLines = new FileLineCoverage();
+            coverageLines.Add("test", new[] { new Line() });
             mocker.GetMock<ICoberturaUtil>().Setup(coberturaUtil => coberturaUtil.ProcessCoberturaXml(It.IsAny<string>())).Returns(coverageLines);
             if (noCoverageProjects)
             {
@@ -387,10 +386,8 @@ namespace Test
                     }
                 );
 
-            Dictionary<string, List<CoverageLine>> coverageLines = new Dictionary<string, List<CoverageLine>>()
-            {
-                { "test", new List<CoverageLine>() { new CoverageLine() } }
-            };
+            var coverageLines = new FileLineCoverage();
+            coverageLines.Add("test", new[] { new Line() });
             mocker.GetMock<ICoberturaUtil>().Setup(coberturaUtil => coberturaUtil.ProcessCoberturaXml(It.IsAny<string>())).Returns(coverageLines);
 
             await ReloadInitializedCoverage(passedProject.Object);

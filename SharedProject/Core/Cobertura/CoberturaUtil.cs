@@ -7,6 +7,7 @@ using System.ComponentModel.Composition;
 using System.IO;
 using System.Windows.Documents;
 using System;
+using SharedProject.Core.Model;
 
 namespace FineCodeCoverage.Engine.Cobertura
 {
@@ -69,9 +70,9 @@ namespace FineCodeCoverage.Engine.Cobertura
 		//	return jsonText;
 		//}
 
-		public Dictionary<string, List<CoverageLine>> ProcessCoberturaXml(string xmlFile)
+		public FileLineCoverage ProcessCoberturaXml(string xmlFile)
 		{
-			var coverageLines = new Dictionary<string, List<CoverageLine>>(StringComparer.OrdinalIgnoreCase);
+			var coverageLines = new FileLineCoverage();
 
 			coverageReport = LoadReport(xmlFile);
 
@@ -79,21 +80,8 @@ namespace FineCodeCoverage.Engine.Cobertura
 			{
 				foreach (var classs in package.Classes.Class)
 				{
-                    if (!coverageLines.TryGetValue(classs.Filename, out var classCoverageLines))
-					{
-						classCoverageLines = new List<CoverageLine>();
-						coverageLines.Add(string.Intern(classs.Filename), classCoverageLines);
-                    }
+					coverageLines.Add(classs.Filename, classs.Lines.Line);
 
-                    foreach (var line in classs.Lines.Line)
-					{
-                        classCoverageLines.Add(new CoverageLine
-						{
-							Package = package,
-							Class = classs,
-							Line = line
-						});
-					}
 				}
 			}
 

@@ -4,6 +4,7 @@ using FineCodeCoverage.Options;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
+using SharedProject.Core.Model;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 
@@ -37,7 +38,7 @@ namespace FineCodeCoverage.Impl
             }
         }
 
-        protected override CoverageLineMarkTagger CreateTagger(ITextBuffer textBuffer, Dictionary<string, List<CoverageLine>> lastCoverageLines)
+        protected override CoverageLineMarkTagger CreateTagger(ITextBuffer textBuffer, FileLineCoverage lastCoverageLines)
         {
             return new CoverageLineMarkTagger(textBuffer, lastCoverageLines, coverageMarginOptions);
         }

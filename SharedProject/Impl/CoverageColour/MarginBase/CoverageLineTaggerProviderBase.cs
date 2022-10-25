@@ -3,6 +3,7 @@ using FineCodeCoverage.Engine;
 using FineCodeCoverage.Engine.Model;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
+using SharedProject.Core.Model;
 using System.Collections.Generic;
 
 namespace FineCodeCoverage.Impl
@@ -12,7 +13,7 @@ namespace FineCodeCoverage.Impl
         where TTag : ITag
     {
         protected readonly IEventAggregator eventAggregator;
-        private Dictionary<string, List<CoverageLine>> lastCoverageLines;
+        private FileLineCoverage lastCoverageLines;
 
         public CoverageLineTaggerProviderBase(
             IEventAggregator eventAggregator
@@ -29,7 +30,7 @@ namespace FineCodeCoverage.Impl
             return tagger as ITagger<T>;
         }
 
-        protected abstract TTaggerListener CreateTagger(ITextBuffer textBuffer, Dictionary<string, List<CoverageLine>> lastCoverageLines);
+        protected abstract TTaggerListener CreateTagger(ITextBuffer textBuffer, FileLineCoverage lastCoverageLines);
 
         public void Handle(NewCoverageLinesMessage message)
         {
