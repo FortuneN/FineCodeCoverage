@@ -2,7 +2,6 @@
 using FineCodeCoverage.Engine.Model;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
-using SharedProject.Core.Model;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -34,7 +33,7 @@ namespace FineCodeCoverage.Impl
 		}
 
 		private IEnumerable<Engine.Cobertura.Line> GetApplicableLines(string filePath, int startLineNumber, int endLineNumber) 
-			=> coverageLines.GetLines(filePath, startLineNumber, endLineNumber).ToArray();
+			=> coverageLines.GetLines(filePath, startLineNumber, endLineNumber);
 
 		public void Handle(NewCoverageLinesMessage message)
 		{

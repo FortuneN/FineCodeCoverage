@@ -12,7 +12,6 @@ using FineCodeCoverage.Engine.ReportGenerator;
 using FineCodeCoverage.Impl;
 using FineCodeCoverage.Options;
 using FineCodeCoverage.Output;
-using SharedProject.Core.Model;
 
 namespace FineCodeCoverage.Engine
 {
@@ -20,7 +19,7 @@ namespace FineCodeCoverage.Engine
 
     internal class NewCoverageLinesMessage
     {
-        public SharedProject.Core.Model.FileLineCoverage CoverageLines { get; set; }
+        public FileLineCoverage CoverageLines { get; set; }
     }
 
     internal class DisplayCoverageResultState
@@ -225,11 +224,11 @@ namespace FineCodeCoverage.Engine
             var result = await reportGeneratorUtil.GenerateAsync(coverOutputFiles,reportOutputFolder,vsShutdownLinkedCancellationToken);
 
             vsShutdownLinkedCancellationToken.ThrowIfCancellationRequested();
-            logger.Log($"Processing cobertura");
+            logger.Log("Processing cobertura");
             var coverageLines = coberturaUtil.ProcessCoberturaXml(result.UnifiedXmlFile);
 
             vsShutdownLinkedCancellationToken.ThrowIfCancellationRequested();
-            logger.Log($"Processing report");
+            logger.Log("Processing report");
             string processedReport = reportGeneratorUtil.ProcessUnifiedHtml(result.UnifiedHtml, reportOutputFolder);
             return (coverageLines, processedReport);
         }

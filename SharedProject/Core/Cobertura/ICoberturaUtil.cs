@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using FineCodeCoverage.Engine.Model;
-using SharedProject.Core.Model;
 
 namespace FineCodeCoverage.Engine.Cobertura
 {

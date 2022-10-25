@@ -1,14 +1,9 @@
 ﻿using FineCodeCoverage.Engine.Cobertura;
-using FineCodeCoverage.Engine.Model;
-using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Windows.Documents;
-using System.Windows.Media;
 
-namespace SharedProject.Core.Model
+namespace FineCodeCoverage.Engine.Model
 {
     // FileLineCoverage maps from a filename to the list of lines in the file
     internal class FileLineCoverage
@@ -18,29 +13,48 @@ namespace SharedProject.Core.Model
 
         public void Add(string filename, IEnumerable<Line> lines)
         {
-            if (!m_coverageLines.TryGetValue(filename, out var classCoverageLines))
+            if (!m_coverageLines.TryGetValue(filename, out var fileCoverageLines))
             {
-                classCoverageLines = new List<Line>();
-                m_coverageLines.Add(filename, classCoverageLines);
+                fileCoverageLines = new List<Line>();
+                m_coverageLines.Add(filename, fileCoverageLines);
             }
 
-            classCoverageLines.AddRange(lines);
-            classCoverageLines.Sort((a, b) => a.Number - b.Number);
+            fileCoverageLines.AddRange(lines);
+        }
+
+        internal void Completed()
+        {
+            foreach (var lines in m_coverageLines.Values)
+                lines.Sort((a, b) => a.Number - b.Number);
         }
 
         public IEnumerable<Line> GetLines(string filePath, int startLineNumber, int endLineNumber)
         {
             if (!m_coverageLines.TryGetValue(filePath, out var lines))
-                yield break;
+                return Enumerable.Empty<Line>();
 
+            int first = lines.LowerBound(line => line.Number < startLineNumber);
+            int last = first;
+            while (last < lines.Count && lines[last].Number <= endLineNumber)
+                ++last;
+
+            return lines.GetRange(first, last);
+        }
+    }
+
+    public static class ListExtensions
+    {
+        // Returns the index of the first element in a sorted list where the comparison function is false
+        public static int LowerBound<T>(this IList<T> list, Func<T, bool> compare)
+        {
             // binary search to find the first line
             int first = 0;
-            int count = lines.Count;
+            int count = list.Count;
             while (count > 0)
             {
                 int step = count / 2;
                 int it = first + step;
-                if (lines[it].Number < startLineNumber)
+                if (compare(list[it]))
                 {
                     first = ++it;
                     count -= step + 1;
@@ -51,8 +65,7 @@ namespace SharedProject.Core.Model
                 }
             }
 
-            for (int it = first; it < lines.Count && lines[it].Number <= endLineNumber; ++it)
-                yield return lines[it];
+            return first;
         }
     }
 }

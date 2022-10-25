@@ -4,7 +4,6 @@ using FineCodeCoverage.Options;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
-using SharedProject.Core.Model;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 

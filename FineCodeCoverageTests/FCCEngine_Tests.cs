@@ -15,7 +15,6 @@ using FineCodeCoverage.Impl;
 using FineCodeCoverage.Options;
 using Moq;
 using NUnit.Framework;
-using SharedProject.Core.Model;
 
 namespace Test
 {
@@ -355,6 +354,7 @@ namespace Test
             mockReportGenerator.Setup(rg => rg.ProcessUnifiedHtml("Unified", It.IsAny<string>())).Returns(reportGeneratedHtmlContent);
             var coverageLines = new FileLineCoverage();
             coverageLines.Add("test", new[] { new Line() });
+            coverageLines.Completed();
             mocker.GetMock<ICoberturaUtil>().Setup(coberturaUtil => coberturaUtil.ProcessCoberturaXml(It.IsAny<string>())).Returns(coverageLines);
             if (noCoverageProjects)
             {
@@ -388,6 +388,7 @@ namespace Test
 
             var coverageLines = new FileLineCoverage();
             coverageLines.Add("test", new[] { new Line() });
+            coverageLines.Completed();
             mocker.GetMock<ICoberturaUtil>().Setup(coberturaUtil => coberturaUtil.ProcessCoberturaXml(It.IsAny<string>())).Returns(coverageLines);
 
             await ReloadInitializedCoverage(passedProject.Object);

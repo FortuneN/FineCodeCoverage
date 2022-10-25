@@ -7,7 +7,6 @@ using System.ComponentModel.Composition;
 using System.IO;
 using System.Windows.Documents;
 using System;
-using SharedProject.Core.Model;
 
 namespace FineCodeCoverage.Engine.Cobertura
 {
@@ -85,7 +84,8 @@ namespace FineCodeCoverage.Engine.Cobertura
 				}
 			}
 
-			return coverageLines;
+            coverageLines.Completed();
+            return coverageLines;
 		}
 
 		public string[] GetSourceFiles(string assemblyName, string qualifiedClassName, int file)
