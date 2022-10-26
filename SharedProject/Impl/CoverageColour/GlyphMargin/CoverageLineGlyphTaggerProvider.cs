@@ -41,7 +41,7 @@ namespace FineCodeCoverage.Impl
             });
         }
 
-        protected override CoverageLineGlyphTagger CreateTagger(ITextBuffer textBuffer, List<CoverageLine> lastCoverageLines)
+        protected override CoverageLineGlyphTagger CreateTagger(ITextBuffer textBuffer, FileLineCoverage lastCoverageLines)
         {
             return new CoverageLineGlyphTagger(textBuffer, lastCoverageLines);
         }

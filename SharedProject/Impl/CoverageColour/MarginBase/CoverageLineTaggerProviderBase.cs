@@ -12,7 +12,7 @@ namespace FineCodeCoverage.Impl
         where TTag : ITag
     {
         protected readonly IEventAggregator eventAggregator;
-        private List<CoverageLine> lastCoverageLines;
+        private FileLineCoverage lastCoverageLines;
 
         public CoverageLineTaggerProviderBase(
             IEventAggregator eventAggregator
@@ -29,7 +29,7 @@ namespace FineCodeCoverage.Impl
             return tagger as ITagger<T>;
         }
 
-        protected abstract TTaggerListener CreateTagger(ITextBuffer textBuffer, List<CoverageLine> lastCoverageLines);
+        protected abstract TTaggerListener CreateTagger(ITextBuffer textBuffer, FileLineCoverage lastCoverageLines);
 
         public void Handle(NewCoverageLinesMessage message)
         {

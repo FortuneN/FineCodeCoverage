@@ -4,7 +4,6 @@ using System.Xml.Serialization;
 using System.Collections.Generic;
 using FineCodeCoverage.Engine.Model;
 using System.ComponentModel.Composition;
-using System.IO;
 
 namespace FineCodeCoverage.Engine.Cobertura
 {
@@ -25,51 +24,9 @@ namespace FineCodeCoverage.Engine.Cobertura
 			}
 		}
 
-		//private void CoverageXmlFileToJsonFile(string xmlFile, string jsonFile, bool formattedJson = false)
-		//{
-		//	var xmlText = File.ReadAllText(xmlFile);
-		//	var jsonText = CoverageXmlTextToJsonText(xmlText, formattedJson);
-		//	File.WriteAllText(jsonFile, jsonText);
-		//}
-
-		//private string CoverageXmlTextToJsonText(string xmlText, bool formattedJson = false)
-		//{
-		//	long count = 0;
-
-		//	var xmlLines = xmlText
-		//		.Split('\r', '\n')
-		//		.Select(x => x.Trim())
-		//		.Where(x => !x.StartsWith("<?xml"))
-		//		.Where(x => !x.StartsWith("<!DOCTYPE"))
-		//		.Where(x => !x.StartsWith("<sources>") && !x.StartsWith("</sources>") && !x.StartsWith("<source>"))
-		//		.Where(x => !x.StartsWith("<packages>") && !x.StartsWith("</packages>"))
-		//		.Where(x => !x.StartsWith("<classes>") && !x.StartsWith("</classes>"))
-		//		.Where(x => !x.StartsWith("<methods>") && !x.StartsWith("</methods>"))
-		//		.Where(x => !x.StartsWith("<lines>") && !x.StartsWith("</lines>"))
-		//		.Select(x => x
-		//			.Replace("<package ", $"<packages id=\"p{count++}\" json:Array='true' ").Replace("</package>", "</packages>")
-		//			.Replace("<class ", $"<classes id=\"c{count++}\" json:Array='true' ").Replace("</class>", "</classes>")
-		//			.Replace("<method ", $"<methods id=\"m{count++}\" json:Array='true' ").Replace("</method>", "</methods>")
-		//			.Replace("<line ", $"<lines id=\"l{count++}\" json:Array='true' ").Replace("</line>", "</lines>")
-		//		);
-
-		//	var processedXmlText = string
-		//		.Join(Environment.NewLine, xmlLines)
-		//		.Replace("<coverage ", "<coverage xmlns:json='http://james.newtonking.com/projects/json' ");
-
-		//	var xmlDocument = new XmlDocument();
-		//	xmlDocument.LoadXml(processedXmlText);
-
-		//	string jsonText = JsonConvert
-		//		.SerializeXmlNode(xmlDocument, formattedJson ? Newtonsoft.Json.Formatting.Indented : Newtonsoft.Json.Formatting.None, true)
-		//		.Replace("\"@", "\"");
-
-		//	return jsonText;
-		//}
-
-		public List<CoverageLine> ProcessCoberturaXml(string xmlFile)
+		public FileLineCoverage ProcessCoberturaXml(string xmlFile)
 		{
-			var coverageLines = new List<CoverageLine>();
+			var fileLineCoverage = new FileLineCoverage();
 
 			coverageReport = LoadReport(xmlFile);
 
@@ -77,19 +34,12 @@ namespace FineCodeCoverage.Engine.Cobertura
 			{
 				foreach (var classs in package.Classes.Class)
 				{
-					foreach (var line in classs.Lines.Line)
-					{
-						coverageLines.Add(new CoverageLine
-						{
-							Package = package,
-							Class = classs,
-							Line = line
-						});
-					}
+					fileLineCoverage.Add(classs.Filename, classs.Lines.Line);
 				}
 			}
 
-			return coverageLines;
+            fileLineCoverage.Completed();
+            return fileLineCoverage;
 		}
 
 		public string[] GetSourceFiles(string assemblyName, string qualifiedClassName, int file)

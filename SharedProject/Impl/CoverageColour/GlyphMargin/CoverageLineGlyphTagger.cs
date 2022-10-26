@@ -8,7 +8,7 @@ namespace FineCodeCoverage.Impl
 {
 	internal class CoverageLineGlyphTagger : CoverageLineTaggerBase<CoverageLineGlyphTag>, IListener<RefreshCoverageGlyphsMessage>
 	{
-		public CoverageLineGlyphTagger(ITextBuffer textBuffer, List<CoverageLine> lastCoverageLines) : base(textBuffer, lastCoverageLines)
+		public CoverageLineGlyphTagger(ITextBuffer textBuffer, FileLineCoverage lastCoverageLines) : base(textBuffer, lastCoverageLines)
 		{
 		}
 
@@ -17,7 +17,7 @@ namespace FineCodeCoverage.Impl
 			RaiseTagsChanged();
         }
 
-        protected override TagSpan<CoverageLineGlyphTag> GetTagSpan(CoverageLine coverageLine, SnapshotSpan span)
+        protected override TagSpan<CoverageLineGlyphTag> GetTagSpan(Engine.Cobertura.Line coverageLine, SnapshotSpan span)
         {
 			return new TagSpan<CoverageLineGlyphTag>(span, new CoverageLineGlyphTag(coverageLine));
         }

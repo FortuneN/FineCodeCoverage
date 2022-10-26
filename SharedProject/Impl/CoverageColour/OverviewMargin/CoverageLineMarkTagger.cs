@@ -1,4 +1,5 @@
 ﻿using FineCodeCoverage.Core.Utilities;
+using FineCodeCoverage.Engine.Cobertura;
 using FineCodeCoverage.Engine.Model;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -9,7 +10,7 @@ namespace FineCodeCoverage.Impl
 	internal class CoverageLineMarkTagger : CoverageLineTaggerBase<OverviewMarkTag>, IListener<CoverageMarginOptionsChangedMessage>
 	{
 		private ICoverageMarginOptions coverageMarginOptions;
-		public CoverageLineMarkTagger(ITextBuffer textBuffer, List<CoverageLine> lastCoverageLines, ICoverageMarginOptions coverageMarginOptions) : 
+		public CoverageLineMarkTagger(ITextBuffer textBuffer, FileLineCoverage lastCoverageLines, ICoverageMarginOptions coverageMarginOptions) : 
 			base(textBuffer, lastCoverageLines)
 		{
 			this.coverageMarginOptions = coverageMarginOptions;
@@ -21,13 +22,13 @@ namespace FineCodeCoverage.Impl
 			RaiseTagsChanged();
         }
 
-        protected override TagSpan<OverviewMarkTag> GetTagSpan(CoverageLine coverageLine, SnapshotSpan span)
+        protected override TagSpan<OverviewMarkTag> GetTagSpan(Engine.Cobertura.Line coverageLine, SnapshotSpan span)
 		{
 			var coverageType = coverageLine.GetCoverageType();
 			var shouldShow = coverageMarginOptions.Show(coverageType);
 			if (!shouldShow) return null;
 
-			var newSnapshotSpan = GetLineSnapshotSpan(coverageLine.Line.Number, span);
+			var newSnapshotSpan = GetLineSnapshotSpan(coverageLine.Number, span);
 			return new TagSpan<OverviewMarkTag>(newSnapshotSpan, new OverviewMarkTag(GetMarkKindName(coverageLine)));
 		}
 
@@ -41,9 +42,8 @@ namespace FineCodeCoverage.Impl
 			return new SnapshotSpan(startPoint, endPoint);
 		}
 
-		private string GetMarkKindName(CoverageLine coverageLine)
+		private string GetMarkKindName(Line line)
 		{
-			var line = coverageLine.Line;
 			var lineHitCount = line?.Hits ?? 0;
 			var lineConditionCoverage = line?.ConditionCoverage?.Trim();
 

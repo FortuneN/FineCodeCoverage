@@ -11,11 +11,11 @@ namespace FineCodeCoverage.Impl
 	internal abstract class CoverageLineTaggerBase<TTag> : ICoverageLineTagger<TTag> where TTag : ITag
 	{
 		private readonly ITextBuffer _textBuffer;
-		private List<CoverageLine> coverageLines;
+		private FileLineCoverage coverageLines;
 
 		public event EventHandler<SnapshotSpanEventArgs> TagsChanged;
 
-		public CoverageLineTaggerBase(ITextBuffer textBuffer, List<CoverageLine> lastCoverageLines)
+		public CoverageLineTaggerBase(ITextBuffer textBuffer, FileLineCoverage lastCoverageLines)
 		{
 			_textBuffer = textBuffer;
 			coverageLines = lastCoverageLines;
@@ -32,14 +32,8 @@ namespace FineCodeCoverage.Impl
 			TagsChanged?.Invoke(this, spanEventArgs);
 		}
 
-		private IEnumerable<CoverageLine> GetApplicableLines(string filePath, int startLineNumber, int endLineNumber)
-		{
-			return coverageLines
-			.AsParallel()
-			.Where(x => x.Class.Filename.Equals(filePath, StringComparison.OrdinalIgnoreCase))
-			.Where(x => x.Line.Number >= startLineNumber && x.Line.Number <= endLineNumber)
-			.ToArray();
-		}
+		private IEnumerable<Engine.Cobertura.Line> GetApplicableLines(string filePath, int startLineNumber, int endLineNumber) 
+			=> coverageLines.GetLines(filePath, startLineNumber, endLineNumber);
 
 		public void Handle(NewCoverageLinesMessage message)
 		{
@@ -85,6 +79,6 @@ namespace FineCodeCoverage.Impl
 			}
 		}
 
-		protected abstract TagSpan<TTag> GetTagSpan(CoverageLine coverageLine, SnapshotSpan span);
+		protected abstract TagSpan<TTag> GetTagSpan(Engine.Cobertura.Line coverageLine, SnapshotSpan span);
 	}
 }
