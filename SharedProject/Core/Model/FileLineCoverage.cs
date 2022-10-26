@@ -38,7 +38,7 @@ namespace FineCodeCoverage.Engine.Model
             while (last < lines.Count && lines[last].Number <= endLineNumber)
                 ++last;
 
-            return lines.GetRange(first, last);
+            return lines.GetRange(first, last - first);
         }
     }
 
