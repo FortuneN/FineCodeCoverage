@@ -1,7 +1,7 @@
-﻿using FineCodeCoverage.Engine.Cobertura;
+﻿using FineCodeCoverage.Core.Utilities;
+using FineCodeCoverage.Engine.Cobertura;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace FineCodeCoverage.Engine.Model
 {
@@ -9,7 +9,6 @@ namespace FineCodeCoverage.Engine.Model
     internal class FileLineCoverage
     {
         private Dictionary<string, List<Line>> m_coverageLines = new Dictionary<string, List<Line>>(StringComparer.OrdinalIgnoreCase);
-
 
         public void Add(string filename, IEnumerable<Line> lines)
         {
@@ -22,7 +21,7 @@ namespace FineCodeCoverage.Engine.Model
             fileCoverageLines.AddRange(lines);
         }
 
-        internal void Completed()
+        public void Completed()
         {
             foreach (var lines in m_coverageLines.Values)
                 lines.Sort((a, b) => a.Number - b.Number);
@@ -31,41 +30,17 @@ namespace FineCodeCoverage.Engine.Model
         public IEnumerable<Line> GetLines(string filePath, int startLineNumber, int endLineNumber)
         {
             if (!m_coverageLines.TryGetValue(filePath, out var lines))
-                return Enumerable.Empty<Line>();
+                yield break;
 
-            int first = lines.LowerBound(line => line.Number < startLineNumber);
-            int last = first;
-            while (last < lines.Count && lines[last].Number <= endLineNumber)
-                ++last;
-
-            return lines.GetRange(first, last - first);
-        }
-    }
-
-    public static class ListExtensions
-    {
-        // Returns the index of the first element in a sorted list where the comparison function is false
-        public static int LowerBound<T>(this IList<T> list, Func<T, bool> compare)
-        {
-            // binary search to find the first line
-            int first = 0;
-            int count = list.Count;
-            while (count > 0)
+            int first = lines.LowerBound(line => startLineNumber - line.Number);
+            if (first != -1)
             {
-                int step = count / 2;
-                int it = first + step;
-                if (compare(list[it]))
-                {
-                    first = ++it;
-                    count -= step + 1;
-                }
-                else
-                {
-                    count = step;
-                }
+                for (int it = first; it < lines.Count && lines[it].Number <= endLineNumber; ++it)
+                    yield return lines[it];
             }
-
-            return first;
+            
         }
     }
+
+    
 }

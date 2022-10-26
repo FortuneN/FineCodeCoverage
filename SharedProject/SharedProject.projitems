@@ -148,6 +148,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\ISolutionEvents.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\IZipFile.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\LinqExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\ListExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\MEF.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\ProcessResponseProcessor.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\ProcessUtil.cs" />
