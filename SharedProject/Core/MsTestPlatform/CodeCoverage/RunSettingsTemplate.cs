@@ -2,11 +2,13 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using System.Xml;
 using System.Xml.Linq;
 using System.Xml.XPath;
 
 namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
 {
+
     [Export(typeof(IRunSettingsTemplate))]
     internal class RunSettingsTemplate : IRunSettingsTemplate
     {
@@ -186,7 +188,14 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
 
         private string AddRecommendedYouDoNotChangeElementsIfNotProvided(string replacedRunSettingsTemplate, bool isNetFramework)
         {
-            var templateDocument = XDocument.Parse(replacedRunSettingsTemplate);
+            XDocument templateDocument = null;
+            try
+            {
+                templateDocument = XDocument.Parse(replacedRunSettingsTemplate);
+            }catch(XmlException exc)
+            {
+                throw new MsTemplateReplacementException(exc, replacedRunSettingsTemplate);
+            }
             var msDataCollectorCodeCoverageElement = GetMsDataCollectorCodeCoverageElement(templateDocument);
             if (msDataCollectorCodeCoverageElement != null)
             {
