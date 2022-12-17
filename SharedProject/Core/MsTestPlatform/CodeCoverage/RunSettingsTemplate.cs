@@ -220,11 +220,21 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
             return msDataCollector.GetStrictDescendant("Configuration/CodeCoverage");
         }
 
+        // hacky.  due to tests
+        private string SafeFilePathEscape(string path)
+        {
+            if (path == null)
+            {
+                return null;
+            }
+            return XmlFileEscaper.Escape(path);
+        }
+
         public string Replace(string templatedXml, IRunSettingsTemplateReplacements replacements)
         {
             return templatedXml
-                .Replace(replacementLookups.ResultsDirectory, XmlFileEscaper.Escape(replacements.ResultsDirectory))
-                .Replace(replacementLookups.TestAdapter, XmlFileEscaper.Escape(replacements.TestAdapter))
+                .Replace(replacementLookups.ResultsDirectory, SafeFilePathEscape(replacements.ResultsDirectory))
+                .Replace(replacementLookups.TestAdapter, SafeFilePathEscape(replacements.TestAdapter))
                 .Replace(replacementLookups.Enabled, replacements.Enabled)
                 .Replace(replacementLookups.ModulePathsExclude, replacements.ModulePathsExclude)
                 .Replace(replacementLookups.ModulePathsInclude, replacements.ModulePathsInclude)
