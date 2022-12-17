@@ -88,8 +88,8 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 
 		public string ReportGeneratorExePath { get; private set; }
 
-		private string FontSize => $"{environmentFontDetails.Size * dpiScale.DpiScaleX}px";
-		private string FontName => environmentFontDetails.Family.Source;
+		private string FontSize => environmentFontDetails == null ? "12px" : $"{environmentFontDetails.Size * dpiScale.DpiScaleX}px";
+		private string FontName => environmentFontDetails == null ? "Arial" : environmentFontDetails.Family.Source;
 
 		[ImportingConstructor]
 		public ReportGeneratorUtil(
