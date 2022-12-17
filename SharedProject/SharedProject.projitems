@@ -163,6 +163,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\LinqToXmlUtil.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\Tryer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\VsThreading\IThreadHelper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\XmlFileEscaper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\ZipFileWrapper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\GlyphMargin\RefreshCoverageGlyphsMessage.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\MarginBase\CoverageLineTaggerBase.cs" />

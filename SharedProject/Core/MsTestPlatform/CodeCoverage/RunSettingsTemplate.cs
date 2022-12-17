@@ -8,7 +8,6 @@ using System.Xml.XPath;
 
 namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
 {
-
     [Export(typeof(IRunSettingsTemplate))]
     internal class RunSettingsTemplate : IRunSettingsTemplate
     {
@@ -224,8 +223,8 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
         public string Replace(string templatedXml, IRunSettingsTemplateReplacements replacements)
         {
             return templatedXml
-                .Replace(replacementLookups.ResultsDirectory, replacements.ResultsDirectory)
-                .Replace(replacementLookups.TestAdapter, replacements.TestAdapter)
+                .Replace(replacementLookups.ResultsDirectory, XmlFileEscaper.Escape(replacements.ResultsDirectory))
+                .Replace(replacementLookups.TestAdapter, XmlFileEscaper.Escape(replacements.TestAdapter))
                 .Replace(replacementLookups.Enabled, replacements.Enabled)
                 .Replace(replacementLookups.ModulePathsExclude, replacements.ModulePathsExclude)
                 .Replace(replacementLookups.ModulePathsInclude, replacements.ModulePathsInclude)
