@@ -145,7 +145,7 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
         private IXPathNavigable AddFCCRunSettingsActual(IXPathNavigable inputRunSettingDocument, IRunSettingsConfigurationInfo configurationInfo, Dictionary<string, IUserRunSettingsProjectDetails> userRunSettingsProjectDetailsLookup, string fccMsTestAdapterPath)
         {
             var navigator = inputRunSettingDocument.CreateNavigator();
-            navigator.MoveToFirstChild();
+            navigator.MoveToChild("RunSettings","");
             var clonedNavigator = navigator.Clone();
             var replacements = runSettingsTemplateReplacementsFactory.Create(
                 configurationInfo.TestContainers, 
