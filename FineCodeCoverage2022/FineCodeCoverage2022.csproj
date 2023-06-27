@@ -89,16 +89,16 @@
       <Link>ZippedTools\microsoft.codecoverage.17.1.0.zip</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="..\Shared Files\ZippedTools\reportGenerator.4.7.3.zip">
-      <Link>ZippedTools\reportGenerator.4.7.3.zip</Link>
-      <IncludeInVSIX>true</IncludeInVSIX>
-    </Content>
     <Content Include="..\Shared Files\ZippedTools\coverlet.collector.3.2.0.zip">
       <Link>ZippedTools\coverlet.collector.3.2.0.zip</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="..\Shared Files\ZippedTools\coverlet.console.3.2.0.zip">
       <Link>ZippedTools\coverlet.console.3.2.0.zip</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="..\Shared Files\ZippedTools\reportGenerator.4.7.4.zip">
+      <Link>ZippedTools\reportGenerator.4.7.4.zip</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <None Include="source.extension.vsixmanifest">
