@@ -146,6 +146,7 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
             var allProjectDetails = testContainers.Select(tc => userRunSettingsProjectDetailsLookup[tc.Source]).ToList();
             var resultsDirectory = allProjectDetails[0].CoverageOutputFolder;
             var allSettings = allProjectDetails.Select(pd => pd.Settings);
+            var allProjectsDisabled = allSettings.All(s => !s.Enabled);
             var mergedSettings = new MergedIncludesExcludesOptions(allSettings);
 
 
@@ -162,7 +163,7 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
 
             var additionalModulePathsInclude = allProjectDetails.SelectMany(projectDetails => projectDetails.IncludedReferencedProjects.Select(rp => MsCodeCoverageRegex.RegexModuleName(rp)));
             var settings = new CombinedIncludesExcludesOptions(mergedSettings, additionalModulePathsInclude, additionalModulePathsExclude);
-            return new RunSettingsTemplateReplacements(settings, resultsDirectory, "true", testAdapter);
+            return new RunSettingsTemplateReplacements(settings, resultsDirectory, (!allProjectsDisabled).ToString(), testAdapter);
         }
 
         public IRunSettingsTemplateReplacements Create(ICoverageProject coverageProject, string testAdapter)
