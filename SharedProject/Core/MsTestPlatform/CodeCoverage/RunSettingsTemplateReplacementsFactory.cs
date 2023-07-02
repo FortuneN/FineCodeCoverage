@@ -163,7 +163,7 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
 
             var additionalModulePathsInclude = allProjectDetails.SelectMany(projectDetails => projectDetails.IncludedReferencedProjects.Select(rp => MsCodeCoverageRegex.RegexModuleName(rp)));
             var settings = new CombinedIncludesExcludesOptions(mergedSettings, additionalModulePathsInclude, additionalModulePathsExclude);
-            return new RunSettingsTemplateReplacements(settings, resultsDirectory, (!allProjectsDisabled).ToString(), testAdapter);
+            return new RunSettingsTemplateReplacements(settings, resultsDirectory, (!allProjectsDisabled).ToString().ToLower(), testAdapter);
         }
 
         public IRunSettingsTemplateReplacements Create(ICoverageProject coverageProject, string testAdapter)

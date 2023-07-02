@@ -214,7 +214,7 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
             }
 
             // todo - improve this 
-            var disableMsDataCollector = replacements.Enabled.ToLower() == "false";
+            var disableMsDataCollector = replacements.Enabled == "false";
             if (addedMsDataCollector || disableMsDataCollector)
             {
                 xpathNavigator.MoveToRoot();
