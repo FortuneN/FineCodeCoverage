@@ -178,7 +178,6 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
 
         private Task InitializeIsCollectingAsync(ITestOperation testOperation)
         {
-            collectionStatus = MsCodeCoverageCollectionStatus.NotCollecting;
             runMsCodeCoverage = appOptionsProvider.Get().RunMsCodeCoverage;
             useMsCodeCoverage = runMsCodeCoverage == RunMsCodeCoverage.Yes;
             userRunSettingsProjectDetailsLookup = null;
@@ -407,6 +406,7 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
         {
             coverageProjectsByType = await CoverageProjectsByType.CreateAsync(testOperation);
             await templatedRunSettingsService.CleanUpAsync(coverageProjectsByType.RunSettings);
+            collectionStatus = MsCodeCoverageCollectionStatus.NotCollecting;
         }
     }
 
@@ -415,7 +415,7 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
         {
             return configurationInfo.RequestState == RunSettingConfigurationInfoState.Execution;
         }
-        
+
     }
 
     internal static class UserRunSettingsAnalysisResultExtensions
