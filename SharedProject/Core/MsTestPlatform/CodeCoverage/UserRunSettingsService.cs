@@ -152,6 +152,7 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
                 userRunSettingsProjectDetailsLookup, 
                 fccMsTestAdapterPath
             );
+            
             EnsureTestAdaptersPathsAndReplace(navigator, replacements);
             EnsureCorrectMsDataCollectorAndReplace(clonedNavigator, replacements);
             return navigator;
@@ -212,14 +213,31 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
                 xpathNavigator.AppendChild(runSettingsTemplate.DataCollectionRunSettingsElement);
             }
 
-            if (addedMsDataCollector)
+            // todo - improve this 
+            var disableMsDataCollector = replacements.Enabled == "false";
+            if (addedMsDataCollector || disableMsDataCollector)
             {
                 xpathNavigator.MoveToRoot();
                 var dataCollectorsNavigator = xpathNavigator.SelectSingleNode("/RunSettings/DataCollectionRunSettings/DataCollectors");
                 var msDataCollectorNavigator = MoveToMsDataCollectorFromDataCollectors(dataCollectorsNavigator);
-                ReplaceExcludesIncludes(msDataCollectorNavigator, replacements);
-            }
 
+                if (disableMsDataCollector) 
+                {
+                    DisableMsDataCollector(msDataCollectorNavigator);
+                }
+                else
+                {
+                    ReplaceExcludesIncludes(msDataCollectorNavigator, replacements); // no need to replace if we are disabling
+                }
+            }
+        }
+
+
+        private void DisableMsDataCollector(XPathNavigator msDataCollectorNavigator)
+        {
+            var element = XElement.Parse(msDataCollectorNavigator.OuterXml);
+            element.SetAttributeValue("enabled", "false");
+            msDataCollectorNavigator.OuterXml = element.ToString();
         }
 
         private XPathNavigator MoveToMsDataCollectorFromDataCollectors(XPathNavigator navigator)

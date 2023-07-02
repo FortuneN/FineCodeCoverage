@@ -112,7 +112,7 @@ $@"<RunSettings>
                     projectDetailsLookup,
                     "fccMsTestAdapterPath"
                 )
-            ).Returns(new RunSettingsTemplateReplacements());
+            ).Returns(new RunSettingsTemplateReplacements() { Enabled = "true"});
 
             userRunSettingsService.AddFCCRunSettings(
                 xPathNavigable, 
@@ -144,7 +144,8 @@ $@"<RunSettings>
             TestAddFCCSettings(runSettings, expectedRunSettings, new RunSettingsTemplateReplacements
             {
                 ResultsDirectory = resultsDirectory,
-                TestAdapter = testAdapter
+                TestAdapter = testAdapter,
+                Enabled = "true"
             });
         }
 
@@ -167,7 +168,8 @@ $@"<RunSettings>
         </RunSettings>";
             TestAddFCCSettings(runSettings, expectedRunSettings, new RunSettingsTemplateReplacements
             {
-                TestAdapter = "MsTestAdapter"
+                TestAdapter = "MsTestAdapter",
+                Enabled = "true"
             });
 
         }
@@ -192,7 +194,8 @@ $@"<RunSettings>
         </RunSettings>";
             TestAddFCCSettings(runSettings, expectedRunSettings, new RunSettingsTemplateReplacements
             {
-                TestAdapter = "MsTestAdapter"
+                TestAdapter = "MsTestAdapter",
+                Enabled = "true"
             });
         }
 
@@ -469,7 +472,7 @@ $@"<RunSettings>
             </DataCollectionRunSettings>
         </RunSettings>
         ";
-            TestAddFCCSettings(runSettings, expectedRunSettings, new RunSettingsTemplateReplacements());
+            TestAddFCCSettings(runSettings, expectedRunSettings, new RunSettingsTemplateReplacements() { Enabled = "true"});
         }
 
         [Test]
@@ -505,7 +508,7 @@ $@"<RunSettings>
         </RunSettings>
         ";
 
-            TestAddFCCSettings(runSettings, expectedRunSettings, new RunSettingsTemplateReplacements());
+            TestAddFCCSettings(runSettings, expectedRunSettings, new RunSettingsTemplateReplacements() { Enabled = "true"});
         }
 
         [Test]
@@ -557,6 +560,42 @@ $@"<RunSettings>
                 </RunSettings>                
 ";
             TestAddFCCSettings("<RunSettings/>", expectedRunSettings, new RunSettingsTemplateReplacements { Enabled = "true"});
+        }
+
+        [Test]
+        public void Should_Disable_Ms_Data_Collection_When_Not_Enabled()
+        {
+            var runSettings = $@"
+        <RunSettings>
+            {unchangedRunConfiguration}
+            <DataCollectionRunSettings>
+                    <DataCollectors>
+                        <DataCollector uri='datacollector://Microsoft/CodeCoverage/2.0' enabled='true'>
+                            <Configuration>
+                                <Format>Xml</Format>
+                            </Configuration>
+                        </DataCollector>
+                    </DataCollectors>
+                </DataCollectionRunSettings>
+        </RunSettings>
+        ";
+
+            var expectedRunSettings = $@"
+        <RunSettings>
+            {unchangedRunConfiguration}
+            <DataCollectionRunSettings>
+                <DataCollectors>
+                    <DataCollector uri='datacollector://Microsoft/CodeCoverage/2.0' enabled='false'>
+                        <Configuration>
+                            <Format>Cobertura</Format>
+                        </Configuration>
+                    </DataCollector>
+                </DataCollectors>
+            </DataCollectionRunSettings>
+        </RunSettings>
+        ";
+
+            TestAddFCCSettings(runSettings, expectedRunSettings, new RunSettingsTemplateReplacements() { Enabled = "false" });
         }
 
         private void TestAddFCCSettings(string runSettings, string expectedFccRunSettings, IRunSettingsTemplateReplacements runSettingsTemplateReplacements)
