@@ -18,8 +18,24 @@ using FineCodeCoverage.Options;
 
 namespace FineCodeCoverageTests.MsCodeCoverage
 {
+
     internal class MsCodeCoverageRunSettingsService_Test_Execution_Not_Finished_Tests
     {
+        [Test]
+        public void Should_Set_To_Not_Collecting()
+        {
+            var autoMocker = new AutoMoqer();
+            var msCodeCoverageRunSettingsService = autoMocker.Create<MsCodeCoverageRunSettingsService>();
+
+            msCodeCoverageRunSettingsService.collectionStatus = MsCodeCoverageCollectionStatus.Collecting;
+
+            var mockTestOperation = new Mock<ITestOperation>();
+            mockTestOperation.Setup(testOperation => testOperation.GetCoverageProjectsAsync()).ReturnsAsync(new List<ICoverageProject>());
+            msCodeCoverageRunSettingsService.TestExecutionNotFinishedAsync(mockTestOperation.Object);
+
+            Assert.That(msCodeCoverageRunSettingsService.collectionStatus, Is.EqualTo(MsCodeCoverageCollectionStatus.NotCollecting));
+        }
+
         [Test]
         public async Task Should_Clean_Up_RunSettings_Coverage_Projects()
         {
@@ -68,6 +84,23 @@ namespace FineCodeCoverageTests.MsCodeCoverage
     {
         private AutoMoqer autoMocker;
         private ICoverageProject runSettingsCoverageProject;
+        private MsCodeCoverageRunSettingsService msCodeCoverageRunSettingsService;
+
+        [Test]
+        public async Task Should_Set_To_Not_Collecting()
+        {
+            var resultsUris = new List<Uri>()
+            {
+                new Uri(@"C:\SomePath\result1.cobertura.xml", UriKind.Absolute),
+                new Uri(@"C:\SomePath\result2.cobertura.xml", UriKind.Absolute),
+                new Uri(@"C:\SomePath\result3.xml", UriKind.Absolute),
+            };
+
+            var expectedCoberturaFiles = new string[] { @"C:\SomePath\result1.cobertura.xml", @"C:\SomePath\result2.cobertura.xml" };
+            await RunAndProcessReportAsync(resultsUris, expectedCoberturaFiles);
+
+            Assert.That(msCodeCoverageRunSettingsService.collectionStatus, Is.EqualTo(MsCodeCoverageCollectionStatus.NotCollecting));
+        }
 
         [Test]
         public async Task Should_FCCEngine_RunAndProcessReport_With_CoberturaResults()
@@ -119,7 +152,8 @@ namespace FineCodeCoverageTests.MsCodeCoverage
                 It.IsAny<CancellationToken>()
             )).Returns("ZipDestination");
             
-            var msCodeCoverageRunSettingsService = autoMocker.Create<MsCodeCoverageRunSettingsService>();
+            msCodeCoverageRunSettingsService = autoMocker.Create<MsCodeCoverageRunSettingsService>();
+            msCodeCoverageRunSettingsService.collectionStatus = MsCodeCoverageCollectionStatus.Collecting;
             msCodeCoverageRunSettingsService.threadHelper = new TestThreadHelper();
 
             var mockFccEngine = new Mock<IFCCEngine>();

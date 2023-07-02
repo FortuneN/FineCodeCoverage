@@ -362,6 +362,48 @@ namespace FineCodeCoverageTests.MsCodeCoverage
             ReplacementsAssertions.AssertAllEmpty(replacements);
         }
 
+        [TestCase(true,true,"true")]
+        [TestCase(false, true, "true")]
+        [TestCase(true, false, "true")]
+        [TestCase(false, false, "false")]  
+        public void Should_Be_Disabled_When_All_Projects_Are_Disabled(bool project1Enabled, bool project2Enabled, string expectedEnabled)
+        {
+            var testContainer1 = CreateTestContainer("Source1");
+            var testContainer2 = CreateTestContainer("Source2");
+            var testContainers = new List<ITestContainer>()
+            {
+                testContainer1,
+                testContainer2
+            };
+            Dictionary<string, IUserRunSettingsProjectDetails> userRunSettingsProjectDetailsLookup = new Dictionary<string, IUserRunSettingsProjectDetails>
+            {
+                {
+                    "Source1",
+                    new TestUserRunSettingsProjectDetails
+                    {
+                        CoverageOutputFolder = "",
+                        Settings = new TestMsCodeCoverageOptions{ Enabled = project1Enabled, IncludeTestAssembly = true},
+                        ExcludedReferencedProjects = new List<string>(),
+                        IncludedReferencedProjects = new List<string>(),
+                    }
+                },
+                {
+                    "Source2",
+                    new TestUserRunSettingsProjectDetails
+                    {
+                        CoverageOutputFolder = "",
+                        Settings = new TestMsCodeCoverageOptions{ Enabled = project2Enabled,  IncludeTestAssembly = true},
+                        ExcludedReferencedProjects = new List<string>(),
+                        IncludedReferencedProjects = new List<string>(),
+                    }
+                }
+            };
+
+            var runSettingsTemplateReplacements = runSettingsTemplateReplacementsFactory.Create(testContainers, userRunSettingsProjectDetailsLookup, "");
+
+            Assert.That(runSettingsTemplateReplacements.Enabled, Is.EqualTo(expectedEnabled));
+        }
+
         private string ModulePathElement(string value)
         {
             return $"<ModulePath>{value}</ModulePath>";
