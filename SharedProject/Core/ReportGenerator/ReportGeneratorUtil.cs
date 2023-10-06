@@ -21,6 +21,8 @@ using System.Threading;
 
 namespace FineCodeCoverage.Engine.ReportGenerator
 {
+    
+
 	interface IReportGeneratorUtil
     {
         void Initialize(string appDataFolder, CancellationToken cancellationToken);
@@ -56,7 +58,6 @@ namespace FineCodeCoverage.Engine.ReportGenerator
         private const string zipPrefix = "reportGenerator";
 		private const string zipDirectoryName = "reportGenerator";
 
-		private const string ThemeChangedJSFunctionName = "themeChanged";
 		private const string CoverageLogJSFunctionName = "coverageLog";
 		private const string CoverageLogTabName = "Coverage Log";
 		private const string ShowFCCWorkingJSFunctionName = "showFCCWorking";
@@ -224,6 +225,19 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 			return reportGeneratorResult;
 		}
 
+		private string GetRowHoverLinkColour(bool useLightness = true)
+		{
+			if (useLightness)
+			{
+				return LightenssApplier.Swap(
+					ReportColoursExtensions.ToColor(jsReportColours.CoverageTableRowHoverColour),
+					ReportColoursExtensions.ToColor(jsReportColours.LinkColour)
+				).ToJsColour();
+			}
+
+			return jsReportColours.CoverageTableRowHoverColour;
+        }
+
 		private void SetInitialTheme(HtmlAgilityPack.HtmlDocument document)
 		{
 			var backgroundColor = jsReportColours.BackgroundColour;
@@ -270,9 +284,21 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 			overviewHeaderLinks.Style.Color = jsReportColours.CoverageTableHeaderFontColour;
 
 			var overviewTrHoverRule = styleRules.First(r => r.SelectorText == ".overview tr:hover");
-			overviewTrHoverRule.Style.Background = jsReportColours.CoverageTableRowHoverBackgroundColour;
 
-			var expandCollapseIconColor = ReportColours.CoverageTableExpandCollapseIconColour;
+            /*
+				Alternative is lighten / darken the background color
+				ControlPaint.Dark / Light is percentage based - so we can't use it here
+			*/
+             
+            overviewTrHoverRule.Style.Background = jsReportColours.CoverageTableRowHoverBackgroundColour;
+            
+            var trHoverTdRule = stylesheet.Add(RuleType.Style);
+            trHoverTdRule.Text = $".overview tr:hover td {{color:{jsReportColours.CoverageTableRowHoverColour}}}";
+
+			var trHoverARule = stylesheet.Add(RuleType.Style);
+            trHoverARule.Text = $".overview tr:hover td a {{color:{GetRowHoverLinkColour()}}}";
+            
+            var expandCollapseIconColor = ReportColours.CoverageTableExpandCollapseIconColour;
 			plusBase64ReportImage.FillSvg(styleRules, expandCollapseIconColor.ToJsColour());
 			minusBase64ReportImage.FillSvg(styleRules, expandCollapseIconColor.ToJsColour());
 
@@ -877,6 +903,19 @@ risk-hotspots > div > table > thead > tr > th:last-of-type > a:last-of-type {
 
 		}
 
+		/*
+			whilst hacking at the report generator html ! can use this to save to html and inspect with chrome dev tools 
+		*/
+		private string AddCopyDocToClipboardButtonIfRequired(bool required = false)
+		{
+			var code = @"
+					<script>function clipboardHtml(){ window.clipboardData.setData('Text',document.documentElement.innerHTML)}</script>
+					<button onclick='clipboardHtml()'>Clipboard html</button>
+";
+			return required ? code : "";
+
+        }
+
 		public string ProcessUnifiedHtml(string htmlForProcessing, string reportOutputFolder)
 		{
 			previousFontSizeName = GetFontNameSize();
@@ -1071,101 +1110,7 @@ risk-hotspots > div > table > thead > tr > th:last-of-type > a:last-of-type {
 						generalStyle.setProperty('font-family',parts[0]);
 						generalStyle.setProperty('font-size',parts[1]);
 					}}
-					function {ThemeChangedJSFunctionName}(theme){{
-							var fccMediaStylesheet = getStyleSheetById('fccMediaStyle');	
-							var highContrastRule = fccMediaStylesheet.cssRules[0]
-							var highContrastRules = highContrastRule.cssRules
-							getStyleBySelector(highContrastRules,'table.coverage > td.gray').setProperty('background-color',theme.{nameof(JsThemeStyling.GrayCoverageColour)});
-
-							var fccStyleSheet1Rules = getStyleSheetById('fccStyle1').cssRules;		
-							var buttonStyle = getStyleBySelector(fccStyleSheet1Rules,'button');
-							buttonStyle.setProperty('color',theme.{nameof(JsThemeStyling.ButtonTextColour)});
-							buttonStyle.setProperty('background',theme.{nameof(JsThemeStyling.ButtonColour)});
-							buttonStyle.setProperty('border-color',theme.{nameof(JsThemeStyling.ButtonBorderColour)});
-							var buttonHoverStyle = getStyleBySelector(fccStyleSheet1Rules,'button:hover');
-							buttonHoverStyle.setProperty('color',theme.{nameof(JsThemeStyling.ButtonHoverTextColour)});
-							buttonHoverStyle.setProperty('background',theme.{nameof(JsThemeStyling.ButtonHoverColour)});
-							buttonHoverStyle.setProperty('border-color',theme.{nameof(JsThemeStyling.ButtonBorderHoverColour)});
-							var buttonPressedStyle = getStyleBySelector(fccStyleSheet1Rules,'button:active');
-							buttonPressedStyle.setProperty('color',theme.{nameof(JsThemeStyling.ButtonPressedTextColour)});
-							buttonPressedStyle.setProperty('background',theme.{nameof(JsThemeStyling.ButtonPressedColour)});
-							buttonPressedStyle.setProperty('border-color',theme.{nameof(JsThemeStyling.ButtonBorderPressedColour)});
-
-
-							var rangeInputFillLower = getStyleBySelector(fccStyleSheet1Rules, 'input[type=range]::-ms-fill-lower');
-							rangeInputFillLower.setProperty('background',theme.{nameof(JsThemeStyling.SliderLeftColour)});
-							var rangeInputFillUpper = getStyleBySelector(fccStyleSheet1Rules, 'input[type=range]::-ms-fill-upper');
-							rangeInputFillUpper.setProperty('background',theme.{nameof(JsThemeStyling.SliderRightColour)});
-							var rangeInputThumb = getStyleBySelector(fccStyleSheet1Rules, 'input[type=range]::-ms-thumb');
-							rangeInputThumb.setProperty('background',theme.{nameof(JsThemeStyling.SliderThumbColour)});
-							rangeInputThumb.setProperty('border',theme.{nameof(JsThemeStyling.SliderThumbColour)});
-
-							var scrollBarStyle = getStyleBySelector(fccStyleSheet1Rules,'body, html');
-							scrollBarStyle.setProperty('scrollbar-arrow-color',theme.{nameof(JsThemeStyling.ScrollBarArrowColour)});
-							scrollBarStyle.setProperty('scrollbar-track-color',theme.{nameof(JsThemeStyling.ScrollBarTrackColour)});
-							scrollBarStyle.setProperty('scrollbar-face-color',theme.{nameof(JsThemeStyling.ScrollBarThumbColour)});
-							scrollBarStyle.setProperty('scrollbar-shadow-color',theme.{nameof(JsThemeStyling.ScrollBarThumbColour)});
-							scrollBarStyle.setProperty('scrollbar-highlight-color',theme.{nameof(JsThemeStyling.ScrollBarThumbColour)});
-							scrollBarStyle.setProperty('scrollbar-3dlight-color',theme.{nameof(JsThemeStyling.ScrollBarThumbColour)});
-							scrollBarStyle.setProperty('scrollbar-darkshadow-color',theme.{nameof(JsThemeStyling.ScrollBarThumbColour)});
-
-							getStyleBySelector(fccStyleSheet1Rules,'*, body').setProperty('color',theme.{nameof(JsThemeStyling.FontColour)});
-							var textStyle = getStyleBySelector(fccStyleSheet1Rules,'input[type=text]');
-							textStyle.setProperty('color',theme.{nameof(JsThemeStyling.TextBoxTextColour)});			
-							textStyle.setProperty('background-color',theme.{nameof(JsThemeStyling.TextBoxColour)});								
-							textStyle.setProperty('border-color',theme.{nameof(JsThemeStyling.TextBoxBorderColour)});
-
-							var comboStyle = getStyleBySelector(fccStyleSheet1Rules,'select');
-							comboStyle.setProperty('color',theme.{nameof(JsThemeStyling.ComboBoxTextColour)});		
-							comboStyle.setProperty('background-color',theme.{nameof(JsThemeStyling.ComboBoxColour)});	
-							comboStyle.setProperty('border-color',theme.{nameof(JsThemeStyling.ComboBoxBorderColour)});
-
-							var fccStyleSheet2Rules = getStyleSheetById('fccStyle2').cssRules;	
-							getStyleBySelector(fccStyleSheet2Rules,'#divHeader').setProperty('background-color',theme.{nameof(JsThemeStyling.DivHeaderBackgroundColour)});							
-							var headerTabsStyle = getStyleBySelector(fccStyleSheet2Rules,'table#headerTabs td');
-							headerTabsStyle.setProperty('color',theme.{nameof(JsThemeStyling.HeaderFontColour)});
-							headerTabsStyle.setProperty('border-color',theme.{nameof(JsThemeStyling.HeaderBorderColour)});
-							getStyleBySelector(fccStyleSheet2Rules,'table#headerTabs td.tab').setProperty('background-color',theme.{nameof(JsThemeStyling.TabBackgroundColour)});		
-
-							var mainStyle = document.styleSheets[0];
-							var mainRules = mainStyle.cssRules;
-
-							getStyleBySelector(mainRules,'.gray').setProperty('background-color',theme.{nameof(JsThemeStyling.GrayCoverageColour)});
-
-							getStyleBySelector(mainRules,'html').setProperty('background-color',theme.{nameof(JsThemeStyling.BackgroundColour)});
-							getStyleBySelector(mainRules,'.container').setProperty('background-color',theme.{nameof(JsThemeStyling.BackgroundColour)});
-
-							var overviewTableBorder = '1px solid ' + theme.{nameof(JsThemeStyling.TableBorderColour)};
-							var overviewStyle = getStyleBySelector(mainRules,'.overview');
-							overviewStyle.setProperty('border',overviewTableBorder);
-							var overviewThStyle = getStyleBySelector(mainRules,'.overview th');
-							overviewThStyle.setProperty('background-color',theme.{nameof(JsThemeStyling.BackgroundColour)});
-							overviewThStyle.setProperty('border',overviewTableBorder);
-							var overviewTdStyle = getStyleBySelector(mainRules,'.overview td');
-							overviewTdStyle.setProperty('border',overviewTableBorder);
-
-							var overviewHeaderLinksStyle = getStyleBySelector(mainRules,'.overview th a');
-							overviewHeaderLinksStyle.setProperty('color',theme.{nameof(JsThemeStyling.CoverageTableHeaderFontColour)});
-
-							var overviewTrHoverStyle = getStyleBySelector(mainRules,'.overview tr:hover');
-							overviewTrHoverStyle.setProperty('background',theme.{nameof(JsThemeStyling.CoverageTableRowHoverBackgroundColour)});
-
-							var linkStyle = getStyleBySelector(mainRules,'a');
-							var linkHoverStyle = getStyleBySelector(mainRules,'a:hover');
-							linkStyle.setProperty('color',theme.{nameof(JsThemeStyling.LinkColour)});
-							linkHoverStyle.setProperty('color',theme.{nameof(JsThemeStyling.LinkColour)});
-
-							var iconPlusStyle = getStyleBySelector(mainRules,'.icon-plus');
-							iconPlusStyle.setProperty('background-image',theme.{nameof(JsThemeStyling.PlusBase64)});
-							var iconMinusStyle = getStyleBySelector(mainRules,'.icon-minus');
-							iconMinusStyle.setProperty('background-image',theme.{nameof(JsThemeStyling.MinusBase64)});
-							var iconDownActiveStyle = getStyleBySelector(mainRules,'.icon-down-dir_active');
-							iconDownActiveStyle.setProperty('background-image',theme.{nameof(JsThemeStyling.DownActiveBase64)});
-							var iconDownInactiveStyle = getStyleBySelector(mainRules,'.icon-down-dir');
-							iconDownInactiveStyle.setProperty('background-image',theme.{nameof(JsThemeStyling.DownInactiveBase64)});
-							var iconUpActiveStyle = getStyleBySelector(mainRules,'.icon-up-dir_active');
-							iconUpActiveStyle.setProperty('background-image',theme.{nameof(JsThemeStyling.UpActiveBase64)});
-					}}
+					
 						var htmlExtension = '.html';
 						
 						var eventListener = function (element, event, func) {{
@@ -1466,6 +1411,7 @@ risk-hotspots > div > table > thead > tr > th:last-of-type > a:last-of-type {
 							</tr>
 						</table>
 					</div>
+					{AddCopyDocToClipboardButtonIfRequired()}
 				");
 
                 if (!showBranchCoverage)

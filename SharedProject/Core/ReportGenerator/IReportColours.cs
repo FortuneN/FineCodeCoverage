@@ -24,6 +24,7 @@ namespace FineCodeCoverage.Engine.ReportGenerator
         Color CoverageTableInactiveSortColour { get; }
 
         Color CoverageTableRowHoverBackgroundColour { get; }
+        Color CoverageTableRowHoverColour { get; }
 
         Color DivHeaderBackgroundColour { get; }
 

@@ -17,6 +17,7 @@ namespace FineCodeCoverage.Engine.ReportGenerator
         public string LinkColour;
         public string CoverageTableHeaderFontColour;
         public string CoverageTableRowHoverBackgroundColour;
+        public string CoverageTableRowHoverColour;
         public string DivHeaderBackgroundColour;
         public string TabBackgroundColour;
         public string HeaderFontColour;
