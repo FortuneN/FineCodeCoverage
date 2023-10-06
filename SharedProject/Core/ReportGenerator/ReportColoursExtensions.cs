@@ -6,7 +6,7 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 {
 	internal static class ReportColoursExtensions
 	{
-		private class ColourReflection
+        private class ColourReflection
 		{
 			public PropertyInfo ReportColoursPropertyInfo { get; set; }
 			public FieldInfo JsThemeStylingFieldInfo { get; set; }
@@ -50,5 +50,14 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 		{
 			return $"rgba({colour.R},{colour.G},{colour.B},{colour.A})";
 		}
+
+		public static System.Drawing.Color ToColor(string jsColor)
+		{
+			var rgba = jsColor.Replace("rgba(", "").Replace(")", "").Split(',');
+			return System.Drawing.Color.FromArgb(int.Parse(rgba[3]), int.Parse(rgba[0]), int.Parse(rgba[1]), int.Parse(rgba[2]));
+
+		}
+        
 	}
+
 }

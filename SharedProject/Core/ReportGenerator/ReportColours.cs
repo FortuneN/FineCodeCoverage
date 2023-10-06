@@ -25,6 +25,8 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 
         public Color CoverageTableRowHoverBackgroundColour { get; set; }
 
+        public Color CoverageTableRowHoverColour { get; set; }
+
         public Color DivHeaderBackgroundColour { get; set; }
 
         public Color FontColour { get; set; }
@@ -88,6 +90,7 @@ namespace FineCodeCoverage.Engine.ReportGenerator
         public Color ButtonHoverTextColour { get; set; }
 
         public Color ButtonPressedTextColour { get; set; }
+
     }
 
 }

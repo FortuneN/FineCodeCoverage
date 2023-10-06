@@ -118,6 +118,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)Core\OpenCover\IOpenCoverUtil.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\OpenCover\OpenCoverUtil.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\ReportGenerator\Base64ReportImage.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\ReportGenerator\ColourUtilities\LighnessApplier.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\ReportGenerator\ColourUtilities\LuminanceContrastColourExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\ReportGenerator\IReportColours.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\ReportGenerator\IReportColoursProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\ReportGenerator\IThemeResourceKeyProvider.cs" />

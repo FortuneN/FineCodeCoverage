@@ -18,7 +18,8 @@
   <ReportPart Name="CoverageTableActiveSortColour" SelectedThemeColourName="EnvironmentColors.SystemHighlightColorKey" />
   <ReportPart Name="CoverageTableInactiveSortColour" SelectedThemeColourName="EnvironmentColors.ToolWindowTextColorKey" />
   <ReportPart Name="CoverageTableExpandCollapseIconColour" SelectedThemeColourName="EnvironmentColors.ToolWindowTextColorKey" />
-  <ReportPart Name="CoverageTableRowHoverBackgroundColour" SelectedThemeColourName="EnvironmentColors.ToolWindowBackgroundColorKey" />
+  <ReportPart Name="CoverageTableRowHoverBackgroundColour" SelectedThemeColourName="EnvironmentColors.ToolWindowTextColorKey" />
+  <ReportPart Name="CoverageTableRowHoverColour" SelectedThemeColourName="EnvironmentColors.ToolWindowBackgroundColorKey" />
   <ReportPart Name="TabBackgroundColour" SelectedThemeColourName="EnvironmentColors.FileTabBackgroundColorKey" />
   <ReportPart Name="DivHeaderBackgroundColour" SelectedThemeColourName="EnvironmentColors.ToolWindowBackgroundColorKey" />
   <ReportPart Name="HeaderFontColour" SelectedThemeColourName="EnvironmentColors.FileTabTextColorKey" />
