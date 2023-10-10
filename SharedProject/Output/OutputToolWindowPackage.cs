@@ -10,30 +10,28 @@ using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft;
 using FineCodeCoverage.Engine;
 using EnvDTE80;
-using Microsoft.VisualStudio;
-using System.IO;
 using FineCodeCoverage.Core.Utilities;
 
 namespace FineCodeCoverage.Output
 {
-	/// <summary>
-	/// This is the class that implements the package exposed by this assembly.
-	/// </summary>
-	/// <remarks>
-	/// <para>
-	/// The minimum requirement for a class to be considered a valid package for Visual Studio
-	/// is to implement the IVsPackage interface and register itself with the shell.
-	/// This package uses the helper classes defined inside the Managed Package Framework (MPF)
-	/// to do it: it derives from the Package class that provides the implementation of the
-	/// IVsPackage interface and uses the registration attributes defined in the framework to
-	/// register itself and its components with the shell. These attributes tell the pkgdef creation
-	/// utility what data to put into .pkgdef file.
-	/// </para>
-	/// <para>
-	/// To get loaded into VS, the package must be referred by &lt;Asset Type="Microsoft.VisualStudio.VsPackage" ...&gt; in .vsixmanifest file.
-	/// </para>
-	/// </remarks>
-	[ProvideBindingPath]
+    /// <summary>
+    /// This is the class that implements the package exposed by this assembly.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// The minimum requirement for a class to be considered a valid package for Visual Studio
+    /// is to implement the IVsPackage interface and register itself with the shell.
+    /// This package uses the helper classes defined inside the Managed Package Framework (MPF)
+    /// to do it: it derives from the Package class that provides the implementation of the
+    /// IVsPackage interface and uses the registration attributes defined in the framework to
+    /// register itself and its components with the shell. These attributes tell the pkgdef creation
+    /// utility what data to put into .pkgdef file.
+    /// </para>
+    /// <para>
+    /// To get loaded into VS, the package must be referred by &lt;Asset Type="Microsoft.VisualStudio.VsPackage" ...&gt; in .vsixmanifest file.
+    /// </para>
+    /// </remarks>
+    [ProvideBindingPath]
 	[Guid(PackageGuidString)]
 	[ProvideMenuResource("Menus.ctmenu", 1)]
 	[Export(typeof(OutputToolWindowPackage))]
@@ -92,12 +90,14 @@ namespace FineCodeCoverage.Output
 			var sp = new ServiceProvider(_dte2 as Microsoft.VisualStudio.OLE.Interop.IServiceProvider);
 			componentModel = sp.GetService(typeof(Microsoft.VisualStudio.ComponentModelHost.SComponentModel)) as Microsoft.VisualStudio.ComponentModelHost.IComponentModel;
             Assumes.Present(componentModel);
-			fccEngine = componentModel.GetService<IFCCEngine>();			
-
+			fccEngine = componentModel.GetService<IFCCEngine>();	
+			var eventAggregator = componentModel.GetService<IEventAggregator>();
+			await OpenCoberturaCommand.InitializeAsync(this, eventAggregator);
+			await OpenHotspotsCommand.InitializeAsync(this, eventAggregator);
 			await OutputToolWindowCommand.InitializeAsync(this, componentModel.GetService<ILogger>());
 			await ClearUICommand.InitializeAsync(this, fccEngine);
-		}
-		
+        }
+
         protected override Task<object> InitializeToolWindowAsync(Type toolWindowType, int id, CancellationToken cancellationToken)
         {
 			return Task.FromResult<object>(GetOutputToolWindowContext());

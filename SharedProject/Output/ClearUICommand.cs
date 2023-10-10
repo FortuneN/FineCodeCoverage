@@ -37,7 +37,6 @@ namespace FineCodeCoverage.Output
         {
             this.fccEngine = fccEngine;
             commandService = commandService ?? throw new ArgumentNullException(nameof(commandService));
-
             var menuCommandID = new CommandID(CommandSet, CommandId);
             var menuItem = new MenuCommand(this.Execute, menuCommandID);
             commandService.AddCommand(menuItem);

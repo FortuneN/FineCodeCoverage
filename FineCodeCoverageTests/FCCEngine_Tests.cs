@@ -13,6 +13,7 @@ using FineCodeCoverage.Engine.MsTestPlatform;
 using FineCodeCoverage.Engine.ReportGenerator;
 using FineCodeCoverage.Impl;
 using FineCodeCoverage.Options;
+using FineCodeCoverage.Output;
 using Moq;
 using NUnit.Framework;
 
@@ -254,10 +255,16 @@ namespace Test
         }
 
         [Test]
-        public async Task Should_Process_ReportGenerator_Output_If_Success()
+        public async Task Should_Process_ReportGenerator_Output_If_Success_Raising_Events()
         {
             var passedProject = CreateSuitableProject();
-            
+            var reportGeneratorResult = new ReportGeneratorResult
+            {
+                UnifiedXmlFile = "Unified xml file",
+                UnifiedHtml = "Unified html",
+                HotspotsFile = "Hotspots file path",
+
+            };
             var mockReportGenerator = mocker.GetMock<IReportGeneratorUtil>();
             mockReportGenerator.Setup(rg =>
                 rg.GenerateAsync(
@@ -265,19 +272,34 @@ namespace Test
                     It.IsAny<string>(),
                     It.IsAny<CancellationToken>()
                     ).Result)
-                .Returns(
-                    new ReportGeneratorResult
-                    {
-                        UnifiedXmlFile = "Unified xml file",
-                        UnifiedHtml = "Unified html"
-                    }
-                );
+                .Returns(reportGeneratorResult);
 
-            mockReportGenerator.Setup(rg => rg.ProcessUnifiedHtml("Unified html", It.IsAny<string>()));
+            mockReportGenerator.Setup(rg => rg.ProcessUnifiedHtml("Unified html", It.IsAny<string>())).Returns("processed");
+
+            var mockCoberturaUtil = mocker.GetMock<ICoberturaUtil>();
+            var fileLineCoverage = new FileLineCoverage();
+            mockCoberturaUtil.Setup(coberturaUtil => coberturaUtil.ProcessCoberturaXml("Unified xml file")).Returns(fileLineCoverage);
 
             await ReloadInitializedCoverage(passedProject.Object);
-            mocker.Verify<ICoberturaUtil>(coberturaUtil => coberturaUtil.ProcessCoberturaXml("Unified xml file"));
+            
             mockReportGenerator.VerifyAll();
+            mockReportGenerator.Verify(reportGenerator => reportGenerator.EndOfCoverageRun());
+
+            mocker.Verify<IEventAggregator>(eventAggregator => eventAggregator.SendMessage(
+                It.Is<NewCoverageLinesMessage>(message => message.CoverageLines == fileLineCoverage),
+                null
+                ));
+
+            mocker.Verify<IEventAggregator>(eventAggregator => eventAggregator.SendMessage(
+                It.Is<NewReportMessage>(message => message.Report == "processed"),
+                null
+                ));
+
+            mocker.Verify<IEventAggregator>(eventAggregator => eventAggregator.SendMessage(
+                It.Is<ReportFilesMessage>(message =>  message.CoberturaFile == reportGeneratorResult.UnifiedXmlFile &&  message.HotspotsFile == reportGeneratorResult.HotspotsFile),
+                null
+                ));
+
         }
 
         [Test]

@@ -56,6 +56,18 @@
           <ButtonText>FCC Clear UI</ButtonText>
         </Strings>
       </Button>
+      <Button guid="guidOutputToolWindowPackageCmdSet1" id="cmdidOpenCoberturaCommand" priority="0x0100" type="Button">
+        <Parent guid="guidOutputToolWindowPackageCmdSet1" id="MyMenuGroup" />
+        <Strings>
+          <ButtonText>Open Cobertura</ButtonText>
+        </Strings>
+      </Button>
+      <Button guid="guidOutputToolWindowPackageCmdSet1" id="cmdidOpenHotspotsCommand" priority="0x0100" type="Button">
+        <Parent guid="guidOutputToolWindowPackageCmdSet1" id="MyMenuGroup" />
+        <Strings>
+          <ButtonText>Open Hotspots</ButtonText>
+        </Strings>
+      </Button>
     </Buttons>
 
     <!--The bitmaps section is used to define the bitmaps that are used for the commands.-->
@@ -91,6 +103,8 @@
     <GuidSymbol value="{d58a999f-4a1b-42df-839a-cb31a0a4fed7}" name="guidOutputToolWindowPackageCmdSet1">
       <IDSymbol value="4128" name="MyMenuGroup" />
       <IDSymbol value="256" name="cmdidClearUICommand" />
+      <IDSymbol value="257" name="cmdidOpenCoberturaCommand" />
+      <IDSymbol value="258" name="cmdidOpenHotspotsCommand" />
     </GuidSymbol>
   
     <GuidSymbol value="{8252a6d7-bcf3-4518-ae22-ad20ef8d4b63}" name="guidImages1">
