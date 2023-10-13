@@ -56,5 +56,6 @@
         bool HideFullyCovered { get; set; }
         bool AdjacentBuildOutput { get; set; }
         RunMsCodeCoverage RunMsCodeCoverage { get; set; } 
+        bool ShowToolWindowToolbar { get; set; }
     }
 }

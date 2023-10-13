@@ -1,6 +1,6 @@
 ﻿namespace SharedProject.Core.CoverageToolOutput
 {
-    internal class OutdatedOutput
+    internal class OutdatedOutputMessage
     {
     }
 }

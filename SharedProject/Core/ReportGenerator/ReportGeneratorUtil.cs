@@ -916,7 +916,7 @@ risk-hotspots > div > table > thead > tr > th:last-of-type > a:last-of-type {
 		/*
 			whilst hacking at the report generator html ! can use this to save to html and inspect with chrome dev tools 
 		*/
-		private string AddCopyDocToClipboardButtonIfRequired(bool required = true)
+		private string AddCopyDocToClipboardButtonIfRequired(bool required = false)
 		{
 			var code = @"
 					<script>function clipboardHtml(){ window.clipboardData.setData('Text',document.documentElement.innerHTML)}</script>

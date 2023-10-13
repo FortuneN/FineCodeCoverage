@@ -7,6 +7,7 @@ using Microsoft.VisualStudio.Shell;
 using System.Runtime.InteropServices;
 using Microsoft.VisualStudio.Shell.Interop;
 using FineCodeCoverage.Core.Utilities;
+using System.ComponentModel.Design;
 
 namespace FineCodeCoverage.Output
 {
@@ -29,8 +30,8 @@ namespace FineCodeCoverage.Output
 		/// </summary>
 		public OutputToolWindow(OutputToolWindowContext context) : base(null)
 		{
-			Initialize(context);
-		}
+            Initialize(context);
+        }
 
 		public OutputToolWindow()
         {
@@ -39,8 +40,12 @@ namespace FineCodeCoverage.Output
 
 		private void Initialize(OutputToolWindowContext context)
         {
-			//to see if OutputToolWindow can be internal ( and thus IScriptManager )
-			Caption = Vsix.Name;
+			if (context.ShowToolbar)
+			{
+				this.ToolBar = new CommandID(new Guid("d58a999f-4a1b-42df-839a-cb31a0a4fed7"), 4129);
+			}
+            //to see if OutputToolWindow can be internal ( and thus IScriptManager )
+            Caption = Vsix.Name;
 			context.EventAggregator.AddListener(this);
 
 			// This is the user control hosted by the tool window; Note that, even if this class implements IDisposable,

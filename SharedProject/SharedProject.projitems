@@ -32,7 +32,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Core\CoverageToolOutput\ICoverageToolOutputFolderSolutionProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\CoverageToolOutput\ICoverageToolOutputManager.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\CoverageToolOutput\ISolutionFolderProvider.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Core\CoverageToolOutput\OutdatedOutput.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\CoverageToolOutput\OutdatedOutputMessage.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\CoverageToolOutput\SolutionFolderProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\CoverageUIEvents.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\CoverageUtilManager.cs" />

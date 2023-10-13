@@ -691,5 +691,6 @@ namespace FineCodeCoverageTests.MsCodeCoverage
         public bool ShowCoveredInOverviewMargin { get; set; }
         public bool ShowUncoveredInOverviewMargin { get; set; }
         public bool ShowPartiallyCoveredInOverviewMargin { get; set; }
+        public bool ShowToolWindowToolbar { get; set; }
     }
 }

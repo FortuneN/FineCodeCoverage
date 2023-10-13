@@ -7,6 +7,7 @@ using FineCodeCoverage.Engine;
 using FineCodeCoverage.Engine.Model;
 using Moq;
 using NUnit.Framework;
+using SharedProject.Core.CoverageToolOutput;
 
 namespace FineCodeCoverageTests
 {
@@ -91,6 +92,15 @@ namespace FineCodeCoverageTests
             var coverageToolOutputManager = mocker.Create<CoverageToolOutputManager>();
             coverageToolOutputManager.SetProjectCoverageOutputFolder(coverageProjects);
             mocker.Verify<ILogger>(l => l.Log("FCC output in Provided"));
+        }
+
+        [Test]
+        public void Should_Raise_The_OutdatedOutputMessge()
+        {
+            SetUpProviders(true, "Provided", "_");
+            var coverageToolOutputManager = mocker.Create<CoverageToolOutputManager>();
+            coverageToolOutputManager.SetProjectCoverageOutputFolder(coverageProjects);
+            mocker.Verify<IEventAggregator>(eventAggregator => eventAggregator.SendMessage(It.IsAny<OutdatedOutputMessage>(), null));
         }
 
         [Test]

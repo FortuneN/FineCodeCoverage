@@ -14,7 +14,7 @@ namespace FineCodeCoverage.Output
     /// <summary>
     /// Command handler
     /// </summary>
-    internal sealed class OpenCoberturaCommand : IListener<ReportFilesMessage>, IListener<OutdatedOutput>
+    internal sealed class OpenCoberturaCommand : IListener<ReportFilesMessage>, IListener<OutdatedOutputMessage>
     {
         /// <summary>
         /// Command ID.
@@ -86,11 +86,11 @@ namespace FineCodeCoverage.Output
             ThreadHelper.ThrowIfNotOnUIThread();
             if (File.Exists(coberturaFile))
             {
-                dte.ItemOperations.OpenFile(coberturaFile, EnvDTE.Constants.vsViewKindCode);
+                dte.ItemOperations.OpenFile(coberturaFile, EnvDTE.Constants.vsViewKindPrimary);
             }
         }
 
-        public void Handle(OutdatedOutput message)
+        public void Handle(OutdatedOutputMessage message)
         {
             command.Enabled = false;
         }

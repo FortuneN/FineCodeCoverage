@@ -69,7 +69,8 @@ namespace FineCodeCoverage.Output
         {
 			return new OutputToolWindowContext
 			{
-				EventAggregator = componentModel.GetService<IEventAggregator>()
+				EventAggregator = componentModel.GetService<IEventAggregator>(),
+				ShowToolbar = componentModel.GetService<IAppOptionsProvider>().Get().ShowToolWindowToolbar
 			};
 		}
 
@@ -94,8 +95,8 @@ namespace FineCodeCoverage.Output
 			var eventAggregator = componentModel.GetService<IEventAggregator>();
 			await OpenCoberturaCommand.InitializeAsync(this, eventAggregator);
 			await OpenHotspotsCommand.InitializeAsync(this, eventAggregator);
-			await OutputToolWindowCommand.InitializeAsync(this, componentModel.GetService<ILogger>());
-			await ClearUICommand.InitializeAsync(this, fccEngine);
+            await ClearUICommand.InitializeAsync(this, fccEngine);
+            await OutputToolWindowCommand.InitializeAsync(this, componentModel.GetService<ILogger>());
         }
 
         protected override Task<object> InitializeToolWindowAsync(Type toolWindowType, int id, CancellationToken cancellationToken)

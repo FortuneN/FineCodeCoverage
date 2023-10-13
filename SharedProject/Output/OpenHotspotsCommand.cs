@@ -14,7 +14,7 @@ namespace FineCodeCoverage.Output
     /// <summary>
     /// Command handler
     /// </summary>
-    internal sealed class OpenHotspotsCommand : IListener<ReportFilesMessage>, IListener<OutdatedOutput>
+    internal sealed class OpenHotspotsCommand : IListener<ReportFilesMessage>, IListener<OutdatedOutputMessage>
     {
         /// <summary>
         /// Command ID.
@@ -91,7 +91,7 @@ namespace FineCodeCoverage.Output
             }
         }
 
-        public void Handle(OutdatedOutput message)
+        public void Handle(OutdatedOutputMessage message)
         {
             command.Enabled = false;
         }

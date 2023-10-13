@@ -20,6 +20,8 @@
   <!--This header contains the command ids for the menus provided by the shell. -->
   <Extern href="vsshlids.h" />
 
+  <Include href="KnownImageIds.vsct"/>
+
   <!--The Commands section is where commands, menus, and menu groups are defined.
       This section uses a Guid to identify the package that provides the command defined inside it. -->
   <Commands package="guidOutputToolWindowPackage">
@@ -54,21 +56,41 @@
         <Icon guid="guidImages1" id="bmpPic1" />
         <Strings>
           <ButtonText>FCC Clear UI</ButtonText>
+          <CanonicalName>FCC.ClearUI</CanonicalName>
+          <LocCanonicalName>FCC.ClearUI</LocCanonicalName>
         </Strings>
       </Button>
       <Button guid="guidOutputToolWindowPackageCmdSet1" id="cmdidOpenCoberturaCommand" priority="0x0100" type="Button">
-        <Parent guid="guidOutputToolWindowPackageCmdSet1" id="MyMenuGroup" />
+        <Parent guid="guidOutputToolWindowPackageCmdSet1" id="ToolWindowToolbarGroup" />
+        <Icon guid="ImageCatalogGuid" id="CodeCoverage"/>
+        <CommandFlag>IconIsMoniker</CommandFlag>
         <Strings>
           <ButtonText>Open Cobertura</ButtonText>
+          <CommandName>FCC Open Cobertura</CommandName>
+          <CanonicalName>FCC.OpenCobertura</CanonicalName>
+          <LocCanonicalName>FCC.OpenCobertura</LocCanonicalName>
         </Strings>
       </Button>
       <Button guid="guidOutputToolWindowPackageCmdSet1" id="cmdidOpenHotspotsCommand" priority="0x0100" type="Button">
-        <Parent guid="guidOutputToolWindowPackageCmdSet1" id="MyMenuGroup" />
+        <Parent guid="guidOutputToolWindowPackageCmdSet1" id="ToolWindowToolbarGroup" />
+        <Icon guid="ImageCatalogGuid" id="HotSpot"/>
+        <CommandFlag>IconIsMoniker</CommandFlag>
         <Strings>
           <ButtonText>Open Hotspots</ButtonText>
+          <CommandName>FCC Open Hotspots</CommandName>
+          <CanonicalName>FCC.OpenHotspots</CanonicalName>
+          <LocCanonicalName>FCC.OpenHotspots</LocCanonicalName>
         </Strings>
       </Button>
     </Buttons>
+    
+    <Menus>
+      <Menu guid="guidOutputToolWindowPackageCmdSet1" id="ToolWindowToolbar" type="ToolWindowToolbar">
+        <Strings>
+          <ButtonText>Open FCC Files</ButtonText>
+        </Strings>
+      </Menu>
+    </Menus>
 
     <!--The bitmaps section is used to define the bitmaps that are used for the commands.-->
     <Bitmaps>
@@ -83,6 +105,9 @@
     <Groups>
       <Group guid="guidOutputToolWindowPackageCmdSet1" id="MyMenuGroup" priority="0x0600">
         <Parent guid="guidSHLMainMenu" id="IDM_VS_MENU_TOOLS" />
+      </Group>
+      <Group guid="guidOutputToolWindowPackageCmdSet1" id="ToolWindowToolbarGroup" priority="0x0000">
+        <Parent guid="guidOutputToolWindowPackageCmdSet1" id="ToolWindowToolbar"/>
       </Group>
     </Groups>
   </Commands>
@@ -102,6 +127,8 @@
   
     <GuidSymbol value="{d58a999f-4a1b-42df-839a-cb31a0a4fed7}" name="guidOutputToolWindowPackageCmdSet1">
       <IDSymbol value="4128" name="MyMenuGroup" />
+      <IDSymbol value ="4129" name="ToolWindowToolbar"/>
+      <IDSymbol value ="4130" name="ToolWindowToolbarGroup"/>
       <IDSymbol value="256" name="cmdidClearUICommand" />
       <IDSymbol value="257" name="cmdidOpenCoberturaCommand" />
       <IDSymbol value="258" name="cmdidOpenHotspotsCommand" />
