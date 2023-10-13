@@ -18,12 +18,12 @@ namespace FineCodeCoverage.Output
         /// <summary>
         /// Command ID.
         /// </summary>
-        public const int CommandId = 256;
+        public const int CommandId = PackageIds.cmdidClearUICommand;
 
         /// <summary>
         /// Command menu group (command set GUID).
         /// </summary>
-        public static readonly Guid CommandSet = new Guid("d58a999f-4a1b-42df-839a-cb31a0a4fed7");
+        public static readonly Guid CommandSet = PackageGuids.guidOutputToolWindowPackageCmdSet;
 
         private readonly IFCCEngine fccEngine;
 

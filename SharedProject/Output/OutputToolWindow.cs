@@ -42,7 +42,7 @@ namespace FineCodeCoverage.Output
         {
 			if (context.ShowToolbar)
 			{
-				this.ToolBar = new CommandID(new Guid("d58a999f-4a1b-42df-839a-cb31a0a4fed7"), 4129);
+				this.ToolBar = new CommandID(PackageGuids.guidOutputToolWindowPackageCmdSet, PackageIds.ToolWindowToolbar);
 			}
             //to see if OutputToolWindow can be internal ( and thus IScriptManager )
             Caption = Vsix.Name;

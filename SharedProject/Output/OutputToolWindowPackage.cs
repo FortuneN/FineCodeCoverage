@@ -32,7 +32,7 @@ namespace FineCodeCoverage.Output
     /// </para>
     /// </remarks>
     [ProvideBindingPath]
-	[Guid(PackageGuidString)]
+	[Guid(PackageGuids.guidOutputToolWindowPackageString)]
 	[ProvideMenuResource("Menus.ctmenu", 1)]
 	[Export(typeof(OutputToolWindowPackage))]
 	[InstalledProductRegistration(Vsix.Name, Vsix.Description, Vsix.Id)]
@@ -44,11 +44,6 @@ namespace FineCodeCoverage.Output
 	{
 		private static Microsoft.VisualStudio.ComponentModelHost.IComponentModel componentModel;
         private IFCCEngine fccEngine;
-
-        /// <summary>
-        /// OutputToolWindowPackage GUID string.
-        /// </summary>
-        public const string PackageGuidString = "4e91ba47-cd42-42bc-b92e-3c4355d2eb5f";
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="OutputToolWindowPackage"/> class.

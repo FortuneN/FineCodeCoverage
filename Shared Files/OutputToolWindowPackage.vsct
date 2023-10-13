@@ -44,24 +44,24 @@
               <CommandFlag>DefaultInvisible</CommandFlag>
               <CommandFlag>DynamicVisibility</CommandFlag>
           If you do not want an image next to your command, remove the Icon node /> -->
-      <Button guid="guidOutputToolWindowPackageCmdSet" id="OutputToolWindowCommandId" priority="0x0100" type="Button">
+      <Button guid="guidOutputToolWindowPackageCmdSet" id="cmdidOutputToolWindowCommand" priority="0x0100" type="Button">
         <Parent guid="guidSHLMainMenu" id="IDG_VS_WNDO_OTRWNDWS1" />
-        <Icon guid="guidImages" id="bmpPic1" />
+        <Icon guid="guidOutputToolWindowCommandImage" id="outputToolWindowCommandImageIndex" />
         <Strings>
           <ButtonText>Fine Code Coverage</ButtonText>
         </Strings>
       </Button>
-      <Button guid="guidOutputToolWindowPackageCmdSet1" id="cmdidClearUICommand" priority="0x0100" type="Button">
-        <Parent guid="guidOutputToolWindowPackageCmdSet1" id="MyMenuGroup" />
-        <Icon guid="guidImages1" id="bmpPic1" />
+      <Button guid="guidOutputToolWindowPackageCmdSet" id="cmdidClearUICommand" priority="0x0100" type="Button">
+        <Parent guid="guidOutputToolWindowPackageCmdSet" id="MyMenuGroup" />
+        <Icon guid="guidClearUICommandImage" id="clearUICommandImageIndex" />
         <Strings>
           <ButtonText>FCC Clear UI</ButtonText>
           <CanonicalName>FCC.ClearUI</CanonicalName>
           <LocCanonicalName>FCC.ClearUI</LocCanonicalName>
         </Strings>
       </Button>
-      <Button guid="guidOutputToolWindowPackageCmdSet1" id="cmdidOpenCoberturaCommand" priority="0x0100" type="Button">
-        <Parent guid="guidOutputToolWindowPackageCmdSet1" id="ToolWindowToolbarGroup" />
+      <Button guid="guidOutputToolWindowPackageCmdSet" id="cmdidOpenCoberturaCommand" priority="0x0100" type="Button">
+        <Parent guid="guidOutputToolWindowPackageCmdSet" id="ToolWindowToolbarGroup" />
         <Icon guid="ImageCatalogGuid" id="CodeCoverage"/>
         <CommandFlag>IconIsMoniker</CommandFlag>
         <Strings>
@@ -71,8 +71,8 @@
           <LocCanonicalName>FCC.OpenCobertura</LocCanonicalName>
         </Strings>
       </Button>
-      <Button guid="guidOutputToolWindowPackageCmdSet1" id="cmdidOpenHotspotsCommand" priority="0x0100" type="Button">
-        <Parent guid="guidOutputToolWindowPackageCmdSet1" id="ToolWindowToolbarGroup" />
+      <Button guid="guidOutputToolWindowPackageCmdSet" id="cmdidOpenHotspotsCommand" priority="0x0100" type="Button">
+        <Parent guid="guidOutputToolWindowPackageCmdSet" id="ToolWindowToolbarGroup" />
         <Icon guid="ImageCatalogGuid" id="HotSpot"/>
         <CommandFlag>IconIsMoniker</CommandFlag>
         <Strings>
@@ -85,7 +85,7 @@
     </Buttons>
     
     <Menus>
-      <Menu guid="guidOutputToolWindowPackageCmdSet1" id="ToolWindowToolbar" type="ToolWindowToolbar">
+      <Menu guid="guidOutputToolWindowPackageCmdSet" id="ToolWindowToolbar" type="ToolWindowToolbar">
         <Strings>
           <ButtonText>Open FCC Files</ButtonText>
         </Strings>
@@ -99,15 +99,15 @@
             bitmap strip containing the bitmaps and then there are the numeric ids of the elements used
             inside a button definition. An important aspect of this declaration is that the element id
             must be the actual index (1-based) of the bitmap inside the bitmap strip. -->
-      <Bitmap guid="guidImages" href="Resources\OutputToolWindowCommand.png" usedList="bmpPic1" />
-      <Bitmap guid="guidImages1" href="Resources\ClearUICommand.png" usedList="bmpPic1" />
+      <Bitmap guid="guidOutputToolWindowCommandImage" href="Resources\OutputToolWindowCommand.png" usedList="outputToolWindowCommandImageIndex" />
+      <Bitmap guid="guidClearUICommandImage" href="Resources\ClearUICommand.png" usedList="clearUICommandImageIndex" />
     </Bitmaps>
     <Groups>
-      <Group guid="guidOutputToolWindowPackageCmdSet1" id="MyMenuGroup" priority="0x0600">
+      <Group guid="guidOutputToolWindowPackageCmdSet" id="MyMenuGroup" priority="0x0600">
         <Parent guid="guidSHLMainMenu" id="IDM_VS_MENU_TOOLS" />
       </Group>
-      <Group guid="guidOutputToolWindowPackageCmdSet1" id="ToolWindowToolbarGroup" priority="0x0000">
-        <Parent guid="guidOutputToolWindowPackageCmdSet1" id="ToolWindowToolbar"/>
+      <Group guid="guidOutputToolWindowPackageCmdSet" id="ToolWindowToolbarGroup" priority="0x0000">
+        <Parent guid="guidOutputToolWindowPackageCmdSet" id="ToolWindowToolbar"/>
       </Group>
     </Groups>
   </Commands>
@@ -116,26 +116,23 @@
     <!-- This is the package guid. -->
     <GuidSymbol name="guidOutputToolWindowPackage" value="{4e91ba47-cd42-42bc-b92e-3c4355d2eb5f}" />
 
-    <!-- This is the guid used to group the menu commands together -->
-    <GuidSymbol name="guidOutputToolWindowPackageCmdSet" value="{bedda1f3-0d8f-4f8d-a818-0b5523ee662d}">
-      <IDSymbol name="OutputToolWindowCommandId" value="0x0100" />
-    </GuidSymbol>
-
-    <GuidSymbol name="guidImages" value="{297e101c-4afa-47b1-b382-087cfb4618b0}">
-      <IDSymbol name="bmpPic1" value="1" />
-    </GuidSymbol>
-  
-    <GuidSymbol value="{d58a999f-4a1b-42df-839a-cb31a0a4fed7}" name="guidOutputToolWindowPackageCmdSet1">
+    <GuidSymbol value="{d58a999f-4a1b-42df-839a-cb31a0a4fed7}" name="guidOutputToolWindowPackageCmdSet">
       <IDSymbol value="4128" name="MyMenuGroup" />
       <IDSymbol value ="4129" name="ToolWindowToolbar"/>
       <IDSymbol value ="4130" name="ToolWindowToolbarGroup"/>
+      <IDSymbol value="255" name="cmdidOutputToolWindowCommand" />
       <IDSymbol value="256" name="cmdidClearUICommand" />
       <IDSymbol value="257" name="cmdidOpenCoberturaCommand" />
       <IDSymbol value="258" name="cmdidOpenHotspotsCommand" />
     </GuidSymbol>
-  
-    <GuidSymbol value="{8252a6d7-bcf3-4518-ae22-ad20ef8d4b63}" name="guidImages1">
-      <IDSymbol name="bmpPic1" value="1" />
+
+    <!-- images -->
+    <GuidSymbol name="guidOutputToolWindowCommandImage" value="{297e101c-4afa-47b1-b382-087cfb4618b0}">
+      <IDSymbol name="outputToolWindowCommandImageIndex" value="1" />
+    </GuidSymbol>
+    
+    <GuidSymbol name="guidClearUICommandImage" value="{8252a6d7-bcf3-4518-ae22-ad20ef8d4b63}">
+      <IDSymbol name="clearUICommandImageIndex" value="1" />
     </GuidSymbol>
   </Symbols>
 </CommandTable>

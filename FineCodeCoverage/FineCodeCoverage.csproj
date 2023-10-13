@@ -53,6 +53,12 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="..\Shared Files\OutputToolWindowPackage.cs">
+      <Link>OutputToolWindowPackage.cs</Link>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>OutputToolWindowPackage.vsct</DependentUpon>
+    </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="source.extension.cs">
       <AutoGen>True</AutoGen>
@@ -84,6 +90,8 @@
     <VSCTCompile Include="..\Shared Files\OutputToolWindowPackage.vsct">
       <Link>OutputToolWindowPackage.vsct</Link>
       <ResourceName>Menus.ctmenu</ResourceName>
+      <Generator>VsctGenerator</Generator>
+      <LastGenOutput>OutputToolWindowPackage.cs</LastGenOutput>
     </VSCTCompile>
     <Content Include="..\Shared Files\Resources\ClearUICommand.png">
       <Link>Resources\ClearUICommand.png</Link>

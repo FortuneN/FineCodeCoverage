@@ -13,7 +13,7 @@
     <ProjectGuid>{59A22196-A750-4BA4-B30E-BE1422E68B8E}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>FineCodeCoverage2022</RootNamespace>
+    <RootNamespace>FineCodeCoverage</RootNamespace>
     <AssemblyName>FineCodeCoverage2022</AssemblyName>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <GeneratePkgDefFile>true</GeneratePkgDefFile>
@@ -45,6 +45,12 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="..\Shared Files\OutputToolWindowPackage.cs">
+      <Link>OutputToolWindowPackage.cs</Link>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>OutputToolWindowPackage.vsct</DependentUpon>
+    </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="source.extension.cs">
       <AutoGen>True</AutoGen>
@@ -60,6 +66,8 @@
     <VSCTCompile Include="..\Shared Files\OutputToolWindowPackage.vsct">
       <Link>OutputToolWindowPackage.vsct</Link>
       <ResourceName>Menus.ctmenu</ResourceName>
+      <Generator>VsctGenerator</Generator>
+      <LastGenOutput>OutputToolWindowPackage.cs</LastGenOutput>
     </VSCTCompile>
     <Content Include="..\Art\preview-coverage.png">
       <Link>Resources\preview-coverage.png</Link>
