@@ -196,7 +196,8 @@ namespace FineCodeCoverageTests
                 nameof(IAppOptions.ShowCoverageInOverviewMargin),
                 nameof(IAppOptions.ShowCoveredInOverviewMargin),
                 nameof(IAppOptions.ShowUncoveredInOverviewMargin),
-                nameof(IAppOptions.ShowPartiallyCoveredInOverviewMargin)
+                nameof(IAppOptions.ShowPartiallyCoveredInOverviewMargin),
+                nameof(IAppOptions.ShowToolWindowToolbar)
             };
             CollectionAssert.AreEquivalent(expectedSetters.Select(s => $"set_{s}"), invocationNames);
         }
