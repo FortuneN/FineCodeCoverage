@@ -16,8 +16,5 @@ namespace FineCodeCoverage.Impl
         public long SkippedTests { get; protected set; }
         [ReflectFlags(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)]
         public long TotalTests { get; protected set; }
-        [ReflectFlags(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)]
-        public bool IsAborted { get; protected set; }
-
     }
 }
