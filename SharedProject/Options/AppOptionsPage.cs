@@ -253,6 +253,14 @@ namespace FineCodeCoverage.Options
         [Category(commonReportCategory)]
         [Description("Set to true to hide classes, namespaces and assemblies that are fully covered.")]
         public bool HideFullyCovered { get; set; }
+
+        [Category(commonReportCategory)]
+        [Description("Set to false to show classes, namespaces and assemblies that are not coverable.")]
+        public bool Hide0Coverable { get; set; }
+
+        [Category(commonReportCategory)]
+        [Description("Set to true to hide classes, namespaces and assemblies that have 0% coverage.")]
+        public bool Hide0Coverage { get; set; }
         #endregion
 
         #region OpenCover report category

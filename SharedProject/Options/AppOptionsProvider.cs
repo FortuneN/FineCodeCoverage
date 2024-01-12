@@ -68,6 +68,7 @@ namespace FineCodeCoverage.Options
             appOptions.ShowCoveredInOverviewMargin = true;
             appOptions.ShowPartiallyCoveredInOverviewMargin = true;
             appOptions.ShowUncoveredInOverviewMargin = true;
+            appOptions.Hide0Coverable = true;
         }
 
         public void LoadSettingsFromStorage(IAppOptions instance)
@@ -178,6 +179,9 @@ namespace FineCodeCoverage.Options
         public bool NamespacedClasses { get; set; }
 
         public bool HideFullyCovered { get; set; }
+
+        public bool Hide0Coverable { get; set; }
+        public bool Hide0Coverage { get; set; }
 
         public bool AdjacentBuildOutput { get; set; }
 

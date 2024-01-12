@@ -249,6 +249,8 @@ ThresholdForCyclomaticComplexity     When [cyclomatic complexity](https://en.wik
 StickyCoverageTable                  Set to true for coverage table to have a sticky thead.
 NamespacedClasses                    Set to false to show classes in report in short form. Affects grouping.
 HideFullyCovered                     Set to true to hide classes, namespaces and assemblies that are fully covered.
+Hide0Coverage                        Set to true to hide classes, namespaces and assemblies that have 0% coverage.
+Hide0Coverable                       Set to false to show classes, namespaces and assemblies that are not coverable.
 
 Enabled							     Specifies whether or not coverage output is enabled
 RunWhenTestsFail				     By default coverage runs when tests fail.  Set to false to prevent this.  **Cannot be used in conjunction with RunInParallel**

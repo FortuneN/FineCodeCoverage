@@ -197,7 +197,8 @@ namespace FineCodeCoverageTests
                 nameof(IAppOptions.ShowCoveredInOverviewMargin),
                 nameof(IAppOptions.ShowUncoveredInOverviewMargin),
                 nameof(IAppOptions.ShowPartiallyCoveredInOverviewMargin),
-                nameof(IAppOptions.ShowToolWindowToolbar)
+                nameof(IAppOptions.ShowToolWindowToolbar),
+                nameof(IAppOptions.Hide0Coverable)
             };
             CollectionAssert.AreEquivalent(expectedSetters.Select(s => $"set_{s}"), invocationNames);
         }
@@ -278,6 +279,8 @@ namespace FineCodeCoverageTests
                 { nameof(IAppOptions.FunctionsExclude), new string[]{ "FunctionsExclude" } },
                 { nameof(IAppOptions.FunctionsInclude), new string[]{ "FunctionsInclude" } },
                 { nameof(IAppOptions.HideFullyCovered), true },
+                { nameof(IAppOptions.Hide0Coverable),true },
+                { nameof(IAppOptions.Hide0Coverage),true },
                 { nameof(IAppOptions.Include), new string[]{ "Include" } },
                 { nameof(IAppOptions.IncludeReferencedProjects),true},
                 { nameof(IAppOptions.IncludeTestAssembly),true},
