@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.30114.105
+# Visual Studio Version 17
+VisualStudioVersion = 17.8.34408.163
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FineCodeCoverage", "FineCodeCoverage\FineCodeCoverage.csproj", "{31C104BB-D294-4942-B206-896AA7A5FCB9}"
 EndProject
@@ -27,12 +27,12 @@ Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "SharedProject", "SharedProj
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FineCodeCoverage2022", "FineCodeCoverage2022\FineCodeCoverage2022.csproj", "{59A22196-A750-4BA4-B30E-BE1422E68B8E}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{BAA6EBA8-65A6-46B0-8719-CB5C7EE6AE96}"
+	ProjectSection(SolutionItems) = preProject
+		.github\FUNDING.yml = .github\FUNDING.yml
+	EndProjectSection
+EndProject
 Global
-	GlobalSection(SharedMSBuildProjectFiles) = preSolution
-		SharedProject\SharedProject.projitems*{31c104bb-d294-4942-b206-896aa7a5fcb9}*SharedItemsImports = 4
-		SharedProject\SharedProject.projitems*{59a22196-a750-4ba4-b30e-be1422e68b8e}*SharedItemsImports = 4
-		SharedProject\SharedProject.projitems*{9353044c-5d39-4e70-8e78-28213e05217a}*SharedItemsImports = 13
-	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
@@ -60,5 +60,10 @@ Global
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {EE8856CF-D8F1-4ECF-A722-F677A6F107A3}
+	EndGlobalSection
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		SharedProject\SharedProject.projitems*{31c104bb-d294-4942-b206-896aa7a5fcb9}*SharedItemsImports = 4
+		SharedProject\SharedProject.projitems*{59a22196-a750-4ba4-b30e-be1422e68b8e}*SharedItemsImports = 4
+		SharedProject\SharedProject.projitems*{9353044c-5d39-4e70-8e78-28213e05217a}*SharedItemsImports = 13
 	EndGlobalSection
 EndGlobal

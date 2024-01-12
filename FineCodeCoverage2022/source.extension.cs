@@ -7,12 +7,12 @@ namespace FineCodeCoverage
 {
     internal sealed partial class Vsix
     {
-        public const string Id = "fcc-f339fe606-9d51-4fca-895c-d50375137b62";
+        public const string Id = "FineCodeCoverage2022.ad53fb28-7a11-4465-a27a-3550499ea4a1";
         public const string Name = "Fine Code Coverage";
         public const string Description = @"Visualize unit test code coverage easily for free in Visual Studio Community Edition (and other editions too)";
         public const string Language = "en-US";
-        public const string Version = "1.0.0";
+        public const string Version = "1.1.0";
         public const string Author = "Fortune Ngwenya";
-        public const string Tags = "visual studio, code coverage, c#, vb, .net core, coverlet, unit test, free, community edition";
+        public const string Tags = "visual studio; code coverage; c#; vb; .net core; coverlet; unit test; free; community edition";
     }
 }

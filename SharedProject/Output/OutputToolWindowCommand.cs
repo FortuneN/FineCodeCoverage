@@ -14,12 +14,12 @@ namespace FineCodeCoverage.Output
 		/// <summary>
 		/// Command ID.
 		/// </summary>
-		public const int CommandId = 0x0100;
+		public const int CommandId = PackageIds.cmdidOutputToolWindowCommand;
 
 		/// <summary>
 		/// Command menu group (command set GUID).
 		/// </summary>
-		public static readonly Guid CommandSet = new Guid("bedda1f3-0d8f-4f8d-a818-0b5523ee662d");
+		public static readonly Guid CommandSet = PackageGuids.guidOutputToolWindowPackageCmdSet;
 
 		/// <summary>
 		/// VS Package that provides this command, not null.

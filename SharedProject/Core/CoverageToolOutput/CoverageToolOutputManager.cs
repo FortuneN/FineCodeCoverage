@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using FineCodeCoverage.Core.Utilities;
 using FineCodeCoverage.Engine.Model;
+using SharedProject.Core.CoverageToolOutput;
 
 namespace FineCodeCoverage.Engine
 {
@@ -12,21 +13,28 @@ namespace FineCodeCoverage.Engine
     internal class CoverageToolOutputManager : ICoverageToolOutputManager
     {
         private readonly ILogger logger;
+        private readonly IEventAggregator eventAggregator;
         private readonly IFileUtil fileUtil;
         private string outputFolderForAllProjects;
         private List<ICoverageProject> coverageProjects;
         private readonly IOrderedEnumerable<Lazy<ICoverageToolOutputFolderProvider, IOrderMetadata>> outputFolderProviders;
 
         [ImportingConstructor]
-        public CoverageToolOutputManager(IFileUtil fileUtil, ILogger logger,[ImportMany] IEnumerable<Lazy<ICoverageToolOutputFolderProvider, IOrderMetadata>> outputFolderProviders)
+        public CoverageToolOutputManager(
+            IFileUtil fileUtil, 
+            ILogger logger,[ImportMany] IEnumerable<Lazy<ICoverageToolOutputFolderProvider, IOrderMetadata>> outputFolderProviders,
+            IEventAggregator eventAggregator
+            )
         {
             this.logger = logger;
+            this.eventAggregator = eventAggregator;
             this.fileUtil = fileUtil;
             this.outputFolderProviders = outputFolderProviders.OrderBy(p => p.Metadata.Order);
         }
 
         public void SetProjectCoverageOutputFolder(List<ICoverageProject> coverageProjects)
         {
+            eventAggregator.SendMessage(new OutdatedOutputMessage());
             this.coverageProjects = coverageProjects;
             DetermineOutputFolderForAllProjects();
             if (outputFolderForAllProjects == null)

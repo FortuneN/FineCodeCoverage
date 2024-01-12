@@ -18,11 +18,10 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using ReportGeneratorPlugins;
 using System.Threading;
+using System.Xml.Linq;
 
 namespace FineCodeCoverage.Engine.ReportGenerator
 {
-    
-
 	interface IReportGeneratorUtil
     {
         void Initialize(string appDataFolder, CancellationToken cancellationToken);
@@ -37,6 +36,7 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 	{
 		public string UnifiedHtml { get; set; }
 		public string UnifiedXmlFile { get; set; }
+		public string HotspotsFile { get; set; }
 	}
 
 	[Export(typeof(IReportGeneratorUtil))]
@@ -91,6 +91,7 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 
 		private string FontSize => environmentFontDetails == null ? "12px" : $"{environmentFontDetails.Size * dpiScale.DpiScaleX}px";
 		private string FontName => environmentFontDetails == null ? "Arial" : environmentFontDetails.Family.Source;
+		private HotspotReader hotspotsReader = new HotspotReader();
 
 		[ImportingConstructor]
 		public ReportGeneratorUtil(
@@ -222,7 +223,16 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 			LogCoverageProcess(htmlReportDurationMessage); // result output includes duration for normal log
 			reportGeneratorResult.UnifiedHtml = fileUtil.ReadAllText(unifiedHtmlFile);
 
-			return reportGeneratorResult;
+            var doc = new HtmlDocument
+            {
+                OptionFixNestedTags = true,
+                OptionAutoCloseOnEnd = true
+            };
+            doc.LoadHtml(reportGeneratorResult.UnifiedHtml);
+            var hotspots = hotspotsReader.Read(doc);
+            var hotspotsFile = WriteHotspotsToOutputFolder(hotspots, reportOutputFolder);
+			reportGeneratorResult.HotspotsFile = hotspotsFile;
+            return reportGeneratorResult;
 		}
 
 		private string GetRowHoverLinkColour(bool useLightness = true)
@@ -915,6 +925,38 @@ risk-hotspots > div > table > thead > tr > th:last-of-type > a:last-of-type {
 			return required ? code : "";
 
         }
+		private string hotspotsPath;
+		private string WriteHotspotsToOutputFolder(List<Hotspot> hotspots, string reportOutputFolder)
+		{
+			var rootElement = new XElement("Hotspots",
+				hotspots.Select(hotspot =>
+				{
+					return new XElement("Hotspot",
+						// escaping...
+						new XElement("Assembly", hotspot.Assembly),
+						new XElement("Class", hotspot.Class),
+						new XElement("MethodName", hotspot.MethodName),
+						new XElement("ShortName", hotspot.ShortName),
+						new XElement("Line", hotspot.Line.HasValue ? hotspot.Line.Value.ToString() : ""),
+						// do I need this
+						new XElement("FileIndex", hotspot.FileIndex),
+						new XElement("Metrics", hotspot.Metrics.Select(metric =>
+						{
+							return new XElement("Metric",
+								new XElement("Name", metric.Name),
+								new XElement("Exceeded", metric.Exceeded),
+								new XElement("Value",metric.Value.HasValue ? metric.Value.ToString() : "") 
+							);
+						}).ToList()
+					));
+				}).ToList()
+			);
+			hotspotsPath = Path.Combine(reportOutputFolder, "hotspots.xml");
+
+            rootElement.Save(hotspotsPath);
+			return hotspotsPath;
+			
+		}
 
 		public string ProcessUnifiedHtml(string htmlForProcessing, string reportOutputFolder)
 		{
@@ -937,10 +979,10 @@ risk-hotspots > div > table > thead > tr > th:last-of-type > a:last-of-type {
 					OptionFixNestedTags = true,
 					OptionAutoCloseOnEnd = true
 				};
-
+				
 
 				doc.LoadHtml(htmlForProcessing);
-				SetInitialTheme(doc);
+                SetInitialTheme(doc);
 				htmlForProcessing = null;
 
 				doc.DocumentNode.QuerySelectorAll(".footer").ToList().ForEach(x => x.SetAttributeValue("style", "display:none"));

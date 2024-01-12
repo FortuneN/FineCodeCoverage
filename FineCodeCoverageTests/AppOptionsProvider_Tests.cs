@@ -196,7 +196,8 @@ namespace FineCodeCoverageTests
                 nameof(IAppOptions.ShowCoverageInOverviewMargin),
                 nameof(IAppOptions.ShowCoveredInOverviewMargin),
                 nameof(IAppOptions.ShowUncoveredInOverviewMargin),
-                nameof(IAppOptions.ShowPartiallyCoveredInOverviewMargin)
+                nameof(IAppOptions.ShowPartiallyCoveredInOverviewMargin),
+                nameof(IAppOptions.ShowToolWindowToolbar)
             };
             CollectionAssert.AreEquivalent(expectedSetters.Select(s => $"set_{s}"), invocationNames);
         }
@@ -302,6 +303,7 @@ namespace FineCodeCoverageTests
                 { nameof(IAppOptions.ShowCoveredInOverviewMargin),true},
                 { nameof(IAppOptions.ShowPartiallyCoveredInOverviewMargin),true},
                 { nameof(IAppOptions.ShowUncoveredInOverviewMargin),true},
+                { nameof(IAppOptions.ShowToolWindowToolbar),true},
             };
             var mockJsonConvertService = autoMocker.GetMock<IJsonConvertService>();
             mockJsonConvertService.Setup(

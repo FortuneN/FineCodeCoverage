@@ -237,6 +237,9 @@ ShowCoveredInOverviewMargin          Set to false to prevent covered marks in th
 ShowUncoveredInOverviewMargin        Set to false to prevent uncovered marks in the overview margin
 ShowPartiallyCoveredInOverviewMargin Set to false to prevent partially covered marks in the overview margin
 
+ShowToolWindowToolbar                Set to false to hide the toolbar on the tool window.  Requires restarting Visual Studio.  The toolbar has buttons for viewing 
+                                     the Cobertura xml and the risk hotspots.
+
 FCCSolutionOutputDirectoryName       To have fcc output visible in a sub folder of your solution provide this name
 
 ToolsDirectory                       Folder to which copy tools subfolder. Must alredy exist. Requires restart of VS.
@@ -329,7 +332,7 @@ Check out the [contribution guidelines](CONTRIBUTING.md)
 if you want to contribute to this project.
 
 For cloning and building this project yourself, make sure
-to install the [Extensibility Tools 2015](https://visualstudiogallery.msdn.microsoft.com/ab39a092-1343-46e2-b0f1-6a3f91155aa6)
+to install the [Extensibility Essentials](https://marketplace.visualstudio.com/items?itemName=MadsKristensen.ExtensibilityEssentials2022)
 extension for Visual Studio which enables some features
 used by this project.
 

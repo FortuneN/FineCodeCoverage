@@ -53,6 +53,7 @@ namespace FineCodeCoverage.Options
 
         private void AddDefaults(IAppOptions appOptions)
         {
+            appOptions.ShowToolWindowToolbar = true;
             appOptions.NamespacedClasses = true;
             appOptions.ThresholdForCrapScore = 15;
             appOptions.ThresholdForNPathComplexity = 200;
@@ -199,5 +200,6 @@ namespace FineCodeCoverage.Options
         public bool IncludeTestAssembly { get; set; }
 
         public bool IncludeReferencedProjects { get; set; }
+        public bool ShowToolWindowToolbar { get; set; }
     }
 }

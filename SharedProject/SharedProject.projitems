@@ -32,6 +32,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Core\CoverageToolOutput\ICoverageToolOutputFolderSolutionProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\CoverageToolOutput\ICoverageToolOutputManager.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\CoverageToolOutput\ISolutionFolderProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\CoverageToolOutput\OutdatedOutputMessage.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\CoverageToolOutput\SolutionFolderProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\CoverageUIEvents.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\CoverageUtilManager.cs" />
@@ -120,6 +121,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Core\ReportGenerator\Base64ReportImage.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\ReportGenerator\ColourUtilities\LighnessApplier.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\ReportGenerator\ColourUtilities\LuminanceContrastColourExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\ReportGenerator\HotspotReader.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\ReportGenerator\IReportColours.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\ReportGenerator\IReportColoursProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\ReportGenerator\IThemeResourceKeyProvider.cs" />
@@ -225,6 +227,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)Options\JsonConvertService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\VsWritableSettingsStore.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\VsWritableSettingsStoreProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Output\OpenHotspotsCommand.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Output\OpenCoberturaCommand.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Output\ClearUICommand.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Output\DpiChangedMessage.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Output\EnvironmentFont.cs" />
@@ -260,5 +264,8 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Provider\" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)Output\Directory.Build.props" />
   </ItemGroup>
 </Project>

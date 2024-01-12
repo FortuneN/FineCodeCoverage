@@ -231,6 +231,10 @@ namespace FineCodeCoverage.Options
         [Category(commonUiCategory)]
         [Description("Set to false to prevent partially covered marks in the overview margin")]
         public bool ShowPartiallyCoveredInOverviewMargin { get; set; }
+
+        [Category(commonUiCategory)]
+        [Description("Set to false to hide the toolbar on the report tool window")]
+        public bool ShowToolWindowToolbar { get; set; }
         #endregion
 
         #region common report category
