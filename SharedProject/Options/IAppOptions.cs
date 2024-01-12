@@ -54,6 +54,8 @@
         bool StickyCoverageTable { get; set; }
         bool NamespacedClasses { get; set; }
         bool HideFullyCovered { get; set; }
+        bool Hide0Coverable { get; set; }
+        bool Hide0Coverage { get; set; }
         bool AdjacentBuildOutput { get; set; }
         RunMsCodeCoverage RunMsCodeCoverage { get; set; } 
         bool ShowToolWindowToolbar { get; set; }

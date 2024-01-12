@@ -831,11 +831,12 @@ coverage-info div.customizebox div:nth-child(2) * { visibility:hidden;font-size:
 
 		private string ObserveAndHideFullyCovered()
         {
-            if (!appOptionsProvider.Get().HideFullyCovered)
+			var appOptions = appOptionsProvider.Get();
+            if (!(appOptions.HideFullyCovered | appOptions.Hide0Coverage | appOptions.Hide0Coverable))
             {
 				return "";
             }
-			return @"
+			var old = @"
 var targetNode = document;//document.querySelector('table.overview.table-fixed.stripped');
 
 var config = { attributes: false, childList: true, subtree: true };
@@ -883,7 +884,54 @@ var callback = function(mutationsList, observer) {
 var observer = new MutationObserver(callback);
 observer.observe(targetNode, config);
 ";
-        }
+			var code = $@"
+function getCellValue(row, index){{
+  return parseInt(row.cells[index].innerText);
+}}
+var targetNode = document;
+
+var config = {{ attributes: false, childList: true, subtree: true }};
+
+var callback = function(mutationsList, observer) {{
+	var rows = document.querySelectorAll(""coverage-info table tbody tr"");
+	for(var i=0;i<rows.length;i++){{
+		var row = rows[i];
+		let hide = false;
+    
+		const coverable = getCellValue(row,3);
+		const covered = getCellValue(row,1)
+	   if(coverable === 0){{
+		if({appOptions.Hide0Coverable.ToString().ToLower()}){{
+			hide = true;
+		}}
+	   }} else if(covered === 0){{
+		if({appOptions.Hide0Coverage.ToString().ToLower()}){{
+			hide = true;
+		}}
+	   }} else if(covered === coverable){{
+  
+		 const branchCovered = getCellValue(row,7);
+		 const branchTotal = getCellValue(row,8);
+    
+		  if(branchTotal === branchCovered){{
+			if({appOptions.HideFullyCovered.ToString().ToLower()}){{
+			  hide = true;
+			}}
+		}}
+	  }}
+
+	  if(hide){{
+		row.style.display = ""none"";
+	  }}
+    
+	}};
+}};
+
+var observer = new MutationObserver(callback);
+observer.observe(targetNode, config);
+";
+			return code;
+		}
 
 		private string HackGroupingToAllowAll(int groupingLevel)
         {
