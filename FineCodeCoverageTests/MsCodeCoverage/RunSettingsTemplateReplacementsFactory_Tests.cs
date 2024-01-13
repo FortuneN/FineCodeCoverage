@@ -30,6 +30,8 @@ namespace FineCodeCoverageTests.MsCodeCoverage
 
         public bool IncludeTestAssembly { get; set; }
         public bool IncludeReferencedProjects { get; set; }
+        public string[] ExcludeAssemblies { get; set; }
+        public string[] IncludeAssemblies { get; set; }
     }
 
     internal static class ReplacementsAssertions
@@ -51,6 +53,7 @@ namespace FineCodeCoverageTests.MsCodeCoverage
         }
     }
 
+    
     internal class RunSettingsTemplateReplacementsFactory_UserRunSettings_Tests
     {
         private RunSettingsTemplateReplacementsFactory runSettingsTemplateReplacementsFactory;
@@ -694,5 +697,7 @@ namespace FineCodeCoverageTests.MsCodeCoverage
         public bool ShowToolWindowToolbar { get; set; }
         public bool Hide0Coverable { get; set; }
         public bool Hide0Coverage { get; set; }
+        public string[] ExcludeAssemblies { get; set; }
+        public string[] IncludeAssemblies { get; set; }
     }
 }

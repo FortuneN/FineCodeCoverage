@@ -1,3 +1,4 @@
+using AutoMoq;
 using FineCodeCoverage.Core.Utilities;
 using FineCodeCoverage.Engine.Model;
 using FineCodeCoverage.Options;
@@ -12,7 +13,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 
-namespace Test
+namespace FineCodeCoverageTests
 {
     public class CoverageProject_Settings_Tests
     {
@@ -674,6 +675,35 @@ namespace Test
             
             var coverageProjectSettings = await coverageProjectSettingsManager.GetSettingsAsync(coverageProject);
             Assert.AreSame(mergedSettings, coverageProjectSettings);
+        }
+
+        [Test]
+        public async Task Should_Add_Common_Assembly_Excludes_Includes()
+        {
+            var mockAppOptions = new Mock<IAppOptions>();
+            mockAppOptions.SetupAllProperties();
+            var appOptions = mockAppOptions.Object;
+            appOptions.Exclude = new string[] { "oldexclude" };
+            appOptions.Include = new string[] { "oldinclude" };
+            appOptions.ModulePathsExclude = new string[] { "msexclude" };
+            appOptions.ModulePathsInclude = new string[] { "msinclude" };
+            appOptions.ExcludeAssemblies = new string[] { "excludeassembly" };
+            appOptions.IncludeAssemblies = new string[] { "includeassembly" };
+
+            var autoMoqer = new AutoMoqer();
+            var coverageProjectSettingsManager = autoMoqer.Create<CoverageProjectSettingsManager>();
+            autoMoqer.GetMock<ISettingsMerger>().Setup(settingsMerger => settingsMerger.Merge(
+                It.IsAny<IAppOptions>(),
+                It.IsAny<List<XElement>>(),
+                It.IsAny<XElement>()
+                )).Returns(appOptions);
+
+            var settings = await coverageProjectSettingsManager.GetSettingsAsync(new Mock<ICoverageProject>().Object);
+            
+            Assert.That(settings.Exclude, Is.EquivalentTo(new string[] { "oldexclude", "[excludeassembly]*" }));
+            Assert.That(settings.Include, Is.EquivalentTo(new string[] { "oldinclude", "[includeassembly]*" }));
+            Assert.That(settings.ModulePathsExclude, Is.EquivalentTo(new string[] { "msexclude", ".*\\excludeassembly.dll$" }));
+            Assert.That(settings.ModulePathsInclude, Is.EquivalentTo(new string[] { "msinclude", ".*\\includeassembly.dll$" }));
         }
     }
 }

@@ -20,6 +20,7 @@ tool for most developers.  It is currently in Beta.
 
 With the old coverage it was possible for FCC to provide an abstraction over each tool's exclusion / inclusion options.  This abstraction does not work for MS code coverage.  
 Thus you will find that there are separate configuration options for Ms coverage vs old coverage and options that are common to the two.
+Assembly level exclusions and inclusions can be achieved - see ExcludeAssemblies and IncludeAssemblies.
 Configuration is ( mostly ) determined from Visual Studio options, finecodecoverage-settings.xml files and project msbuild properties.  All of these settings are optional.
 For options that have a project scope, these settings form a hierarchy where lower levels override or, for collections, override or merge with the level above.  This is described in detail further on.  
 
@@ -260,6 +261,8 @@ RunMsCodeCoverage                    Change to IfInRunSettings to only collect w
 
 IncludeTestAssembly				     Specifies whether to report code coverage of the test assembly
 IncludeReferencedProjects            Set to true to add all referenced projects to Include.
+IncludeAssemblies                    Provide a list of assemblies to include in coverage. The dll name without extension is used for matching.
+ExcludeAssemblies                    Provide a list of assemblies to exclude from coverage.  The dll name without extension is used for matching.
 
 *** OpenCover / Coverlet
 AdjacentBuildOutput                  If your tests are dependent upon their path set this to true.
@@ -321,7 +324,8 @@ ThresholdForCrapScore              When [crap score](https://testing.googleblog.
 ```
 ## Exclusions and inclusions
 You probably want to set IncludeReferencedProjects to true.  This will ensure that you do not get coverage for testing frameworks - only your code.
-
+Coverlet and OpenCover use [filter expressions](https://github.com/coverlet-coverage/coverlet/blob/master/Documentation/MSBuildIntegration.md#filters).  
+Ms code coverage uses [regexes](https://learn.microsoft.com/en-us/visualstudio/test/customizing-code-coverage-analysis?view=vs-2022#regular-expressions).
 
 ## FCC Output
 FCC outputs, by default, inside each test project's Debug folder.

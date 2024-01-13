@@ -5,6 +5,9 @@
         bool Enabled { get; set; }
         bool IncludeTestAssembly { get; set; }
         bool IncludeReferencedProjects { get; set; }
+
+        string[] ExcludeAssemblies { get; set; }
+        string[] IncludeAssemblies { get; set; }
     }
 
     internal interface IMsCodeCoverageIncludesExcludesOptions
@@ -23,15 +26,17 @@
         string[] FunctionsExclude { get; set; }
     }
     internal interface IMsCodeCoverageOptions : IMsCodeCoverageIncludesExcludesOptions, IFCCCommonOptions { }
-
     internal enum RunMsCodeCoverage { No, IfInRunSettings, Yes }
 
-    internal interface IAppOptions : IMsCodeCoverageOptions, IFCCCommonOptions
+    internal interface IOpenCoverCoverletExcludeIncludeOptions
     {
         string[] Exclude { get; set; }
         string[] ExcludeByAttribute { get; set; }
         string[] ExcludeByFile { get; set; }
         string[] Include { get; set; }
+    }
+    internal interface IAppOptions : IMsCodeCoverageOptions, IOpenCoverCoverletExcludeIncludeOptions, IFCCCommonOptions
+    {
         bool RunInParallel { get; set; }
         int RunWhenTestsExceed { get; set; }
         string ToolsDirectory { get; set; }
