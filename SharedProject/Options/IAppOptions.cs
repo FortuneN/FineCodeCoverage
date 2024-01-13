@@ -3,6 +3,7 @@
     internal interface IFCCCommonOptions
     {
         bool Enabled { get; set; }
+        bool DisabledNoCoverage { get; set; }
         bool IncludeTestAssembly { get; set; }
         bool IncludeReferencedProjects { get; set; }
 

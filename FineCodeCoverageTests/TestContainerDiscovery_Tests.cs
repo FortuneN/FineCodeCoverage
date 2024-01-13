@@ -46,6 +46,11 @@ namespace Test
             mocker.Verify<IFCCEngine>(engine => engine.ReloadCoverage(It.IsAny<Func<Task<List<ICoverageProject>>>>()), Times.Never());
         }
 
+        private void AssertReloadsCoverage()
+        {
+            mocker.Verify<IFCCEngine>(engine => engine.ReloadCoverage(It.IsAny<Func<Task<List<ICoverageProject>>>>()), Times.Once());
+        }
+
         private void SetUpOptions(Action<Mock<IAppOptions>> setupAppOptions)
         {
             var mockAppOptions = new Mock<IAppOptions>();
@@ -252,16 +257,31 @@ namespace Test
         }
 
         [Test]
-        public void Should_Not_ReloadCoverage_When_TestExecutionStarting_And_Settings_RunInParallel_Is_True_When_Enabled_is_False()
+        public void Should_Not_ReloadCoverage_When_TestExecutionStarting_And_Settings_RunInParallel_Is_True_When_Enabled_Is_False_And_DisabledNoCoverage_True()
         {
             SetUpOptions(mockAppOptions =>
             {
                 mockAppOptions.Setup(o => o.Enabled).Returns(false);
                 mockAppOptions.Setup(o => o.RunInParallel).Returns(true);
+                mockAppOptions.Setup(o => o.DisabledNoCoverage).Returns(true);
             });
             
             RaiseTestExecutionStarting();
             AssertShouldNotReloadCoverage();
+        }
+
+        [Test]
+        public void Should_ReloadCoverage_When_TestExecutionStarting_And_Settings_RunInParallel_Is_True_When_Enabled_Is_False_And_DisabledNoCoverage_False()
+        {
+            SetUpOptions(mockAppOptions =>
+            {
+                mockAppOptions.Setup(o => o.Enabled).Returns(false);
+                mockAppOptions.Setup(o => o.RunInParallel).Returns(true);
+                mockAppOptions.Setup(o => o.DisabledNoCoverage).Returns(false);
+            });
+
+            RaiseTestExecutionStarting();
+            AssertReloadsCoverage();
         }
 
         [TestCase(true, 10, 1, 0, true, Description = "Should run when tests fail if settings RunWhenTestsFail is true")]

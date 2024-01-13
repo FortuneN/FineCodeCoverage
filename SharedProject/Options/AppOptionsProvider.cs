@@ -64,6 +64,7 @@ namespace FineCodeCoverage.Options
             appOptions.IncludeTestAssembly = true;
             appOptions.ExcludeByFile = new[] { "**/Migrations/*" };
             appOptions.Enabled = true;
+            appOptions.DisabledNoCoverage = true;
             appOptions.ShowCoverageInOverviewMargin = true;
             appOptions.ShowCoveredInOverviewMargin = true;
             appOptions.ShowPartiallyCoveredInOverviewMargin = true;
@@ -200,6 +201,7 @@ namespace FineCodeCoverage.Options
         public string[] FunctionsExclude { get; set; }
 
         public bool Enabled { get; set; }
+        public bool DisabledNoCoverage { get; set; }
 
         public bool IncludeTestAssembly { get; set; }
 

@@ -145,6 +145,12 @@ namespace FineCodeCoverageTests
         }
 
         [Test]
+        public void Should_Default_DisabledNoCoverage_True()
+        {
+            DefaultTest(appOptions => appOptions.DisabledNoCoverage = true);
+        }
+
+        [Test]
         public void Should_Default_True_ShowCoverageInOverviewMargin()
         {
             DefaultTest(appOptions => appOptions.ShowCoverageInOverviewMargin = true);
@@ -198,7 +204,8 @@ namespace FineCodeCoverageTests
                 nameof(IAppOptions.ShowUncoveredInOverviewMargin),
                 nameof(IAppOptions.ShowPartiallyCoveredInOverviewMargin),
                 nameof(IAppOptions.ShowToolWindowToolbar),
-                nameof(IAppOptions.Hide0Coverable)
+                nameof(IAppOptions.Hide0Coverable),
+                nameof(IAppOptions.DisabledNoCoverage)
             };
             CollectionAssert.AreEquivalent(expectedSetters.Select(s => $"set_{s}"), invocationNames);
         }
@@ -272,6 +279,7 @@ namespace FineCodeCoverageTests
                 { nameof(IAppOptions.CoverletConsoleGlobal), true},
                 { nameof(IAppOptions.CoverletConsoleLocal), true},
                 { nameof(IAppOptions.Enabled), true},
+                 { nameof(IAppOptions.DisabledNoCoverage), true},
                 { nameof(IAppOptions.Exclude), new string[]{"exclude" } },
                 { nameof(IAppOptions.ExcludeByAttribute), new string[]{ "ebyatt"} },
                 { nameof(IAppOptions.ExcludeByFile), new string[]{ "ebyfile"} },
