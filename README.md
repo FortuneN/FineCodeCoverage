@@ -196,6 +196,7 @@ If you do supply the merge attribute on a setting element then it will be used.
 ### Project only
 
 #### Exclude Referenced Project in referenced project ( csproj/vbproj : OPTIONAL )
+This is not transitive.
 ```
 <PropertyGroup>
 	<FCCExcludeFromCodeCoverage/>
@@ -318,6 +319,9 @@ ThresholdForCrapScore              When [crap score](https://testing.googleblog.
 
  
 ```
+## Exclusions and inclusions
+You probably want to set IncludeReferencedProjects to true.  This will ensure that you do not get coverage for testing frameworks - only your code.
+
 
 ## FCC Output
 FCC outputs, by default, inside each test project's Debug folder.
