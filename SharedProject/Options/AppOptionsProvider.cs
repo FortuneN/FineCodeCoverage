@@ -209,5 +209,6 @@ namespace FineCodeCoverage.Options
         public bool ShowToolWindowToolbar { get; set; }
         public string[] ExcludeAssemblies { get; set; }
         public string[] IncludeAssemblies { get; set; }
+        public GroupingNamespaceQualification GroupingNamespaceQualification { get; set; }
     }
 }

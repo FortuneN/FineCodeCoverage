@@ -845,6 +845,7 @@ var targetNode = document;
 var config = {{ attributes: false, childList: true, subtree: true }};
 
 var callback = function(mutationsList, observer) {{
+	console.log(""mutation observer hide fully covered"");
 	var rows = document.querySelectorAll(""coverage-info table tbody tr"");
 	for(var i=0;i<rows.length;i++){{
 		var row = rows[i];
@@ -897,7 +898,7 @@ var callback = function(mutationsList, observer) {{
   if(!groupingInput || groupingInput.value == 0){{
     return;
   }}
-
+    console.log(""mutation observer namespace"");
 	var rows = document.querySelectorAll(""coverage-info table tbody tr[class-row]"");
 	for(var i=0;i<rows.length;i++){{
 		var row = rows[i];

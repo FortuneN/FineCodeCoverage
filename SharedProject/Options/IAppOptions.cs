@@ -65,5 +65,15 @@
         bool AdjacentBuildOutput { get; set; }
         RunMsCodeCoverage RunMsCodeCoverage { get; set; } 
         bool ShowToolWindowToolbar { get; set; }
+
+        GroupingNamespaceQualification GroupingNamespaceQualification { get; set; }
+    }
+
+    internal enum GroupingNamespaceQualification
+    {
+        FullyQualified,
+        AlwaysUnqualified,
+        UnqualifiedByNamespace,
+        QualifiedByNamespaceLevel
     }
 }
