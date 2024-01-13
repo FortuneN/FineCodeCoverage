@@ -307,6 +307,8 @@ namespace FineCodeCoverageTests
                 { nameof(IAppOptions.ShowPartiallyCoveredInOverviewMargin),true},
                 { nameof(IAppOptions.ShowUncoveredInOverviewMargin),true},
                 { nameof(IAppOptions.ShowToolWindowToolbar),true},
+                {nameof(IAppOptions.ExcludeAssemblies),new string[]{ "Exclude"} },
+                {nameof(IAppOptions.IncludeAssemblies),new string[]{ "Include"} },
             };
             var mockJsonConvertService = autoMocker.GetMock<IJsonConvertService>();
             mockJsonConvertService.Setup(

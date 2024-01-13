@@ -20,6 +20,7 @@ tool for most developers.  It is currently in Beta.
 
 With the old coverage it was possible for FCC to provide an abstraction over each tool's exclusion / inclusion options.  This abstraction does not work for MS code coverage.  
 Thus you will find that there are separate configuration options for Ms coverage vs old coverage and options that are common to the two.
+Assembly level exclusions and inclusions can be achieved - see ExcludeAssemblies and IncludeAssemblies.
 Configuration is ( mostly ) determined from Visual Studio options, finecodecoverage-settings.xml files and project msbuild properties.  All of these settings are optional.
 For options that have a project scope, these settings form a hierarchy where lower levels override or, for collections, override or merge with the level above.  This is described in detail further on.  
 
@@ -227,101 +228,107 @@ If you are using option 1) then project and global options will only be used whe
 
 
 #### Options
-```
-*** Common
-CoverageColoursFromFontsAndColours   Specify true to use Environment / Fonts and Colors / Text Editor for editor Coverage colouring ( if present).
-                                     Coverage Touched Area / Coverage Not Touched Area / Coverage Partially Touched Area.
-								     When false colours used are Green, Red and Gold.
-
-ShowCoverageInOverviewMargin         Set to false to prevent coverage marks in the overview margin
-ShowCoveredInOverviewMargin          Set to false to prevent covered marks in the overview margin
-ShowUncoveredInOverviewMargin        Set to false to prevent uncovered marks in the overview margin
-ShowPartiallyCoveredInOverviewMargin Set to false to prevent partially covered marks in the overview margin
-
-ShowToolWindowToolbar                Set to false to hide the toolbar on the tool window.  Requires restarting Visual Studio.  The toolbar has buttons for viewing 
-                                     the Cobertura xml and the risk hotspots.
-
-FCCSolutionOutputDirectoryName       To have fcc output visible in a sub folder of your solution provide this name
-
-ToolsDirectory                       Folder to which copy tools subfolder. Must alredy exist. Requires restart of VS.
-
-ThresholdForCyclomaticComplexity     When [cyclomatic complexity](https://en.wikipedia.org/wiki/Cyclomatic_complexity) exceeds this value for a method then the method will be present in the risk hotspots tab. 
-
-StickyCoverageTable                  Set to true for coverage table to have a sticky thead.
-NamespacedClasses                    Set to false to show classes in report in short form. Affects grouping.
-HideFullyCovered                     Set to true to hide classes, namespaces and assemblies that are fully covered.
-Hide0Coverage                        Set to true to hide classes, namespaces and assemblies that have 0% coverage.
-Hide0Coverable                       Set to false to show classes, namespaces and assemblies that are not coverable.
-
-Enabled							     Specifies whether or not coverage output is enabled
-RunWhenTestsFail				     By default coverage runs when tests fail.  Set to false to prevent this.  **Cannot be used in conjunction with RunInParallel**
-RunWhenTestsExceed				     Specify a value to only run coverage based upon the number of executing tests. **Cannot be used in conjunction with RunInParallel**
-RunMsCodeCoverage                    Change to IfInRunSettings to only collect with configured runsettings.  Yes for runsettings generation.
-
-IncludeTestAssembly				     Specifies whether to report code coverage of the test assembly
-IncludeReferencedProjects            Set to true to add all referenced projects to Include.
-
-*** OpenCover / Coverlet
-AdjacentBuildOutput                  If your tests are dependent upon their path set this to true.
-
-Exclude							     Filter expressions to exclude specific modules and types (multiple values)
-Include							     Filter expressions to include specific modules and types (multiple values)
-ExcludeByFile					     Glob patterns specifying source files to exclude e.g. **/Migrations/* (multiple values)
-ExcludeByAttribute				     Attributes to exclude from code coverage (multiple values)
-RunInParallel					     By default OpenCover / Coverlet tests run and then coverage is performed.  Set to true to run coverage immediately
-
-Filter expressions
-Wildcards
-* => matches zero or more characters
-		
-Examples
-[*]* => All types in all assemblies (nothing is instrumented)
-[coverlet.*]Coverlet.Core.Coverage => The Coverage class in the Coverlet.Core namespace belonging to any assembly that matches coverlet.* (e.g coverlet.core)
-[*]Coverlet.Core.Instrumentation.* => All types belonging to Coverlet.Core.Instrumentation namespace in any assembly
-[coverlet.*.tests]* => All types in any assembly starting with coverlet. and ending with .tests
-
-
-Both 'Exclude' and 'Include' options can be used together but 'Exclude' takes precedence.
-
-You can ignore a method or an entire class from code coverage by creating and applying the [ExcludeFromCodeCoverage] attribute present in the System.Diagnostics.CodeAnalysis namespace.
-You can also ignore additional attributes by adding to the 'ExcludeByAttributes' list (short name or full name supported) e.g. :
-[GeneratedCode] => Present in System.CodeDom.Compiler namespace
-[MyCustomExcludeFromCodeCoverage] => Any custom attribute that you may define
-
-*** MS Code Coverage each multiple regexes to be transformed into runsettings elements
-ModulePathsExclude
-ModulePathsInclude
-CompanyNamesExclude
-CompanyNamesInclude
-PublicKeyTokensExclude
-PublicKeyTokensInclude
-SourcesExclude
-SourcesInclude
-AttributesExclude
-AttributesInclude
-FunctionsExclude
-FunctionsInclude
-
-*** Coverlet
-RunSettingsOnly					   Specify false for global and project options to be used for coverlet data collector configuration elements when not specified in runsettings
-CoverletCollectorDirectoryPath	   Specify path to directory containing coverlet collector files if you need functionality that the FCC version does not provide.
-CoverletConsoleLocal			   Specify true to use your own dotnet tools local install of coverlet console.
-CoverletConsoleCustomPath		   Specify path to coverlet console exe if you need functionality that the FCC version does not provide.
-CoverletConsoleGlobal			   Specify true to use your own dotnet tools global install of coverlet console.
-
-The "CoverletConsole" settings have precedence Local / CustomPath / Global.
-
-*** OpenCover
-OpenCoverCustomPath                Specify path to open cover exe if you need functionality that the FCC version does not provide.
-ThresholdForNPathComplexity        When [npath complexity](https://en.wikipedia.org/wiki/Cyclomatic_complexity) exceeds this value for a method then the method will be present in the risk hotspots tab. OpenCover only.
-ThresholdForCrapScore              When [crap score](https://testing.googleblog.com/2011/02/this-code-is-crap.html) exceeds this value for a method then the method will be present in the risk hotspots tab. OpenCover only. 
-
-
+|Option |Description|
+|--|---|
+|**Common**||
+|CoverageColoursFromFontsAndColours|Specify true to use Environment / Fonts and Colors / Text Editor for editor Coverage colouring ( if present). Coverage Touched Area / Coverage Not Touched Area / Coverage Partially Touched Area. When false colours used are Green, Red and Gold.|
+|ShowCoverageInOverviewMargin|Set to false to prevent coverage marks in the overview margin|
+|ShowCoveredInOverviewMargin|Set to false to prevent covered marks in the overview margin|
+|ShowUncoveredInOverviewMargin|Set to false to prevent uncovered marks in the overview margin|
+|ShowPartiallyCoveredInOverviewMargin|Set to false to prevent partially covered marks in the overview margin|
+|ShowToolWindowToolbar|Set to false to hide the toolbar on the tool window.  Requires restarting Visual Studio.  The toolbar has buttons for viewing the Cobertura xml and the risk hotspots.|
+|FCCSolutionOutputDirectoryName|To have fcc output visible in a sub folder of your solution provide this name|
+|ToolsDirectory|Folder to which copy tools subfolder. Must alredy exist. Requires restart of VS.|
+|ThresholdForCyclomaticComplexity| When [cyclomatic complexity](https://en.wikipedia.org/wiki/Cyclomatic_complexity) exceeds this value for a method then the method will be present in the risk hotspots tab. |
+|StickyCoverageTable|Set to true for coverage table to have a sticky thead.|
+|NamespacedClasses|Set to false to show classes in report in short form. Affects grouping.|
+|HideFullyCovered|Set to true to hide classes, namespaces and assemblies that are fully covered.|
+|Hide0Coverage|Set to true to hide classes, namespaces and assemblies that have 0% coverage.|
+|Hide0Coverable|Set to false to show classes, namespaces and assemblies that are not coverable.|
+|Enabled|Specifies whether or not coverage output is enabled|
+|RunWhenTestsFail|By default coverage runs when tests fail.  Set to false to prevent this.  **Cannot be used in conjunction with RunInParallel**|
+|RunWhenTestsExceed|Specify a value to only run coverage based upon the number of executing tests. **Cannot be used in conjunction with RunInParallel**|
+|RunMsCodeCoverage|Change to IfInRunSettings to only collect with configured runsettings.  Yes for runsettings generation.|
+|IncludeTestAssembly|Specifies whether to report code coverage of the test assembly|
+|IncludeReferencedProjects|Set to true to add all directly referenced projects to Include.|
+|IncludeAssemblies|Provide a list of assemblies to include in coverage. The dll name without extension is used for matching.|
+|ExcludeAssemblies| Provide a list of assemblies to exclude from coverage.  The dll name without extension is used for matching.|
+|<br>||
+|**OpenCover / Coverlet**||
+|AdjacentBuildOutput|If your tests are dependent upon their path set this to true.|
+|Exclude|Filter expressions to exclude specific modules and types (multiple values)|
+|Include|Filter expressions to include specific modules and types (multiple values)|
+|ExcludeByFile|Glob patterns specifying source files to exclude e.g. **/Migrations/* (multiple values)|
+|ExcludeByAttribute|Attributes to exclude from code coverage (multiple values)|
+|RunInParallel|By default OpenCover / Coverlet tests run and then coverage is performed.  Set to true to run coverage immediately|
+|<br>||
+|**Ms code coverage**|Each of below is an array of regexes to be transformed into runsettings elements [see](https://learn.microsoft.com/en-us/visualstudio/test/customizing-code-coverage-analysis?view=vs-2022#include-or-exclude-assemblies-and-members)|
+|ModulePathsExclude|Exclude - Matches assemblies specified by assembly name or file path.|
+|ModulePathsInclude|Include - Matches assemblies specified by assembly name or file path.|
+|CompanyNamesExclude|Exclude - Matches assemblies by the Company attribute.|
+|CompanyNamesInclude|Include - Matches assemblies by the Company attribute.|
+|PublicKeyTokensExclude|Exclude - Matches signed assemblies by the public key token.|
+|PublicKeyTokensInclude|Include - Matches signed assemblies by the public key token.|
+|SourcesExclude|Exclude - Matches elements by the path name of the source file in which they're defined.|
+|SourcesInclude|Include - Matches elements by the path name of the source file in which they're defined.|
+|AttributesExclude|Exclude - Matches elements that have the specified attribute. Specify the full name of the attribute|
+|AttributesInclude|Include - Matches elements that have the specified attribute. Specify the full name of the attribute|
+|FunctionsExclude|Exclude - Matches procedures, functions, or methods by fully qualified name, including the parameter list.|
+|FunctionsInclude|Include - Matches procedures, functions, or methods by fully qualified name, including the parameter list.|
+|<br>||
+|**Coverlet**||
+|RunSettingsOnly|Specify false for global and project options to be used for coverlet data collector configuration elements when not specified in runsettings|
+|CoverletCollectorDirectoryPath|Specify path to directory containing coverlet collector files if you need functionality that the FCC version does not provide.|
+|CoverletConsoleLocal|Specify true to use your own dotnet tools local install of coverlet console.|
+|CoverletConsoleCustomPath|Specify path to coverlet console exe if you need functionality that the FCC version does not provide.|
+|CoverletConsoleGlobal|Specify true to use your own dotnet tools global install of coverlet console.|
+|**The "CoverletConsole" settings have precedence Local / CustomPath / Global.**||
+|<br>||
+|**OpenCover**||
+|OpenCoverCustomPath|Specify path to open cover exe if you need functionality that the FCC version does not provide.|
+|ThresholdForNPathComplexity|When [npath complexity](https://en.wikipedia.org/wiki/Cyclomatic_complexity) exceeds this value for a method then the method will be present in the risk hotspots tab.|
+|ThresholdForCrapScore|When [crap score](https://testing.googleblog.com/2011/02/this-code-is-crap.html) exceeds this value for a method then the method will be present in the risk hotspots tab.|
  
-```
+
 ## Exclusions and inclusions
 You probably want to set IncludeReferencedProjects to true.  This will ensure that you do not get coverage for testing frameworks - only your code.
 
+Coverlet and OpenCover use filter expressions.
+Filter expressions
+
+Wildcards
+
+\* => matches zero or more characters
+		
+Examples
+
+[\*]* => All types in all assemblies.
+
+[coverlet\.\*]Coverlet.Core.Coverage => The Coverage class in the Coverlet.Core namespace belonging to any assembly that matches coverlet.* (e.g coverlet.core)
+
+[\*\]Coverlet.Core.Instrumentation.* => All types belonging to Coverlet.Core.Instrumentation namespace in any assembly
+
+[coverlet\.\*.tests]* => All types in any assembly starting with coverlet. and ending with .tests
+
+Both 'Exclude' and 'Include' options can be used together but 'Exclude' takes precedence.
+
+Ms code coverage uses [regexes](https://learn.microsoft.com/en-us/visualstudio/test/customizing-code-coverage-analysis?view=vs-2022#regular-expressions).
+You can include or exclude assemblies or specific types and members from code coverage analysis. If the Include section is empty or omitted, then all assemblies that are loaded and have associated PDB files are included. If an assembly or member matches a clause in the Exclude section, then it is excluded from code coverage. The Exclude section takes precedence over the Include section: if an assembly is listed in both Include and Exclude, it will not be included in code coverage.
+
+
+You can ignore a method or an entire class from code coverage by applying the [ExcludeFromCodeCoverage] attribute present in the System.Diagnostics.CodeAnalysis namespace.
+
+For .Net Framework this attribute cannot be applied at the assembly level. See FCCExcludeFromCodeCoverage above for similar functinality. 
+
+You can also ignore additional attributes by adding to the 'ExcludeByAttributes' list for Coverlet/OpenCover (short name or full name supported)
+
+e.g. :
+
+[GeneratedCode] => Present in System.CodeDom.Compiler namespace
+
+[MyCustomExcludeFromCodeCoverage] => Any custom attribute that you may define
+
+or for ms code coverage - AttributesExclude
 
 ## FCC Output
 FCC outputs, by default, inside each test project's Debug folder.
