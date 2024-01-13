@@ -836,54 +836,6 @@ coverage-info div.customizebox div:nth-child(2) * { visibility:hidden;font-size:
             {
 				return "";
             }
-			var old = @"
-var targetNode = document;//document.querySelector('table.overview.table-fixed.stripped');
-
-var config = { attributes: false, childList: true, subtree: true };
-
-var callback = function(mutationsList, observer) {
-	var fullyCoveredTds = document.querySelectorAll('td.covered100.green')
-
-	for (var i = 0; i < fullyCoveredTds.length; i++)
-	{
-		var td = fullyCoveredTds[i];
-		var parent = td.parentNode;
-		if (parent.nodeName === 'TABLE')
-		{
-			parent = parent.parentNode;
-			if (parent.nodeName === 'COVERAGE-BAR')
-			{
-				parent = parent.parentNode;
-				if (parent.nodeName === 'TD' || parent.nodeName === 'TH')
-				{
-					parent = parent.parentNode;
-					var coverageBars = parent.querySelectorAll('td>coverage-bar');
-					if(coverageBars.length == 0){
-						coverageBars = parent.querySelectorAll('th>coverage-bar');
-					}
-					var shouldHide = true;
-					// currently there is no option to hide branch coverage.
-					if(coverageBars.length === 2){
-						var branchCoverageBar = coverageBars[1];
-						// includes gray
-						var td = branchCoverageBar.querySelector('table>td.covered100');
-						if(!td){
-							shouldHide = false;
-						}
-					}
-					if(shouldHide){
-						parent.style.setProperty('display', 'none');
-					}
-				}
-			}
-
-		}
-	}
-};
-
-var observer = new MutationObserver(callback);
-observer.observe(targetNode, config);
-";
 			var code = $@"
 function getCellValue(row, index){{
   return parseInt(row.cells[index].innerText);
