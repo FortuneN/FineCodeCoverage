@@ -91,6 +91,11 @@ namespace FineCodeCoverage.Impl
             ThreadHelper.JoinableTaskFactory.Run(taskProvider);
         };
 
+        private bool CoverageDisabled(IAppOptions settings)
+        {
+            return !settings.Enabled  && settings.DisabledNoCoverage;
+        }
+
         private async Task TestExecutionStartingAsync(IOperation operation)
         {
             cancelling = false;
@@ -98,7 +103,7 @@ namespace FineCodeCoverage.Impl
             StopCoverage();
 
             var settings = appOptionsProvider.Get();
-            if (!settings.Enabled)
+            if (CoverageDisabled(settings))
             {
                 CombinedLog("Coverage not collected as FCC disabled.");
                 reportGeneratorUtil.EndOfCoverageRun();
@@ -155,7 +160,7 @@ namespace FineCodeCoverage.Impl
         private bool ShouldNotCollectWhenTestExecutionFinished()
         {
             settings = appOptionsProvider.Get();
-            return !settings.Enabled || runningInParallel || MsCodeCoverageErrored;
+            return CoverageDisabled(settings) || runningInParallel || MsCodeCoverageErrored;
             
         }
 

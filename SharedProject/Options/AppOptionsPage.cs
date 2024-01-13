@@ -48,6 +48,10 @@ namespace FineCodeCoverage.Options
         public bool Enabled { get; set; }
 
         [Category(commonRunCategory)]
+        [Description("Set to false for VS Option Enabled=false to not disable coverage")]
+        public bool DisabledNoCoverage { get; set; }
+
+        [Category(commonRunCategory)]
         [Description("Specifies whether or not the ms code coverage is used (BETA).  No, IfInRunSettings, Yes")]
         public RunMsCodeCoverage RunMsCodeCoverage { get; set; }
 

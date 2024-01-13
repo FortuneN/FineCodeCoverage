@@ -32,6 +32,7 @@ namespace FineCodeCoverageTests.MsCodeCoverage
         public bool IncludeReferencedProjects { get; set; }
         public string[] ExcludeAssemblies { get; set; }
         public string[] IncludeAssemblies { get; set; }
+        public bool DisabledNoCoverage { get; set; }
     }
 
     internal static class ReplacementsAssertions
@@ -699,5 +700,6 @@ namespace FineCodeCoverageTests.MsCodeCoverage
         public bool Hide0Coverage { get; set; }
         public string[] ExcludeAssemblies { get; set; }
         public string[] IncludeAssemblies { get; set; }
+        public bool DisabledNoCoverage { get; set; }
     }
 }

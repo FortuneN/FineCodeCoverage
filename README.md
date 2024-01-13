@@ -246,6 +246,7 @@ If you are using option 1) then project and global options will only be used whe
 |Hide0Coverage|Set to true to hide classes, namespaces and assemblies that have 0% coverage.|
 |Hide0Coverable|Set to false to show classes, namespaces and assemblies that are not coverable.|
 |Enabled|Specifies whether or not coverage output is enabled|
+|DisabledNoCoverage|Set to false for VS Option Enabled=false to not disable coverage|
 |RunWhenTestsFail|By default coverage runs when tests fail.  Set to false to prevent this.  **Cannot be used in conjunction with RunInParallel**|
 |RunWhenTestsExceed|Specify a value to only run coverage based upon the number of executing tests. **Cannot be used in conjunction with RunInParallel**|
 |RunMsCodeCoverage|Change to IfInRunSettings to only collect with configured runsettings.  Yes for runsettings generation.|
