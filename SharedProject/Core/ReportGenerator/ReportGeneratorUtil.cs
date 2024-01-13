@@ -885,7 +885,37 @@ observer.observe(targetNode, config);
 			return code;
 		}
 
-		private string HackGroupingToAllowAll(int groupingLevel)
+        private string ObserveAndHideNamespaceWhenGroupingByNamespace()
+        {
+            var code = $@"
+var targetNode = document;
+
+var config = {{ attributes: false, childList: true, subtree: true }};
+
+var callback = function(mutationsList, observer) {{
+  var groupingInput = document.querySelector(""coverage-info .customizebox input"");
+  if(!groupingInput || groupingInput.value == 0){{
+    return;
+  }}
+
+	var rows = document.querySelectorAll(""coverage-info table tbody tr[class-row]"");
+	for(var i=0;i<rows.length;i++){{
+		var row = rows[i];
+        var cell = row.cells[0];
+        var a = cell.querySelector(""a"");
+        var fullyQualified = a.innerText;
+        var name = fullyQualified.substring(fullyQualified.lastIndexOf(""."") + 1);
+        a.innerText = name;
+	}};
+}};
+
+var observer = new MutationObserver(callback);
+observer.observe(targetNode, config);
+";
+            return code;
+        }
+
+        private string HackGroupingToAllowAll(int groupingLevel)
         {
 			return $@"
 				var customizeBox = document.getElementsByClassName('customizebox')[0];
@@ -1126,6 +1156,7 @@ risk-hotspots > div > table > thead > tr > th:last-of-type > a:last-of-type {
 						{GetStickyTableHead()}
 						{HackGroupingToAllowAll(groupingLevel)}
 						{ObserveAndHideFullyCovered()}
+                        {ObserveAndHideNamespaceWhenGroupingByNamespace()}
 						function getRuleBySelector(cssRules,selector){{
 						for(var i=0;i<cssRules.length;i++){{
 							if(cssRules[i].selectorText == selector){{
