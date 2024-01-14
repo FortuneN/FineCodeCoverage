@@ -263,8 +263,12 @@ namespace FineCodeCoverage.Options
         public bool StickyCoverageTable { get; set; }
 
         [Category(commonReportCategory)]
-        [Description("Set to false to show classes in report in short form.")]
+        [Description("Set to false to show types in report in short form.")]
         public bool NamespacedClasses { get; set; }
+
+        [Category(commonReportCategory)]
+        [Description("Control qualification of types when NamespacedClasses is true.")]
+        public NamespaceQualification NamespaceQualification { get; set; }
 
         [Category(commonReportCategory)]
         [Description("Set to true to hide classes, namespaces and assemblies that are fully covered.")]

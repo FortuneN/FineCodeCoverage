@@ -701,5 +701,6 @@ namespace FineCodeCoverageTests.MsCodeCoverage
         public string[] ExcludeAssemblies { get; set; }
         public string[] IncludeAssemblies { get; set; }
         public bool DisabledNoCoverage { get; set; }
+        public NamespaceQualification NamespaceQualification { get; set; }
     }
 }

@@ -317,6 +317,7 @@ namespace FineCodeCoverageTests
                 { nameof(IAppOptions.ShowToolWindowToolbar),true},
                 {nameof(IAppOptions.ExcludeAssemblies),new string[]{ "Exclude"} },
                 {nameof(IAppOptions.IncludeAssemblies),new string[]{ "Include"} },
+                {nameof(IAppOptions.NamespaceQualification),NamespaceQualification.AlwaysUnqualified }
             };
             var mockJsonConvertService = autoMocker.GetMock<IJsonConvertService>();
             mockJsonConvertService.Setup(
