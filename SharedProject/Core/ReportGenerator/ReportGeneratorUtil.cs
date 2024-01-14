@@ -1040,6 +1040,20 @@ risk-hotspots > div > table > thead > tr > th:last-of-type > a:last-of-type {
 			
 		}
 
+		private void RemoveHistoryChartRendering(string html,StringBuilder sb)
+		{
+			var start = html.IndexOf("var charts = document.getElementsByClassName('historychart');");
+			var end = html.IndexOf("var assemblies = [");
+			var toRemove = html.Substring(start, end - start);
+			sb.Replace(toRemove, @"
+var charts = document.getElementsByClassName('historychart');
+for(var i=0;i<charts.length;i++){
+    var chart = charts[i];
+    chart.parentNode.removeChild(chart);
+}
+");
+		}
+
 		public string ProcessUnifiedHtml(string htmlForProcessing, string reportOutputFolder)
 		{
 			previousFontSizeName = GetFontNameSize();
@@ -1084,8 +1098,8 @@ risk-hotspots > div > table > thead > tr > th:last-of-type > a:last-of-type {
 				var htmlSb = new StringBuilder(outerHtml);
 				FixGroupingMax(htmlSb);
 				FixCollapse(htmlSb);
-
-				var assembliesSearch = "var assemblies = [";
+				RemoveHistoryChartRendering(outerHtml,htmlSb);
+                var assembliesSearch = "var assemblies = [";
 				var startIndex = outerHtml.IndexOf(assembliesSearch) + assembliesSearch.Length - 1;
 				var endIndex = outerHtml.IndexOf("var historicCoverageExecutionTimes");
 				var assembliesToReplace = outerHtml.Substring(startIndex, endIndex - startIndex);
