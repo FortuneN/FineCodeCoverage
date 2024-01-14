@@ -170,7 +170,7 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 					reportTypeSettings.Add($@"""-reports:{inputReports}""");
 					reportTypeSettings.Add($@"""-plugins:{typeof(FccLightReportBuilder).Assembly.Location}""");
 					reportTypeSettings.Add($@"""-reporttypes:{FccLightReportBuilder.REPORT_TYPE}""");
-					var (cyclomaticThreshold, crapScoreThreshold, nPathThreshold) = HotspotThresholds();
+					var (cyclomaticThreshold, crapScoreThreshold, nPathThreshold) = HotspotThresholds(appOptionsProvider.Get());
 
 					reportTypeSettings.Add($@"""riskHotspotsAnalysisThresholds:metricThresholdForCyclomaticComplexity={cyclomaticThreshold}""");
 					reportTypeSettings.Add($@"""riskHotspotsAnalysisThresholds:metricThresholdForCrapScore={crapScoreThreshold}""");
@@ -337,9 +337,9 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 			style.InnerHtml = changedCss;
 		}
 
-		private string GetStickyTableHead()
+		private string GetStickyTableHead(IAppOptions appOptions)
 		{
-            if (!appOptionsProvider.Get().StickyCoverageTable)
+            if (!appOptions.StickyCoverageTable)
             {
 				return "";
             }
@@ -829,9 +829,40 @@ coverage-info div.customizebox div:nth-child(2) * { visibility:hidden;font-size:
 ";
 		}
 
-		private string ObserveAndHideFullyCovered()
+		private string CoverageInfoObserver()
+		{
+			var code = @"
+var coverageInfoObserver = (function(){
+	var mutationObserver;
+    var callbacks = [];
+    function observe(){
+	    mutationObserver.observe(  
+			document.querySelector(""coverage-info""),
+			{ attributes: false, childList: true, subtree: true }
+		)     
+    }
+	function cb(record,obs){
+	    mutationObserver.disconnect();
+		for(var i=0;i<callbacks.length;i++){
+            callbacks[i]();
+        }
+		observe();
+	}
+	return {
+		observe:function(callback){
+		    callbacks.push(callback);
+            if(!mutationObserver){
+                mutationObserver = new MutationObserver(cb);
+                observe();
+            }
+		}
+	}
+})();
+";
+			return code;
+		}
+		private string ObserveAndHideFullyCovered(IAppOptions appOptions)
         {
-			var appOptions = appOptionsProvider.Get();
             if (!(appOptions.HideFullyCovered | appOptions.Hide0Coverage | appOptions.Hide0Coverable))
             {
 				return "";
@@ -840,12 +871,9 @@ coverage-info div.customizebox div:nth-child(2) * { visibility:hidden;font-size:
 function getCellValue(row, index){{
   return parseInt(row.cells[index].innerText);
 }}
-var targetNode = document;
 
-var config = {{ attributes: false, childList: true, subtree: true }};
 
-var callback = function(mutationsList, observer) {{
-	console.log(""mutation observer hide fully covered"");
+var hideCoverage = function() {{
 	var rows = document.querySelectorAll(""coverage-info table tbody tr"");
 	for(var i=0;i<rows.length;i++){{
 		var row = rows[i];
@@ -879,41 +907,64 @@ var callback = function(mutationsList, observer) {{
     
 	}};
 }};
-
-var observer = new MutationObserver(callback);
-observer.observe(targetNode, config);
+hideCoverage();
+coverageInfoObserver.observe(hideCoverage);
 ";
 			return code;
 		}
 
-        private string ObserveAndHideNamespaceWhenGroupingByNamespace()
+        private string ObserveAndHideNamespaceWhenGroupingByNamespace(IAppOptions appOptions)
         {
+			
+			if (!appOptions.NamespacedClasses || appOptions.NamespaceQualification == NamespaceQualification.FullyQualified)
+			{
+				return "";
+			}
+			var fullyQualifiedToName = "";
+			switch(appOptions.NamespaceQualification)
+			{
+                case NamespaceQualification.AlwaysUnqualified:
+                case NamespaceQualification.UnqualifiedByNamespace:
+					fullyQualifiedToName = "var name = fullyQualified.substring(fullyQualified.lastIndexOf(\".\") + 1);";
+                    break;
+                case NamespaceQualification.QualifiedByNamespaceLevel:
+					fullyQualifiedToName = @"
+var parts = fullyQualified.split(""."");
+var namespaceParts = parts.slice(0,parts.length-1);
+var type = parts[parts.length-1];
+var name = type;
+if(namespaceParts.length > groupingLevel){
+	name = namespaceParts.slice(groupingLevel).join(""."") + ""."" + type;
+}";
+					break;
+                default:
+                    throw new Exception($"Unknown GroupingNamespaceQualification '{appOptions.NamespaceQualification}'");
+            }
+			var alwaysUnqualified = appOptions.NamespaceQualification == NamespaceQualification.AlwaysUnqualified;
             var code = $@"
-var targetNode = document;
-
 var config = {{ attributes: false, childList: true, subtree: true }};
 
-var callback = function(mutationsList, observer) {{
+var changeQualification = function() {{
   var groupingInput = document.querySelector(""coverage-info .customizebox input"");
-  if(!groupingInput || groupingInput.value == 0){{
+  if(!groupingInput || groupingInput.value <= 0 && !{alwaysUnqualified.ToString().ToLower()}){{
     return;
   }}
-    console.log(""mutation observer namespace"");
+
+    var groupingLevel = groupingInput.value;
 	var rows = document.querySelectorAll(""coverage-info table tbody tr[class-row]"");
 	for(var i=0;i<rows.length;i++){{
 		var row = rows[i];
         var cell = row.cells[0];
         var a = cell.querySelector(""a"");
         var fullyQualified = a.innerText;
-        var name = fullyQualified.substring(fullyQualified.lastIndexOf(""."") + 1);
+        {fullyQualifiedToName}
         a.innerText = name;
 	}};
 }};
-
-var observer = new MutationObserver(callback);
-observer.observe(targetNode, config);
+changeQualification();
+coverageInfoObserver.observe(changeQualification);
 ";
-            return code;
+			return code;
         }
 
         private string HackGroupingToAllowAll(int groupingLevel)
@@ -1000,7 +1051,7 @@ risk-hotspots > div > table > thead > tr > th:last-of-type > a:last-of-type {
 			ReportColours = reportColoursProvider.GetColours();
 			return assemblyUtil.RunInAssemblyResolvingContext(() =>
 			{
-				var (cyclomaticThreshold, crapScoreThreshold, nPathThreshold) = HotspotThresholds();
+				var (cyclomaticThreshold, crapScoreThreshold, nPathThreshold) = HotspotThresholds(appOptions);
 				var noRiskHotspotsHeader = "No risk hotspots that exceed options :";
 				var noRiskHotspotsCyclomaticMsg = $"Cyclomatic complexity : {cyclomaticThreshold}";
 				var noRiskHotspotsNpathMsg =$"NPath complexity      : {nPathThreshold}";
@@ -1154,10 +1205,11 @@ risk-hotspots > div > table > thead > tr > th:last-of-type > a:last-of-type {
 
 				htmlSb.Replace("</body>", $@"
 					<script type=""text/javascript"">
-						{GetStickyTableHead()}
+						{GetStickyTableHead(appOptions)}
 						{HackGroupingToAllowAll(groupingLevel)}
-						{ObserveAndHideFullyCovered()}
-                        {ObserveAndHideNamespaceWhenGroupingByNamespace()}
+                        {CoverageInfoObserver()}
+						{ObserveAndHideNamespaceWhenGroupingByNamespace(appOptions)}
+						{ObserveAndHideFullyCovered(appOptions)}
 						function getRuleBySelector(cssRules,selector){{
 						for(var i=0;i<cssRules.length;i++){{
 							if(cssRules[i].selectorText == selector){{
@@ -1672,13 +1724,12 @@ risk-hotspots > div > table > thead > tr > th:last-of-type > a:last-of-type {
 			}
 		}
 
-		private (int cyclomaticThreshold, int crapScoreThreshold, int nPathThreshold) HotspotThresholds()
+		private (int cyclomaticThreshold, int crapScoreThreshold, int nPathThreshold) HotspotThresholds(IAppOptions appOptions)
         {
-			var options = appOptionsProvider.Get();
 			return (
-				options.ThresholdForCyclomaticComplexity,
-				options.ThresholdForCrapScore,
-				options.ThresholdForNPathComplexity
+				appOptions.ThresholdForCyclomaticComplexity,
+				appOptions.ThresholdForCrapScore,
+				appOptions.ThresholdForNPathComplexity
 			);
 
 		}

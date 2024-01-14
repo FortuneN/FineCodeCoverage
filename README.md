@@ -241,7 +241,8 @@ If you are using option 1) then project and global options will only be used whe
 |ToolsDirectory|Folder to which copy tools subfolder. Must alredy exist. Requires restart of VS.|
 |ThresholdForCyclomaticComplexity| When [cyclomatic complexity](https://en.wikipedia.org/wiki/Cyclomatic_complexity) exceeds this value for a method then the method will be present in the risk hotspots tab. |
 |StickyCoverageTable|Set to true for coverage table to have a sticky thead.|
-|NamespacedClasses|Set to false to show classes in report in short form. Affects grouping.|
+|NamespacedClasses|Set to false to show types in report in short form. Affects grouping.|
+|NamespaceQualification|Control qualification of types in report when NamespacedClasses is true.<br>FullyQualified - always fully qualify.<br>AlwaysUnqualified - always unqualified.<br>UnqualifiedByNamespace - unqualified when grouping by namespace.<br>QualifiedByNamespaceLevel - omits the first grouping level identifier parts.  Reduces space whilst maintaining uniqueness.|
 |HideFullyCovered|Set to true to hide classes, namespaces and assemblies that are fully covered.|
 |Hide0Coverage|Set to true to hide classes, namespaces and assemblies that have 0% coverage.|
 |Hide0Coverable|Set to false to show classes, namespaces and assemblies that are not coverable.|

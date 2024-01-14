@@ -66,10 +66,10 @@
         RunMsCodeCoverage RunMsCodeCoverage { get; set; } 
         bool ShowToolWindowToolbar { get; set; }
 
-        GroupingNamespaceQualification GroupingNamespaceQualification { get; set; }
+        NamespaceQualification NamespaceQualification { get; set; }
     }
 
-    internal enum GroupingNamespaceQualification
+    internal enum NamespaceQualification
     {
         FullyQualified,
         AlwaysUnqualified,

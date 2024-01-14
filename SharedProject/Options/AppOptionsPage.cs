@@ -268,7 +268,7 @@ namespace FineCodeCoverage.Options
 
         [Category(commonReportCategory)]
         [Description("Control qualification of types when NamespacedClasses is true.")]
-        public GroupingNamespaceQualification GroupingNamespaceQualification { get; set; }
+        public NamespaceQualification NamespaceQualification { get; set; }
 
         [Category(commonReportCategory)]
         [Description("Set to true to hide classes, namespaces and assemblies that are fully covered.")]
