@@ -3,13 +3,13 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
+using FineCodeCoverage.Core.Initialization;
 using FineCodeCoverage.Core.Utilities;
 using FineCodeCoverage.Engine.Cobertura;
 using FineCodeCoverage.Engine.Model;
 using FineCodeCoverage.Engine.MsTestPlatform;
 using FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage;
 using FineCodeCoverage.Engine.ReportGenerator;
-using FineCodeCoverage.Impl;
 using FineCodeCoverage.Options;
 using FineCodeCoverage.Output;
 
@@ -60,7 +60,6 @@ namespace FineCodeCoverage.Engine
         private readonly ILogger logger;
         private readonly IAppDataFolder appDataFolder;
 
-        private IInitializeStatusProvider initializeStatusProvider;
         private readonly ICoverageToolOutputManager coverageOutputManager;
         internal System.Threading.Tasks.Task reloadCoverageTask;
 #pragma warning disable IDE0052 // Remove unread private members
@@ -116,10 +115,8 @@ namespace FineCodeCoverage.Engine
             logger.Log(GetLogReloadCoverageStatusMessage(reloadCoverageStatus));
         }
 
-        public void Initialize(IInitializeStatusProvider initializeStatusProvider, CancellationToken cancellationToken)
+        public void Initialize(CancellationToken cancellationToken)
         {
-            this.initializeStatusProvider = initializeStatusProvider;
-
             appDataFolder.Initialize(cancellationToken);
             AppDataFolderPath = appDataFolder.DirectoryPath;
 
@@ -323,29 +320,7 @@ namespace FineCodeCoverage.Engine
                 this.eventAggregator.SendMessage(new ReportFilesMessage { CoberturaFile = reportResult.CoberturaFile, HotspotsFile = reportResult.HotspotsFile });
             }
         }
-
-        private async System.Threading.Tasks.Task PollInitializedStatusAsync(CancellationToken cancellationToken)
-        {
-            while (true)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                var InitializeStatus = initializeStatusProvider.InitializeStatus;
-                switch (InitializeStatus)
-                {
-                    case InitializeStatus.Initialized:
-                        return;
-                    
-                    case InitializeStatus.Initializing:
-                        reportGeneratorUtil.LogCoverageProcess("Initializing");
-                        LogReloadCoverageStatus(ReloadCoverageStatus.Initializing);
-                        await System.Threading.Tasks.Task.Delay(InitializeWait);
-                        break;
-                    case InitializeStatus.Error:
-                        throw new Exception(initializationFailedMessagePrefix + Environment.NewLine + initializeStatusProvider.InitializeExceptionMessage);
-                }
-            }
-        }
-
+        
         public void RunAndProcessReport(string[] coberturaFiles, Action cleanUp = null)
         {
             RunCancellableCoverageTask(async (vsShutdownLinkedCancellationToken) =>
@@ -369,7 +344,6 @@ namespace FineCodeCoverage.Engine
             {
                 reloadCoverageTask = System.Threading.Tasks.Task.Run(async () =>
                 {
-                    await PollInitializedStatusAsync(vsShutdownLinkedCancellationToken);
                     var result = await taskCreator(vsShutdownLinkedCancellationToken);
                     return result;
 
@@ -384,8 +358,6 @@ namespace FineCodeCoverage.Engine
             RunCancellableCoverageTask(async (vsShutdownLinkedCancellationToken) =>
             {
                 ReportResult reportResult = new ReportResult();
-
-                await PollInitializedStatusAsync(vsShutdownLinkedCancellationToken);
 
                 reportGeneratorUtil.LogCoverageProcess("Starting coverage - full details in FCC Output Pane");
                 LogReloadCoverageStatus(ReloadCoverageStatus.Start);

@@ -1,17 +1,16 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AutoMoq;
+using FineCodeCoverage.Core.Initialization;
 using FineCodeCoverage.Core.Utilities;
 using FineCodeCoverage.Engine;
 using FineCodeCoverage.Engine.Cobertura;
 using FineCodeCoverage.Engine.Model;
 using FineCodeCoverage.Engine.MsTestPlatform;
 using FineCodeCoverage.Engine.ReportGenerator;
-using FineCodeCoverage.Impl;
 using FineCodeCoverage.Options;
 using FineCodeCoverage.Output;
 using Moq;
@@ -50,7 +49,7 @@ namespace Test
 
             var openCoverMock = mocker.GetMock<ICoverageUtilManager>().Setup(openCover => openCover.Initialize(appDataFolderPath, disposalToken)).Callback(() => callOrder.Add(4));
 
-            fccEngine.Initialize(null,disposalToken);
+            fccEngine.Initialize(disposalToken);
 
             Assert.AreEqual(4, callOrder.Count);
             Assert.AreEqual(1, callOrder[0]);
@@ -63,7 +62,7 @@ namespace Test
             var appDataFolderPath = "some path";
             var mockAppDataFolder = mocker.GetMock<IAppDataFolder>();
             mockAppDataFolder.Setup(appDataFolder => appDataFolder.DirectoryPath).Returns(appDataFolderPath);
-            fccEngine.Initialize(null, CancellationToken.None);
+            fccEngine.Initialize(CancellationToken.None);
             Assert.AreEqual("some path", fccEngine.AppDataFolderPath);
         }
 
@@ -100,46 +99,6 @@ namespace Test
         {
             await ReloadInitializedCoverage();
             VerifyLogsReloadCoverageStatus(ReloadCoverageStatus.Start);
-        }
-
-        [Test]
-        public async Task Should_Poll_For_Initialized()
-        {
-            var times = 5;
-            var initializeWait = 1000;
-            fccEngine.InitializeWait = initializeWait;
-
-            var mockInitializeStatusProvider = new Mock<IInitializeStatusProvider>();
-            mockInitializeStatusProvider.SetupProperty(i => i.InitializeStatus);
-            var initializeStatusProvider = mockInitializeStatusProvider.Object;
-
-            fccEngine.Initialize(initializeStatusProvider, CancellationToken.None);
-
-            fccEngine.ReloadCoverage(() => Task.FromResult(new List<ICoverageProject>()));
-            await Task.Delay(times * initializeWait).ContinueWith(_ =>
-            {
-                initializeStatusProvider.InitializeStatus = InitializeStatus.Initialized;
-            });
-            await fccEngine.reloadCoverageTask;
-            mocker.Verify<ILogger>(l => l.Log(fccEngine.GetLogReloadCoverageStatusMessage(ReloadCoverageStatus.Initializing)), Times.AtLeast(times));
-        }
-
-        [Test]
-        public async Task Should_Throw_With_initializationFailedMessagePrefix_When_Initialize_Has_Failed()
-        {
-            var mockInitializerStatusProvider = new Mock<IInitializeStatusProvider>();
-            mockInitializerStatusProvider.Setup(i => i.InitializeStatus).Returns(InitializeStatus.Error);
-            var initializeExceptionMessage = "An exception was thrown";
-            mockInitializerStatusProvider.Setup(i => i.InitializeExceptionMessage).Returns(initializeExceptionMessage);
-
-            fccEngine.Initialize(mockInitializerStatusProvider.Object, CancellationToken.None);
-
-            fccEngine.ReloadCoverage(() => Task.FromResult(new List<ICoverageProject>()));
-            
-            await fccEngine.reloadCoverageTask;
-            
-            mocker.Verify<ILogger>(l => l.Log(fccEngine.GetLogReloadCoverageStatusMessage(ReloadCoverageStatus.Error),It.Is<Exception>(exc => (FCCEngine.initializationFailedMessagePrefix + Environment.NewLine + initializeExceptionMessage) == exc.Message)));
-            
         }
 
         [Test]
@@ -303,14 +262,6 @@ namespace Test
         }
 
         [Test]
-        public async Task Should_Log_Single_Exception_From_Aggregate_Exception()
-        {
-            Exception exception = null;
-            await ThrowException(exc => exception = exc);
-            mocker.Verify<ILogger>(l => l.Log(fccEngine.GetLogReloadCoverageStatusMessage(ReloadCoverageStatus.Error),exception));
-        }
-
-        [Test]
         public async Task Should_Cancel_Running_Coverage_Logging_Cancelled_When_StopCoverage()
         {
             await StopCoverage();
@@ -417,21 +368,6 @@ namespace Test
 
         }
 
-        private async Task ThrowException(Action<Exception> exceptionCallback = null)
-        {
-            var exception = new Exception("an exception");
-            exceptionCallback?.Invoke(exception);
-            Task<List<ICoverageProject>> thrower() => Task.FromException<List<ICoverageProject>>(exception);
-
-            var mockInitializeStatusProvider = new Mock<IInitializeStatusProvider>();
-            mockInitializeStatusProvider.Setup(i => i.InitializeStatus).Returns(InitializeStatus.Initialized);
-            fccEngine.Initialize(mockInitializeStatusProvider.Object, CancellationToken.None);
-
-            fccEngine.ReloadCoverage(thrower);
-
-            await fccEngine.reloadCoverageTask;
-        }
-
         private async Task StopCoverage()
         {
             var mockSuitableCoverageProject = new Mock<ICoverageProject>();
@@ -461,9 +397,7 @@ namespace Test
         private async Task ReloadInitializedCoverage(params ICoverageProject[] coverageProjects)
         {
             var projectsFromTask = Task.FromResult(coverageProjects.ToList());
-            var mockInitializeStatusProvider = new Mock<IInitializeStatusProvider>();
-            mockInitializeStatusProvider.Setup(i => i.InitializeStatus).Returns(InitializeStatus.Initialized);
-            fccEngine.Initialize(mockInitializeStatusProvider.Object, CancellationToken.None);
+            fccEngine.Initialize(CancellationToken.None);
             fccEngine.ReloadCoverage(() => projectsFromTask);
             await fccEngine.reloadCoverageTask;
         }

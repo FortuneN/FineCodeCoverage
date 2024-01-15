@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using AutoMoq;
+using FineCodeCoverage.Core.Initialization;
 using FineCodeCoverage.Core.Utilities;
 using FineCodeCoverage.Engine;
 using FineCodeCoverage.Engine.Model;
@@ -15,6 +16,53 @@ using NUnit.Framework;
 
 namespace Test
 {
+
+    internal class TestOperationStateInvocationManager_Tests
+    {
+        private AutoMoqer mocker;
+        private TestOperationStateInvocationManager testOperationStateInvocationManager;
+
+        [SetUp]
+        public void SetUp()
+        {
+            mocker = new AutoMoqer();
+            testOperationStateInvocationManager = mocker.Create<TestOperationStateInvocationManager>();
+        }
+
+        [Test]
+        public void Should_Return_True_When_Initialized_And_TestExecutionStarting()
+        {
+            mocker.GetMock<IInitializeStatusProvider>().Setup(initializeStatusProvider => initializeStatusProvider.InitializeStatus).Returns(InitializeStatus.Initialized);
+            Assert.That(testOperationStateInvocationManager.CanInvoke(TestOperationStates.TestExecutionStarting), Is.True);
+        }
+
+        [Test]
+        public void Should_Return_False_When_Not_Initialized_And_TestExecutionStarting()
+        {
+            mocker.GetMock<IInitializeStatusProvider>().Setup(initializeStatusProvider => initializeStatusProvider.InitializeStatus).Returns(InitializeStatus.Initializing);
+            Assert.That(testOperationStateInvocationManager.CanInvoke(TestOperationStates.TestExecutionStarting), Is.False);
+        }
+
+        [TestCase(true)]
+        [TestCase(false)]
+        public void Should_Return_True_For_All_Other_States_If_Was_Initialized_When_TestExecutionStarting(bool initializedWhenStarting)
+        {
+            var startingInitializeStatus = initializedWhenStarting ? InitializeStatus.Initialized : InitializeStatus.Initializing;
+            mocker.GetMock<IInitializeStatusProvider>().Setup(initializeStatusProvider => initializeStatusProvider.InitializeStatus).Returns(startingInitializeStatus);
+            testOperationStateInvocationManager.CanInvoke(TestOperationStates.TestExecutionStarting);
+            Assert.That(testOperationStateInvocationManager.CanInvoke(TestOperationStates.TestExecutionCancelAndFinished), Is.EqualTo(initializedWhenStarting));
+        }
+
+        [TestCase(TestOperationStates.TestExecutionStarting)]
+        [TestCase(TestOperationStates.TestExecutionFinished)]
+        public void Should_Log_When_Cannot_Invoke(TestOperationStates testOperationState)
+        {
+            testOperationStateInvocationManager.CanInvoke(testOperationState);
+            mocker.Verify<ILogger>(logger => logger.Log($"Skipping {testOperationState} as FCC not initialized"));
+        }
+       
+    }
+
     internal class TestContainerDiscovery_Tests
     {
         private AutoMoqer mocker;
@@ -73,42 +121,19 @@ namespace Test
         public void SetUp()
         {
             mocker = new AutoMoqer();
-            var mockDisposeAwareTaskRunner = mocker.GetMock<IDisposeAwareTaskRunner>();
-            mockDisposeAwareTaskRunner.Setup(runner => runner.RunAsync(It.IsAny<Func<Task>>())).Callback<Func<Task>>(async taskProvider => await taskProvider());
             testContainerDiscoverer = mocker.Create<TestContainerDiscoverer>();
             testContainerDiscoverer.RunAsync = (taskProvider) =>
             {
                 taskProvider().Wait();
             };
-            testContainerDiscoverer.initializeTask.Wait();
+            var mockTestOperationStateInvocationManager = mocker.GetMock<ITestOperationStateInvocationManager>();
+            mockTestOperationStateInvocationManager.Setup(testOperationStateInvocationManager => testOperationStateInvocationManager.CanInvoke(It.IsAny<TestOperationStates>())).Returns(true);
         }
 
         [Test]
-        public void It_Should_Initialize_As_Is_The_Entrance()
+        public void It_Should_Load_The_Package()
         {
-            mocker.Verify<IInitializer>(i => i.InitializeAsync(It.IsAny<CancellationToken>()));
-        }
-
-        [Test]
-        public async Task It_Should_Watch_For_Operation_State_Change_Before_Initialize()
-        {
-            List<int> order = new List<int>();
-            mocker = new AutoMoqer();
-            var mockDisposeAwareTaskRunner = mocker.GetMock<IDisposeAwareTaskRunner>();
-            mockDisposeAwareTaskRunner.Setup(runner => runner.RunAsync(It.IsAny<Func<Task>>())).Callback<Func<Task>>(async taskProvider => await taskProvider());
-            var mockOperationState = mocker.GetMock<IOperationState>();
-            mockOperationState.SetupAdd(o => o.StateChanged += It.IsAny<EventHandler<OperationStateChangedEventArgs>>()).Callback(() =>
-            {
-                order.Add(1);
-            });
-            var mockInitializer = mocker.GetMock<IInitializer>();
-            mockInitializer.Setup(i => i.InitializeAsync(It.IsAny<CancellationToken>())).Callback(() =>
-            {
-                order.Add(2);
-            });
-            var testContainerDiscoverer = mocker.Create<TestContainerDiscoverer>();
-            await testContainerDiscoverer.initializeTask;
-            Assert.AreEqual(new List<int> { 1, 2 }, order);
+            mocker.Verify<IPackageLoader>(packageLoader => packageLoader.LoadPackageAsync(It.IsAny<CancellationToken>()));
         }
 
         [Test]
@@ -348,5 +373,23 @@ namespace Test
             RaiseTestExecutionCancelling();
             mocker.Verify<ILogger>(logger => logger.Log("Error processing unit test events", exception));
         }
+
+        [TestCase(true)]
+        [TestCase(false)]
+        public void Should_Not_Handle_OperationState_Changes_When_The_testOperationStateInvocationManager_Cannot_Invoke(bool canInvoke)
+        {
+            var invoked = false;
+            testContainerDiscoverer.testOperationStateChangeHandlers = new Dictionary<TestOperationStates, Func<IOperation, Task>>
+            {
+                {TestOperationStates.TestExecutionCanceling, (_) => {invoked = true; return Task.CompletedTask; } }
+            };
+            var mockTestOperationStateInvocationManager = mocker.GetMock<ITestOperationStateInvocationManager>();
+            mockTestOperationStateInvocationManager.Setup(testOperationStateInvocationManager => testOperationStateInvocationManager.CanInvoke(It.IsAny<TestOperationStates>())).Returns(canInvoke);
+           
+            RaiseTestExecutionCancelling();
+            Assert.That(invoked, Is.EqualTo(canInvoke));
+            
+
+        }   
     }
 }

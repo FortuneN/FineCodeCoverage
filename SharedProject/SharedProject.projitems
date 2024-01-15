@@ -68,6 +68,9 @@
     <Compile Include="$(MSBuildThisFileDirectory)Core\IEnvironmentVariable.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\IFCCEngine.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\IMessageBox.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Initialization\FirstTimeToolWindowOpener.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Initialization\IFirstTimeToolWindowOpener.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Initialization\IInitializedFromTestContainerDiscoverer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\ISourceFileOpener.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\MessageBoxWrapper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Model\CoverageProject.cs" />
@@ -151,6 +154,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\IProcessUtil.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\IResourceProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\ISolutionEvents.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\IToolWindowOpener.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\IZipFile.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\LinqExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\ListExtensions.cs" />
@@ -160,6 +164,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\ReflectionExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\ResourceProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\SolutionEvents.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\ToolWindowOpener.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\ToolZip\IToolFolder.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\ToolZip\IToolZipProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\ToolZip\ToolFolder.cs" />
@@ -199,15 +204,17 @@
     <Compile Include="$(MSBuildThisFileDirectory)Impl\RunSettingsRetriever.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\TestContainerDiscovery\Container.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\TestContainerDiscovery\ContainerData.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Impl\TestContainerDiscovery\IInitializer.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Impl\TestContainerDiscovery\IInitializeStatusProvider.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Impl\TestContainerDiscovery\Initializer.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Impl\TestContainerDiscovery\InitializeStatus.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Impl\TestContainerDiscovery\IPackageInitializer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Initialization\IInitializer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Initialization\IInitializeStatusProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Initialization\Initializer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Initialization\InitializeStatus.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Initialization\IPackageLoader.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\TestContainerDiscovery\ITestOperation.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\TestContainerDiscovery\ITestOperationFactory.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Impl\TestContainerDiscovery\ITestOperationStateInvocationManager.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Impl\TestContainerDiscovery\TestOperationStateInvocationManager.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\TestContainerDiscovery\TestRunRequest.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Impl\TestContainerDiscovery\PackageInitializer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Initialization\PackageLoader.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\TestContainerDiscovery\TestConfiguration.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\TestContainerDiscovery\TestContainerDiscoverer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\TestContainerDiscovery\TestOperation.cs" />
@@ -247,6 +254,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)Output\ProcessWrapper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Output\ReadyForReportMessage.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Output\ScriptManager.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\IShownToolWindowHistory.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\ShownToolWindowHistory.cs" />
   </ItemGroup>
   <ItemGroup>
     <Page Include="$(MSBuildThisFileDirectory)Output\OutputToolWindowControl.xaml">

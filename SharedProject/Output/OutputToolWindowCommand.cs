@@ -3,6 +3,7 @@ using System.ComponentModel.Design;
 using Microsoft.VisualStudio.Shell;
 using System.Threading.Tasks;
 using Task = System.Threading.Tasks.Task;
+using FineCodeCoverage.Core.Utilities;
 
 namespace FineCodeCoverage.Output
 {
@@ -27,17 +28,19 @@ namespace FineCodeCoverage.Output
 		private readonly AsyncPackage package;
 
 		private readonly ILogger logger;
+        private readonly IShownToolWindowHistory shownToolWindowHistory;
 
-		/// <summary>
-		/// Initializes a new instance of the <see cref="OutputToolWindowCommand"/> class.
-		/// Adds our command handlers for menu (commands must exist in the command table file)
-		/// </summary>
-		/// <param name="package">Owner package, not null.</param>
-		/// <param name="commandService">Command service to add command to, not null.</param>
-		private OutputToolWindowCommand(AsyncPackage package, OleMenuCommandService commandService, ILogger logger)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="OutputToolWindowCommand"/> class.
+        /// Adds our command handlers for menu (commands must exist in the command table file)
+        /// </summary>
+        /// <param name="package">Owner package, not null.</param>
+        /// <param name="commandService">Command service to add command to, not null.</param>
+        private OutputToolWindowCommand(AsyncPackage package, OleMenuCommandService commandService, ILogger logger, IShownToolWindowHistory shownToolWindowHistory)
 		{
 			this.logger = logger;
-			this.package = package ?? throw new ArgumentNullException(nameof(package));
+            this.shownToolWindowHistory = shownToolWindowHistory;
+            this.package = package ?? throw new ArgumentNullException(nameof(package));
 			commandService = commandService ?? throw new ArgumentNullException(nameof(commandService));
 
 			var menuCommandID = new CommandID(CommandSet, CommandId);
@@ -69,14 +72,14 @@ namespace FineCodeCoverage.Output
 		/// Initializes the singleton instance of the command.
 		/// </summary>
 		/// <param name="package">Owner package, not null.</param>
-		public static async Task InitializeAsync(AsyncPackage package, ILogger logger)
+		public static async Task InitializeAsync(AsyncPackage package, ILogger logger, IShownToolWindowHistory shownToolWindowHistory)
 		{
 			// Switch to the main thread - the call to AddCommand in OutputToolWindowCommand's constructor requires
 			// the UI thread.
 			await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(package.DisposalToken);
 
 			OleMenuCommandService commandService = await package.GetServiceAsync((typeof(IMenuCommandService))) as OleMenuCommandService;
-			Instance = new OutputToolWindowCommand(package, commandService, logger);
+			Instance = new OutputToolWindowCommand(package, commandService, logger, shownToolWindowHistory);
 		}
 
 		/// <summary>
@@ -102,6 +105,7 @@ namespace FineCodeCoverage.Output
 
 		public async Task<ToolWindowPane> ShowToolWindowAsync()
 		{
+			shownToolWindowHistory.ShowedToolWindow();
             ToolWindowPane window = await package.ShowToolWindowAsync(typeof(OutputToolWindow), 0, true, package.DisposalToken);
 
 			return ReturnOrThrowIfCannotCreateToolWindow(window);
