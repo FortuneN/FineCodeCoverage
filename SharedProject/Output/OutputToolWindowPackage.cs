@@ -11,6 +11,7 @@ using Microsoft;
 using FineCodeCoverage.Engine;
 using EnvDTE80;
 using FineCodeCoverage.Core.Utilities;
+using FineCodeCoverage.Core.Initialization;
 
 namespace FineCodeCoverage.Output
 {
@@ -91,7 +92,12 @@ namespace FineCodeCoverage.Output
 			await OpenCoberturaCommand.InitializeAsync(this, eventAggregator);
 			await OpenHotspotsCommand.InitializeAsync(this, eventAggregator);
             await ClearUICommand.InitializeAsync(this, fccEngine);
-            await OutputToolWindowCommand.InitializeAsync(this, componentModel.GetService<ILogger>());
+            await OutputToolWindowCommand.InitializeAsync(
+				this, 
+				componentModel.GetService<ILogger>(),
+				componentModel.GetService<IShownToolWindowHistory>()
+			);
+			await componentModel.GetService<IInitializer>().InitializeAsync(cancellationToken);
         }
 
         protected override Task<object> InitializeToolWindowAsync(Type toolWindowType, int id, CancellationToken cancellationToken)

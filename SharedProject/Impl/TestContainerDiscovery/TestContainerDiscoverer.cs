@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using FineCodeCoverage.Core.Utilities;
 using FineCodeCoverage.Engine;
 using FineCodeCoverage.Engine.ReportGenerator;
 using FineCodeCoverage.Options;
@@ -12,7 +11,8 @@ using Microsoft.VisualStudio.TestWindow.Extensibility;
 using Task = System.Threading.Tasks.Task;
 using Microsoft.VisualStudio.Utilities;
 using FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage;
-using System.Diagnostics;
+using System.Threading;
+using FineCodeCoverage.Core.Initialization;
 
 namespace FineCodeCoverage.Impl
 {
@@ -26,16 +26,18 @@ namespace FineCodeCoverage.Impl
         public event EventHandler TestContainersUpdated;
 #pragma warning restore 67
         private readonly IFCCEngine fccEngine;
+        private readonly ITestOperationStateInvocationManager testOperationStateInvocationManager;
         private readonly ITestOperationFactory testOperationFactory;
         private readonly ILogger logger;
         private readonly IAppOptionsProvider appOptionsProvider;
         private readonly IReportGeneratorUtil reportGeneratorUtil;
         private readonly IMsCodeCoverageRunSettingsService msCodeCoverageRunSettingsService;
-        private readonly Dictionary<TestOperationStates, Func<IOperation, Task>> testOperationStateChangeHandlers;
+        internal Dictionary<TestOperationStates, Func<IOperation, Task>> testOperationStateChangeHandlers;
         private bool cancelling;
         private MsCodeCoverageCollectionStatus msCodeCoverageCollectionStatus;
         private bool runningInParallel;
         private IAppOptions settings;
+        
         internal Task initializeTask;
 
         [ExcludeFromCodeCoverage]
@@ -51,20 +53,20 @@ namespace FineCodeCoverage.Impl
             IOperationState operationState,
 
             IFCCEngine fccEngine,
-            IInitializer initializer,
+            ITestOperationStateInvocationManager testOperationStateInvocationManager,
+            IPackageLoader packageLoader,
             ITestOperationFactory testOperationFactory,
             ILogger logger,
             IAppOptionsProvider appOptionsProvider,
             IReportGeneratorUtil reportGeneratorUtil,
-            IDisposeAwareTaskRunner disposeAwareTaskRunner,
             IMsCodeCoverageRunSettingsService msCodeCoverageRunSettingsService
-
         )
         {
             this.appOptionsProvider = appOptionsProvider;
             this.reportGeneratorUtil = reportGeneratorUtil;
             this.msCodeCoverageRunSettingsService = msCodeCoverageRunSettingsService;
             this.fccEngine = fccEngine;
+            this.testOperationStateInvocationManager = testOperationStateInvocationManager;
             this.testOperationFactory = testOperationFactory;
             this.logger = logger;
             testOperationStateChangeHandlers = new Dictionary<TestOperationStates, Func<IOperation, Task>>
@@ -74,16 +76,8 @@ namespace FineCodeCoverage.Impl
                 { TestOperationStates.TestExecutionFinished, TestExecutionFinishedAsync},
                 { TestOperationStates.TestExecutionCancelAndFinished, TestExecutionCancelAndFinishedAsync},
             };
-
-            disposeAwareTaskRunner.RunAsync(() =>
-            {
-                initializeTask = Task.Run(async () =>
-                {
-                    operationState.StateChanged += OperationState_StateChanged;
-                    await initializer.InitializeAsync(disposeAwareTaskRunner.DisposalToken);
-                });
-                return initializeTask;
-            });
+            _ = packageLoader.LoadPackageAsync(CancellationToken.None);
+            operationState.StateChanged += OperationState_StateChanged;
         }
 
         internal Action<Func<System.Threading.Tasks.Task>> RunAsync = (taskProvider) =>
@@ -128,7 +122,7 @@ namespace FineCodeCoverage.Impl
                 }
             }
         }
-
+        
         private void CombinedLog(string message)
         {
             reportGeneratorUtil.LogCoverageProcess(message);
@@ -138,10 +132,10 @@ namespace FineCodeCoverage.Impl
         private async Task TestExecutionFinishedAsync(IOperation operation)
         {
             var (should, testOperation) = ShouldConditionallyCollectWhenTestExecutionFinished(operation);
-            if (should) {
+            if (should)
+            {
                 await TestExecutionFinishedCollectionAsync(operation, testOperation);
             }
-            
         }
 
         private (bool should, ITestOperation testOperation) ShouldConditionallyCollectWhenTestExecutionFinished(IOperation operation)
@@ -254,7 +248,10 @@ namespace FineCodeCoverage.Impl
         private async Task OperationState_StateChangedAsync(OperationStateChangedEventArgs e)
         {
             if (testOperationStateChangeHandlers.TryGetValue(e.State, out var handler)) {
-                await handler(e.Operation);
+                if (testOperationStateInvocationManager.CanInvoke(e.State))
+                {
+                    await handler(e.Operation);
+                }
             }
         }
 

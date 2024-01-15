@@ -115,6 +115,7 @@
     <Compile Include="AppOptionsProvider_Tests.cs" />
     <Compile Include="CoverageUtilManager_Tests.cs" />
     <Compile Include="FileLineCoverage_Tests.cs" />
+    <Compile Include="FirstTimeToolWindowOpener_Tests.cs" />
     <Compile Include="MsCodeCoverage\ShimCopier_Tests.cs" />
     <Compile Include="MsCodeCoverage\TemplatedRunSettingsService_Tests.cs" />
     <Compile Include="MsCodeCoverage\CustomRunSettingsTemplateProvider_Tests.cs" />
@@ -130,6 +131,8 @@
     <Compile Include="MsCodeCoverage\UserRunSettingsService_AddFCCSettings_Tests.cs" />
     <Compile Include="MsCodeCoverage\UserRunSettingsService_Analysis_Tests.cs" />
     <Compile Include="MsCodeCoverage\RunSettingsTemplateReplacementsFactory_Tests.cs" />
+    <Compile Include="PackageLoader_Tests.cs" />
+    <Compile Include="ShownToolWindowHistory_Tests.cs" />
     <Compile Include="Test helpers\MefOrderAssertions.cs" />
     <Compile Include="Test helpers\TestThreadHelper.cs" />
     <Compile Include="Test helpers\XmlAssert.cs" />

@@ -1,7 +1,7 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
 
-namespace FineCodeCoverage.Impl
+namespace FineCodeCoverage.Core.Initialization
 {
     internal interface IInitializer : IInitializeStatusProvider
     {

@@ -1,12 +1,11 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using AutoMoq;
+using FineCodeCoverage.Core.Initialization;
 using FineCodeCoverage.Engine;
 using FineCodeCoverage.Engine.Model;
-using FineCodeCoverage.Impl;
 using NUnit.Framework;
 
 namespace Test
@@ -95,7 +94,7 @@ namespace Test
 				callOrder.Add(2);
 			});
 
-			mocker.GetMock<IPackageInitializer>().Setup(p => p.InitializeAsync(disposalToken)).Callback(() =>
+			mocker.GetMock<IFirstTimeToolWindowOpener>().Setup(firstTimeToolWindowOpener => firstTimeToolWindowOpener.OpenIfFirstTimeAsync(disposalToken)).Callback(() =>
 			{
 				callOrder.Add(3);
 			});

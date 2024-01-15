@@ -5,15 +5,16 @@ using System.Threading.Tasks;
 using FineCodeCoverage.Engine;
 using FineCodeCoverage.Engine.Model;
 
-namespace FineCodeCoverage.Impl
+namespace FineCodeCoverage.Core.Initialization
 {
     [Export(typeof(IInitializer))]
+    [Export(typeof(IInitializeStatusProvider))]
     internal class Initializer : IInitializer
     {
         private readonly IFCCEngine fccEngine;
         private readonly ILogger logger;
         private readonly ICoverageProjectFactory coverageProjectFactory;
-        private readonly IPackageInitializer packageInitializer;
+        private readonly IFirstTimeToolWindowOpener firstTimeToolWindowOpener;
 
         public InitializeStatus InitializeStatus { get; set; } = InitializeStatus.Initializing;
         public string InitializeExceptionMessage { get; set; }
@@ -23,13 +24,13 @@ namespace FineCodeCoverage.Impl
             IFCCEngine fccEngine, 
             ILogger logger, 
             ICoverageProjectFactory coverageProjectFactory,
-            IPackageInitializer packageInitializer
+            IFirstTimeToolWindowOpener firstTimeToolWindowOpener
         )
         {
             this.fccEngine = fccEngine;
             this.logger = logger;
             this.coverageProjectFactory = coverageProjectFactory;
-            this.packageInitializer = packageInitializer;
+            this.firstTimeToolWindowOpener = firstTimeToolWindowOpener;
         }
         public async Task InitializeAsync(CancellationToken cancellationToken)
         {
@@ -42,10 +43,12 @@ namespace FineCodeCoverage.Impl
                 coverageProjectFactory.Initialize();
 
                 fccEngine.Initialize(this, cancellationToken);
-                await packageInitializer.InitializeAsync(cancellationToken);
 
                 cancellationToken.ThrowIfCancellationRequested();
                 logger.Log($"Initialized");
+
+                
+                await firstTimeToolWindowOpener.OpenIfFirstTimeAsync(cancellationToken);
             }
             catch (Exception exception)
             {

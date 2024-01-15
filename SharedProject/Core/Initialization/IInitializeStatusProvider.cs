@@ -1,4 +1,4 @@
-﻿namespace FineCodeCoverage.Impl
+﻿namespace FineCodeCoverage.Core.Initialization
 {
     internal interface IInitializeStatusProvider
     {

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using FineCodeCoverage.Core.Initialization;
 using FineCodeCoverage.Engine.Model;
-using FineCodeCoverage.Impl;
 
 namespace FineCodeCoverage.Engine
 {
