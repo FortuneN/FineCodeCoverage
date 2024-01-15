@@ -42,7 +42,7 @@ namespace FineCodeCoverage.Core.Initialization
                 cancellationToken.ThrowIfCancellationRequested();
                 coverageProjectFactory.Initialize();
 
-                fccEngine.Initialize(this, cancellationToken);
+                fccEngine.Initialize(cancellationToken);
 
                 cancellationToken.ThrowIfCancellationRequested();
                 logger.Log($"Initialized");

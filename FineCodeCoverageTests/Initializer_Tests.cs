@@ -89,7 +89,7 @@ namespace Test
 			{
 				callOrder.Add(1);
 			});
-			mocker.GetMock<IFCCEngine>().Setup(engine => engine.Initialize(initializer, disposalToken)).Callback(() =>
+			mocker.GetMock<IFCCEngine>().Setup(engine => engine.Initialize(disposalToken)).Callback(() =>
 			{
 				callOrder.Add(2);
 			});
@@ -102,14 +102,5 @@ namespace Test
 			await initializer.InitializeAsync(disposalToken);
 			Assert.AreEqual(new List<int> { 1, 2, 3 }, callOrder);
 		}
-
-		[Test]
-		public async Task Should_Pass_Itself_To_FCCEngine_For_InitializeStatus()
-        {
-			var disposalToken = CancellationToken.None;
-			await initializer.InitializeAsync(disposalToken);
-			mocker.Verify<IFCCEngine>(engine => engine.Initialize(initializer, disposalToken));
-        }
-
 	}
 }
