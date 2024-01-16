@@ -57,8 +57,7 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
             }
         }
 
-        private readonly IToolFolder toolFolder;
-        private readonly IToolZipProvider toolZipProvider;
+        private readonly IToolUnzipper toolUnzipper;
         private readonly IAppOptionsProvider appOptionsProvider;
         private readonly ICoverageToolOutputManager coverageOutputManager;
         private readonly IShimCopier shimCopier;
@@ -89,8 +88,7 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
 
         [ImportingConstructor]
         public MsCodeCoverageRunSettingsService(
-            IToolFolder toolFolder, 
-            IToolZipProvider toolZipProvider, 
+            IToolUnzipper toolUnzipper, 
             IAppOptionsProvider appOptionsProvider,
             ICoverageToolOutputManager coverageOutputManager,
             IUserRunSettingsService userRunSettingsService,
@@ -100,8 +98,7 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
             IReportGeneratorUtil reportGeneratorUtil
             )
         {
-            this.toolFolder = toolFolder;
-            this.toolZipProvider = toolZipProvider;
+            this.toolUnzipper = toolUnzipper;
             this.appOptionsProvider = appOptionsProvider;
             this.coverageOutputManager = coverageOutputManager;
             this.shimCopier = shimCopier;
@@ -114,7 +111,7 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
         public void Initialize(string appDataFolder, IFCCEngine fccEngine, CancellationToken cancellationToken)
         {
             this.fccEngine = fccEngine;
-            var zipDestination = toolFolder.EnsureUnzipped(appDataFolder, zipDirectoryName, toolZipProvider.ProvideZip(zipPrefix), cancellationToken);
+            var zipDestination = toolUnzipper.EnsureUnzipped(appDataFolder, zipDirectoryName,zipPrefix, cancellationToken);
             fccMsTestAdapterPath = Path.Combine(zipDestination, "build", "netstandard1.0");
             shimPath = Path.Combine(zipDestination, "build", "netstandard1.0", "CodeCoverage", "coreclr", "Microsoft.VisualStudio.CodeCoverage.Shim.dll");
         }

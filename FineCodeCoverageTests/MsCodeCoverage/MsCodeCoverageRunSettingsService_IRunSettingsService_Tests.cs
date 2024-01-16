@@ -123,12 +123,12 @@ namespace FineCodeCoverageTests.MsCodeCoverage
 
         private string GetFCCMsTestAdapterPath()
         {
-            autoMocker.GetMock<IToolFolder>()
+            autoMocker.GetMock<IToolUnzipper>()
                 .Setup(
                     toolFolder => toolFolder.EnsureUnzipped(
                         It.IsAny<string>(),
                         It.IsAny<string>(),
-                        It.IsAny<ZipDetails>(),
+                        It.IsAny<string>(),
                         It.IsAny<CancellationToken>())
                 )
                 .Returns("ZipDestination");

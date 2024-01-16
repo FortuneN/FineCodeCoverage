@@ -25,8 +25,8 @@ namespace FineCodeCoverageTests.MsCodeCoverage
         {
             var autoMocker = new AutoMoqer();
 
-            var mockToolFolder = autoMocker.GetMock<IToolFolder>();
-            mockToolFolder.Setup(tf => tf.EnsureUnzipped(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<ZipDetails>(), It.IsAny<CancellationToken>())).Returns("ZipDestination");
+            var mockToolUnzipper = autoMocker.GetMock<IToolUnzipper>();
+            mockToolUnzipper.Setup(tf => tf.EnsureUnzipped(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>())).Returns("ZipDestination");
 
             var msCodeCoverageRunSettingsService = autoMocker.Create<MsCodeCoverageRunSettingsService>();
             var mockFccEngine = new Mock<IFCCEngine>();
@@ -521,8 +521,8 @@ namespace FineCodeCoverageTests.MsCodeCoverage
 
         private void InitializeZipDestination()
         {
-            var mockToolFolder = autoMocker.GetMock<IToolFolder>();
-            mockToolFolder.Setup(tf => tf.EnsureUnzipped(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<ZipDetails>(), It.IsAny<CancellationToken>())).Returns("ZipDestination");
+            var mockToolUnzipper = autoMocker.GetMock<IToolUnzipper>();
+            mockToolUnzipper.Setup(tf => tf.EnsureUnzipped(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>())).Returns("ZipDestination");
             msCodeCoverageRunSettingsService.Initialize(null, null, CancellationToken.None);
         }
 

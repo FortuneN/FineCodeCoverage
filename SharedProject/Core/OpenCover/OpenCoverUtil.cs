@@ -18,9 +18,8 @@ namespace FineCodeCoverage.Engine.OpenCover
         private readonly IMsTestPlatformUtil msTestPlatformUtil;
         private readonly IProcessUtil processUtil;
         private readonly ILogger logger;
-        private readonly IToolFolder toolFolder;
-        private readonly IToolZipProvider toolZipProvider;
-		private const string zipPrefix = "openCover";
+        private readonly IToolUnzipper toolUnzipper;
+        private const string zipPrefix = "openCover";
 		private const string zipDirectoryName = "openCover";
 
 		[ImportingConstructor]
@@ -28,19 +27,18 @@ namespace FineCodeCoverage.Engine.OpenCover
 			IMsTestPlatformUtil msTestPlatformUtil,
 			IProcessUtil processUtil, 
 			ILogger logger, 
-			IToolFolder toolFolder, 
-			IToolZipProvider toolZipProvider)
+			IToolUnzipper toolUnzipper
+		)
         {
             this.msTestPlatformUtil = msTestPlatformUtil;
             this.processUtil = processUtil;
             this.logger = logger;
-            this.toolFolder = toolFolder;
-            this.toolZipProvider = toolZipProvider;
+            this.toolUnzipper = toolUnzipper;
         }
 
 		public void Initialize(string appDataFolder, CancellationToken cancellationToken)
 		{
-			var zipDestination = toolFolder.EnsureUnzipped(appDataFolder, zipDirectoryName, toolZipProvider.ProvideZip(zipPrefix),cancellationToken);
+			var zipDestination = toolUnzipper.EnsureUnzipped(appDataFolder, zipDirectoryName, zipPrefix,cancellationToken);
 			openCoverExePath = Directory
 				.GetFiles(zipDestination, "OpenCover.Console.exe", SearchOption.AllDirectories)
 				.FirstOrDefault();

@@ -166,8 +166,10 @@
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\SolutionEvents.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\ToolWindowOpener.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\ToolZip\IToolFolder.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\ToolZip\IToolUnzipper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\ToolZip\IToolZipProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\ToolZip\ToolFolder.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\ToolZip\ToolUnzipper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\ToolZip\ToolZipProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\LinqToXmlUtil.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\Tryer.cs" />
