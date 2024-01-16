@@ -1,9 +1,10 @@
-﻿using System;
-using System.ComponentModel.Composition;
+﻿using System.ComponentModel.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 
 namespace FineCodeCoverage.Core.Utilities
 {
+    [ExcludeFromCodeCoverage]
     [Export(typeof(IFileUtil))]
     internal class FileUtil : IFileUtil
     {
@@ -82,6 +83,16 @@ namespace FineCodeCoverage.Core.Utilities
                 return null;
             }
             return parentDirectory.FullName;
+        }
+
+        public string[] GetFiles(string path, string searchPattern, SearchOption searchOption)
+        {
+            return Directory.GetFiles(path, searchPattern, searchOption);
+        }
+
+        public void DeleteFile(string filePath)
+        {
+            File.Delete(filePath);
         }
     }
 }

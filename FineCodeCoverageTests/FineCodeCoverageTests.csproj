@@ -131,6 +131,7 @@
     <Compile Include="MsCodeCoverage\UserRunSettingsService_AddFCCSettings_Tests.cs" />
     <Compile Include="MsCodeCoverage\UserRunSettingsService_Analysis_Tests.cs" />
     <Compile Include="MsCodeCoverage\RunSettingsTemplateReplacementsFactory_Tests.cs" />
+    <Compile Include="OpenCoverExeArgumentsProvider_Tests.cs" />
     <Compile Include="OpenCoverUtil_Tests.cs" />
     <Compile Include="PackageLoader_Tests.cs" />
     <Compile Include="ShownToolWindowHistory_Tests.cs" />

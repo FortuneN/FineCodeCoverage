@@ -1,7 +1,6 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
-using System.Collections.Generic;
 using FineCodeCoverage.Engine.Model;
 using FineCodeCoverage.Engine.MsTestPlatform;
 using System.Threading.Tasks;
@@ -19,6 +18,8 @@ namespace FineCodeCoverage.Engine.OpenCover
         private readonly IProcessUtil processUtil;
         private readonly ILogger logger;
         private readonly IToolUnzipper toolUnzipper;
+        private readonly IFileUtil fileUtil;
+        private readonly IOpenCoverExeArgumentsProvider openCoverExeArgumentsProvider;
         private const string zipPrefix = "openCover";
 		private const string zipDirectoryName = "openCover";
 
@@ -27,21 +28,24 @@ namespace FineCodeCoverage.Engine.OpenCover
 			IMsTestPlatformUtil msTestPlatformUtil,
 			IProcessUtil processUtil, 
 			ILogger logger, 
-			IToolUnzipper toolUnzipper
-		)
+			IToolUnzipper toolUnzipper,
+			IFileUtil fileUtil,
+            IOpenCoverExeArgumentsProvider openCoverExeArgumentsProvider
+
+        )
         {
             this.msTestPlatformUtil = msTestPlatformUtil;
             this.processUtil = processUtil;
             this.logger = logger;
             this.toolUnzipper = toolUnzipper;
+            this.fileUtil = fileUtil;
+            this.openCoverExeArgumentsProvider = openCoverExeArgumentsProvider;
         }
 
 		public void Initialize(string appDataFolder, CancellationToken cancellationToken)
 		{
 			var zipDestination = toolUnzipper.EnsureUnzipped(appDataFolder, zipDirectoryName, zipPrefix,cancellationToken);
-			openCoverExePath = Directory
-				.GetFiles(zipDestination, "OpenCover.Console.exe", SearchOption.AllDirectories)
-				.FirstOrDefault();
+			openCoverExePath = fileUtil.GetFiles(zipDestination, "OpenCover.Console.exe", SearchOption.AllDirectories).First();
 		}
 		
 		private string GetOpenCoverExePath(string customExePath)
@@ -53,154 +57,37 @@ namespace FineCodeCoverage.Engine.OpenCover
 			return openCoverExePath;
         }
 
+		private void DeleteTestPdbIfDoNotIncludeTestAssembly(ICoverageProject project)
+		{
+            if (!project.Settings.IncludeTestAssembly)
+            {
+                // deleting the pdb of the test assembly seems to work; this is a VERY VERY shameful hack :(
+
+                var testDllPdbFile = Path.Combine(project.ProjectOutputFolder, Path.GetFileNameWithoutExtension(project.TestDllFile)) + ".pdb";
+                fileUtil.DeleteFile(testDllPdbFile);
+
+                // filtering out the test-assembly blows up the entire process and nothing gets instrumented or analysed
+
+                //var nameOnlyOfDll = Path.GetFileNameWithoutExtension(project.TestDllFileInWorkFolder);
+                //filters.Add($@"-[{nameOnlyOfDll}]*");
+            }
+        }
+
 		public async Task RunOpenCoverAsync(ICoverageProject project, CancellationToken cancellationToken)
 		{
-			var title = $"OpenCover Run ({project.ProjectName})";
+            DeleteTestPdbIfDoNotIncludeTestAssembly(project);
 
-			var opencoverSettings = new List<string>();
+            var openCoverSettings = openCoverExeArgumentsProvider.Provide(project, msTestPlatformUtil.MsTestPlatformExePath);
 
-			opencoverSettings.Add($@" -mergebyhash ");
+            var title = $"OpenCover Run ({project.ProjectName})";
 
-			opencoverSettings.Add($@" -hideskipped:all ");
-
-			{
-				// -register:
-
-				var registerValue = "path32";
-
-				if (project.Is64Bit)
-				{
-					registerValue = "path64";
-				}
-
-				opencoverSettings.Add($@" -register:{registerValue} ");
-			}
-
-			{
-				// -target:
-
-				opencoverSettings.Add($@" ""-target:{msTestPlatformUtil.MsTestPlatformExePath}"" ");
-			}
-
-			{
-				// -filter:
-
-				var filters = new List<string>();
-				var defaultFilter = "+[*]*";
-
-				foreach (var value in (project.Settings.Include ?? new string[0]).Where(x => !string.IsNullOrWhiteSpace(x)))
-				{
-					filters.Add($@"+{value.Replace("\"", "\\\"").Trim(' ', '\'')}");
-				}
-
-				foreach (var includedReferencedProject in project.IncludedReferencedProjects)
-				{
-					filters.Add($@"+[{includedReferencedProject}]*");
-				}
-
-				if (!filters.Any())
-				{
-					filters.Add(defaultFilter);
-				}
-
-				foreach (var value in (project.Settings.Exclude ?? new string[0]).Where(x => !string.IsNullOrWhiteSpace(x)))
-				{
-					filters.Add($@"-{value.Replace("\"", "\\\"").Trim(' ', '\'')}");
-				}
-
-				foreach (var referencedProjectExcludedFromCodeCoverage in project.ExcludedReferencedProjects)
-				{
-					filters.Add($@"-[{referencedProjectExcludedFromCodeCoverage}]*");
-				}
-
-				if (filters.Any(x => !x.Equals(defaultFilter)))
-				{
-					opencoverSettings.Add($@" ""-filter:{string.Join(" ", filters.Distinct())}"" ");
-				}
-			}
-
-			{
-				// -excludebyfile:
-
-				var excludes = new List<string>();
-
-				foreach (var value in (project.Settings.ExcludeByFile ?? new string[0]).Where(x => !string.IsNullOrWhiteSpace(x)))
-				{
-					excludes.Add(value.Replace("\"", "\\\"").Trim(' ', '\''));
-				}
-
-				if (excludes.Any())
-				{
-					opencoverSettings.Add($@" ""-excludebyfile:{string.Join(";", excludes)}"" ");
-				}
-			}
-
-			{
-				// -excludebyattribute:
-
-				var excludes = new List<string>()
-				{
-					// coverlet knows these implicitly
-					"ExcludeFromCoverage",
-					"ExcludeFromCodeCoverage" 
-				};
-
-				foreach (var value in (project.Settings.ExcludeByAttribute ?? new string[0]).Where(x => !string.IsNullOrWhiteSpace(x)))
-				{
-					excludes.Add(value.Replace("\"", "\\\"").Trim(' ', '\''));
-				}
-
-				foreach (var exclude in excludes.ToArray())
-				{
-					var excludeAlternateName = default(string);
-
-					if (exclude.EndsWith("Attribute", StringComparison.OrdinalIgnoreCase))
-					{
-						// remove 'Attribute' suffix
-						excludeAlternateName = exclude.Substring(0, exclude.IndexOf("Attribute", StringComparison.OrdinalIgnoreCase));
-					}
-					else
-					{
-						// add 'Attribute' suffix
-						excludeAlternateName = $"{exclude}Attribute";
-					}
-
-					excludes.Add(excludeAlternateName);
-				}
-
-				excludes = excludes.Distinct(StringComparer.OrdinalIgnoreCase).OrderBy(x => x).ToList();
-
-				if (excludes.Any())
-				{
-					opencoverSettings.Add($@" ""-excludebyattribute:(*.{string.Join(")|(*.", excludes)})"" ");
-				}
-			}
-
-			if (!project.Settings.IncludeTestAssembly)
-			{
-				// deleting the pdb of the test assembly seems to work; this is a VERY VERY shameful hack :(
-				
-				var testDllPdbFile = Path.Combine(project.ProjectOutputFolder, Path.GetFileNameWithoutExtension(project.TestDllFile)) + ".pdb";
-				File.Delete(testDllPdbFile);
-
-				// filtering out the test-assembly blows up the entire process and nothing gets instrumented or analysed
-				
-				//var nameOnlyOfDll = Path.GetFileNameWithoutExtension(project.TestDllFileInWorkFolder);
-				//filters.Add($@"-[{nameOnlyOfDll}]*");
-			}
-
-			var runSettings = !string.IsNullOrWhiteSpace(project.RunSettingsFile) ? $@"/Settings:\""{project.RunSettingsFile}\""" : default;
-			opencoverSettings.Add($@" ""-targetargs:\""{project.TestDllFile}\"" {runSettings}"" ");
-
-			opencoverSettings.Add($@" ""-output:{ project.CoverageOutputFile }"" ");
-
-			logger.Log($"{title} Arguments {Environment.NewLine}{string.Join($"{Environment.NewLine}", opencoverSettings)}");
+			logger.Log($"{title} Arguments {Environment.NewLine}{string.Join($"{Environment.NewLine}", openCoverSettings)}");
 
 			var result = await processUtil
 			.ExecuteAsync(new ExecuteRequest
 			{
 				FilePath = GetOpenCoverExePath(project.Settings.OpenCoverCustomPath),
-				Arguments = string.Join(" ", opencoverSettings),
+				Arguments = string.Join(" ", openCoverSettings),
 				WorkingDirectory = project.ProjectOutputFolder
 			},cancellationToken);
 			
