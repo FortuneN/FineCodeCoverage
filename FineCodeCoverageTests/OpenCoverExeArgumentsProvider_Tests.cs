@@ -65,7 +65,7 @@ namespace FineCodeCoverageTests
             
             var arguments = openCoverExeArgumentsProvider.Provide(mockCoverageProject.Object, "");
 
-            AssertHasEscapedSetting(arguments, $"-targetargs:{OpenCoverExeEscaper.EscapeQuoteTargetArgsArgument("testDllFile")}");
+            AssertHasEscapedSetting(arguments, $"-targetargs:{CommandLineArguments.EscapeQuotes("testDllFile")}");
         }
 
         [Test]
@@ -78,7 +78,7 @@ namespace FineCodeCoverageTests
 
             var arguments = openCoverExeArgumentsProvider.Provide(mockCoverageProject.Object, "");
 
-            AssertHasEscapedSetting(arguments, $"-targetargs:{OpenCoverExeEscaper.EscapeQuoteTargetArgsArgument("testDllFile")} /Settings:{OpenCoverExeEscaper.EscapeQuoteTargetArgsArgument("runSettingsFile")}");
+            AssertHasEscapedSetting(arguments, $"-targetargs:{CommandLineArguments.EscapeQuotes("testDllFile")} /Settings:{CommandLineArguments.EscapeQuotes("runSettingsFile")}");
         }
 
         [Test]
@@ -161,7 +161,53 @@ namespace FineCodeCoverageTests
             var mockCoverageProject = SafeMockCoverageProject();
 
             var arguments = openCoverExeArgumentsProvider.Provide(mockCoverageProject.Object, "");
+            
             AssertDoesNotHaveSetting(arguments, "excludebyfile");
+        }
+
+        [Test]
+        public void Should_Safely_Filter_Include_Project_IncludedReferencedProjects_Space_Delimited()
+        {
+            var openCoverExeArgumentsProvider = new OpenCoverExeArgumentsProvider();
+            var mockCoverageProject = SafeMockCoverageProject();
+            mockCoverageProject.Setup(coverageProject => coverageProject.IncludedReferencedProjects)
+                .Returns(new List<string> { "Referenced1", "Referenced2" });
+            
+            var arguments = openCoverExeArgumentsProvider.Provide(mockCoverageProject.Object, "");
+            
+            AssertHasEscapedSetting(arguments, "-filter:+[Referenced1]* +[Referenced2]*");
+        }
+
+        [Test]
+        public void Should_Safely_Filter_Include_All_When_Exclude_And_No_Include()
+        {
+            Should_Safely_Filter_Exclude_Project_ExcludedReferencedProjects_Space_Delimited();
+        }
+
+        [Test]
+        public void Should_Safely_Filter_Exclude_Project_ExcludedReferencedProjects_Space_Delimited()
+        {
+            var openCoverExeArgumentsProvider = new OpenCoverExeArgumentsProvider();
+            var mockCoverageProject = SafeMockCoverageProject();
+            mockCoverageProject.Setup(coverageProject => coverageProject.ExcludedReferencedProjects)
+                .Returns(new List<string> { "Referenced1", "Referenced2" });
+
+            var arguments = openCoverExeArgumentsProvider.Provide(mockCoverageProject.Object, "");
+
+            AssertHasEscapedSetting(arguments, "-filter:+[*]* -[Referenced1]* -[Referenced2]*");
+        }
+
+        [Test]
+        public void Should_Safely_Filter_Exclude_Trimmed_Project_Excludes_Trimmed_Of_Spaces_And_Quotes_Space_Delimited()
+        {
+            var openCoverExeArgumentsProvider = new OpenCoverExeArgumentsProvider();
+            var mockCoverageProject = SafeMockCoverageProject();
+            mockCoverageProject.Setup(coverageProject => coverageProject.Settings.Exclude)
+                .Returns(new string[] { "  '[Exclude1]*'  ", "  \"[Exclude2]* \" " });
+
+            var arguments = openCoverExeArgumentsProvider.Provide(mockCoverageProject.Object, "");
+
+            AssertHasEscapedSetting(arguments, "-filter:+[*]* -[Exclude1]* -[Exclude2]*");
         }
 
         private Mock<ICoverageProject> SafeMockCoverageProject()
@@ -185,7 +231,7 @@ namespace FineCodeCoverageTests
 
         private void AssertHasEscapedSetting(List<string> openCoverSettings, string setting)
         {
-            AssertHasSetting(openCoverSettings, OpenCoverExeEscaper.EscapeArgument(setting));
+            AssertHasSetting(openCoverSettings, CommandLineArguments.EscapeArgument(setting));
         }
     }
 }
