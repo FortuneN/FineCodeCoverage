@@ -93,6 +93,41 @@ namespace FineCodeCoverageTests
             AssertHasEscapedSetting(arguments, "-output:coverageOutputFile");
         }
 
+        [Test]
+        public void Should_Safely_ExcludeByFile_SemilColon_Delimited_Project_ExcludeByFile_Entries_Trimmed_Of_Spaces_And_Quotes()
+        {
+            var openCoverExeArgumentsProvider = new OpenCoverExeArgumentsProvider();
+            var mockCoverageProject = SafeMockCoverageProject();
+            mockCoverageProject.SetupGet(coverageProject => coverageProject.Settings.ExcludeByFile).Returns(new string[] { 
+                @"  ""excludeByFile1""  ",
+                " 'excludeByFile2' ",
+            });
+
+            var arguments = openCoverExeArgumentsProvider.Provide(mockCoverageProject.Object, "");
+
+            AssertHasEscapedSetting(arguments, "-excludebyfile:excludeByFile1;excludeByFile2");
+        }
+
+        [Test]
+        public void Should_Not_Throw_If_Project_ExcludeByFile_Is_Null()
+        {
+            var openCoverExeArgumentsProvider = new OpenCoverExeArgumentsProvider();
+            var mockCoverageProject = SafeMockCoverageProject();
+            mockCoverageProject.SetupGet(coverageProject => coverageProject.Settings.ExcludeByFile).Returns((string[])null);
+
+            Assert.DoesNotThrow(() => openCoverExeArgumentsProvider.Provide(mockCoverageProject.Object, ""));
+        }
+
+        [Test]
+        public void Should_Not_Add_ExcludeByFile_If_There_Are_None()
+        {
+            var openCoverExeArgumentsProvider = new OpenCoverExeArgumentsProvider();
+            var mockCoverageProject = SafeMockCoverageProject();
+
+            var arguments = openCoverExeArgumentsProvider.Provide(mockCoverageProject.Object, "");
+            AssertDoesNotHaveSetting(arguments, "excludebyfile");
+        }
+
         private Mock<ICoverageProject> SafeMockCoverageProject()
         {
             var mockCoverageProject = new Mock<ICoverageProject>();
@@ -100,6 +135,11 @@ namespace FineCodeCoverageTests
             mockCoverageProject.SetupGet(coverageProject => coverageProject.ExcludedReferencedProjects).Returns(new List<string>());
             mockCoverageProject.SetupGet(coverageProject => coverageProject.Settings).Returns(new Mock<IAppOptions>().Object);
             return mockCoverageProject;
+        }
+
+        private void AssertDoesNotHaveSetting(List<string> openCoverSettings, string setting)
+        {
+            Assert.IsFalse(openCoverSettings.Any(openCoverSetting => openCoverSetting.Contains($"-{setting}:")));
         }
 
         private void AssertHasSetting(List<string> openCoverSettings, string setting)

@@ -64,7 +64,7 @@ namespace FineCodeCoverage.Engine.OpenCover
 
             foreach (var value in (project.Settings.ExcludeByFile ?? new string[0]).Where(x => !string.IsNullOrWhiteSpace(x)))
             {
-                excludes.Add(value.Replace("\"", "\\\"").Trim(' ', '\''));
+                excludes.Add(value.Trim(' ', '\'','\"'));
             }
 
             if (excludes.Any())
