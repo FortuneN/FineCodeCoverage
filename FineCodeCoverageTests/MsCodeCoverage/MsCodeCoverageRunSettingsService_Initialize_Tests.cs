@@ -16,16 +16,12 @@ namespace FineCodeCoverageTests.MsCodeCoverage
 
             var cancellationToken = CancellationToken.None;
 
-            var zipDetails = new ZipDetails();
-            var mockToolZipProvider = autoMocker.GetMock<IToolZipProvider>();
-            mockToolZipProvider.Setup(toolZipProvider => toolZipProvider.ProvideZip("microsoft.codecoverage")).Returns(zipDetails);
-
-            var mockToolFolder = autoMocker.GetMock<IToolFolder>();
-            mockToolFolder.Setup(toolFolder => 
-                toolFolder.EnsureUnzipped("AppDataFolder", "msCodeCoverage", zipDetails, cancellationToken)).Returns("ZipDestination");
+            var mockToolUnzipper = autoMocker.GetMock<IToolUnzipper>();
+            mockToolUnzipper.Setup(toolFolder => 
+                toolFolder.EnsureUnzipped("AppDataFolder", "msCodeCoverage", "microsoft.codecoverage", cancellationToken)).Returns("ZipDestination");
             
             msCodeCoverageRunSettingsService.Initialize("AppDataFolder", null, cancellationToken);
-            mockToolFolder.VerifyAll();
+            mockToolUnzipper.VerifyAll();
         }
     }
 }

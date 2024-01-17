@@ -131,12 +131,15 @@
     <Compile Include="MsCodeCoverage\UserRunSettingsService_AddFCCSettings_Tests.cs" />
     <Compile Include="MsCodeCoverage\UserRunSettingsService_Analysis_Tests.cs" />
     <Compile Include="MsCodeCoverage\RunSettingsTemplateReplacementsFactory_Tests.cs" />
+    <Compile Include="OpenCoverExeArgumentsProvider_Tests.cs" />
+    <Compile Include="OpenCoverUtil_Tests.cs" />
     <Compile Include="PackageLoader_Tests.cs" />
     <Compile Include="ShownToolWindowHistory_Tests.cs" />
     <Compile Include="Test helpers\MefOrderAssertions.cs" />
     <Compile Include="Test helpers\TestThreadHelper.cs" />
     <Compile Include="Test helpers\XmlAssert.cs" />
     <Compile Include="ToolFolder_Tests.cs" />
+    <Compile Include="ToolUnzipper_Tests.cs" />
     <Compile Include="ToolZipProvider_Tests.cs" />
     <Compile Include="CoverletDataCollectorGeneratedCobertura_Tests.cs" />
     <Compile Include="CoverletDataCollectorUtil_CanUseDataCollector_Tests.cs" />

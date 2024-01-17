@@ -25,8 +25,7 @@ namespace FineCodeCoverage.Engine.Coverlet
         private readonly IDataCollectorSettingsBuilderFactory dataCollectorSettingsBuilderFactory;
         private readonly ICoverletDataCollectorGeneratedCobertura coverletDataCollectorGeneratedCobertura;
         private readonly IProcessResponseProcessor processResponseProcessor;
-        private readonly IToolZipProvider toolZipProvider;
-        private readonly IToolFolder toolFolder;
+        private readonly IToolUnzipper toolUnzipper;
         private readonly IVsBuildFCCSettingsProvider vsBuildFCCSettingsProvider;
 
 
@@ -35,8 +34,8 @@ namespace FineCodeCoverage.Engine.Coverlet
         internal ICoverageProject coverageProject;
         private const string LogPrefix = "Coverlet Collector Run";
         internal string TestAdapterPathArg { get; set; }
-        internal const string zipPrefix = "coverlet.collector";
-        internal const string zipDirectoryName = "coverletCollector";
+        private const string zipPrefix = "coverlet.collector";
+        private const string zipDirectoryName = "coverletCollector";
 
         internal IThreadHelper ThreadHelper = new VsThreadHelper();
 
@@ -49,8 +48,7 @@ namespace FineCodeCoverage.Engine.Coverlet
             IDataCollectorSettingsBuilderFactory dataCollectorSettingsBuilderFactory,
             ICoverletDataCollectorGeneratedCobertura coverletDataCollectorGeneratedCobertura,
             IProcessResponseProcessor processResponseProcessor,
-            IToolZipProvider toolZipProvider,
-            IToolFolder toolFolder,
+            IToolUnzipper toolUnzipper,
             IVsBuildFCCSettingsProvider vsBuildFCCSettingsProvider
             )
         {
@@ -61,8 +59,7 @@ namespace FineCodeCoverage.Engine.Coverlet
             this.dataCollectorSettingsBuilderFactory = dataCollectorSettingsBuilderFactory;
             this.coverletDataCollectorGeneratedCobertura = coverletDataCollectorGeneratedCobertura;
             this.processResponseProcessor = processResponseProcessor;
-            this.toolZipProvider = toolZipProvider;
-            this.toolFolder = toolFolder;
+            this.toolUnzipper = toolUnzipper;
             this.vsBuildFCCSettingsProvider = vsBuildFCCSettingsProvider;
         }
         
@@ -271,7 +268,7 @@ namespace FineCodeCoverage.Engine.Coverlet
 
         public void Initialize(string appDataFolder,CancellationToken cancellationToken)
         {
-            var zipDestination = toolFolder.EnsureUnzipped(appDataFolder, zipDirectoryName,toolZipProvider.ProvideZip(zipPrefix),cancellationToken);
+            var zipDestination = toolUnzipper.EnsureUnzipped(appDataFolder, zipDirectoryName, zipPrefix, cancellationToken);
             var testAdapterPath = Path.Combine(zipDestination, "build", "netstandard1.0");
             TestAdapterPathArg = $@"""{testAdapterPath}""";
         }

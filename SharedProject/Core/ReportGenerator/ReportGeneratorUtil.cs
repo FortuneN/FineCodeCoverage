@@ -47,8 +47,7 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 		private readonly IAssemblyUtil assemblyUtil;
 		private readonly IProcessUtil processUtil;
 		private readonly ILogger logger;
-		private readonly IToolFolder toolFolder;
-		private readonly IToolZipProvider toolZipProvider;
+        private readonly IToolUnzipper toolUnzipper;
         private readonly IReportColoursProvider reportColoursProvider;
         private readonly IFileUtil fileUtil;
 		private readonly IAppOptionsProvider appOptionsProvider;
@@ -98,8 +97,7 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 			IAssemblyUtil assemblyUtil,
 			IProcessUtil processUtil,
 			ILogger logger,
-			IToolFolder toolFolder,
-			IToolZipProvider toolZipProvider,
+			IToolUnzipper toolUnzipper,
 			IFileUtil fileUtil,
 			IAppOptionsProvider appOptionsProvider,
 			IReportColoursProvider reportColoursProvider,
@@ -114,9 +112,8 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 			this.assemblyUtil = assemblyUtil;
 			this.processUtil = processUtil;
 			this.logger = logger;
-			this.toolFolder = toolFolder;
-			this.toolZipProvider = toolZipProvider;
-			this.reportColoursProvider = reportColoursProvider;
+            this.toolUnzipper = toolUnzipper;
+            this.reportColoursProvider = reportColoursProvider;
             this.reportColoursProvider.ColoursChanged += ReportColoursProvider_ColoursChanged;
 			this.scriptManager = scriptManager;
             this.resourceProvider = resourceProvider;
@@ -139,7 +136,7 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 
         public void Initialize(string appDataFolder, CancellationToken cancellationToken)
 		{
-			var zipDestination = toolFolder.EnsureUnzipped(appDataFolder, zipDirectoryName, toolZipProvider.ProvideZip(zipPrefix), cancellationToken);
+			var zipDestination = toolUnzipper.EnsureUnzipped(appDataFolder, zipDirectoryName, zipPrefix, cancellationToken);
 			ReportGeneratorExePath = Directory.GetFiles(zipDestination, "reportGenerator.exe", SearchOption.AllDirectories).FirstOrDefault()
 								  ?? Directory.GetFiles(zipDestination, "*reportGenerator*.exe", SearchOption.AllDirectories).FirstOrDefault();
 		}

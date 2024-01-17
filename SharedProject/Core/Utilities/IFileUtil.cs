@@ -1,4 +1,6 @@
-﻿namespace FineCodeCoverage.Core.Utilities
+﻿using System.IO;
+
+namespace FineCodeCoverage.Core.Utilities
 {
     internal interface IFileUtil
     {
@@ -13,5 +15,7 @@
         bool Exists(string filePath);
         void Copy(string source, string destination);
         string DirectoryParentPath(string directoryPath);
+        string[] GetFiles(string path, string searchPattern, SearchOption searchOption);
+        void DeleteFile(string filePath);
     }
 }

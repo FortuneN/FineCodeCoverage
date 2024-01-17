@@ -144,11 +144,11 @@ namespace FineCodeCoverageTests.MsCodeCoverage
         private async Task RunAndProcessReportAsync(IEnumerable<Uri> resultsUris,string[] expectedCoberturaFiles)
         {
             autoMocker = new AutoMoqer();
-            var mockToolFolder = autoMocker.GetMock<IToolFolder>();
-            mockToolFolder.Setup(tf => tf.EnsureUnzipped(
+            var mockToolUnzipper = autoMocker.GetMock<IToolUnzipper>();
+            mockToolUnzipper.Setup(tf => tf.EnsureUnzipped(
                 It.IsAny<string>(), 
                 It.IsAny<string>(), 
-                It.IsAny<ZipDetails>(), 
+                It.IsAny<string>(), 
                 It.IsAny<CancellationToken>()
             )).Returns("ZipDestination");
             

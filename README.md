@@ -261,7 +261,7 @@ If you are using option 1) then project and global options will only be used whe
 |Exclude|Filter expressions to exclude specific modules and types (multiple values)|
 |Include|Filter expressions to include specific modules and types (multiple values)|
 |ExcludeByFile|Glob patterns specifying source files to exclude e.g. **/Migrations/* (multiple values)|
-|ExcludeByAttribute|Attributes to exclude from code coverage (multiple values)|
+|ExcludeByAttribute|Exclude attributed code at assembly, type and method level.  Add fully qualified or unqualified attribute types.|
 |RunInParallel|By default OpenCover / Coverlet tests run and then coverage is performed.  Set to true to run coverage immediately|
 |<br>||
 |**Ms code coverage**|Each of below is an array of regexes to be transformed into runsettings elements [see](https://learn.microsoft.com/en-us/visualstudio/test/customizing-code-coverage-analysis?view=vs-2022#include-or-exclude-assemblies-and-members)|
@@ -287,6 +287,9 @@ If you are using option 1) then project and global options will only be used whe
 |**The "CoverletConsole" settings have precedence Local / CustomPath / Global.**||
 |<br>||
 |**OpenCover**||
+|OpenCoverRegister|Change from Default if FCC determination of path32 or path64 is incorrect.|
+|OpenCoverTarget|Supply your own target if required.|
+|OpenCoverTargetArgs|If supplying your own target you can also supply additional arguments.  FCC supplies the test dll path.|
 |OpenCoverCustomPath|Specify path to open cover exe if you need functionality that the FCC version does not provide.|
 |ThresholdForNPathComplexity|When [npath complexity](https://en.wikipedia.org/wiki/Cyclomatic_complexity) exceeds this value for a method then the method will be present in the risk hotspots tab.|
 |ThresholdForCrapScore|When [crap score](https://testing.googleblog.com/2011/02/this-code-is-crap.html) exceeds this value for a method then the method will be present in the risk hotspots tab.|
@@ -320,17 +323,15 @@ You can include or exclude assemblies or specific types and members from code co
 
 You can ignore a method or an entire class from code coverage by applying the [ExcludeFromCodeCoverage] attribute present in the System.Diagnostics.CodeAnalysis namespace.
 
-For .Net Framework this attribute cannot be applied at the assembly level. See FCCExcludeFromCodeCoverage above for similar functinality. 
+For .Net ( not .Net Framework ) this attribute can be applied at the assembly level. 
 
-You can also ignore additional attributes by adding to the 'ExcludeByAttributes' list for Coverlet/OpenCover (short name or full name supported)
+For .Net Framework see FCCExcludeFromCodeCoverage, above, for similar functionality. 
 
-e.g. :
+To ignore code attributed with a different type:
 
-[GeneratedCode] => Present in System.CodeDom.Compiler namespace
-
-[MyCustomExcludeFromCodeCoverage] => Any custom attribute that you may define
-
-or for ms code coverage - AttributesExclude
+You can also ignore additional attributes by adding to the 'ExcludeByAttribute' list 
+For Coverlet/OpenCover add to adding to the 'ExcludeByAttribute' list ( fully qualified or unqualified).
+For ms code coverage add to the  'AttributesExclude' list.  This uses regex matching.
 
 ## FCC Output
 FCC outputs, by default, inside each test project's Debug folder.
