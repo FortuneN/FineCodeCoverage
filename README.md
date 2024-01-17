@@ -320,7 +320,7 @@ You can include or exclude assemblies or specific types and members from code co
 
 You can ignore a method or an entire class from code coverage by applying the [ExcludeFromCodeCoverage] attribute present in the System.Diagnostics.CodeAnalysis namespace.
 
-For .Net Framework this attribute cannot be applied at the assembly level. See FCCExcludeFromCodeCoverage above for similar functinality. 
+For .Net Framework this attribute cannot be applied at the assembly level. See FCCExcludeFromCodeCoverage above for similar functionality. 
 
 You can also ignore additional attributes by adding to the 'ExcludeByAttributes' list for Coverlet/OpenCover (short name or full name supported)
 
