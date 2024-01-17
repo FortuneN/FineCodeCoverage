@@ -109,6 +109,42 @@ namespace FineCodeCoverageTests
         }
 
         [Test]
+        public void Should_Safely_ExcludeByAttribute_Ordered_SemilColon_Delimited_Default_ExcludeFromCodeCoverage()
+        {
+            var openCoverExeArgumentsProvider = new OpenCoverExeArgumentsProvider();
+            var mockCoverageProject = SafeMockCoverageProject();
+
+            var arguments = openCoverExeArgumentsProvider.Provide(mockCoverageProject.Object, "");
+
+            AssertHasEscapedSetting(arguments, "-excludebyattribute:*.ExcludeFromCodeCoverage;*.ExcludeFromCodeCoverageAttribute;*.ExcludeFromCoverage;*.ExcludeFromCoverageAttribute");
+        }
+
+        [Test]
+        public void Should_Safely_ExcludeByAttribute_Ordered_SemilColon_Delimited_Project_ExcludeByAttribute_With_Wildcard_For_Short_Name()
+        {
+            var openCoverExeArgumentsProvider = new OpenCoverExeArgumentsProvider();
+            var mockCoverageProject = SafeMockCoverageProject();
+            mockCoverageProject.SetupGet(coverageProject => coverageProject.Settings.ExcludeByAttribute).Returns(new string[] {
+                @"  ""ShortFormAttribute""  ",
+                " 'Long.Form' ",
+            });
+
+            var arguments = openCoverExeArgumentsProvider.Provide(mockCoverageProject.Object, "");
+
+            AssertHasEscapedSetting(arguments, "-excludebyattribute:*.ExcludeFromCodeCoverage;*.ExcludeFromCodeCoverageAttribute;*.ExcludeFromCoverage;*.ExcludeFromCoverageAttribute;Long.Form;Long.FormAttribute;*.ShortForm;*.ShortFormAttribute");
+        }
+
+        [Test]
+        public void Should_Not_Throw_If_Project_ExcludeByAttribute_Is_Null()
+        {
+            var openCoverExeArgumentsProvider = new OpenCoverExeArgumentsProvider();
+            var mockCoverageProject = SafeMockCoverageProject();
+            mockCoverageProject.SetupGet(coverageProject => coverageProject.Settings.ExcludeByAttribute).Returns((string[])null);
+
+            Assert.DoesNotThrow(() => openCoverExeArgumentsProvider.Provide(mockCoverageProject.Object, ""));
+        }
+
+        [Test]
         public void Should_Not_Throw_If_Project_ExcludeByFile_Is_Null()
         {
             var openCoverExeArgumentsProvider = new OpenCoverExeArgumentsProvider();

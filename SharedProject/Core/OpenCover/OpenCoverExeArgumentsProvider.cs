@@ -58,57 +58,67 @@ namespace FineCodeCoverage.Engine.OpenCover
             
         }
 
-        private void AddExcludeByFile(ICoverageProject project, List<string> opencoverSettings)
+        private IEnumerable<string> GetExcludes(string[] excludes)
         {
-            var excludes = (project.Settings.ExcludeByFile ?? new string[0])
+            return (excludes ?? new string[0])
                 .Where(x => x != null)
                 .Select(x => x.Trim(' ', '\'', '\"'))
-                .Where(x => !string.IsNullOrWhiteSpace(x))
-                .ToList();
+                .Where(x => !string.IsNullOrWhiteSpace(x));
+        }
 
-            if (excludes.Any())
+        private void SafeAddToSettingsSemiColonDelimitedIfAny(List<string> opencoverSettings,string settingName,IEnumerable<string> settings)
+        {
+            if (settings.Any())
             {
-                opencoverSettings.Add($@"""-excludebyfile:{string.Join(";", excludes)}""");
+                opencoverSettings.Add($@"""-{settingName}:{string.Join(";", settings)}""");
             }
+        }
+
+        private void AddExcludeByFile(ICoverageProject project, List<string> opencoverSettings)
+        {
+            var excludes = GetExcludes(project.Settings.ExcludeByFile).ToList();
+            SafeAddToSettingsSemiColonDelimitedIfAny(opencoverSettings, "excludebyfile", excludes);
         }
 
         private void AddExcludeByAttribute(ICoverageProject project, List<string> opencoverSettings)
         {
-            var excludes = new List<string>()
+            var excludeFromCodeCoverageAttributes = new List<string>()
                 {
 					// coverlet knows these implicitly
 					"ExcludeFromCoverage",
                     "ExcludeFromCodeCoverage"
                 };
 
-            foreach (var value in (project.Settings.ExcludeByAttribute ?? new string[0]).Where(x => !string.IsNullOrWhiteSpace(x)))
+            var excludes = GetExcludes(project.Settings.ExcludeByAttribute)
+                .Concat(excludeFromCodeCoverageAttributes)
+                .SelectMany(exclude => new[] { exclude, GetAlternateName(exclude) })
+                .OrderBy(exclude => exclude)
+                .Select(WildCardIfShortName);
+                
+            
+            SafeAddToSettingsSemiColonDelimitedIfAny(opencoverSettings, "excludebyattribute", excludes);
+            
+            string WildCardIfShortName(string exclude)
             {
-                excludes.Add(value.Replace("\"", "\\\"").Trim(' ', '\''));
+                if(exclude.IndexOf(".") == -1)
+                {
+                    return $"*.{exclude}";
+                }
+                return exclude;
             }
 
-            foreach (var exclude in excludes.ToArray())
+            string GetAlternateName(string exclude)
             {
-                var excludeAlternateName = default(string);
-
-                if (exclude.EndsWith("Attribute", StringComparison.OrdinalIgnoreCase))
+                if (exclude.EndsWith("Attribute"))
                 {
                     // remove 'Attribute' suffix
-                    excludeAlternateName = exclude.Substring(0, exclude.IndexOf("Attribute", StringComparison.OrdinalIgnoreCase));
+                    return exclude.Substring(0, exclude.Length - 9);
                 }
                 else
                 {
                     // add 'Attribute' suffix
-                    excludeAlternateName = $"{exclude}Attribute";
+                    return $"{exclude}Attribute";
                 }
-
-                excludes.Add(excludeAlternateName);
-            }
-
-            excludes = excludes.Distinct(StringComparer.OrdinalIgnoreCase).OrderBy(x => x).ToList();
-
-            if (excludes.Any())
-            {
-                opencoverSettings.Add($@" ""-excludebyattribute:(*.{string.Join(")|(*.", excludes)})"" ");
             }
 
         }
