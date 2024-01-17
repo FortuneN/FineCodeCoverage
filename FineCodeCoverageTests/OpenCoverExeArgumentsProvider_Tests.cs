@@ -34,7 +34,7 @@ namespace FineCodeCoverageTests
 
         [TestCase(true)]
         [TestCase(false)]
-        public void Should_Register_Depending_Upon_Project_Is64Bit(bool is64Bit)
+        public void Should_Register_Depending_Upon_Project_Is64Bit_When_Project_OpenCoverRegister_Is_Default(bool is64Bit)
         {
             var openCoverExeArgumentsProvider = new OpenCoverExeArgumentsProvider();
             var mockCoverageProject = SafeMockCoverageProject();
@@ -45,8 +45,23 @@ namespace FineCodeCoverageTests
             AssertHasSetting(arguments, is64Bit ? "-register:path64" : "-register:path32");
         }
 
+        [TestCase(OpenCoverRegister.User,":user")]
+        [TestCase(OpenCoverRegister.Path32,":path32")]
+        [TestCase(OpenCoverRegister.Path64,":path64")]
+        [TestCase(OpenCoverRegister.NoArg,"")]
+        public void Should_Register_Using_Project_OpenCoverRegister_When_Not_Default(OpenCoverRegister register, string expectedSuffix)
+        {
+            var openCoverExeArgumentsProvider = new OpenCoverExeArgumentsProvider();
+            var mockCoverageProject = SafeMockCoverageProject();
+            mockCoverageProject.SetupGet(coverageProject => coverageProject.Settings.OpenCoverRegister).Returns(register);
+
+            var arguments = openCoverExeArgumentsProvider.Provide(mockCoverageProject.Object, "");
+            
+            AssertHasSetting(arguments, $"-register{expectedSuffix}");
+        }
+
         [Test]
-        public void Should_Safely_Set_Target_To_MsTestPlatformExePath()
+        public void Should_Safely_Set_Target_To_MsTestPlatformExePath_When_Not_Provided_In_Project_Settings()
         {
             var openCoverExeArgumentsProvider = new OpenCoverExeArgumentsProvider();
             var mockCoverageProject = SafeMockCoverageProject();
@@ -54,6 +69,17 @@ namespace FineCodeCoverageTests
             var arguments = openCoverExeArgumentsProvider.Provide(mockCoverageProject.Object, "msTestPlatformExePath");
             
             AssertHasEscapedSetting(arguments, "-target:msTestPlatformExePath");
+        }
+
+        [Test]
+        public void Should_Safely_Set_Target_From_Project_Settings_When_Provided()
+        {
+            var openCoverExeArgumentsProvider = new OpenCoverExeArgumentsProvider();
+            var mockCoverageProject = SafeMockCoverageProject();
+            mockCoverageProject.Setup(coverageProject => coverageProject.Settings.OpenCoverTarget).Returns("openCoverTarget");
+            var arguments = openCoverExeArgumentsProvider.Provide(mockCoverageProject.Object, "msTestPlatformExePath");
+
+            AssertHasEscapedSetting(arguments, "-target:openCoverTarget");
         }
 
         [Test]
@@ -81,6 +107,18 @@ namespace FineCodeCoverageTests
             AssertHasEscapedSetting(arguments, $"-targetargs:{CommandLineArguments.AddEscapeQuotes("testDllFile")} /Settings:{CommandLineArguments.AddEscapeQuotes("runSettingsFile")}");
         }
 
+        [Test]
+        public void Should_Safely_Include_The_Project_OpenCoverTargetArgs_When_Present()
+        {
+            var openCoverExeArgumentsProvider = new OpenCoverExeArgumentsProvider();
+            var mockCoverageProject = SafeMockCoverageProject();
+            mockCoverageProject.SetupGet(coverageProject => coverageProject.TestDllFile).Returns("testDllFile");
+            mockCoverageProject.SetupGet(coverageProject => coverageProject.Settings.OpenCoverTargetArgs).Returns("openCoverAdditionalTargetArgs");
+            var arguments = openCoverExeArgumentsProvider.Provide(mockCoverageProject.Object, "");
+
+            AssertHasEscapedSetting(arguments, $"-targetargs:{CommandLineArguments.AddEscapeQuotes("testDllFile")} openCoverAdditionalTargetArgs");
+        }
+        
         [Test]
         public void Should_Safely_Output_To_The_Project_CoverageOutputFile()
         {

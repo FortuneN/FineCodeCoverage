@@ -317,7 +317,10 @@ namespace FineCodeCoverageTests
                 { nameof(IAppOptions.ShowToolWindowToolbar),true},
                 {nameof(IAppOptions.ExcludeAssemblies),new string[]{ "Exclude"} },
                 {nameof(IAppOptions.IncludeAssemblies),new string[]{ "Include"} },
-                {nameof(IAppOptions.NamespaceQualification),NamespaceQualification.AlwaysUnqualified }
+                {nameof(IAppOptions.NamespaceQualification),NamespaceQualification.AlwaysUnqualified },
+                {nameof(IAppOptions.OpenCoverRegister),OpenCoverRegister.Default },
+                {nameof(IAppOptions.OpenCoverTarget),"" },
+                {nameof(IAppOptions.OpenCoverTargetArgs),"" }
             };
             var mockJsonConvertService = autoMocker.GetMock<IJsonConvertService>();
             mockJsonConvertService.Setup(

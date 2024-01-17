@@ -287,6 +287,9 @@ If you are using option 1) then project and global options will only be used whe
 |**The "CoverletConsole" settings have precedence Local / CustomPath / Global.**||
 |<br>||
 |**OpenCover**||
+|OpenCoverRegister|Change from Default if FCC determination of path32 or path64 is incorrect.|
+|OpenCoverTarget|Supply your own target if required.|
+|OpenCoverTargetArgs|If supplying your own target you can also supply additional arguments.  FCC supplies the test dll path.|
 |OpenCoverCustomPath|Specify path to open cover exe if you need functionality that the FCC version does not provide.|
 |ThresholdForNPathComplexity|When [npath complexity](https://en.wikipedia.org/wiki/Cyclomatic_complexity) exceeds this value for a method then the method will be present in the risk hotspots tab.|
 |ThresholdForCrapScore|When [crap score](https://testing.googleblog.com/2011/02/this-code-is-crap.html) exceeds this value for a method then the method will be present in the risk hotspots tab.|

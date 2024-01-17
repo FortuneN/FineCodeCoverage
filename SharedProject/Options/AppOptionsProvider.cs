@@ -210,5 +210,8 @@ namespace FineCodeCoverage.Options
         public string[] ExcludeAssemblies { get; set; }
         public string[] IncludeAssemblies { get; set; }
         public NamespaceQualification NamespaceQualification { get; set; }
+        public OpenCoverRegister OpenCoverRegister { get; set; }
+        public string OpenCoverTarget { get; set; }
+        public string OpenCoverTargetArgs { get; set; }
     }
 }

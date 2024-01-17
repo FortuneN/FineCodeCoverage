@@ -36,7 +36,17 @@
         string[] ExcludeByFile { get; set; }
         string[] Include { get; set; }
     }
-    internal interface IAppOptions : IMsCodeCoverageOptions, IOpenCoverCoverletExcludeIncludeOptions, IFCCCommonOptions
+
+    internal enum OpenCoverRegister { Default,NoArg, User, Path32, Path64}
+
+    internal interface IOpenCoverOptions
+    {
+        string OpenCoverCustomPath { get; set; }
+        OpenCoverRegister OpenCoverRegister { get; set; }
+        string OpenCoverTarget { get; set; }
+        string OpenCoverTargetArgs { get; set; }
+    }
+    internal interface IAppOptions : IMsCodeCoverageOptions, IOpenCoverCoverletExcludeIncludeOptions, IFCCCommonOptions, IOpenCoverOptions
     {
         bool RunInParallel { get; set; }
         int RunWhenTestsExceed { get; set; }
@@ -47,7 +57,7 @@
         string CoverletConsoleCustomPath { get; set; }
         bool CoverletConsoleLocal { get; set; }
         string CoverletCollectorDirectoryPath { get; set; }
-        string OpenCoverCustomPath { get; set; }
+        
         string FCCSolutionOutputDirectoryName { get; set; }
         int ThresholdForCyclomaticComplexity { get; set; }
         int ThresholdForNPathComplexity { get; set; }

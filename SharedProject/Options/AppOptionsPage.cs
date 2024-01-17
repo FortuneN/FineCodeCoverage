@@ -315,6 +315,18 @@ namespace FineCodeCoverage.Options
         [Description("Specify path to open cover exe if you need functionality that the FCC version does not provide.")]
         [Category(openCoverToolCategory)]
         public string OpenCoverCustomPath { get; set; }
+
+        [Description("Change from Default if FCC determination of path32 or path64 is incorrect.")]
+        [Category(openCoverToolCategory)]
+        public OpenCoverRegister OpenCoverRegister { get; set; }
+
+        [Category(openCoverToolCategory)]
+        [Description("Supply your own target if required.")]
+        public string OpenCoverTarget { get; set; }
+
+        [Category(openCoverToolCategory)]
+        [Description("If supplying your own target you can also supply additional arguments.  FCC supplies the test dll path.")]
+        public string OpenCoverTargetArgs { get; set; }
         #endregion
 
         public override void SaveSettingsToStorage()

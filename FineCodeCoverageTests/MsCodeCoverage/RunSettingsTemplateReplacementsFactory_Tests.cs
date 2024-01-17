@@ -702,5 +702,8 @@ namespace FineCodeCoverageTests.MsCodeCoverage
         public string[] IncludeAssemblies { get; set; }
         public bool DisabledNoCoverage { get; set; }
         public NamespaceQualification NamespaceQualification { get; set; }
+        public OpenCoverRegister OpenCoverRegister { get; set; }
+        public string OpenCoverTarget { get; set; }
+        public string OpenCoverTargetArgs { get; set; }
     }
 }

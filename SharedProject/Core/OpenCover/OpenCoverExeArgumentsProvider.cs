@@ -1,4 +1,5 @@
 ﻿using FineCodeCoverage.Engine.Model;
+using FineCodeCoverage.Options;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
@@ -139,22 +140,45 @@ namespace FineCodeCoverage.Engine.OpenCover
         private string GetTargetArgs(ICoverageProject project)
         {
             var runSettings = !string.IsNullOrWhiteSpace(project.RunSettingsFile) ? $@" /Settings:{CommandLineArguments.AddEscapeQuotes(project.RunSettingsFile)}" : default;
-            return $@"""-targetargs:{CommandLineArguments.AddEscapeQuotes(project.TestDllFile)}{runSettings}""";
+            var openCoverTargetArgs = project.Settings.OpenCoverTargetArgs;
+            var additionalTargetArgs = !string.IsNullOrWhiteSpace(openCoverTargetArgs) ? $" {openCoverTargetArgs}" : default;
+            return $@"""-targetargs:{CommandLineArguments.AddEscapeQuotes(project.TestDllFile)}{runSettings}{additionalTargetArgs}""";
+        }
+
+        private void AddTargetAndTargetArgs(ICoverageProject project, List<string> opencoverSettings, string msTestPlatformExePath)
+        {
+            var target = !string.IsNullOrWhiteSpace(project.Settings.OpenCoverTarget) ? project.Settings.OpenCoverTarget : msTestPlatformExePath;
+            opencoverSettings.Add(CommandLineArguments.AddQuotes($"-target:{target}"));
+            opencoverSettings.Add(GetTargetArgs(project));
+        }
+
+        private string GetRegister(ICoverageProject project)
+        {
+            var openCoverRegister = project.Settings.OpenCoverRegister;
+            if (openCoverRegister == OpenCoverRegister.Default)
+            {
+                return $":path{(project.Is64Bit ? "64" : "32")}";
+            }
+            if(openCoverRegister == OpenCoverRegister.NoArg)
+            {
+                return "";
+            }
+            return $":{project.Settings.OpenCoverRegister.ToString().ToLower()}";
         }
 
         public List<string> Provide(ICoverageProject project,string msTestPlatformExePath)
         {
             var opencoverSettings = new List<string>();
-            
-            opencoverSettings.Add(CommandLineArguments.AddQuotes($"-target:{msTestPlatformExePath}"));
-            opencoverSettings.Add(GetTargetArgs(project));
+            AddTargetAndTargetArgs(project, opencoverSettings, msTestPlatformExePath);
+            //opencoverSettings.Add(CommandLineArguments.AddQuotes($"-target:{msTestPlatformExePath}"));
+            //opencoverSettings.Add(GetTargetArgs(project));
 
             opencoverSettings.Add(CommandLineArguments.AddQuotes($"-output:{project.CoverageOutputFile}"));
             
             AddFilter(project, opencoverSettings);
             AddExcludeByFile(project, opencoverSettings);
             AddExcludeByAttribute(project, opencoverSettings);
-            opencoverSettings.Add($"-register:path{(project.Is64Bit ? "64" : "32")}");
+            opencoverSettings.Add($"-register{GetRegister(project)}");
             opencoverSettings.Add("-mergebyhash");
             opencoverSettings.Add("-hideskipped:all");
 
