@@ -60,12 +60,11 @@ namespace FineCodeCoverage.Engine.OpenCover
 
         private void AddExcludeByFile(ICoverageProject project, List<string> opencoverSettings)
         {
-            var excludes = new List<string>();
-
-            foreach (var value in (project.Settings.ExcludeByFile ?? new string[0]).Where(x => !string.IsNullOrWhiteSpace(x)))
-            {
-                excludes.Add(value.Trim(' ', '\'','\"'));
-            }
+            var excludes = (project.Settings.ExcludeByFile ?? new string[0])
+                .Where(x => x != null)
+                .Select(x => x.Trim(' ', '\'', '\"'))
+                .Where(x => !string.IsNullOrWhiteSpace(x))
+                .ToList();
 
             if (excludes.Any())
             {
