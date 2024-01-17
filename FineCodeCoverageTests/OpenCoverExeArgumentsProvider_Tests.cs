@@ -65,7 +65,7 @@ namespace FineCodeCoverageTests
             
             var arguments = openCoverExeArgumentsProvider.Provide(mockCoverageProject.Object, "");
 
-            AssertHasEscapedSetting(arguments, $"-targetargs:{CommandLineArguments.EscapeQuotes("testDllFile")}");
+            AssertHasEscapedSetting(arguments, $"-targetargs:{CommandLineArguments.AddEscapeQuotes("testDllFile")}");
         }
 
         [Test]
@@ -78,7 +78,7 @@ namespace FineCodeCoverageTests
 
             var arguments = openCoverExeArgumentsProvider.Provide(mockCoverageProject.Object, "");
 
-            AssertHasEscapedSetting(arguments, $"-targetargs:{CommandLineArguments.EscapeQuotes("testDllFile")} /Settings:{CommandLineArguments.EscapeQuotes("runSettingsFile")}");
+            AssertHasEscapedSetting(arguments, $"-targetargs:{CommandLineArguments.AddEscapeQuotes("testDllFile")} /Settings:{CommandLineArguments.AddEscapeQuotes("runSettingsFile")}");
         }
 
         [Test]
@@ -231,7 +231,7 @@ namespace FineCodeCoverageTests
 
         private void AssertHasEscapedSetting(List<string> openCoverSettings, string setting)
         {
-            AssertHasSetting(openCoverSettings, CommandLineArguments.EscapeArgument(setting));
+            AssertHasSetting(openCoverSettings, CommandLineArguments.AddQuotes(setting));
         }
     }
 }

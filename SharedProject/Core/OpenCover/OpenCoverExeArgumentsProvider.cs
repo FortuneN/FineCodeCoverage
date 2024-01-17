@@ -8,12 +8,12 @@ namespace FineCodeCoverage.Engine.OpenCover
 {
     internal static class CommandLineArguments
     {
-        public static string EscapeArgument(string value)
+        public static string AddQuotes(string value)
         {
             return $@"""{value}""";
         }
         
-        public static string EscapeQuotes(string arg)
+        public static string AddEscapeQuotes(string arg)
         {
             return $@"\""{arg}\""";
         }
@@ -138,18 +138,18 @@ namespace FineCodeCoverage.Engine.OpenCover
 
         private string GetTargetArgs(ICoverageProject project)
         {
-            var runSettings = !string.IsNullOrWhiteSpace(project.RunSettingsFile) ? $@" /Settings:{CommandLineArguments.EscapeQuotes(project.RunSettingsFile)}" : default;
-            return $@"""-targetargs:{CommandLineArguments.EscapeQuotes(project.TestDllFile)}{runSettings}""";
+            var runSettings = !string.IsNullOrWhiteSpace(project.RunSettingsFile) ? $@" /Settings:{CommandLineArguments.AddEscapeQuotes(project.RunSettingsFile)}" : default;
+            return $@"""-targetargs:{CommandLineArguments.AddEscapeQuotes(project.TestDllFile)}{runSettings}""";
         }
 
         public List<string> Provide(ICoverageProject project,string msTestPlatformExePath)
         {
             var opencoverSettings = new List<string>();
             
-            opencoverSettings.Add(CommandLineArguments.EscapeArgument($"-target:{msTestPlatformExePath}"));
+            opencoverSettings.Add(CommandLineArguments.AddQuotes($"-target:{msTestPlatformExePath}"));
             opencoverSettings.Add(GetTargetArgs(project));
 
-            opencoverSettings.Add(CommandLineArguments.EscapeArgument($"-output:{project.CoverageOutputFile}"));
+            opencoverSettings.Add(CommandLineArguments.AddQuotes($"-output:{project.CoverageOutputFile}"));
             
             AddFilter(project, opencoverSettings);
             AddExcludeByFile(project, opencoverSettings);
