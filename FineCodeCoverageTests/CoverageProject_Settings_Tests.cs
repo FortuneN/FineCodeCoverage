@@ -5,6 +5,7 @@ using FineCodeCoverage.Options;
 using FineCodeCoverageTests.Test_helpers;
 using Moq;
 using NUnit.Framework;
+using StructureMap.AutoMocking;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -142,13 +143,21 @@ namespace FineCodeCoverageTests
 
     public class SettingsMerger_Tests
     {
+        private AutoMoqer mocker;
+        private SettingsMerger settingsMerger;
+
+        [SetUp]
+        public void SetUp()
+        {
+            mocker = new AutoMoqer();
+            settingsMerger = mocker.Create<SettingsMerger>();
+        }
         [Test]
         public void Should_Use_Global_Settings_If_No_Project_Level_Or_FCC_Settings_Files()
         {
             var mockAppOptions = new Mock<IAppOptions>(MockBehavior.Strict);
             var appOptions = mockAppOptions.Object;
 
-            var settingsMerger = new SettingsMerger(null);
             var mergedSettings = settingsMerger.Merge(appOptions, new List<XElement>(), null);
             
             Assert.AreSame(appOptions, mergedSettings);
@@ -161,7 +170,6 @@ namespace FineCodeCoverageTests
             mockAppOptions.SetupSet(o => o.IncludeReferencedProjects = true);
             var appOptions = mockAppOptions.Object;
 
-            var settingsMerger = new SettingsMerger(null);
             var settingsFileElement = CreateIncludeReferencedProjectsElement(true);
             var mergedSettings = settingsMerger.Merge(appOptions, new List<XElement> { settingsFileElement}, null);
 
@@ -176,7 +184,6 @@ namespace FineCodeCoverageTests
             mockAppOptions.SetupAllProperties();
             var appOptions = mockAppOptions.Object;
 
-            var settingsMerger = new SettingsMerger(null);
             var settingsFileElementTop = CreateIncludeReferencedProjectsElement(!last);
             var settingsFileElementLast = CreateIncludeReferencedProjectsElement(last);
             var mergedSettings = settingsMerger.Merge(
@@ -196,7 +203,6 @@ namespace FineCodeCoverageTests
             mockAppOptions.SetupAllProperties();
             var appOptions = mockAppOptions.Object;
 
-            var settingsMerger = new SettingsMerger(null);
             var settingsFileElement = CreateIncludeReferencedProjectsElement(!last);
             var projectElement = CreateIncludeReferencedProjectsElement(last);
             var mergedSettings = settingsMerger.Merge(
@@ -221,7 +227,6 @@ namespace FineCodeCoverageTests
 </Root>
 ");
 
-            var settingsMerger = new SettingsMerger(null);
             var mergedSettings = settingsMerger.Merge(
                 appOptions,
                 new List<XElement> {},
@@ -244,7 +249,6 @@ namespace FineCodeCoverageTests
 </Root>
 ");
 
-            var settingsMerger = new SettingsMerger(null);
             var mergedSettings = settingsMerger.Merge(
                 appOptions,
                 new List<XElement> { },
@@ -267,7 +271,6 @@ namespace FineCodeCoverageTests
 </Root>
 ");
 
-            var settingsMerger = new SettingsMerger(null);
             var mergedSettings = settingsMerger.Merge(
                 appOptions,
                 new List<XElement> { },
@@ -293,7 +296,6 @@ namespace FineCodeCoverageTests
 </Root>
 ");
 
-            var settingsMerger = new SettingsMerger(null);
             var mergedSettings = settingsMerger.Merge(
                 appOptions,
                 new List<XElement> { },
@@ -319,7 +321,6 @@ namespace FineCodeCoverageTests
 </Root>
 ");
 
-            var settingsMerger = new SettingsMerger(null);
             var mergedSettings = settingsMerger.Merge(
                 appOptions,
                 new List<XElement> { },
@@ -345,7 +346,6 @@ namespace FineCodeCoverageTests
 </Root>
 ");
 
-            var settingsMerger = new SettingsMerger(null);
             var mergedSettings = settingsMerger.Merge(
                 appOptions,
                 new List<XElement> { },
@@ -371,7 +371,6 @@ namespace FineCodeCoverageTests
 </Root>
 ");
 
-            var settingsMerger = new SettingsMerger(null);
             var mergedSettings = settingsMerger.Merge(
                 appOptions,
                 new List<XElement> { },
@@ -397,7 +396,6 @@ namespace FineCodeCoverageTests
 </Root>
 ");
 
-            var settingsMerger = new SettingsMerger(null);
             var mergedSettings = settingsMerger.Merge(
                 appOptions,
                 new List<XElement> { },
@@ -423,7 +421,6 @@ namespace FineCodeCoverageTests
 </Root>
 ");
 
-            var settingsMerger = new SettingsMerger(null);
             var mergedSettings = settingsMerger.Merge(
                 appOptions,
                 new List<XElement> { },
@@ -431,6 +428,54 @@ namespace FineCodeCoverageTests
 
             Assert.AreSame(appOptions, mergedSettings);
             Assert.AreEqual(new string[] { "global", "1", "2" }, appOptions.Exclude);
+        }
+
+        [Test]
+        public void Should_Log_Failed_To_Get_Setting_From_Project_Settings_Exception_And_Not_Throw()
+        {
+            var mockAppOptions = new Mock<IAppOptions>();
+            mockAppOptions.SetupAllProperties();
+            var appOptions = mockAppOptions.Object;
+            var element = XElement.Parse($@"
+<Root>
+  <OpenCoverRegister>
+    DefaultX
+  </OpenCoverRegister>
+</Root>
+");
+
+            var mergedSettings = settingsMerger.Merge(
+                appOptions,
+                new List<XElement> { },
+                element);
+
+            var mockLogger = mocker.GetMock<ILogger>();
+            mockLogger.Verify(logger => logger.Log("Failed to get 'OpenCoverRegister' setting from project settings", It.IsAny<Exception>()));
+            Assert.AreEqual(mergedSettings.OpenCoverRegister, OpenCoverRegister.Default);
+        }
+
+        [Test]
+        public void Should_Log_Failed_To_Get_Setting_From_Settings_File_Exception_And_Not_Throw()
+        {
+            var mockAppOptions = new Mock<IAppOptions>();
+            mockAppOptions.SetupAllProperties();
+            var appOptions = mockAppOptions.Object;
+            var element = XElement.Parse($@"
+<Root>
+  <OpenCoverRegister>
+    DefaultX
+  </OpenCoverRegister>
+</Root>
+");
+
+            var mergedSettings = settingsMerger.Merge(
+                appOptions,
+                new List<XElement> { element},
+                null);
+
+            var mockLogger = mocker.GetMock<ILogger>();
+            mockLogger.Verify(logger => logger.Log("Failed to get 'OpenCoverRegister' setting from settings file", It.IsAny<Exception>()));
+            Assert.AreEqual(mergedSettings.OpenCoverRegister, OpenCoverRegister.Default);
         }
 
         [Test]
@@ -460,7 +505,7 @@ namespace FineCodeCoverageTests
         }
 
         [TestCaseSource(nameof(XmlConversionCases))]
-        public void Should_Convert_Xml_Value_Correctly(string propertyElement,string propertyName,object expectedConversion, bool expectedException)
+        public void Should_Convert_Xml_Value_Correctly(string propertyElement,string propertyName,object expectedConversion)
         {
             var settingsMerger = new SettingsMerger(new Mock<ILogger>().Object);
             var settingsElement = XElement.Parse($"<Root>{propertyElement}</Root>");
@@ -474,10 +519,10 @@ namespace FineCodeCoverageTests
         [Test]
         public void Should_Throw_For_Unsupported_Conversion()
         {
-            var settingsMerger = new SettingsMerger(new Mock<ILogger>().Object);
             var settingsElement = XElement.Parse($"<Root><PropertyType/></Root>");
             var unsupported = typeof(PropertyInfo).GetProperty(nameof(PropertyInfo.PropertyType));
-            var expectedMessage = $"Cannot handle 'PropertyType' yet";
+
+            var expectedMessage = $"Unexpected settings type Type for setting PropertyType in settings merger GetValueFromXml";
             Assert.Throws<Exception>(() => settingsMerger.GetValueFromXml(settingsElement, unsupported), expectedMessage);
         }
 
@@ -503,31 +548,31 @@ namespace FineCodeCoverageTests
             var cases = new object[]
             {
                 // boolean
-                new object[]{ CreateElement(hideFullyCovered, "true"),hideFullyCovered,true, false },
-                new object[]{ CreateElement(hideFullyCovered, "false"), hideFullyCovered, false, false },
-                new object[]{ CreateElement(hideFullyCovered, "bad"), hideFullyCovered, null, false },
-                new object[]{ CreateElement(hideFullyCovered, ""), hideFullyCovered, null, false },
-                new object[]{ CreateElement(hideFullyCovered, boolArray), hideFullyCovered, true, false },
+                new object[]{ CreateElement(hideFullyCovered, "true"),hideFullyCovered,true },
+                new object[]{ CreateElement(hideFullyCovered, "false"), hideFullyCovered, false },
+                new object[]{ CreateElement(hideFullyCovered, "bad"), hideFullyCovered, null },
+                new object[]{ CreateElement(hideFullyCovered, ""), hideFullyCovered, null },
+                new object[]{ CreateElement(hideFullyCovered, boolArray), hideFullyCovered, true },
 
                 // int
-                new object[]{ CreateElement(thresholdForCrapScore, "1"), thresholdForCrapScore, 1, false },
-                new object[]{ CreateElement(thresholdForCrapScore, "bad"), thresholdForCrapScore, null, false },
-                new object[]{ CreateElement(thresholdForCrapScore, ""), thresholdForCrapScore, null, false },
+                new object[]{ CreateElement(thresholdForCrapScore, "1"), thresholdForCrapScore, 1 },
+                new object[]{ CreateElement(thresholdForCrapScore, "bad"), thresholdForCrapScore, null },
+                new object[]{ CreateElement(thresholdForCrapScore, ""), thresholdForCrapScore, null },
 
                 // string
-                new object[]{ CreateElement(coverletConsoleCustomPath, "1"), coverletConsoleCustomPath, "1", false },
+                new object[]{ CreateElement(coverletConsoleCustomPath, "1"), coverletConsoleCustomPath, "1" },
                 // breaking change ( previous ignored )
-                new object[]{ CreateElement(coverletConsoleCustomPath, ""), coverletConsoleCustomPath, "", false },
+                new object[]{ CreateElement(coverletConsoleCustomPath, ""), coverletConsoleCustomPath, "" },
 
                 // string[] 
-                new object[]{ CreateElement(exclude, stringArray), exclude, new string[] { "1","2"}, false },
-                new object[]{ CreateElement(exclude, ""), exclude, new string[] {}, false },
+                new object[]{ CreateElement(exclude, stringArray), exclude, new string[] { "1","2"} },
+                new object[]{ CreateElement(exclude, ""), exclude, new string[] {} },
 
                 // null for no property element
-                new object[]{ CreateElement(exclude, "true"), hideFullyCovered, null, false},
+                new object[]{ CreateElement(exclude, "true"), hideFullyCovered, null},
 
                 //exception for no type conversion
-                new object[]{ CreateElement(enumConversion, "No"), enumConversion, RunMsCodeCoverage.No, false }
+                new object[]{ CreateElement(enumConversion, "No"), enumConversion, RunMsCodeCoverage.No }
                 
             };
 
