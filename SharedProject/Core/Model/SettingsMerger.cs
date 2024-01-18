@@ -75,6 +75,7 @@ namespace FineCodeCoverage.Engine.Model
         {
             public XElement SettingsElement { get; set; }
             public bool DefaultMerge { get; set; }
+            public bool FromProjectSettings { get; internal set; }
         }
 
         private readonly PropertyInfo[] settingsPropertyInfos;
@@ -90,13 +91,27 @@ namespace FineCodeCoverage.Engine.Model
             
         }
 
-        public IAppOptions Merge(IAppOptions globalOptions, List<XElement> settingsFileElements, XElement projectSettingsElement)
+        public IAppOptions Merge(
+            IAppOptions globalOptions, 
+            List<XElement> settingsFileElements, 
+            XElement projectSettingsElement)
         {
             var settingsElementsWithDefaultMergeStrategy =
-                settingsFileElements.Select(e => new SettingsElementDefaultMerge { SettingsElement = e, DefaultMerge = settingsFileDefaultMerge }).ToList();
+                settingsFileElements.Select(e => new SettingsElementDefaultMerge { 
+                    SettingsElement = e, 
+                    DefaultMerge = settingsFileDefaultMerge,
+                    FromProjectSettings = false 
+                }).ToList();
+
             if (projectSettingsElement != null)
             {
-                settingsElementsWithDefaultMergeStrategy.Add(new SettingsElementDefaultMerge { SettingsElement = projectSettingsElement, DefaultMerge = projectSettingsDefaultMerge });
+                settingsElementsWithDefaultMergeStrategy.Add(
+                    new SettingsElementDefaultMerge { 
+                        SettingsElement = projectSettingsElement, 
+                        DefaultMerge = projectSettingsDefaultMerge,
+                        FromProjectSettings = true 
+                    }
+                );
             }
 
             if (settingsElementsWithDefaultMergeStrategy.Count != 0)
@@ -107,7 +122,11 @@ namespace FineCodeCoverage.Engine.Model
             return globalOptions;
         }
 
-        private void Merge(IAppOptions globalOptions, PropertyInfo settingPropertyInfo, List<SettingsElementDefaultMerge> settingsElementsWithDefaultMergeStrategy)
+        private void Merge(
+            IAppOptions globalOptions, 
+            PropertyInfo settingPropertyInfo, 
+            List<SettingsElementDefaultMerge> settingsElementsWithDefaultMergeStrategy
+        )
         {
             var canMerge = settingsMergeLogic.CanMerge(settingPropertyInfo.PropertyType);
             if (canMerge)
@@ -119,14 +138,15 @@ namespace FineCodeCoverage.Engine.Model
                     var propertyElement = GetPropertyElement(settingsElement, settingPropertyInfo.Name);
                     if (propertyElement != null)
                     {
+                        var fromProjectSettings = settingsElementWithDefaultMerge.FromProjectSettings;
                         var merge = GetMerge(defaultMerge, propertyElement);
                         if (merge)
                         {
-                            Merge(globalOptions, settingPropertyInfo, settingsElement);
+                            Merge(globalOptions, settingPropertyInfo, settingsElement,fromProjectSettings);
                         }
                         else
                         {
-                            Overwrite(globalOptions, settingPropertyInfo, settingsElement);
+                            Overwrite(globalOptions, settingPropertyInfo, settingsElement,fromProjectSettings);
                         }
                     }
 
@@ -134,14 +154,13 @@ namespace FineCodeCoverage.Engine.Model
             }
             else
             {
-                var settingsElements = settingsElementsWithDefaultMergeStrategy.Select(x => x.SettingsElement);
-                Overwrite(globalOptions, settingPropertyInfo, settingsElements);
+                Overwrite(globalOptions, settingPropertyInfo, settingsElementsWithDefaultMergeStrategy);
             }
         }
 
-        private void Merge(IAppOptions globalOptions, PropertyInfo settingPropertyInfo, XElement settingsElement)
+        private void Merge(IAppOptions globalOptions, PropertyInfo settingPropertyInfo, XElement settingsElement,bool fromProjectSettings)
         {
-            var value = TryGetValueFromXml(settingsElement, settingPropertyInfo);
+            var value = TryGetValueFromXml(settingsElement, settingPropertyInfo,fromProjectSettings);
             if (value != null)
             {
                 var currentValue = settingPropertyInfo.GetValue(globalOptions);
@@ -179,17 +198,17 @@ namespace FineCodeCoverage.Engine.Model
             return defaultMergeAttribute.Value.ToLower() == "true";
         }
 
-        private void Overwrite(IAppOptions globalOptions, PropertyInfo settingPropertyInfo, IEnumerable<XElement> settingsElements)
+        private void Overwrite(IAppOptions globalOptions, PropertyInfo settingPropertyInfo, IEnumerable<SettingsElementDefaultMerge> settingsElementsDefaultMerge)
         {
-            foreach (var settingsElement in settingsElements)
+            foreach (var settingsElementDefaultMerge in settingsElementsDefaultMerge)
             {
-                Overwrite(globalOptions, settingPropertyInfo, settingsElement);
+                Overwrite(globalOptions, settingPropertyInfo, settingsElementDefaultMerge.SettingsElement,settingsElementDefaultMerge.FromProjectSettings);
             }
         }
 
-        private void Overwrite(IAppOptions globalOptions, PropertyInfo settingPropertyInfo, XElement settingsElement)
+        private void Overwrite(IAppOptions globalOptions, PropertyInfo settingPropertyInfo, XElement settingsElement,bool fromProjectSettings)
         {
-            var value = TryGetValueFromXml(settingsElement, settingPropertyInfo);
+            var value = TryGetValueFromXml(settingsElement, settingPropertyInfo,fromProjectSettings);
             if (value != null)
             {
                 settingPropertyInfo.SetValue(globalOptions, value);
@@ -201,7 +220,7 @@ namespace FineCodeCoverage.Engine.Model
             return settingsElement.Descendants().FirstOrDefault(x => x.Name.LocalName.Equals(propertyName, StringComparison.OrdinalIgnoreCase));
         }
 
-        private object TryGetValueFromXml(XElement settingsElement, PropertyInfo property)
+        private object TryGetValueFromXml(XElement settingsElement, PropertyInfo property,bool fromProjectSettings)
         {
             try
             {
@@ -209,7 +228,8 @@ namespace FineCodeCoverage.Engine.Model
             }
             catch (Exception exception)
             {
-                logger.Log($"Failed to override '{property.Name}' setting", exception);
+                var from = fromProjectSettings ? "project settings" : "settings file";
+                logger.Log($"Failed to get '{property.Name}' setting from {from}", exception);
             }
             return null;
         }
@@ -372,7 +392,7 @@ namespace FineCodeCoverage.Engine.Model
 
             else
             {
-                throw new Exception($"Cannot handle '{property.PropertyType.Name}' yet");
+                throw new Exception($"Unexpected settings type '{property.PropertyType.Name}' for setting {property.Name} in settings merger GetValueFromXml");
             }
             return null;
 
