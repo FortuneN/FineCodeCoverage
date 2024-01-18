@@ -1,36 +1,70 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using AutoMoq;
 using FineCodeCoverage.Core.Utilities;
 using FineCodeCoverage.Engine.Coverlet;
 using FineCodeCoverage.Engine.Model;
+using FineCodeCoverage.Engine.OpenCover;
 using FineCodeCoverage.Options;
 using Moq;
 using NUnit.Framework;
 
 namespace Test
 {
-    public class CoverletConsoleUtil_Tests
+
+    public class CoverletExeArgumentsProvider_Tests
     {
-        private AutoMoqer mocker;
-        private CoverletConsoleUtil coverletConsoleUtil;
-
-        [SetUp]
-        public void SetUp()
-        {
-            mocker = new AutoMoqer();
-            coverletConsoleUtil = mocker.Create<CoverletConsoleUtil>();
-        }
         [Test]
-        public void Should_Initilize_IFCCCoverletConsoleExeProvider()
+        public void Should_Have_ExcludeByAttribute_Setting_For_Each_ExcludeByAttribute()
         {
-            var ct = CancellationToken.None;
-            coverletConsoleUtil.Initialize("appDataFolder", ct);
-            mocker.Verify<IFCCCoverletConsoleExecutor>(fccExeProvider => fccExeProvider.Initialize("appDataFolder", ct));
+            var mockCoverageProject = SafeMockCoverageProject();
+            mockCoverageProject.SetupGet(cp => cp.Settings.ExcludeByAttribute).Returns(new[] { "ExcludeByAttribute1", "ExcludeByAttribute2" });
+
+            var coverletExeArgumentsProvider = new CoverletExeArgumentsProvider();
+            var coverletSettings = coverletExeArgumentsProvider.GetArguments(mockCoverageProject.Object);
+
+            AssertHasSetting(coverletSettings, "--exclude-by-attribute ExcludeByAttribute1");
+            AssertHasSetting(coverletSettings, "--exclude-by-attribute ExcludeByAttribute2");
         }
 
+        [Test] //https://github.com/coverlet-coverage/coverlet/issues/1589
+        public void Should_Unqualified_Qualified_ExcludeByAttribute()
+        {
+            var mockCoverageProject = SafeMockCoverageProject();
+            mockCoverageProject.SetupGet(cp => cp.Settings.ExcludeByAttribute).Returns(new[] { "Namespace.ExcludeByAttribute1"});
+
+            var coverletExeArgumentsProvider = new CoverletExeArgumentsProvider();
+            var coverletSettings = coverletExeArgumentsProvider.GetArguments(mockCoverageProject.Object);
+
+            AssertHasSetting(coverletSettings, "--exclude-by-attribute ExcludeByAttribute1");
+        }
+
+        private Mock<ICoverageProject> SafeMockCoverageProject()
+        {
+            var mockCoverageProject = new Mock<ICoverageProject>();
+            mockCoverageProject.SetupGet(coverageProject => coverageProject.IncludedReferencedProjects).Returns(new List<string>());
+            mockCoverageProject.SetupGet(coverageProject => coverageProject.ExcludedReferencedProjects).Returns(new List<string>());
+            mockCoverageProject.SetupGet(coverageProject => coverageProject.Settings).Returns(new Mock<IAppOptions>().Object);
+            return mockCoverageProject;
+        }
+
+        private void AssertHasSetting(List<string> coverletSettings, string setting)
+        {
+            Assert.IsTrue(coverletSettings.Any(coverletSetting => coverletSetting == setting));
+        }
+
+        private void AssertHasEscapedSetting(List<string> coverletSettings, string setting)
+        {
+            AssertHasSetting(coverletSettings, CommandLineArguments.AddQuotes(setting));
+        }
+    }
+
+    public class CoverletConsoleExecuteRequestProvider_Tests
+    {
         [TestCase(0)]
         [TestCase(1)]
         [TestCase(2)]
@@ -50,7 +84,7 @@ namespace Test
 
             ExecuteRequest GetExecuteRequest(int order)
             {
-                if(order != providingExeProvider)
+                if (order != providingExeProvider)
                 {
                     return null;
                 }
@@ -74,13 +108,13 @@ namespace Test
             {
                 var order = i;
                 var mockExeProvider = mockExecutors[i];
-                mockExeProvider.Setup(p => p.GetRequest(coverageProject, coverletSettings)).Returns(GetExecuteRequest(i)).Callback<ICoverageProject,string>((_,__) =>
+                mockExeProvider.Setup(p => p.GetRequest(coverageProject, coverletSettings)).Returns(GetExecuteRequest(i)).Callback<ICoverageProject, string>((_, __) =>
                 {
                     callOrder.Add(order);
                 });
             }
 
-            var coverletConsoleUtil = new CoverletConsoleUtil(null, null, mockGlobalExecutor.Object, mockCustomPathExecutor.Object, mockLocalExecutor.Object, mockFCCCoverletConsoleExecutor.Object);
+            var coverletConsoleUtil = new CoverletConsoleExecuteRequestProvider(mockGlobalExecutor.Object, mockCustomPathExecutor.Object, mockLocalExecutor.Object, mockFCCCoverletConsoleExecutor.Object);
 
             var executeRequest = coverletConsoleUtil.GetExecuteRequest(coverageProject, coverletSettings);
 
@@ -93,6 +127,123 @@ namespace Test
                 previousCallOrder = call;
             }
 
+        }
+    }
+
+    public class CoverletConsoleUtil_Tests
+    {
+        private AutoMoqer mocker;
+        private CoverletConsoleUtil coverletConsoleUtil;
+        private bool executed;
+        private readonly List<string> coverletSettings = new List<string> { "setting1", "setting2" };
+        private readonly ExecuteResponse successfulExecuteResponse =  new ExecuteResponse { ExitCode = 3, Output = "Successful output" };
+
+        [SetUp]
+        public void SetUp()
+        {
+            executed = false;
+            mocker = new AutoMoqer();
+            coverletConsoleUtil = mocker.Create<CoverletConsoleUtil>();
+        }
+        [Test]
+        public void Should_Initilize_IFCCCoverletConsoleExeProvider()
+        {
+            var ct = CancellationToken.None;
+            coverletConsoleUtil.Initialize("appDataFolder", ct);
+            mocker.Verify<IFCCCoverletConsoleExecutor>(fccExeProvider => fccExeProvider.Initialize("appDataFolder", ct));
+        }
+
+        [Test]
+        public async Task Should_Execute_The_Request_From_The_Execute_Request_Provider_With_Space_Delimited_Settings()
+        {
+            await RunSuccessfullyAsync();
+
+            mocker.GetMock<IProcessUtil>().Verify();
+        }
+
+        [Test]
+        public async Task Should_Log_Settings_Before_Executing()
+        {
+            var mockLogger = mocker.GetMock<ILogger>();
+            mockLogger.Setup(logger => logger.Log(It.IsAny<IEnumerable<string>>())).Callback<IEnumerable<string>>(messages =>
+            {
+                var msgList = messages as List<string>;
+                Assert.Multiple(() =>
+                {
+                    Assert.That(msgList[0], Is.EqualTo("Coverlet Run (TheProjectName) - Arguments"));
+                    Assert.That(msgList.Skip(1), Is.EqualTo(coverletSettings));
+                    Assert.That(executed, Is.False);
+                });
+            });
+
+            await RunSuccessfullyAsync();
+
+            mockLogger.Verify();
+        }
+
+        [Test]
+        public void Should_Throw_With_ExecuteResponse_Output_When_ExitCode_Is_Greater_Than_3()
+        {
+            var failureExecuteResponse = new ExecuteResponse { ExitCode = 4, Output = "failure message" };
+            var exception = Assert.ThrowsAsync<Exception>(async() => await RunAsync(failureExecuteResponse));
+
+            Assert.That(exception.Message, Is.EqualTo("Error. Exit code: 4"));
+        }
+
+        [Test]
+        public void Should_Log_With_ExecuteResponse_ExitCode_And_Output_When_ExitCode_Is_Greater_Than_3()
+        {
+            var failureExecuteResponse = new ExecuteResponse { ExitCode = 4, Output = "failure message" };
+            
+            Assert.ThrowsAsync<Exception>(() => RunAsync(failureExecuteResponse));
+
+            var mockLogger = mocker.GetMock<ILogger>();
+            mockLogger.Verify(logger => logger.Log("Coverlet Run (TheProjectName) Error. Exit code: 4", "failure message"));
+        }
+
+        [Test]
+        public async Task Should_Log_The_ExecuteResponse_Output_On_Success()
+        {
+            var mockLogger = mocker.GetMock<ILogger>();
+            mockLogger.Setup(logger => logger.Log(It.IsAny<string[]>())).Callback<string[]>(messages =>
+            {
+                Assert.Multiple(() =>
+                {
+                    Assert.That(messages, Is.EqualTo(new string[] { "Coverlet Run (TheProjectName) - Output", successfulExecuteResponse.Output }));
+                    Assert.That(executed, Is.True);
+                });
+
+            });
+
+            await RunSuccessfullyAsync();
+
+            mockLogger.Verify();
+        }
+        
+        private async Task RunSuccessfullyAsync()
+        {
+            await RunAsync(successfulExecuteResponse);
+        }
+
+        private async Task RunAsync(ExecuteResponse executeResponse)
+        {
+            var mockCoverageProject = new Mock<ICoverageProject>();
+            mockCoverageProject.SetupGet(cp => cp.ProjectName).Returns("TheProjectName");
+            var coverageProject = mockCoverageProject.Object;
+            var requestSettings = string.Join(" ", coverletSettings);
+            var executeRequest = new ExecuteRequest { FilePath = "TheFilePath", Arguments = "TheArguments" };
+            var cancellationToken = CancellationToken.None;
+
+            mocker.Setup<ICoverletExeArgumentsProvider, List<string>>(coverletExeArgumentsProvider => coverletExeArgumentsProvider.GetArguments(coverageProject)).Returns(coverletSettings);
+            mocker.Setup<ICoverletConsoleExecuteRequestProvider, ExecuteRequest>(
+                coverletConsoleExecuteRequestProvider => coverletConsoleExecuteRequestProvider.GetExecuteRequest(coverageProject, requestSettings)
+            ).Returns(executeRequest);
+            var mockProcessUtil = mocker.GetMock<IProcessUtil>();
+            mockProcessUtil.Setup(processUtil => processUtil.ExecuteAsync(executeRequest, cancellationToken))
+                .Callback(() => executed = true)
+               .ReturnsAsync(executeResponse);
+            
+            await coverletConsoleUtil.RunAsync(coverageProject, cancellationToken);
         }
 
     }

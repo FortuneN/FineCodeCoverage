@@ -4,7 +4,7 @@ namespace FineCodeCoverage.Engine.Coverlet
 {
     internal interface IDataCollectorSettingsBuilder
     {
-        void Initialize(IAppOptions coverageProjectSettings, string runSettingsPath, string generatedRunSettingsPath);
+        void Initialize(bool runSettingsOnly, string runSettingsPath, string generatedRunSettingsPath);
 
         void WithProjectDll(string projectDll);
         void WithExclude(string[] projectExclude, string runSettingsExclude);

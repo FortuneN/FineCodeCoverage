@@ -13,7 +13,7 @@ namespace FineCodeCoverage.Engine.Coverlet
     {
         private string generatedRunSettingsPath;
         private string existingRunSettings;
-        private IAppOptions coverageProjectSettings;
+        private bool runSettingsOnly;
         private readonly ILogger logger;
 
         public DataCollectorSettingsBuilder(ILogger logger)
@@ -191,9 +191,9 @@ namespace FineCodeCoverage.Engine.Coverlet
             ResultsDirectory = $"--results-directory {Quote(resultsDirectory)}";
         }
 
-        public void Initialize(IAppOptions coverageProjectSettings, string runSettingsPath, string generatedRunSettingsPath)
+        public void Initialize(bool runSettingsOnly, string runSettingsPath, string generatedRunSettingsPath)
         {
-            this.coverageProjectSettings = coverageProjectSettings;
+            this.runSettingsOnly = runSettingsOnly;
             this.generatedRunSettingsPath = generatedRunSettingsPath;
             existingRunSettings = runSettingsPath;
             RunSettings = $"--settings {Quote(generatedRunSettingsPath)}";
@@ -222,7 +222,7 @@ namespace FineCodeCoverage.Engine.Coverlet
                 return runSettings;
             }
 
-            if (!coverageProjectSettings.RunSettingsOnly) // default true
+            if (!runSettingsOnly) // default true
             {
                 return DelimitProject();
             }
@@ -236,7 +236,18 @@ namespace FineCodeCoverage.Engine.Coverlet
         
         public void WithExcludeByAttribute(string[] projectExcludeByAttribute, string runSettingsExcludeByAttribute)
         {
-            ExcludeByAttribute = RunSettingsOrProject(projectExcludeByAttribute, runSettingsExcludeByAttribute);
+            if(runSettingsExcludeByAttribute != null)
+            {
+                runSettingsExcludeByAttribute = string.Join(",", runSettingsExcludeByAttribute.Split(',').Select(Unqualify));
+            }
+            ExcludeByAttribute = RunSettingsOrProject(
+                projectExcludeByAttribute?.Select(Unqualify).ToArray(), 
+                runSettingsExcludeByAttribute);
+
+            string Unqualify(string excludeByAttribute)
+            {
+                return excludeByAttribute.Split('.').Last();
+            }
         }
 
         public void WithExcludeByFile(string[] projectExcludeByFile, string runSettingsExcludeByFile)
@@ -269,7 +280,7 @@ namespace FineCodeCoverage.Engine.Coverlet
                 }
                 else
                 {
-                    if (!coverageProjectSettings.RunSettingsOnly) // default true
+                    if (!runSettingsOnly) // default true
                     {
                         includeTestAssembly = ProjectInclude();
                     }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.IO;
 using System.Linq;
@@ -156,7 +157,7 @@ namespace FineCodeCoverage.Engine.Coverlet
         {
             var dataCollectorSettingsBuilder = dataCollectorSettingsBuilderFactory.Create();
             dataCollectorSettingsBuilder
-                .Initialize(coverageProject.Settings, coverageProject.RunSettingsFile, Path.Combine(coverageProject.CoverageOutputFolder,"FCC.runsettings"));
+                .Initialize(coverageProject.Settings.RunSettingsOnly, coverageProject.RunSettingsFile, Path.Combine(coverageProject.CoverageOutputFolder,"FCC.runsettings"));
             
             // command arguments
             dataCollectorSettingsBuilder
@@ -174,21 +175,25 @@ namespace FineCodeCoverage.Engine.Coverlet
             string[] projectExcludes = coverageProject.ExcludedReferencedProjects.Select(erp => $"[{erp}]*").ToArray();
             if(coverageProject.Settings.Exclude != null)
             {
-                projectExcludes = projectExcludes.Concat(coverageProject.Settings.Exclude).ToArray();
+                projectExcludes = projectExcludes.Concat(SanitizeExcludesOrIncludes(coverageProject.Settings.Exclude)).ToArray();
             }
 
             //DataCollector Configuration
             dataCollectorSettingsBuilder
                 .WithExclude(projectExcludes, runSettingsCoverletConfiguration.Exclude);
             dataCollectorSettingsBuilder
-                .WithExcludeByFile(coverageProject.Settings.ExcludeByFile, runSettingsCoverletConfiguration.ExcludeByFile);
+                .WithExcludeByFile(
+                    SanitizeExcludesOrIncludes(coverageProject.Settings.ExcludeByFile), 
+                    runSettingsCoverletConfiguration.ExcludeByFile);
             dataCollectorSettingsBuilder
-                .WithExcludeByAttribute(coverageProject.Settings.ExcludeByAttribute, runSettingsCoverletConfiguration.ExcludeByAttribute);
+                .WithExcludeByAttribute(
+                    SanitizeExcludesOrIncludes(coverageProject.Settings.ExcludeByAttribute), 
+                    runSettingsCoverletConfiguration.ExcludeByAttribute);
 
             string[] projectIncludes = coverageProject.IncludedReferencedProjects.Select(irp => $"[{irp}]*").ToArray();
             if(coverageProject.Settings.Include != null)
             {
-                projectIncludes = projectIncludes.Concat(coverageProject.Settings.Include).ToArray();
+                projectIncludes = projectIncludes.Concat(SanitizeExcludesOrIncludes(coverageProject.Settings.Include)).ToArray();
             }
             
             dataCollectorSettingsBuilder
@@ -210,6 +215,13 @@ namespace FineCodeCoverage.Engine.Coverlet
 
         }
 
+        private string[] SanitizeExcludesOrIncludes(string[] excludesOrIncludes)
+        {
+            return (excludesOrIncludes ?? new string[0])
+                .Where(x => x != null)
+                .Select(x => x.Trim(' ', '\'', '\"'))
+                .Where(x => !string.IsNullOrWhiteSpace(x)).ToArray();
+        }
         private string GetTestAdapterPathArg()
         {
             if (!String.IsNullOrWhiteSpace(coverageProject.Settings.CoverletCollectorDirectoryPath)) {
