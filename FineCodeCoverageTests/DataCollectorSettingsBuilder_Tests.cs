@@ -36,9 +36,7 @@ namespace Test
 
         private void Initialize(bool runSettingsOnly = false)
         {
-            var mockCoverageProjectSettings = new Mock<IAppOptions>();
-            mockCoverageProjectSettings.Setup(o => o.RunSettingsOnly).Returns(runSettingsOnly);
-            dataCollectorSettingsBuilder.Initialize(mockCoverageProjectSettings.Object, existingRunSettingsPath, generatedRunSettingsPath);
+            dataCollectorSettingsBuilder.Initialize(runSettingsOnly, existingRunSettingsPath, generatedRunSettingsPath);
         }
 
         #region arguments
@@ -88,7 +86,7 @@ namespace Test
         [Test]
         public void Should_Set_RunSettings_As_Quoted_GeneratedRunSettings_When_Initialize()
         {
-            dataCollectorSettingsBuilder.Initialize(null,".runsettings","generated.runsettings");
+            dataCollectorSettingsBuilder.Initialize(false,".runsettings","generated.runsettings");
             Assert.AreEqual(dataCollectorSettingsBuilder.RunSettings,$"--settings {dataCollectorSettingsBuilder.Quote("generated.runsettings")}");
         }
         
@@ -138,20 +136,21 @@ namespace Test
             Assert.IsNull(dataCollectorSettingsBuilder.Exclude);
         }
 
-        [Test]
-        public void Should_Use_RunSettings_ExcludeByAttribute_If_Present()
+        [Test] // https://github.com/coverlet-coverage/coverlet/issues/1589
+        public void Should_Use_RunSettings_ExcludeByAttribute_If_Present_Unqualified()
         {
             Initialize();
-            dataCollectorSettingsBuilder.WithExcludeByAttribute(new string[] { "from project" }, "from run settings");
-            Assert.AreEqual("from run settings", dataCollectorSettingsBuilder.ExcludeByAttribute);
+            dataCollectorSettingsBuilder.WithExcludeByAttribute(new string[] { "from project" }, "namespace.first,second");
+            Assert.AreEqual("first,second", dataCollectorSettingsBuilder.ExcludeByAttribute);
         }
 
         [Test]
-        public void Should_Use_Project_ExcludeByAttribute_If_No_RunSettings()
+        public void Should_Use_Project_ExcludeByAttribute_If_No_RunSettings_Unqualified()
         {
-            dataCollectorSettingsBuilder.WithExcludeByAttribute(new string[] { "first", "second" }, null);
+            dataCollectorSettingsBuilder.WithExcludeByAttribute(new string[] { "namespace.first", "second" }, null);
             Assert.AreEqual(dataCollectorSettingsBuilder.ExcludeByAttribute, "first,second");
         }
+
 
         [Test]
         public void Should_Use_Project_ExcludeByAttribute_If_No_RunSettings_Null()
@@ -303,7 +302,7 @@ namespace Test
         [TestCaseSource(nameof(BuildReturnsSettingsSource))]
         public void Should_Return_Dotnet_Test_Settings_When_Build(Action<DataCollectorSettingsBuilder> setUp, string expectedSettings)
         {
-            dataCollectorSettingsBuilder.Initialize(new Mock<IAppOptions>().Object,null, generatedRunSettingsPath);
+            dataCollectorSettingsBuilder.Initialize(false,null, generatedRunSettingsPath);
             setUp(dataCollectorSettingsBuilder);
             Assert.AreEqual(dataCollectorSettingsBuilder.Build(), expectedSettings);
         }
@@ -336,7 +335,7 @@ namespace Test
                 XDocument.Parse(existingRunSettings).Save(existingRunSettingsPath);
             }
             
-            dataCollectorSettingsBuilder.Initialize(null,existingRunSettings == null ? null : existingRunSettingsPath, generatedRunSettingsPath);
+            dataCollectorSettingsBuilder.Initialize(false,existingRunSettings == null ? null : existingRunSettingsPath, generatedRunSettingsPath);
             dataCollectorSettingsBuilder.Build();
 
             

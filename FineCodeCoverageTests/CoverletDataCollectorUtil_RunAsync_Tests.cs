@@ -139,16 +139,18 @@ namespace Test
             mockDataCollectorSettingsBuilder.Verify(b => b.WithIncludeTestAssembly(projectIncludeTestAssembly, runSettingsIncludeTestAssembly));
         }
 
-        [Test]
-        public async Task Should_Initialize_With_Options_And_Run_Settings_First()
+        [TestCase(true)]
+        [TestCase(false)]
+        public async Task Should_Initialize_With_Options_And_Run_Settings_First(bool runSettingsOnly)
         {
-            var settings = new Mock<IAppOptions>().Object;
             mockCoverageProject.Setup(cp => cp.RunSettingsFile).Returns(".runsettings");
             mockCoverageProject.Setup(cp => cp.CoverageOutputFolder).Returns("output");
-            mockCoverageProject.Setup(cp => cp.Settings).Returns(settings);
+            var mockSettings = new Mock<IAppOptions>();
+            mockSettings.SetupGet(appOptions => appOptions.RunSettingsOnly).Returns(runSettingsOnly);
+            mockCoverageProject.Setup(cp => cp.Settings).Returns(mockSettings.Object);
             
             await coverletDataCollectorUtil.RunAsync(CancellationToken.None);
-            mockDataCollectorSettingsBuilder.Verify(b => b.Initialize(settings, ".runsettings",Path.Combine("output","FCC.runsettings")));
+            mockDataCollectorSettingsBuilder.Verify(b => b.Initialize(runSettingsOnly, ".runsettings",Path.Combine("output","FCC.runsettings")));
             
             var invocations = mockDataCollectorSettingsBuilder.Invocations.GetEnumerator().ToIEnumerable().ToList();
             Assert.AreEqual(invocations.First().Method.Name, nameof(IDataCollectorSettingsBuilder.Initialize));
