@@ -177,7 +177,7 @@ namespace FineCodeCoverage.Engine.Coverlet
                 cancellationToken
             );
 
-			/*
+            /*
 			0 - Success.
 			1 - If any test fails.
 			2 - Coverage percentage is below threshold.
@@ -185,12 +185,13 @@ namespace FineCodeCoverage.Engine.Coverlet
 			*/
 			if (result.ExitCode > 3)
 			{
-				logger.Log($"{title} Error. Exit code: {result.ExitCode}", result.Output);
+                var errorExitCodeMessage = $"Error. Exit code: {result.ExitCode}";
+				logger.Log($"{title} {errorExitCodeMessage}", result.Output);
 					
-				throw new Exception(result.Output);
+				throw new Exception(errorExitCodeMessage);
 			}
 
-			logger.Log(title, result.Output);
+			logger.Log($"{title} - Output", result.Output);
 		}
 	}
 }

@@ -136,7 +136,7 @@ namespace Test
         private CoverletConsoleUtil coverletConsoleUtil;
         private bool executed;
         private readonly List<string> coverletSettings = new List<string> { "setting1", "setting2" };
-        private readonly ExecuteResponse successfulExecuteResponse =  new ExecuteResponse { ExitCode = 3 };
+        private readonly ExecuteResponse successfulExecuteResponse =  new ExecuteResponse { ExitCode = 3, Output = "Successful output" };
 
         [SetUp]
         public void SetUp()
@@ -165,21 +165,15 @@ namespace Test
         public async Task Should_Log_Settings_Before_Executing()
         {
             var mockLogger = mocker.GetMock<ILogger>();
-            var logged = false;
             mockLogger.Setup(logger => logger.Log(It.IsAny<IEnumerable<string>>())).Callback<IEnumerable<string>>(messages =>
             {
-                if (!logged)
+                var msgList = messages as List<string>;
+                Assert.Multiple(() =>
                 {
-                    logged = true;
-
-                    var msgList = messages as List<string>;
-                    Assert.Multiple(() =>
-                    {
-                        Assert.That(msgList[0], Is.EqualTo("Coverlet Run (TheProjectName) - Arguments"));
-                        Assert.That(msgList.Skip(1), Is.EquivalentTo(coverletSettings));
-                        Assert.That(executed, Is.False);
-                    });
-                }
+                    Assert.That(msgList[0], Is.EqualTo("Coverlet Run (TheProjectName) - Arguments"));
+                    Assert.That(msgList.Skip(1), Is.EqualTo(coverletSettings));
+                    Assert.That(executed, Is.False);
+                });
             });
 
             await RunSuccessfullyAsync();
@@ -191,20 +185,41 @@ namespace Test
         public void Should_Throw_With_ExecuteResponse_Output_When_ExitCode_Is_Greater_Than_3()
         {
             var failureExecuteResponse = new ExecuteResponse { ExitCode = 4, Output = "failure message" };
-            Assert.ThrowsAsync<Exception>(() => RunAsync(failureExecuteResponse), "failure message");
+            var exception = Assert.ThrowsAsync<Exception>(async() => await RunAsync(failureExecuteResponse));
+
+            Assert.That(exception.Message, Is.EqualTo("Error. Exit code: 4"));
         }
 
         [Test]
-        public void Should_Log_With_ExecuteResponse_Output_When_ExitCode_Is_Greater_Than_3()
+        public void Should_Log_With_ExecuteResponse_ExitCode_And_Output_When_ExitCode_Is_Greater_Than_3()
         {
             var failureExecuteResponse = new ExecuteResponse { ExitCode = 4, Output = "failure message" };
             
-
-            Assert.ThrowsAsync<Exception>(() => RunAsync(failureExecuteResponse), "failure message");
+            Assert.ThrowsAsync<Exception>(() => RunAsync(failureExecuteResponse));
 
             var mockLogger = mocker.GetMock<ILogger>();
             mockLogger.Verify(logger => logger.Log("Coverlet Run (TheProjectName) Error. Exit code: 4", "failure message"));
         }
+
+        [Test]
+        public async Task Should_Log_The_ExecuteResponse_Output_On_Success()
+        {
+            var mockLogger = mocker.GetMock<ILogger>();
+            mockLogger.Setup(logger => logger.Log(It.IsAny<string[]>())).Callback<string[]>(messages =>
+            {
+                Assert.Multiple(() =>
+                {
+                    Assert.That(messages, Is.EqualTo(new string[] { "Coverlet Run (TheProjectName) - Output", successfulExecuteResponse.Output }));
+                    Assert.That(executed, Is.True);
+                });
+
+            });
+
+            await RunSuccessfullyAsync();
+
+            mockLogger.Verify();
+        }
+        
         private async Task RunSuccessfullyAsync()
         {
             await RunAsync(successfulExecuteResponse);
