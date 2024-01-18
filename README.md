@@ -260,7 +260,7 @@ If you are using option 1) then project and global options will only be used whe
 |AdjacentBuildOutput|If your tests are dependent upon their path set this to true.|
 |Exclude|Filter expressions to exclude specific modules and types (multiple values)|
 |Include|Filter expressions to include specific modules and types (multiple values)|
-|ExcludeByFile|Glob patterns specifying source files to exclude e.g. **/Migrations/* (multiple values)|
+|ExcludeByFile|OpenCover uses * wildcard matching.  Coverlet uses [file system globbing](https://learn.microsoft.com/en-us/dotnet/api/microsoft.extensions.filesystemglobbing.matcher?view=dotnet-plat-ext-8.0)|
 |ExcludeByAttribute|Exclude attributed code at assembly, type and method level.  Add fully qualified or unqualified attribute types.|
 |RunInParallel|By default OpenCover / Coverlet tests run and then coverage is performed.  Set to true to run coverage immediately|
 |<br>||
