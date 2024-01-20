@@ -13,6 +13,7 @@ namespace FineCodeCoverage.Impl
             Identifier = identifier;
             CoverageType = coverageType;
             editorFormatMapCoverageColoursManager.Register(this);
+            this.ForegroundCustomizable = false;
         }
 
         public string Identifier { get; private set; }
