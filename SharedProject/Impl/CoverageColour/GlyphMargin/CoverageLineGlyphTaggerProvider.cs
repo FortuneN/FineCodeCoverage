@@ -2,9 +2,7 @@
 using Microsoft.VisualStudio.Utilities;
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Text.Tagging;
-using Microsoft.VisualStudio.Shell;
 using FineCodeCoverage.Core.Utilities;
-using System.Collections.Generic;
 using FineCodeCoverage.Engine.Model;
 
 namespace FineCodeCoverage.Impl
@@ -15,31 +13,11 @@ namespace FineCodeCoverage.Impl
 	[Export(typeof(ITaggerProvider))]
 	internal class CoverageLineGlyphTaggerProvider : CoverageLineTaggerProviderBase<CoverageLineGlyphTagger, CoverageLineGlyphTag>
     {
-        private readonly ICoverageColoursProvider coverageColoursProvider;
-        private RefreshCoverageGlyphsMessage refreshCoverageGlyphsMessage = new RefreshCoverageGlyphsMessage();
         [ImportingConstructor]
-		public CoverageLineGlyphTaggerProvider(
-            IEventAggregator eventAggregator, 
-            ICoverageColoursProvider coverageColoursProvider,
-            ICoverageColours coverageColours
-        ) : base(eventAggregator)
-        {
-            this.coverageColoursProvider = coverageColoursProvider;
-            coverageColours.ColoursChanged += CoverageColours_ColoursChanged;
-        }
-
-        private void CoverageColours_ColoursChanged(object sender, System.EventArgs e)
-        {
-            eventAggregator.SendMessage(refreshCoverageGlyphsMessage);
-        }
-
-        protected override void NewCoverageLinesMessageReceived()
-        {
-            ThreadHelper.JoinableTaskFactory.Run(async () =>
-            {
-                await coverageColoursProvider.PrepareAsync();
-            });
-        }
+        public CoverageLineGlyphTaggerProvider(
+            IEventAggregator eventAggregator
+        ) : base(eventAggregator) { }
+        
 
         protected override CoverageLineGlyphTagger CreateTagger(ITextBuffer textBuffer, FileLineCoverage lastCoverageLines)
         {

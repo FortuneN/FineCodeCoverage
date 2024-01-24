@@ -1,14 +1,17 @@
 ﻿using System.Windows;
 using System.Windows.Media;
 using System.Windows.Shapes;
+using FineCodeCoverage.Core.Utilities;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Formatting;
 
 namespace FineCodeCoverage.Impl
 {
-	internal class CoverageLineGlyphFactory : IGlyphFactory
+	internal class CoverageLineGlyphFactory : IGlyphFactory, IListener<CoverageColoursChangedMessage>
 	{
-        private readonly ICoverageColours coverageColours;
+        private ICoverageColours coverageColours;
+        private CoverageType coverageType;
+        private Rectangle glyph;
 
         public CoverageLineGlyphFactory(ICoverageColours coverageColours)
         {
@@ -22,17 +25,24 @@ namespace FineCodeCoverage.Impl
 				return null;
 			}
 
-			var coverageType = tag.CoverageLine.GetCoverageType();
+			coverageType = tag.CoverageLine.GetCoverageType();
 			
-			var result = new Rectangle();
-			result.Width = 3;
-			result.Height = 16;
-			result.Fill = GetBrush(coverageType);
+			glyph = new Rectangle();
+			glyph.Width = 3;
+			glyph.Height = 16;
 
-			return result;
+			SetGlyphColor();
+
+			return glyph;
 		}
 
-		private Brush GetBrush(CoverageType coverageType)
+        public void Handle(CoverageColoursChangedMessage message)
+        {
+			coverageColours = message.CoverageColours;
+			SetGlyphColor();   
+        }
+
+        private void SetGlyphColor()
         {
 			Color color = default;
 			switch (coverageType)
@@ -47,7 +57,8 @@ namespace FineCodeCoverage.Impl
 					color = coverageColours.CoverageTouchedArea;
 					break;
 			}
-			return new SolidColorBrush(color);
+			var brush = new SolidColorBrush(color);
+			glyph.Fill = brush;
         }
 	}
 }

@@ -2,6 +2,8 @@
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
+using FineCodeCoverage.Core.Utilities;
+using OrderAttribute = Microsoft.VisualStudio.Utilities.OrderAttribute;
 
 namespace FineCodeCoverage.Impl
 {
@@ -12,16 +14,23 @@ namespace FineCodeCoverage.Impl
 	[Export(typeof(IGlyphFactoryProvider))]
 	internal class CoverageLineGlyphFactoryProvider: IGlyphFactoryProvider
 	{
-        private readonly ICoverageColours coverageColours;
+        private readonly ICoverageColoursProvider coverageColoursProvider;
+        private readonly IEventAggregator eventAggregator;
 
         [ImportingConstructor]
-		public CoverageLineGlyphFactoryProvider(ICoverageColours coverageColours)
+		public CoverageLineGlyphFactoryProvider(
+			ICoverageColoursProvider coverageColoursProvider,
+			IEventAggregator eventAggregator
+		)
 		{
-            this.coverageColours = coverageColours;
+            this.coverageColoursProvider = coverageColoursProvider;
+            this.eventAggregator = eventAggregator;
         }
 		public IGlyphFactory GetGlyphFactory(IWpfTextView textView, IWpfTextViewMargin textViewMargin)
 		{
-			return new CoverageLineGlyphFactory(coverageColours);
+			var glyphFactory =  new CoverageLineGlyphFactory(coverageColoursProvider.GetCoverageColours());
+			eventAggregator.AddListener(glyphFactory,false);
+			return glyphFactory;
 		}
 	}
 }

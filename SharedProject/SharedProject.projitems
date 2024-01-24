@@ -166,6 +166,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\ReflectionExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\ResourceProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\SolutionEvents.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\SVsColorThemeService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\ToolWindowOpener.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\ToolZip\IToolFolder.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\ToolZip\IToolUnzipper.cs" />
@@ -178,33 +179,25 @@
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\VsThreading\IThreadHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\XmlFileEscaper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\ZipFileWrapper.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\GlyphMargin\RefreshCoverageGlyphsMessage.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\MarginBase\CoverageLineTaggerBase.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\MarginBase\CoverageLineTaggerProviderBase.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\MarginBase\ICoverageLineTagger.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\OverviewMargin\CoverageEditorFormatDefinition.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\OverviewMargin\CoverageLineMarkTagger.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\OverviewMargin\CoverageLineMarkTaggerProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\OverviewMargin\CoverageLineOverviewMarkTagger.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\OverviewMargin\CoverageLineOverviewMarkTaggerProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\OverviewMargin\CoverageMarginOptions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\OverviewMargin\CoverageMarginOptionsChangedMessage.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\OverviewMargin\CoveredEditorFormatDefinition.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\OverviewMargin\EditorFormatMapCoverageColoursManager.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\OverviewMargin\ICoverageEditorFormatDefinition.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\OverviewMargin\ICoverageMarginOptions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\OverviewMargin\IEditorFormatMapCoverageColoursManager.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\OverviewMargin\NotCoveredEditorFormatDefinition.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Provider\CoverageColorProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Provider\CoverageColoursProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\GlyphMargin\CoverageLineGlyphFactory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\GlyphMargin\CoverageLineGlyphFactoryProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\GlyphMargin\CoverageLineGlyphTag.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\GlyphMargin\CoverageLineGlyphTagger.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\GlyphMargin\CoverageLineGlyphTaggerProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Provider\ICoverageColours.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Provider\ICoverageColoursProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageType.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\ILogger.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\Logger.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\OverviewMargin\PartiallyCoveredEditorFormatDefinition.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\RunSettingsRetriever.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\TestContainerDiscovery\Container.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\TestContainerDiscovery\ContainerData.cs" />
@@ -279,6 +272,7 @@
     <Folder Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Provider\" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)Core\Utilities\Directory.Build.props" />
     <None Include="$(MSBuildThisFileDirectory)Output\Directory.Build.props" />
   </ItemGroup>
 </Project>

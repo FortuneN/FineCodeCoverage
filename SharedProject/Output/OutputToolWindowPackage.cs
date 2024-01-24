@@ -12,6 +12,8 @@ using FineCodeCoverage.Engine;
 using EnvDTE80;
 using FineCodeCoverage.Core.Utilities;
 using FineCodeCoverage.Core.Initialization;
+using FineCodeCoverage.Impl;
+using System.ComponentModel.Design;
 
 namespace FineCodeCoverage.Output
 {
@@ -41,7 +43,13 @@ namespace FineCodeCoverage.Output
     [ProvideProfile(typeof(AppOptionsPage), Vsix.Name, Vsix.Name, 101, 102, true)]
     [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
 	[ProvideToolWindow(typeof(OutputToolWindow), Style = VsDockStyle.Tabbed, DockedHeight = 300, Window = EnvDTE.Constants.vsWindowKindOutput)]
-	public sealed class OutputToolWindowPackage : AsyncPackage
+	[ProvideTextMarker("FCCCovered","FCCCovered", CoverageColoursProvider.TouchedGuidString, CoverageColoursProvider.TextMarkerProviderString)]
+    [ProvideTextMarker("FCCUncovered", "FCCUncovered", CoverageColoursProvider.NotTouchedGuidString, CoverageColoursProvider.TextMarkerProviderString)]
+    [ProvideTextMarker("FCCPartiallyCovered", "FCCPartiallyCovered", CoverageColoursProvider.PartiallyTouchedGuidString, CoverageColoursProvider.TextMarkerProviderString)]
+	[ProvideService(typeof(CoverageColoursProvider))]
+    [ProvideAutoLoad("d0562418-e3be-443c-8122-5d2fc82e3b34", PackageAutoLoadFlags.SkipWhenUIContextRulesActive)]
+    [ProvideUIContextRule("d0562418-e3be-443c-8122-5d2fc82e3b34", "CoverageWindowLoad", "(TestContainer | TestProjects | WindowStoreTestProjects | CppTestProjects)", new string[] { "TestContainer", "TestProjects", "WindowStoreTestProjects", "CppTestProjects" }, new string[] { "SolutionHasProjectCapability:TestContainer", "SolutionHasProjectFlavor:3AC096D0-A1C2-E12C-1390-A8335801FDAB", "SolutionHasProjectFlavor:BC8A1FFA-BEE3-4634-8014-F334798102B3", "SolutionHasProjectFlavor:8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942" }, 0)]
+    public sealed class OutputToolWindowPackage : AsyncPackage
 	{
 		private static Microsoft.VisualStudio.ComponentModelHost.IComponentModel componentModel;
         private IFCCEngine fccEngine;
@@ -87,7 +95,7 @@ namespace FineCodeCoverage.Output
 			var sp = new ServiceProvider(_dte2 as Microsoft.VisualStudio.OLE.Interop.IServiceProvider);
 			componentModel = sp.GetService(typeof(Microsoft.VisualStudio.ComponentModelHost.SComponentModel)) as Microsoft.VisualStudio.ComponentModelHost.IComponentModel;
             Assumes.Present(componentModel);
-			fccEngine = componentModel.GetService<IFCCEngine>();	
+			fccEngine = componentModel.GetService<IFCCEngine>();
 			var eventAggregator = componentModel.GetService<IEventAggregator>();
 			await OpenCoberturaCommand.InitializeAsync(this, eventAggregator);
 			await OpenHotspotsCommand.InitializeAsync(this, eventAggregator);
@@ -98,6 +106,9 @@ namespace FineCodeCoverage.Output
 				componentModel.GetService<IShownToolWindowHistory>()
 			);
 			await componentModel.GetService<IInitializer>().InitializeAsync(cancellationToken);
+			var coverageColours = componentModel.GetService<CoverageColoursProvider>();
+            //((IServiceContainer)this).AddService(typeof(CoverageColours), (_,__) => coverageColours, true);
+            this.AddService(typeof(CoverageColoursProvider),(_,__,___) => Task.FromResult(coverageColours as object),true);
         }
 
         protected override Task<object> InitializeToolWindowAsync(Type toolWindowType, int id, CancellationToken cancellationToken)

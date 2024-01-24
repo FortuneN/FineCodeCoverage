@@ -3,7 +3,6 @@ using FineCodeCoverage.Engine;
 using FineCodeCoverage.Engine.Model;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
-using System.Collections.Generic;
 
 namespace FineCodeCoverage.Impl
 {

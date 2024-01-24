@@ -1,21 +1,14 @@
-﻿using System.Collections.Generic;
-using Microsoft.VisualStudio.Text;
+﻿using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
 using FineCodeCoverage.Engine.Model;
-using FineCodeCoverage.Core.Utilities;
 
 namespace FineCodeCoverage.Impl
 {
-	internal class CoverageLineGlyphTagger : CoverageLineTaggerBase<CoverageLineGlyphTag>, IListener<RefreshCoverageGlyphsMessage>
+	internal class CoverageLineGlyphTagger : CoverageLineTaggerBase<CoverageLineGlyphTag>
 	{
 		public CoverageLineGlyphTagger(ITextBuffer textBuffer, FileLineCoverage lastCoverageLines) : base(textBuffer, lastCoverageLines)
 		{
 		}
-
-        public void Handle(RefreshCoverageGlyphsMessage message)
-        {
-			RaiseTagsChanged();
-        }
 
         protected override TagSpan<CoverageLineGlyphTag> GetTagSpan(Engine.Cobertura.Line coverageLine, SnapshotSpan span)
         {

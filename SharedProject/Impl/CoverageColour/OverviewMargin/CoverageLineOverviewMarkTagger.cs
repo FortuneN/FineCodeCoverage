@@ -3,14 +3,13 @@ using FineCodeCoverage.Engine.Cobertura;
 using FineCodeCoverage.Engine.Model;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
-using System.Collections.Generic;
 
 namespace FineCodeCoverage.Impl
 {
-	internal class CoverageLineMarkTagger : CoverageLineTaggerBase<OverviewMarkTag>, IListener<CoverageMarginOptionsChangedMessage>
+	internal class CoverageLineOverviewMarkTagger : CoverageLineTaggerBase<OverviewMarkTag>, IListener<CoverageMarginOptionsChangedMessage>
 	{
 		private ICoverageMarginOptions coverageMarginOptions;
-		public CoverageLineMarkTagger(ITextBuffer textBuffer, FileLineCoverage lastCoverageLines, ICoverageMarginOptions coverageMarginOptions) : 
+		public CoverageLineOverviewMarkTagger(ITextBuffer textBuffer, FileLineCoverage lastCoverageLines, ICoverageMarginOptions coverageMarginOptions) : 
 			base(textBuffer, lastCoverageLines)
 		{
 			this.coverageMarginOptions = coverageMarginOptions;
@@ -47,15 +46,15 @@ namespace FineCodeCoverage.Impl
 			var lineHitCount = line?.Hits ?? 0;
 			var lineConditionCoverage = line?.ConditionCoverage?.Trim();
 
-			var markKindName = NotCoveredEditorFormatDefinition.ResourceName;
+			var markKindName = EnterpriseFontsAndColorsNames.CoverageNotTouchedArea;
 
 			if (lineHitCount > 0)
 			{
-				markKindName = CoveredEditorFormatDefinition.ResourceName;
+				markKindName = EnterpriseFontsAndColorsNames.CoverageTouchedArea;
 
 				if (!string.IsNullOrWhiteSpace(lineConditionCoverage) && !lineConditionCoverage.StartsWith("100"))
 				{
-					markKindName = PartiallyCoveredEditorFormatDefinition.ResourceName;
+					markKindName = EnterpriseFontsAndColorsNames.CoveragePartiallyTouchedArea;
 				}
 			}
 			return markKindName;

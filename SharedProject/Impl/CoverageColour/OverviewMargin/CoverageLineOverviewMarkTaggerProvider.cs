@@ -4,20 +4,19 @@ using FineCodeCoverage.Options;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
 
 namespace FineCodeCoverage.Impl
 {
     [ContentType("code")]
     [TagType(typeof(OverviewMarkTag))]
-    [Name("FCC.CoverageLineMarkTaggerProvider")]
+    [Name("FCC.CoverageLineOverviewMarkTaggerProvider")]
     [Export(typeof(ITaggerProvider))]
-    internal class CoverageLineMarkTaggerProvider : CoverageLineTaggerProviderBase<CoverageLineMarkTagger, OverviewMarkTag>
+    internal class CoverageLineOverviewMarkTaggerProvider : CoverageLineTaggerProviderBase<CoverageLineOverviewMarkTagger, OverviewMarkTag>
     {
         private CoverageMarginOptions coverageMarginOptions;
         [ImportingConstructor]
-        public CoverageLineMarkTaggerProvider(
+        public CoverageLineOverviewMarkTaggerProvider(
             IEventAggregator eventAggregator,
             IAppOptionsProvider appOptionsProvider
         ) : base(eventAggregator)
@@ -37,9 +36,9 @@ namespace FineCodeCoverage.Impl
             }
         }
 
-        protected override CoverageLineMarkTagger CreateTagger(ITextBuffer textBuffer, FileLineCoverage lastCoverageLines)
+        protected override CoverageLineOverviewMarkTagger CreateTagger(ITextBuffer textBuffer, FileLineCoverage lastCoverageLines)
         {
-            return new CoverageLineMarkTagger(textBuffer, lastCoverageLines, coverageMarginOptions);
+            return new CoverageLineOverviewMarkTagger(textBuffer, lastCoverageLines, coverageMarginOptions);
         }
     }
 }
