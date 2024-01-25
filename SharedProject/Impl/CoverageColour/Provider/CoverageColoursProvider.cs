@@ -351,8 +351,9 @@ namespace FineCodeCoverage.Impl
 
         internal bool AreEqual(CoverageColours lastCoverageColours)
         {
-            //todo 
-            return false;
+            return CoverageTouchedArea == lastCoverageColours.CoverageTouchedArea &&
+                CoverageNotTouchedArea == lastCoverageColours.CoverageNotTouchedArea &&
+                CoveragePartiallyTouchedArea == lastCoverageColours.CoveragePartiallyTouchedArea;
         }
     }
 

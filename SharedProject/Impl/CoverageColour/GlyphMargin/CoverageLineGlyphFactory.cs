@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿using System.Collections.Generic;
+using System.Windows;
 using System.Windows.Media;
 using System.Windows.Shapes;
 using FineCodeCoverage.Core.Utilities;
@@ -10,8 +11,8 @@ namespace FineCodeCoverage.Impl
 	internal class CoverageLineGlyphFactory : IGlyphFactory, IListener<CoverageColoursChangedMessage>
 	{
         private ICoverageColours coverageColours;
-        private CoverageType coverageType;
         private Rectangle glyph;
+		private List<Rectangle> glyphs = new List<Rectangle>();
 
         public CoverageLineGlyphFactory(ICoverageColours coverageColours)
         {
@@ -25,13 +26,18 @@ namespace FineCodeCoverage.Impl
 				return null;
 			}
 
-			coverageType = tag.CoverageLine.GetCoverageType();
+			var coverageType = tag.CoverageLine.GetCoverageType();
 			
-			glyph = new Rectangle();
+			var glyph = new Rectangle();
 			glyph.Width = 3;
 			glyph.Height = 16;
-
-			SetGlyphColor();
+			glyph.Tag = coverageType;
+			glyphs.Add(glyph);
+			glyph.Unloaded += (s, e) =>
+			{
+                glyphs.Remove(glyph);
+            };
+			SetGlyphColor(glyph,coverageType);
 
 			return glyph;
 		}
@@ -39,26 +45,38 @@ namespace FineCodeCoverage.Impl
         public void Handle(CoverageColoursChangedMessage message)
         {
 			coverageColours = message.CoverageColours;
-			SetGlyphColor();   
+			glyphs.ForEach(glyph => SetGlyphColor(glyph, (CoverageType)glyph.Tag));
         }
 
-        private void SetGlyphColor()
+        private void SetGlyphColor(Rectangle glyph, CoverageType coverageType)
         {
-			Color color = default;
-			switch (coverageType)
+			var color = GetGlyphColor(coverageType);
+			if (glyph.Fill == null )
 			{
-				case CoverageType.Partial:
-					color = coverageColours.CoveragePartiallyTouchedArea;
-					break;
-				case CoverageType.NotCovered:
-					color = coverageColours.CoverageNotTouchedArea;
-					break;
-				case CoverageType.Covered:
-					color = coverageColours.CoverageTouchedArea;
-					break;
+                glyph.Fill = new SolidColorBrush(color);
 			}
-			var brush = new SolidColorBrush(color);
-			glyph.Fill = brush;
+			else
+			{
+				var currentBrush = (SolidColorBrush)glyph.Fill;
+				if(currentBrush.Color != (color))
+				{
+                    currentBrush.Color = color;
+				}
+			}
+        }
+
+		private Color GetGlyphColor(CoverageType coverageType)
+		{
+            switch (coverageType)
+			{
+                case CoverageType.Partial:
+                    return coverageColours.CoveragePartiallyTouchedArea;
+                case CoverageType.NotCovered:
+                    return coverageColours.CoverageNotTouchedArea;
+                case CoverageType.Covered:
+                    return coverageColours.CoverageTouchedArea;
+            }
+            return default;
         }
 	}
 }
