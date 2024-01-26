@@ -113,6 +113,7 @@ namespace FineCodeCoverage.Impl
         }
     }
 
+    // Thiis will be converted internally to AllColorableItemInfo
     internal class CoverageMarkerType :
     IVsPackageDefinedTextMarkerType,
     IVsMergeableUIItem,
@@ -125,31 +126,44 @@ namespace FineCodeCoverage.Impl
             this._type = t;
         }
 
-        #region irrelevant as not using as a marker
-        public int GetDefaultLineStyle(COLORINDEX[] piLineColor, LINESTYLE[] piLineIndex)
+        #region IVsPackageDefinedTextMarkerType - mainly irrelevant as not using as a marker - need to sets colors
+        public int GetVisualStyle(out uint pdwVisualFlags)
         {
-            piLineIndex[0] = LINESTYLE.LI_SOLID;
-            switch (this._type)
-            {
-                case CoverageType.Covered:
-                    piLineColor[0] = COLORINDEX.CI_GREEN;
-                    break;
-                case CoverageType.NotCovered:
-                    piLineColor[0] = COLORINDEX.CI_RED;
-                    break;
-                case CoverageType.Partial:
-                    piLineColor[0] = COLORINDEX.CI_BLUE;
-                    break;
-                default:
-                    
-                    return -2147467263;
-            }
+            // no line style calls
+            pdwVisualFlags = (uint)MARKERVISUAL.MV_GLYPH;
             return 0;
         }
-        #endregion
 
-        #region not hit
-        #region not hit as not using as a marker
+        // Docs state
+        // The environment only calls this method if you specify a value of MV_LINE or MV_BORDER for your marker type.
+        // ( Which must be GetVisualStyle )
+        // but in reality - if (((int) pdwVisualFlags & 8456) != 0) - which also includes MV_COLOR_SPAN_IF_ZERO_LENGTH
+        public int GetDefaultLineStyle(COLORINDEX[] piLineColor, LINESTYLE[] piLineIndex)
+        {
+            return -2147467263;
+        }
+
+        /*
+            Docs state
+            The environment only calls this method if you specify a value of MV_LINE or MV_BORDER for your marker type.
+            
+            if (((int) pdwVisualFlags & 71) != 0) - 1000111 - BUT WILL GO TO IVsHiColorItem.GetColorData instead if present
+        */
+        public int GetDefaultColors(COLORINDEX[] piForeground, COLORINDEX[] piBackground)
+        {
+            return -2147467263;
+        }
+        
+        public int GetBehaviorFlags(out uint pdwFlags)
+        {
+            pdwFlags = 0U;
+            return 0;
+        }
+        public int GetDefaultFontFlags(out uint pdwFontFlags)
+        {
+            pdwFontFlags = 0U;
+            return 0;
+        }
         public int GetPriorityIndex(out int piPriorityIndex)
         {
             piPriorityIndex = 300;
@@ -167,128 +181,32 @@ namespace FineCodeCoverage.Impl
             }
             return 0;
         }
-
         public int DrawGlyphWithColors(
-          IntPtr hdc,
-          RECT[] pRect,
-          int iMarkerType,
-          IVsTextMarkerColorSet pMarkerColors,
-          uint dwGlyphDrawFlags,
-          int iLineHeight)
+            IntPtr hdc,
+            RECT[] pRect,
+            int iMarkerType,
+            IVsTextMarkerColorSet pMarkerColors,
+            uint dwGlyphDrawFlags,
+            int iLineHeight
+        )
         {
             return 0;
         }
 
+        #endregion
+
+        //If yours is the primary package to be defining the marker, use 0x2000 or greater.
         public int GetMergingPriority(out int piMergingPriority)
         {
-            piMergingPriority = 100;
+            piMergingPriority = 0x2000;
             return 0;
         }
-        #endregion
+
+        // This is not called.  Could be AllColorableItemInfo.bstrDescription - ( This feature is currently disabled )
         public int GetDescription(out string pbstrDesc)
         {
             pbstrDesc = "Coverage Description goes here";
             return 0;
-        }
-
-        #endregion
-        public int GetBehaviorFlags(out uint pdwFlags)
-        {
-            pdwFlags = 0U;
-            return 0;
-        }
-
-        public int GetDefaultFontFlags(out uint pdwFontFlags)
-        {
-            pdwFontFlags = 0U;
-            return 0;
-        }
-
-        public int GetVisualStyle(out uint pdwVisualFlags)
-        {
-            pdwVisualFlags = 8194U;
-            return 0;
-        }
-
-        public int GetDefaultColors(COLORINDEX[] piForeground, COLORINDEX[] piBackground)
-        {
-            switch (this._type)
-            {
-                case CoverageType.Covered:
-                    piBackground[0] = COLORINDEX.CI_GREEN;
-                    piForeground[0] = COLORINDEX.CI_FIRSTFIXEDCOLOR;
-                    break;
-                case CoverageType.NotCovered:
-                    piBackground[0] = COLORINDEX.CI_RED;
-                    piForeground[0] = COLORINDEX.CI_WHITE;
-                    break;
-                case CoverageType.Partial:
-                    piBackground[0] = COLORINDEX.CI_BLUE;
-                    piForeground[0] = COLORINDEX.CI_WHITE;
-                    break;
-                default:
-                    return -2147467263;
-            }
-            return 0;
-        }
-
-        public int GetColorData(int cdElement, out uint crColor)
-        {
-            crColor = 0U;
-            switch (this._type)
-            {
-                case CoverageType.Covered:
-                    switch (cdElement)
-                    {
-                        case 0:
-                            crColor = this.ColorToRgb(Colors.Black);
-                            break;
-                        case 1:
-                            crColor = this.ColorToRgb(Color.FromArgb(224, 237, 253,0));
-                            break;
-                        default:
-                            return -2147467259;
-                    }
-                    break;
-                case CoverageType.NotCovered:
-                    switch (cdElement)
-                    {
-                        case 0:
-                            crColor = this.ColorToRgb(Colors.Black);
-                            break;
-                        case 1:
-                            crColor = this.ColorToRgb(Color.FromArgb(230, 176, 165,0));
-                            break;
-                        default:
-                            return -2147467259;
-                    }
-                    break;
-                case CoverageType.Partial:
-                    switch (cdElement)
-                    {
-                        case 0:
-                            crColor = this.ColorToRgb(Colors.Black);
-                            break;
-                        case 1:
-                            crColor = this.ColorToRgb(Color.FromArgb((int)byte.MaxValue, 239, 206,0));
-                            break;
-                        default:
-                            return -2147467259;
-                    }
-                    break;
-                default:
-                    return -2147467263;
-            }
-            return 0;
-        }
-
-        private uint ColorToRgb(Color color)
-        {
-            int r = (int)color.R;
-            short g = (short)color.G;
-            int b = (int)color.B;
-            int num = (int)g << 8;
-            return (uint)(r | num | b << 16);
         }
 
         public int GetDisplayName(out string pbstrDisplayName)
@@ -313,47 +231,123 @@ namespace FineCodeCoverage.Impl
 
         public int GetCanonicalName(out string pbstrNonLocalizeName)
         {
+            return GetDisplayName(out pbstrNonLocalizeName);
+        }
+
+        /*
+            IVsHiColorItem 
+            Notes to Callers
+            If this interface can be obtained from an object that implements the IVsColorableItem or IVsPackageDefinedTextMarkerType interface, 
+            then that object is advertising support for high color values. 
+            Call the GetColorData(Int32, UInt32) method to get the RGB values for the individual foreground, background, and line colors. 
+            If the GetColorData(Int32, UInt32) method returns an error, gracefully fall back to 
+            accessing the colors on the original IVsColorableItem or IVsPackageDefinedTextMarkerType interfaces.
+
+            --
+            cdElement 
+            0 is foreground, 1 is background, 2 is line color
+        */
+
+        private Color GetCoveredColorData(bool foreground)
+        {
+            return foreground ? Colors.Black: Colors.Green;
+        }
+
+        private Color GetNotCoveredColorData(bool foreground)
+        {
+            return foreground ? Colors.Black : Colors.Red;
+        }
+
+        private Color GetPartiallyCoveredColorData(bool foreground)
+        {
+            return foreground ? Colors.Black : Color.FromRgb(255, 165, 0);
+        }
+
+        public int GetColorData(int cdElement, out uint crColor)
+        {
+            crColor = 0U;
+            if(cdElement == 2)
+            {
+                return -2147467259;
+            }
+            var foreground = cdElement == 0;
+            Color color = default;
             switch (this._type)
             {
                 case CoverageType.Covered:
-                    pbstrNonLocalizeName = "Coverage Touched Area";
+                    color = GetCoveredColorData(foreground);
                     break;
                 case CoverageType.NotCovered:
-                    pbstrNonLocalizeName = "Coverage Not Touched Area";
+                    color = GetNotCoveredColorData(foreground);
                     break;
                 case CoverageType.Partial:
-                    pbstrNonLocalizeName = "Coverage Partially Touched Area";
+                    color = GetPartiallyCoveredColorData(foreground);
                     break;
-                default:
-                    pbstrNonLocalizeName = string.Empty;
-                    return -2147467263;
             }
+            crColor = ColorToRgb(color);
             return 0;
         }
 
-
+        private uint ColorToRgb(Color color)
+        {
+            int r = (int)color.R;
+            short g = (short)color.G;
+            int b = (int)color.B;
+            int num = (int)g << 8;
+            return (uint)(r | num | b << 16);
+        }
+        
     }
 
     internal class CoverageColours : ICoverageColours
     {
-        public System.Windows.Media.Color CoverageTouchedArea { get; set; }
+        private System.Windows.Media.Color coverageTouchedArea;
+        private System.Windows.Media.Color coverageNotTouchedArea;
+        private System.Windows.Media.Color coveragePartiallyTouchedArea;
 
         public CoverageColours(Color coverageTouchedArea, Color coverageNotTouchedArea, Color coveragePartiallyTouchedArea)
         {
-            CoverageTouchedArea = coverageTouchedArea;
-            CoverageNotTouchedArea = coverageNotTouchedArea;
-            CoveragePartiallyTouchedArea = coveragePartiallyTouchedArea;
+            this.coverageTouchedArea = coverageTouchedArea;
+            this.coverageNotTouchedArea = coverageNotTouchedArea;
+            this.coveragePartiallyTouchedArea = coveragePartiallyTouchedArea;
         }
-
-        public System.Windows.Media.Color CoverageNotTouchedArea { get; }
-
-        public System.Windows.Media.Color CoveragePartiallyTouchedArea { get; }
 
         internal bool AreEqual(CoverageColours lastCoverageColours)
         {
-            return CoverageTouchedArea == lastCoverageColours.CoverageTouchedArea &&
-                CoverageNotTouchedArea == lastCoverageColours.CoverageNotTouchedArea &&
-                CoveragePartiallyTouchedArea == lastCoverageColours.CoveragePartiallyTouchedArea;
+            if (lastCoverageColours == null) return false;
+
+            return coverageTouchedArea == lastCoverageColours.coverageTouchedArea &&
+                coverageNotTouchedArea == lastCoverageColours.coverageNotTouchedArea &&
+                coveragePartiallyTouchedArea == lastCoverageColours.coveragePartiallyTouchedArea;
+        }
+
+        public Color GetColor(CoverageType coverageType)
+        {
+            switch (coverageType)
+            {
+                case CoverageType.Partial:
+                    return coveragePartiallyTouchedArea;
+                case CoverageType.NotCovered:
+                    return coverageNotTouchedArea;
+                case CoverageType.Covered:
+                    return coverageTouchedArea;
+            }
+            return default;
+        }
+
+    }
+
+    internal interface IShouldAddCoverageMarkersLogic
+    {
+        bool ShouldAddCoverageMarkers();
+    }
+
+    [Export(typeof(IShouldAddCoverageMarkersLogic))]
+    class ShouldAddCoverageMarkersLogic : IShouldAddCoverageMarkersLogic
+    {
+        public bool ShouldAddCoverageMarkers()
+        {
+            return !AppDomain.CurrentDomain.GetAssemblies().Any(a => a.GetName().Name == "Microsoft.CodeCoverage.VisualStudio.Window");
         }
     }
 
@@ -371,17 +365,22 @@ namespace FineCodeCoverage.Impl
 
         public const string TextMarkerProviderString = "1D1E3CAA-74ED-48B3-9923-5BDC48476CB0";
 
+        public static readonly Guid EditorTextMarkerFontAndColorCategory = new Guid("FF349800-EA43-46C1-8C98-878E78F46501");
+
         private readonly CoverageMarkerType _covTouched;
         private readonly CoverageMarkerType _covNotTouched;
         private readonly CoverageMarkerType _covPartiallyTouched;
+
         private readonly IEditorFormatMap editorFormatMap;
         private readonly IEventAggregator eventAggregator;
+        private readonly bool shouldAddCoverageMarkers;
         private CoverageColours lastCoverageColours;
 
         [ImportingConstructor]
         public CoverageColoursProvider(
             IEditorFormatMapService editorFormatMapService,
-            IEventAggregator eventAggregator
+            IEventAggregator eventAggregator,
+            IShouldAddCoverageMarkersLogic shouldAddCoverageMarkersLogic
         )
         {
             this._covTouched = new CoverageMarkerType(CoverageType.Covered);
@@ -391,6 +390,7 @@ namespace FineCodeCoverage.Impl
             editorFormatMap = editorFormatMapService.GetEditorFormatMap("text");
             editorFormatMap.FormatMappingChanged += EditorFormatMap_FormatMappingChanged;
             this.eventAggregator = eventAggregator;
+            shouldAddCoverageMarkers = shouldAddCoverageMarkersLogic.ShouldAddCoverageMarkers();
         }
 
         private void EditorFormatMap_FormatMappingChanged(object sender, FormatItemsEventArgs e)
@@ -413,9 +413,15 @@ namespace FineCodeCoverage.Impl
 
         public int GetTextMarkerType(ref Guid markerGuid, out IVsPackageDefinedTextMarkerType markerType)
         {
-            markerType = markerGuid.Equals(TouchedGuid) ? this._covTouched : 
-                (markerGuid.Equals(PartiallyTouchedGuid) ? this._covPartiallyTouched : 
+            markerType = null;
+            if (shouldAddCoverageMarkers)
+            {
+                markerType = markerGuid.Equals(TouchedGuid) ? this._covTouched :
+                (markerGuid.Equals(PartiallyTouchedGuid) ? this._covPartiallyTouched :
                 this._covNotTouched);
+                return 0;
+            }
+            
             return 0;
         }
 

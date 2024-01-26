@@ -179,6 +179,10 @@
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\VsThreading\IThreadHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\XmlFileEscaper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\ZipFileWrapper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\GlyphMargin\Glyph.xaml.cs">
+      <SubType>Code</SubType>
+      <DependentUpon>Glyph.xaml</DependentUpon>
+    </Compile>
     <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\MarginBase\CoverageLineTaggerBase.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\MarginBase\CoverageLineTaggerProviderBase.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\MarginBase\ICoverageLineTagger.cs" />
@@ -255,6 +259,10 @@
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\ShownToolWindowHistory.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Page Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\GlyphMargin\Glyph.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="$(MSBuildThisFileDirectory)Output\OutputToolWindowControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
