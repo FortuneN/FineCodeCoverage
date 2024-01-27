@@ -47,8 +47,8 @@ namespace FineCodeCoverage.Output
     [ProvideTextMarker("FCCUncovered", "FCCUncovered", CoverageColoursProvider.NotTouchedGuidString, CoverageColoursProvider.TextMarkerProviderString)]
     [ProvideTextMarker("FCCPartiallyCovered", "FCCPartiallyCovered", CoverageColoursProvider.PartiallyTouchedGuidString, CoverageColoursProvider.TextMarkerProviderString)]
 	[ProvideService(typeof(CoverageColoursProvider))]
-    [ProvideAutoLoad("d0562418-e3be-443c-8122-5d2fc82e3b34", PackageAutoLoadFlags.SkipWhenUIContextRulesActive)]
-    [ProvideUIContextRule("d0562418-e3be-443c-8122-5d2fc82e3b34", "CoverageWindowLoad", "(TestContainer | TestProjects | WindowStoreTestProjects | CppTestProjects)", new string[] { "TestContainer", "TestProjects", "WindowStoreTestProjects", "CppTestProjects" }, new string[] { "SolutionHasProjectCapability:TestContainer", "SolutionHasProjectFlavor:3AC096D0-A1C2-E12C-1390-A8335801FDAB", "SolutionHasProjectFlavor:BC8A1FFA-BEE3-4634-8014-F334798102B3", "SolutionHasProjectFlavor:8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942" }, 0)]
+    [ProvideAutoLoad("0FA5E26B-3EAA-4D5E-B689-129B0D2A8690", PackageAutoLoadFlags.SkipWhenUIContextRulesActive)]
+    [ProvideUIContextRule("0FA5E26B-3EAA-4D5E-B689-129B0D2A8690", "CoverageWindowLoad", "(TestContainer | TestProjects | WindowStoreTestProjects | CppTestProjects)", new string[] { "TestContainer", "TestProjects", "WindowStoreTestProjects", "CppTestProjects" }, new string[] { "SolutionHasProjectCapability:TestContainer", "SolutionHasProjectFlavor:3AC096D0-A1C2-E12C-1390-A8335801FDAB", "SolutionHasProjectFlavor:BC8A1FFA-BEE3-4634-8014-F334798102B3", "SolutionHasProjectFlavor:8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942" }, 0)]
     public sealed class OutputToolWindowPackage : AsyncPackage
 	{
 		private static Microsoft.VisualStudio.ComponentModelHost.IComponentModel componentModel;
@@ -93,6 +93,7 @@ namespace FineCodeCoverage.Output
 
 			var _dte2 = (DTE2)GetGlobalService(typeof(SDTE));			
 			var sp = new ServiceProvider(_dte2 as Microsoft.VisualStudio.OLE.Interop.IServiceProvider);
+			// you cannot MEF import in the constructor of the package
 			componentModel = sp.GetService(typeof(Microsoft.VisualStudio.ComponentModelHost.SComponentModel)) as Microsoft.VisualStudio.ComponentModelHost.IComponentModel;
             Assumes.Present(componentModel);
 			fccEngine = componentModel.GetService<IFCCEngine>();
