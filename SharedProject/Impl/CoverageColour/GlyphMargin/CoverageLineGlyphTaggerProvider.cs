@@ -4,6 +4,7 @@ using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Text.Tagging;
 using FineCodeCoverage.Core.Utilities;
 using FineCodeCoverage.Engine.Model;
+using Microsoft.VisualStudio.Text.Classification;
 
 namespace FineCodeCoverage.Impl
 {
@@ -13,15 +14,24 @@ namespace FineCodeCoverage.Impl
 	[Export(typeof(ITaggerProvider))]
 	internal class CoverageLineGlyphTaggerProvider : CoverageLineTaggerProviderBase<CoverageLineGlyphTagger, CoverageLineGlyphTag>
     {
+        private readonly ICoverageColoursProvider coverageColoursProvider;
+        private readonly ICoverageLineCoverageTypeInfoHelper coverageLineCoverageTypeInfoHelper;
+
         [ImportingConstructor]
         public CoverageLineGlyphTaggerProvider(
-            IEventAggregator eventAggregator
-        ) : base(eventAggregator) { }
-        
-
-        protected override CoverageLineGlyphTagger CreateTagger(ITextBuffer textBuffer, FileLineCoverage lastCoverageLines)
+            IEventAggregator eventAggregator,
+            ICoverageColoursProvider coverageColoursProvider,
+            ICoverageLineCoverageTypeInfoHelper coverageLineCoverageTypeInfoHelper
+        ) : base(eventAggregator)
         {
-            return new CoverageLineGlyphTagger(textBuffer, lastCoverageLines);
+            this.coverageColoursProvider = coverageColoursProvider;
+            this.coverageLineCoverageTypeInfoHelper = coverageLineCoverageTypeInfoHelper;
+        }
+
+
+        protected override CoverageLineGlyphTagger CreateTagger(ITextBuffer textBuffer, FileLineCoverage lastCoverageLines, IEventAggregator eventAggregator)
+        {
+            return new CoverageLineGlyphTagger(textBuffer, lastCoverageLines,eventAggregator,coverageColoursProvider.GetCoverageColours(), coverageLineCoverageTypeInfoHelper);
         }
     }
 }

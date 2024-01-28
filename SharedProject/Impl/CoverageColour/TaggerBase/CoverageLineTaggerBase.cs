@@ -1,4 +1,5 @@
-﻿using FineCodeCoverage.Engine;
+﻿using FineCodeCoverage.Core.Utilities;
+using FineCodeCoverage.Engine;
 using FineCodeCoverage.Engine.Model;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -8,18 +9,20 @@ using System.Linq;
 
 namespace FineCodeCoverage.Impl
 {
-	internal abstract class CoverageLineTaggerBase<TTag> : ICoverageLineTagger<TTag> where TTag : ITag
+	internal abstract class CoverageLineTaggerBase<TTag> : IDisposable, ICoverageLineTagger<TTag> where TTag : ITag
 	{
 		private readonly ITextBuffer _textBuffer;
 		private FileLineCoverage coverageLines;
+        private readonly IEventAggregator eventAggregator;
 
-		public event EventHandler<SnapshotSpanEventArgs> TagsChanged;
+        public event EventHandler<SnapshotSpanEventArgs> TagsChanged;
 
-		public CoverageLineTaggerBase(ITextBuffer textBuffer, FileLineCoverage lastCoverageLines)
+		public CoverageLineTaggerBase(ITextBuffer textBuffer, FileLineCoverage lastCoverageLines, Core.Utilities.IEventAggregator eventAggregator)
 		{
 			_textBuffer = textBuffer;
 			coverageLines = lastCoverageLines;
-			if (lastCoverageLines != null)
+            this.eventAggregator = eventAggregator;
+            if (lastCoverageLines != null)
 			{
 				RaiseTagsChanged();
 			}
@@ -73,12 +76,17 @@ namespace FineCodeCoverage.Impl
 					var tagSpan = GetTagSpan(applicableCoverageLine, span);
 					if (tagSpan != null)
                     {
-						result.Add(GetTagSpan(applicableCoverageLine, span));
+						result.Add(tagSpan);
 					}
 				}
 			}
 		}
 
 		protected abstract TagSpan<TTag> GetTagSpan(Engine.Cobertura.Line coverageLine, SnapshotSpan span);
-	}
+
+        public void Dispose()
+        {
+            eventAggregator.RemoveListener(this);
+        }
+    }
 }

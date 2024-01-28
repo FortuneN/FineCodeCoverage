@@ -13,19 +13,31 @@ using System.Diagnostics.Contracts;
 using System.Runtime.InteropServices;
 using Microsoft.VisualStudio.Text.Classification;
 using FineCodeCoverage.Core.Utilities;
+using Microsoft.VisualStudio.Utilities;
+using System.ComponentModel;
+using System.Diagnostics;
+using Microsoft.VisualStudio.Text.Formatting;
 
 namespace FineCodeCoverage.Impl
 {
-    internal static class EnterpriseFontsAndColorsNames
+    interface ICoverageColoursEditorFormatMapNames
     {
-        public const string CoverageTouchedArea = "Coverage Touched Area";
-        public const string CoverageNotTouchedArea = "Coverage Not Touched Area";
-        public const string CoveragePartiallyTouchedArea = "Coverage Partially Touched Area";
+        string CoverageTouchedArea { get; }
+        string CoverageNotTouchedArea { get; }
+        string CoveragePartiallyTouchedArea {get;}
+    }
+
+    [Export(typeof(ICoverageColoursEditorFormatMapNames))]
+    internal class EnterpriseFontsAndColorsNames : ICoverageColoursEditorFormatMapNames
+    {
+        public string CoverageTouchedArea { get; } = "Coverage Touched Area";
+        public string CoverageNotTouchedArea { get; } = "Coverage Not Touched Area";
+        public string CoveragePartiallyTouchedArea { get; } = "Coverage Partially Touched Area";
     }
 
     internal interface IFontsAndColorsHelper
     {
-        System.Threading.Tasks.Task<List<System.Windows.Media.Color>> GetColorsAsync(Guid category, IEnumerable<string> names);
+        System.Threading.Tasks.Task<List<IItemCoverageColours>> GetColorsAsync(Guid category, IEnumerable<string> names);
     }
 
     [Export(typeof(IFontsAndColorsHelper))]
@@ -53,26 +65,29 @@ namespace FineCodeCoverage.Impl
             return System.Windows.Media.Color.FromArgb(dcolor.A, dcolor.R, dcolor.G, dcolor.B);
         }
 
-        public async System.Threading.Tasks.Task<List<System.Windows.Media.Color>> GetColorsAsync(Guid category,IEnumerable<string> names)
+        public async System.Threading.Tasks.Task<List<IItemCoverageColours>> GetColorsAsync(Guid category,IEnumerable<string> names)
         {
-            var colors = new List<System.Windows.Media.Color>();
+            var colors = new List<IItemCoverageColours>();
             var fontAndColorStorage = await lazyIVsFontAndColorStorage.GetValueAsync();
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
             var success = fontAndColorStorage.OpenCategory(ref category, storeFlags);
             if (success == VSConstants.S_OK)
             {
                 // https://github.com/microsoft/vs-threading/issues/993
-                System.Windows.Media.Color? GetColor(string displayName)
+                IItemCoverageColours GetColor(string displayName)
                 {
                     var touchAreaInfo = new ColorableItemInfo[1];
                     var getItemSuccess = fontAndColorStorage.GetItem(displayName, touchAreaInfo);
                     if (getItemSuccess == VSConstants.S_OK)
                     {
-                        return ParseColor(touchAreaInfo[0].crBackground);
+                        var bgColor =  ParseColor(touchAreaInfo[0].crBackground);
+                        var fgColor = ParseColor(touchAreaInfo[0].crForeground);
+                        return new ItemCoverageColours(fgColor,bgColor);
+
                     }
                     return null;
                 }
-                colors = names.Select(name => GetColor(name)).Where(color => color.HasValue).Select(color => color.Value).ToList();
+                colors = names.Select(name => GetColor(name)).Where(color => color!=null).ToList();
             }
 
             fontAndColorStorage.CloseCategory();
@@ -119,11 +134,15 @@ namespace FineCodeCoverage.Impl
     IVsMergeableUIItem,
     IVsHiColorItem
     {
-        private readonly CoverageType _type;
+        private readonly string name;
+        private readonly Color foregroundColor;
+        private readonly Color backgroundColor;
 
-        public CoverageMarkerType(CoverageType t)
+        public CoverageMarkerType(string name,Color foregroundColor, Color backgroundColor)
         {
-            this._type = t;
+            this.name = name;
+            this.foregroundColor = foregroundColor;
+            this.backgroundColor = backgroundColor;
         }
 
         #region IVsPackageDefinedTextMarkerType - mainly irrelevant as not using as a marker - need to sets colors
@@ -166,19 +185,7 @@ namespace FineCodeCoverage.Impl
         }
         public int GetPriorityIndex(out int piPriorityIndex)
         {
-            piPriorityIndex = 300;
-            switch (this._type)
-            {
-                case CoverageType.Covered:
-                    piPriorityIndex = 300;
-                    break;
-                case CoverageType.NotCovered:
-                    piPriorityIndex = 302;
-                    break;
-                case CoverageType.Partial:
-                    piPriorityIndex = 301;
-                    break;
-            }
+            piPriorityIndex = 0;
             return 0;
         }
         public int DrawGlyphWithColors(
@@ -211,21 +218,7 @@ namespace FineCodeCoverage.Impl
 
         public int GetDisplayName(out string pbstrDisplayName)
         {
-            switch (this._type)
-            {
-                case CoverageType.Covered:
-                    pbstrDisplayName = EnterpriseFontsAndColorsNames.CoverageTouchedArea;
-                    break;
-                case CoverageType.NotCovered:
-                    pbstrDisplayName = EnterpriseFontsAndColorsNames.CoverageNotTouchedArea;
-                    break;
-                case CoverageType.Partial:
-                    pbstrDisplayName = EnterpriseFontsAndColorsNames.CoveragePartiallyTouchedArea;
-                    break;
-                default:
-                    pbstrDisplayName = string.Empty;
-                    return -2147467263;
-            }
+            pbstrDisplayName = this.name;
             return 0;
         }
 
@@ -248,20 +241,7 @@ namespace FineCodeCoverage.Impl
             0 is foreground, 1 is background, 2 is line color
         */
 
-        private Color GetCoveredColorData(bool foreground)
-        {
-            return foreground ? Colors.Black: Colors.Green;
-        }
-
-        private Color GetNotCoveredColorData(bool foreground)
-        {
-            return foreground ? Colors.Black : Colors.Red;
-        }
-
-        private Color GetPartiallyCoveredColorData(bool foreground)
-        {
-            return foreground ? Colors.Black : Color.FromRgb(255, 165, 0);
-        }
+        
 
         public int GetColorData(int cdElement, out uint crColor)
         {
@@ -271,19 +251,7 @@ namespace FineCodeCoverage.Impl
                 return -2147467259;
             }
             var foreground = cdElement == 0;
-            Color color = default;
-            switch (this._type)
-            {
-                case CoverageType.Covered:
-                    color = GetCoveredColorData(foreground);
-                    break;
-                case CoverageType.NotCovered:
-                    color = GetNotCoveredColorData(foreground);
-                    break;
-                case CoverageType.Partial:
-                    color = GetPartiallyCoveredColorData(foreground);
-                    break;
-            }
+            var color = foreground ? foregroundColor : backgroundColor;
             crColor = ColorToRgb(color);
             return 0;
         }
@@ -301,36 +269,39 @@ namespace FineCodeCoverage.Impl
 
     internal class CoverageColours : ICoverageColours
     {
-        private System.Windows.Media.Color coverageTouchedArea;
-        private System.Windows.Media.Color coverageNotTouchedArea;
-        private System.Windows.Media.Color coveragePartiallyTouchedArea;
-
-        public CoverageColours(Color coverageTouchedArea, Color coverageNotTouchedArea, Color coveragePartiallyTouchedArea)
+        public IItemCoverageColours CoverageTouchedColours { get; }
+        public IItemCoverageColours CoverageNotTouchedColours { get; }
+        public IItemCoverageColours CoveragePartiallyTouchedColours { get; }
+        public CoverageColours(
+            IItemCoverageColours coverageTouchedColors,
+            IItemCoverageColours coverageNotTouched, 
+            IItemCoverageColours coveragePartiallyTouchedColors
+        )
         {
-            this.coverageTouchedArea = coverageTouchedArea;
-            this.coverageNotTouchedArea = coverageNotTouchedArea;
-            this.coveragePartiallyTouchedArea = coveragePartiallyTouchedArea;
+            CoverageTouchedColours = coverageTouchedColors;
+            CoverageNotTouchedColours = coverageNotTouched;
+            CoveragePartiallyTouchedColours = coveragePartiallyTouchedColors;
         }
 
         internal bool AreEqual(CoverageColours lastCoverageColours)
         {
             if (lastCoverageColours == null) return false;
 
-            return coverageTouchedArea == lastCoverageColours.coverageTouchedArea &&
-                coverageNotTouchedArea == lastCoverageColours.coverageNotTouchedArea &&
-                coveragePartiallyTouchedArea == lastCoverageColours.coveragePartiallyTouchedArea;
+            return CoverageTouchedColours.Equals(lastCoverageColours.CoverageTouchedColours) &&
+                CoverageNotTouchedColours.Equals(lastCoverageColours.CoverageNotTouchedColours) &&
+                CoveragePartiallyTouchedColours.Equals(lastCoverageColours.CoveragePartiallyTouchedColours);
         }
 
-        public Color GetColor(CoverageType coverageType)
+        public IItemCoverageColours GetColor(CoverageType coverageType)
         {
             switch (coverageType)
             {
                 case CoverageType.Partial:
-                    return coveragePartiallyTouchedArea;
+                    return CoveragePartiallyTouchedColours;
                 case CoverageType.NotCovered:
-                    return coverageNotTouchedArea;
+                    return CoverageNotTouchedColours;
                 case CoverageType.Covered:
-                    return coverageTouchedArea;
+                    return CoverageTouchedColours;
             }
             return default;
         }
@@ -350,6 +321,128 @@ namespace FineCodeCoverage.Impl
             return !AppDomain.CurrentDomain.GetAssemblies().Any(a => a.GetName().Name == "Microsoft.CodeCoverage.VisualStudio.Window");
         }
     }
+
+    public interface IClassificationFormatMetadata : IEditorFormatMetadata, IOrderable
+    {
+        string[] ClassificationTypeNames { get; }
+    }
+    public interface IEditorFormatMetadata
+    {
+        string Name { get; }
+
+        [DefaultValue(false)]
+        bool UserVisible { get; }
+
+        [DefaultValue(0)]
+        int Priority { get; }
+    }
+
+    public interface IClassificationTypeDefinitionMetadata
+    {
+        string Name { get; }
+
+        [DefaultValue(null)]
+        IEnumerable<string> BaseDefinition { get; }
+    }
+
+    // this will sync up using CoverageColoursProvider / Use the base ClassificationFormatDefinition
+    internal abstract class CoverageEditorFormatDefinition : EditorFormatDefinition, ICoverageEditorFormatDefinition
+    {
+        public CoverageEditorFormatDefinition(
+            string identifier,
+            ICoverageColoursProvider coverageColoursProvider,
+            CoverageType coverageType)
+        {
+            Identifier = identifier;
+            CoverageType = coverageType;
+            BackgroundColor = Colors.Pink;
+            ForegroundColor = Colors.Black;
+            ForegroundBrush = new SolidColorBrush(ForegroundColor.Value);
+            // WHY IS IT NOT AVAILABLE YET ?
+            //var coverageColours = coverageColoursProvider.GetCoverageColours();
+            //BackgroundColor = coverageColours.GetColor(coverageType);
+        }
+        public string Identifier { get; private set; }
+        public void SetBackgroundColor(Color backgroundColor)
+        {
+            BackgroundColor = backgroundColor;
+        }
+        public CoverageType CoverageType { get; }
+    }
+
+
+   // [Export(typeof(EditorFormatDefinition))]
+    [Name(ResourceName)]
+    [UserVisible(false)]
+    [Microsoft.VisualStudio.Utilities.Order(Before = "formal language")]
+    internal class NotCoveredEditorFormatDefinition : CoverageEditorFormatDefinition
+    {
+        public const string ResourceName = "FCCNotCovered";
+        [ImportingConstructor]
+        public NotCoveredEditorFormatDefinition(
+            ICoverageColoursProvider coverageColoursProvider
+        ) : base(ResourceName,coverageColoursProvider, CoverageType.NotCovered)
+        {
+        }
+    }
+
+    //[Export(typeof(EditorFormatDefinition))]
+    [Name(ResourceName)]
+    [UserVisible(false)]
+    [Microsoft.VisualStudio.Utilities.Order(Before = "formal language")]
+    internal class PartiallyCoveredEditorFormatDefinition : CoverageEditorFormatDefinition
+    {
+        public const string ResourceName = "FCCPartial";
+        [ImportingConstructor]
+        public PartiallyCoveredEditorFormatDefinition(
+            ICoverageColoursProvider coverageColoursProvider
+        ) : base(ResourceName,coverageColoursProvider, CoverageType.Partial)
+        {
+        }
+    }
+
+    //[Export(typeof(EditorFormatDefinition))]
+    [Name(ResourceName)]
+    [UserVisible(false)]
+    [Microsoft.VisualStudio.Utilities.Order(Before = "formal language")]
+    internal class CoveredEditorFormatDefinition : CoverageEditorFormatDefinition
+    {
+        public const string ResourceName = "FCCCovered";
+        [ImportingConstructor]
+        public CoveredEditorFormatDefinition(
+            ICoverageColoursProvider coverageColoursProvider
+        ) : base(ResourceName,coverageColoursProvider, CoverageType.Covered)
+        {
+        }
+    }
+
+    internal interface IItemCoverageColours:IEquatable<IItemCoverageColours>
+    {
+        Color Foreground { get; }
+        Color Background { get; }
+        
+    }
+
+    internal class ItemCoverageColours : IItemCoverageColours
+    {
+        public ItemCoverageColours(Color foreground, Color background)
+        {
+            this.Foreground = foreground;
+            this.Background = background;
+        }
+
+        public Color Foreground { get; }
+        public Color Background { get; }
+
+        public bool Equals(IItemCoverageColours other)
+        {
+            if (other == this) return true;
+            if (other == null) return false;
+            return Foreground == other.Foreground && Background == other.Background;
+
+        }
+    }
+
 
     [Export(typeof(CoverageColoursProvider))]
     [Export(typeof(ICoverageColoursProvider))]
@@ -373,40 +466,107 @@ namespace FineCodeCoverage.Impl
 
         private readonly IEditorFormatMap editorFormatMap;
         private readonly IEventAggregator eventAggregator;
+        private readonly ICoverageColoursEditorFormatMapNames coverageColoursEditorFormatMapNames;
+        private readonly IFontsAndColorsHelper fontsAndColorsHelper;
         private readonly bool shouldAddCoverageMarkers;
         private CoverageColours lastCoverageColours;
+
+
+        [Export]
+        [Name(NotCoveredEditorFormatDefinition.ResourceName)]
+        public ClassificationTypeDefinition FCCNotCoveredTypeDefinition { get; set; }
+
+        [Export]
+        [Name(CoveredEditorFormatDefinition.ResourceName)]
+        public ClassificationTypeDefinition FCCCoveredTypeDefinition { get; set; }
+
+        [Export]
+        [Name(PartiallyCoveredEditorFormatDefinition.ResourceName)]
+        public ClassificationTypeDefinition FCCPartiallyCoveredTypeDefinition { get; set; }
+
+        private IClassificationType coveredClassificationType;
+        private IClassificationFormatMap classificationFormatMap;
+        private IClassificationType highestPriorityClassificationType;
+        private IClassificationType notCoveredClassificationType;
+        private IClassificationType partiallyCoveredClassificationType;
 
         [ImportingConstructor]
         public CoverageColoursProvider(
             IEditorFormatMapService editorFormatMapService,
             IEventAggregator eventAggregator,
-            IShouldAddCoverageMarkersLogic shouldAddCoverageMarkersLogic
+            IShouldAddCoverageMarkersLogic shouldAddCoverageMarkersLogic,
+            ICoverageColoursEditorFormatMapNames coverageColoursEditorFormatMapNames,
+            IClassificationFormatMapService classificationFormatMapService,
+            IClassificationTypeRegistryService classificationTypeRegistryService,
+            IFontsAndColorsHelper fontsAndColorsHelper
         )
         {
-            this._covTouched = new CoverageMarkerType(CoverageType.Covered);
-            this._covNotTouched = new CoverageMarkerType(CoverageType.NotCovered);
-            this._covPartiallyTouched = new CoverageMarkerType(CoverageType.Partial);
+            this.fontsAndColorsHelper = fontsAndColorsHelper;
+            var touchedColours = GetColors(coverageColoursEditorFormatMapNames.CoverageTouchedArea);
+            
+            classificationFormatMap = classificationFormatMapService.GetClassificationFormatMap("text");
+            highestPriorityClassificationType = classificationFormatMap.CurrentPriorityOrder.Where(ct => ct != null).Last();
+            notCoveredClassificationType = classificationTypeRegistryService.GetClassificationType(NotCoveredEditorFormatDefinition.ResourceName);
+            coveredClassificationType = classificationTypeRegistryService.GetClassificationType(CoveredEditorFormatDefinition.ResourceName);
+            partiallyCoveredClassificationType =  classificationTypeRegistryService.GetClassificationType(PartiallyCoveredEditorFormatDefinition.ResourceName);
+            
+            SetCoverageColour(notCoveredClassificationType, new ItemCoverageColours(Colors.Black, Colors.Red));
+            SetCoverageColour(coveredClassificationType, new ItemCoverageColours(Colors.Black, Colors.Green));
+            SetCoverageColour(partiallyCoveredClassificationType, new ItemCoverageColours(Colors.Black, Color.FromRgb(255, 165, 0)));
+
+            this._covTouched = new CoverageMarkerType(coverageColoursEditorFormatMapNames.CoverageTouchedArea,Colors.Black,Colors.Green);
+            this._covNotTouched = new CoverageMarkerType(coverageColoursEditorFormatMapNames.CoverageNotTouchedArea,Colors.Black,Colors.Red);
+            this._covPartiallyTouched = new CoverageMarkerType(coverageColoursEditorFormatMapNames.CoveragePartiallyTouchedArea, Colors.Black, Color.FromRgb(255, 165, 0));
 
             editorFormatMap = editorFormatMapService.GetEditorFormatMap("text");
             editorFormatMap.FormatMappingChanged += EditorFormatMap_FormatMappingChanged;
             this.eventAggregator = eventAggregator;
+            this.coverageColoursEditorFormatMapNames = coverageColoursEditorFormatMapNames;
+            
             shouldAddCoverageMarkers = shouldAddCoverageMarkersLogic.ShouldAddCoverageMarkers();
         }
 
+        private void SetCoverageColour(IClassificationType classificationType, IItemCoverageColours coverageColours)
+        {
+            changingColours = true;
+            classificationFormatMap.AddExplicitTextProperties(classificationType, TextFormattingRunProperties.CreateTextFormattingRunProperties(
+                new SolidColorBrush(coverageColours.Foreground), new SolidColorBrush(coverageColours.Background), null, null, null, null, null, null
+                ),
+                highestPriorityClassificationType
+            );
+            changingColours = false;
+        }
+
+        private bool changingColours;
         private void EditorFormatMap_FormatMappingChanged(object sender, FormatItemsEventArgs e)
         {
+            if (changingColours) return;
+
             var coverageChanged = e.ChangedItems.Any(c => 
-                c == EnterpriseFontsAndColorsNames.CoverageTouchedArea || 
-                c == EnterpriseFontsAndColorsNames.CoverageNotTouchedArea || 
-                c == EnterpriseFontsAndColorsNames.CoveragePartiallyTouchedArea
+                c == coverageColoursEditorFormatMapNames.CoverageTouchedArea || 
+                c == coverageColoursEditorFormatMapNames.CoverageNotTouchedArea || 
+                c == coverageColoursEditorFormatMapNames.CoveragePartiallyTouchedArea
             );
             if (coverageChanged)
             {
-                var currentCoverageColours = GetCoverageColoursFromEditorFormatMap();
+                var currentCoverageColours = GetCoverageColoursFromFontsAndColors();
                 if (!currentCoverageColours.AreEqual(lastCoverageColours))
                 {
+                    if(!lastCoverageColours.CoverageNotTouchedColours.Equals(currentCoverageColours.CoverageNotTouchedColours))
+                    {
+                        SetCoverageColour(notCoveredClassificationType,currentCoverageColours.CoverageNotTouchedColours);
+                    }
+                    if(!lastCoverageColours.CoveragePartiallyTouchedColours.Equals(currentCoverageColours.CoveragePartiallyTouchedColours))
+                    {
+                        SetCoverageColour(partiallyCoveredClassificationType,currentCoverageColours.CoveragePartiallyTouchedColours);
+                    }
+                    if(!lastCoverageColours.CoverageTouchedColours.Equals(currentCoverageColours.CoverageTouchedColours))
+                    {
+                        SetCoverageColour(coveredClassificationType, currentCoverageColours.CoverageTouchedColours);
+                    }
                     lastCoverageColours = currentCoverageColours;
                     eventAggregator.SendMessage(new CoverageColoursChangedMessage(currentCoverageColours));
+                    
                 }
             }
         }
@@ -431,22 +591,35 @@ namespace FineCodeCoverage.Impl
             {
                 return lastCoverageColours;
             }
-            lastCoverageColours = GetCoverageColoursFromEditorFormatMap();
+            lastCoverageColours = GetCoverageColoursFromFontsAndColors();
             return lastCoverageColours;
         }
 
-        private CoverageColours GetCoverageColoursFromEditorFormatMap()
+        private CoverageColours GetCoverageColoursFromFontsAndColors()
         {
+            var fromFontsAndColors = fontsAndColorsHelper.GetColorsAsync(EditorTextMarkerFontAndColorCategory, new[] {
+                coverageColoursEditorFormatMapNames.CoverageTouchedArea,
+                coverageColoursEditorFormatMapNames.CoverageNotTouchedArea,
+                coverageColoursEditorFormatMapNames.CoveragePartiallyTouchedArea
+            }).GetAwaiter().GetResult();
+            
             return new CoverageColours(
-                GetBackgroundColor(EnterpriseFontsAndColorsNames.CoverageTouchedArea),
-                GetBackgroundColor(EnterpriseFontsAndColorsNames.CoverageNotTouchedArea),
-                GetBackgroundColor(EnterpriseFontsAndColorsNames.CoveragePartiallyTouchedArea)
+                fromFontsAndColors[0],
+                fromFontsAndColors[1],
+                fromFontsAndColors[2]
             );
         }
 
-        private Color GetBackgroundColor(string coverageName)
+
+
+        private IItemCoverageColours GetColors(string coverageName)
         {
-            return (Color)editorFormatMap.GetProperties(coverageName)["BackgroundColor"];
+            //var backgroundColor = (Color)editorFormatMap.GetProperties(coverageName)["BackgroundColor"];
+            // use the visual studio way of waiting
+            var allColors = fontsAndColorsHelper.GetColorsAsync(EditorTextMarkerFontAndColorCategory, new[] { coverageName }).GetAwaiter().GetResult();
+            return allColors.FirstOrDefault();
+            //var foregroundColor = (Color)editorFormatMap.GetProperties(coverageName)["ForegroundColor"];
+            //return new ItemCoverageColours(foregroundColor, backgroundColor);
         }
     }
 

@@ -9,11 +9,19 @@ namespace FineCodeCoverage.Impl
 	internal class CoverageLineOverviewMarkTagger : CoverageLineTaggerBase<OverviewMarkTag>, IListener<CoverageMarginOptionsChangedMessage>
 	{
 		private ICoverageMarginOptions coverageMarginOptions;
-		public CoverageLineOverviewMarkTagger(ITextBuffer textBuffer, FileLineCoverage lastCoverageLines, ICoverageMarginOptions coverageMarginOptions) : 
-			base(textBuffer, lastCoverageLines)
+        private readonly ICoverageLineCoverageTypeInfoHelper coverageLineCoverageTypeInfoHelper;
+
+        public CoverageLineOverviewMarkTagger(
+			ITextBuffer textBuffer, 
+			FileLineCoverage lastCoverageLines, 
+			ICoverageMarginOptions coverageMarginOptions, 
+			IEventAggregator eventAggregator,
+            ICoverageLineCoverageTypeInfoHelper coverageLineCoverageTypeInfoHelper
+        ) : base(textBuffer, lastCoverageLines,eventAggregator)
 		{
 			this.coverageMarginOptions = coverageMarginOptions;
-		}
+            this.coverageLineCoverageTypeInfoHelper = coverageLineCoverageTypeInfoHelper;
+        }
 
         public void Handle(CoverageMarginOptionsChangedMessage message)
         {
@@ -23,12 +31,13 @@ namespace FineCodeCoverage.Impl
 
         protected override TagSpan<OverviewMarkTag> GetTagSpan(Engine.Cobertura.Line coverageLine, SnapshotSpan span)
 		{
-			var coverageType = coverageLine.GetCoverageType();
-			var shouldShow = coverageMarginOptions.Show(coverageType);
+			var coverageTypeInfo = coverageLineCoverageTypeInfoHelper.GetInfo(coverageLine);
+
+			var shouldShow = coverageMarginOptions.Show(coverageTypeInfo.CoverageType);
 			if (!shouldShow) return null;
 
 			var newSnapshotSpan = GetLineSnapshotSpan(coverageLine.Number, span);
-			return new TagSpan<OverviewMarkTag>(newSnapshotSpan, new OverviewMarkTag(GetMarkKindName(coverageLine)));
+			return new TagSpan<OverviewMarkTag>(newSnapshotSpan, new OverviewMarkTag(coverageTypeInfo.EditorFormatDefinitionName));
 		}
 
 		private SnapshotSpan GetLineSnapshotSpan(int lineNumber, SnapshotSpan originalSpan)
@@ -41,23 +50,5 @@ namespace FineCodeCoverage.Impl
 			return new SnapshotSpan(startPoint, endPoint);
 		}
 
-		private string GetMarkKindName(Line line)
-		{
-			var lineHitCount = line?.Hits ?? 0;
-			var lineConditionCoverage = line?.ConditionCoverage?.Trim();
-
-			var markKindName = EnterpriseFontsAndColorsNames.CoverageNotTouchedArea;
-
-			if (lineHitCount > 0)
-			{
-				markKindName = EnterpriseFontsAndColorsNames.CoverageTouchedArea;
-
-				if (!string.IsNullOrWhiteSpace(lineConditionCoverage) && !lineConditionCoverage.StartsWith("100"))
-				{
-					markKindName = EnterpriseFontsAndColorsNames.CoveragePartiallyTouchedArea;
-				}
-			}
-			return markKindName;
-		}
 	}
 }

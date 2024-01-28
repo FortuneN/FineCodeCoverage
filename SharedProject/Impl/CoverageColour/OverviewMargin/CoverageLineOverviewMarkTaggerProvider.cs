@@ -15,15 +15,19 @@ namespace FineCodeCoverage.Impl
     internal class CoverageLineOverviewMarkTaggerProvider : CoverageLineTaggerProviderBase<CoverageLineOverviewMarkTagger, OverviewMarkTag>
     {
         private CoverageMarginOptions coverageMarginOptions;
+        private readonly ICoverageLineCoverageTypeInfoHelper coverageLineCoverageTypeInfoHelper;
+
         [ImportingConstructor]
         public CoverageLineOverviewMarkTaggerProvider(
             IEventAggregator eventAggregator,
-            IAppOptionsProvider appOptionsProvider
+            IAppOptionsProvider appOptionsProvider,
+            ICoverageLineCoverageTypeInfoHelper coverageLineCoverageTypeInfoHelper
         ) : base(eventAggregator)
         {
             var appOptions = appOptionsProvider.Get();
             coverageMarginOptions = CoverageMarginOptions.Create(appOptions);
             appOptionsProvider.OptionsChanged += AppOptionsProvider_OptionsChanged;
+            this.coverageLineCoverageTypeInfoHelper = coverageLineCoverageTypeInfoHelper;
         }
 
         private void AppOptionsProvider_OptionsChanged(IAppOptions appOptions)
@@ -36,9 +40,11 @@ namespace FineCodeCoverage.Impl
             }
         }
 
-        protected override CoverageLineOverviewMarkTagger CreateTagger(ITextBuffer textBuffer, FileLineCoverage lastCoverageLines)
+        protected override CoverageLineOverviewMarkTagger CreateTagger(
+            ITextBuffer textBuffer, FileLineCoverage lastCoverageLines, IEventAggregator eventAggregator)
         {
-            return new CoverageLineOverviewMarkTagger(textBuffer, lastCoverageLines, coverageMarginOptions);
+            return new CoverageLineOverviewMarkTagger(
+                textBuffer, lastCoverageLines, coverageMarginOptions, eventAggregator, coverageLineCoverageTypeInfoHelper);
         }
     }
 }
