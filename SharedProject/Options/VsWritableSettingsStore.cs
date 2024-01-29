@@ -37,6 +37,15 @@ namespace FineCodeCoverage.Options
         {
             writableSettingsStore.SetString(collectionPath, propertyName, value);
         }
+
+        public void SetStringSafe(string collectionPath, string propertyName, string value)
+        {
+            if (!CollectionExists(collectionPath))
+            {
+                CreateCollection(collectionPath);
+            }
+            SetString(collectionPath, propertyName, value);
+        }
     }
 
 }

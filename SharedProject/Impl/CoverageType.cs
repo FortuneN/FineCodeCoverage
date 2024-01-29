@@ -1,5 +1,4 @@
 ﻿using FineCodeCoverage.Engine.Cobertura;
-using FineCodeCoverage.Engine.Model;
 using System.ComponentModel.Composition;
 
 namespace FineCodeCoverage.Impl
@@ -87,26 +86,4 @@ namespace FineCodeCoverage.Impl
         }
     }
 
-  //  internal static class CoverageLineExtensions
-  //  {
-  //      public static CoverageType GetCoverageType(this Engine.Cobertura.Line line)
-  //      {
-		//	var lineHitCount = line?.Hits ?? 0;
-		//	var lineConditionCoverage = line?.ConditionCoverage?.Trim();
-
-		//	var coverageType = CoverageType.NotCovered;
-
-		//	if (lineHitCount > 0)
-		//	{
-		//		coverageType = CoverageType.Covered;
-
-		//		if (!string.IsNullOrWhiteSpace(lineConditionCoverage) && !lineConditionCoverage.StartsWith("100"))
-		//		{
-		//			coverageType = CoverageType.Partial;
-		//		}
-		//	}
-
-		//	return coverageType;
-		//}
-  //  }
 }

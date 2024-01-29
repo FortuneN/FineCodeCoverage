@@ -184,6 +184,17 @@
       <SubType>Code</SubType>
       <DependentUpon>Glyph.xaml</DependentUpon>
     </Compile>
+    <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Provider\CoverageColours.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Provider\CoverageColoursChangedMessage.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Provider\CoverageMarkerType.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Provider\FontsAndColorsHelper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Provider\ICoverageTypeService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Provider\IFontsAndColorsHelper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Provider\IItemCoverageColours.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Provider\IShouldAddCoverageMarkersLogic.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Provider\ItemCoverageColours.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Provider\ProvideTextMarkerAttribute.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Provider\ShouldAddCoverageMarkersLogic.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\TaggerBase\CoverageLineTaggerBase.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\TaggerBase\CoverageLineTaggerProviderBase.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\TaggerBase\ICoverageLineTagger.cs" />
@@ -276,9 +287,6 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="$(MSBuildThisFileDirectory)Resources\OutputToolWindowPackage.ico" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Provider\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="$(MSBuildThisFileDirectory)Core\Utilities\Directory.Build.props" />

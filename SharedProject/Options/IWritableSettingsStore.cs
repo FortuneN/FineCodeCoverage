@@ -7,6 +7,7 @@
         bool PropertyExists(string collectionPath, string propertyName);
         string GetString(string collectionPath, string propertyName);
         void SetString(string collectionPath, string propertyName, string value);
+        void SetStringSafe(string collectionPath, string propertyName, string value);
     }
 
 }

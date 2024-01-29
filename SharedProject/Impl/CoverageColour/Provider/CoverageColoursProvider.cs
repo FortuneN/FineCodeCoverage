@@ -3,20 +3,18 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
 using System.Windows.Media;
-using Microsoft.VisualStudio;
-using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.Threading;
 using Microsoft.VisualStudio.TextManager.Interop;
-using System.Diagnostics.Contracts;
 using System.Runtime.InteropServices;
 using Microsoft.VisualStudio.Text.Classification;
 using FineCodeCoverage.Core.Utilities;
 using Microsoft.VisualStudio.Utilities;
-using System.ComponentModel;
-using System.Diagnostics;
 using Microsoft.VisualStudio.Text.Formatting;
+using System.Collections.ObjectModel;
+using FineCodeCoverage.Options;
+using Microsoft.VisualStudio.Shell.Interop;
+using System.Threading.Tasks;
+using System.Diagnostics;
 
 namespace FineCodeCoverage.Impl
 {
@@ -35,460 +33,75 @@ namespace FineCodeCoverage.Impl
         public string CoveragePartiallyTouchedArea { get; } = "Coverage Partially Touched Area";
     }
 
-    internal interface IFontsAndColorsHelper
-    {
-        System.Threading.Tasks.Task<List<IItemCoverageColours>> GetColorsAsync(Guid category, IEnumerable<string> names);
-    }
+    
 
-    [Export(typeof(IFontsAndColorsHelper))]
-    internal class FontsAndColorsHelper : IFontsAndColorsHelper
-    {
-        private AsyncLazy<IVsFontAndColorStorage> lazyIVsFontAndColorStorage;
-        private readonly uint storeFlags = (uint)(__FCSTORAGEFLAGS.FCSF_READONLY | __FCSTORAGEFLAGS.FCSF_LOADDEFAULTS | __FCSTORAGEFLAGS.FCSF_NOAUTOCOLORS | __FCSTORAGEFLAGS.FCSF_PROPAGATECHANGES);
-
-
-        [ImportingConstructor]
-        public FontsAndColorsHelper(
-            [Import(typeof(SVsServiceProvider))] System.IServiceProvider serviceProvider
-        )
-        {
-            lazyIVsFontAndColorStorage = new AsyncLazy<IVsFontAndColorStorage>(async () =>
-            {
-                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-                return (IVsFontAndColorStorage)serviceProvider.GetService(typeof(IVsFontAndColorStorage));
-            }, ThreadHelper.JoinableTaskFactory);
-        }
-
-        private System.Windows.Media.Color ParseColor(uint color)
-        {
-            var dcolor = System.Drawing.ColorTranslator.FromOle(Convert.ToInt32(color));
-            return System.Windows.Media.Color.FromArgb(dcolor.A, dcolor.R, dcolor.G, dcolor.B);
-        }
-
-        public async System.Threading.Tasks.Task<List<IItemCoverageColours>> GetColorsAsync(Guid category,IEnumerable<string> names)
-        {
-            var colors = new List<IItemCoverageColours>();
-            var fontAndColorStorage = await lazyIVsFontAndColorStorage.GetValueAsync();
-            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-            var success = fontAndColorStorage.OpenCategory(ref category, storeFlags);
-            if (success == VSConstants.S_OK)
-            {
-                // https://github.com/microsoft/vs-threading/issues/993
-                IItemCoverageColours GetColor(string displayName)
-                {
-                    var touchAreaInfo = new ColorableItemInfo[1];
-                    var getItemSuccess = fontAndColorStorage.GetItem(displayName, touchAreaInfo);
-                    if (getItemSuccess == VSConstants.S_OK)
-                    {
-                        var bgColor =  ParseColor(touchAreaInfo[0].crBackground);
-                        var fgColor = ParseColor(touchAreaInfo[0].crForeground);
-                        return new ItemCoverageColours(fgColor,bgColor);
-
-                    }
-                    return null;
-                }
-                colors = names.Select(name => GetColor(name)).Where(color => color!=null).ToList();
-            }
-
-            fontAndColorStorage.CloseCategory();
-            return colors;
-        }
-    }
-
-    [AttributeUsage(AttributeTargets.Class, AllowMultiple = true, Inherited = true)]
-    public class ProvideTextMarker : RegistrationAttribute
-    {
-        private readonly string _markerName, _markerGUID, _markerProviderGUID, _displayName;
-
-        public ProvideTextMarker(string markerName,string displayName, string markerGUID, string markerProviderGUID)
-        {
-            Contract.Requires(markerName != null);
-            Contract.Requires(markerGUID != null);
-            Contract.Requires(markerProviderGUID != null);
-
-            _markerName = markerName;
-             _displayName = displayName;
-            _markerGUID = markerGUID;
-            _markerProviderGUID = markerProviderGUID;
-        }
-
-        public override void Register(RegistrationAttribute.RegistrationContext context)
-        {
-            //Key markerkey = context.CreateKey("Text Editor\\External Markers\\{" + _markerGUID + "}");
-            Key markerkey = context.CreateKey("Text Editor\\External Markers\\" + _markerGUID);
-            markerkey.SetValue("", _markerName);
-            markerkey.SetValue("Service", "{" + _markerProviderGUID + "}");
-            markerkey.SetValue("DisplayName", _displayName);
-            markerkey.SetValue("Package", "{" + context.ComponentType.GUID + "}");
-        }
-
-        public override void Unregister(RegistrationAttribute.RegistrationContext context)
-        {
-            context.RemoveKey("Text Editor\\External Markers\\" + _markerGUID);
-        }
-    }
-
-    // Thiis will be converted internally to AllColorableItemInfo
-    internal class CoverageMarkerType :
-    IVsPackageDefinedTextMarkerType,
-    IVsMergeableUIItem,
-    IVsHiColorItem
-    {
-        private readonly string name;
-        private readonly Color foregroundColor;
-        private readonly Color backgroundColor;
-
-        public CoverageMarkerType(string name,Color foregroundColor, Color backgroundColor)
-        {
-            this.name = name;
-            this.foregroundColor = foregroundColor;
-            this.backgroundColor = backgroundColor;
-        }
-
-        #region IVsPackageDefinedTextMarkerType - mainly irrelevant as not using as a marker - need to sets colors
-        public int GetVisualStyle(out uint pdwVisualFlags)
-        {
-            // no line style calls
-            pdwVisualFlags = (uint)MARKERVISUAL.MV_GLYPH;
-            return 0;
-        }
-
-        // Docs state
-        // The environment only calls this method if you specify a value of MV_LINE or MV_BORDER for your marker type.
-        // ( Which must be GetVisualStyle )
-        // but in reality - if (((int) pdwVisualFlags & 8456) != 0) - which also includes MV_COLOR_SPAN_IF_ZERO_LENGTH
-        public int GetDefaultLineStyle(COLORINDEX[] piLineColor, LINESTYLE[] piLineIndex)
-        {
-            return -2147467263;
-        }
-
-        /*
-            Docs state
-            The environment only calls this method if you specify a value of MV_LINE or MV_BORDER for your marker type.
-            
-            if (((int) pdwVisualFlags & 71) != 0) - 1000111 - BUT WILL GO TO IVsHiColorItem.GetColorData instead if present
-        */
-        public int GetDefaultColors(COLORINDEX[] piForeground, COLORINDEX[] piBackground)
-        {
-            return -2147467263;
-        }
-        
-        public int GetBehaviorFlags(out uint pdwFlags)
-        {
-            pdwFlags = 0U;
-            return 0;
-        }
-        public int GetDefaultFontFlags(out uint pdwFontFlags)
-        {
-            pdwFontFlags = 0U;
-            return 0;
-        }
-        public int GetPriorityIndex(out int piPriorityIndex)
-        {
-            piPriorityIndex = 0;
-            return 0;
-        }
-        public int DrawGlyphWithColors(
-            IntPtr hdc,
-            RECT[] pRect,
-            int iMarkerType,
-            IVsTextMarkerColorSet pMarkerColors,
-            uint dwGlyphDrawFlags,
-            int iLineHeight
-        )
-        {
-            return 0;
-        }
-
-        #endregion
-
-        //If yours is the primary package to be defining the marker, use 0x2000 or greater.
-        public int GetMergingPriority(out int piMergingPriority)
-        {
-            piMergingPriority = 0x2000;
-            return 0;
-        }
-
-        // This is not called.  Could be AllColorableItemInfo.bstrDescription - ( This feature is currently disabled )
-        public int GetDescription(out string pbstrDesc)
-        {
-            pbstrDesc = "Coverage Description goes here";
-            return 0;
-        }
-
-        public int GetDisplayName(out string pbstrDisplayName)
-        {
-            pbstrDisplayName = this.name;
-            return 0;
-        }
-
-        public int GetCanonicalName(out string pbstrNonLocalizeName)
-        {
-            return GetDisplayName(out pbstrNonLocalizeName);
-        }
-
-        /*
-            IVsHiColorItem 
-            Notes to Callers
-            If this interface can be obtained from an object that implements the IVsColorableItem or IVsPackageDefinedTextMarkerType interface, 
-            then that object is advertising support for high color values. 
-            Call the GetColorData(Int32, UInt32) method to get the RGB values for the individual foreground, background, and line colors. 
-            If the GetColorData(Int32, UInt32) method returns an error, gracefully fall back to 
-            accessing the colors on the original IVsColorableItem or IVsPackageDefinedTextMarkerType interfaces.
-
-            --
-            cdElement 
-            0 is foreground, 1 is background, 2 is line color
-        */
-
-        
-
-        public int GetColorData(int cdElement, out uint crColor)
-        {
-            crColor = 0U;
-            if(cdElement == 2)
-            {
-                return -2147467259;
-            }
-            var foreground = cdElement == 0;
-            var color = foreground ? foregroundColor : backgroundColor;
-            crColor = ColorToRgb(color);
-            return 0;
-        }
-
-        private uint ColorToRgb(Color color)
-        {
-            int r = (int)color.R;
-            short g = (short)color.G;
-            int b = (int)color.B;
-            int num = (int)g << 8;
-            return (uint)(r | num | b << 16);
-        }
-        
-    }
-
-    internal class CoverageColours : ICoverageColours
-    {
-        public IItemCoverageColours CoverageTouchedColours { get; }
-        public IItemCoverageColours CoverageNotTouchedColours { get; }
-        public IItemCoverageColours CoveragePartiallyTouchedColours { get; }
-        public CoverageColours(
-            IItemCoverageColours coverageTouchedColors,
-            IItemCoverageColours coverageNotTouched, 
-            IItemCoverageColours coveragePartiallyTouchedColors
-        )
-        {
-            CoverageTouchedColours = coverageTouchedColors;
-            CoverageNotTouchedColours = coverageNotTouched;
-            CoveragePartiallyTouchedColours = coveragePartiallyTouchedColors;
-        }
-
-        internal bool AreEqual(CoverageColours lastCoverageColours)
-        {
-            if (lastCoverageColours == null) return false;
-
-            return CoverageTouchedColours.Equals(lastCoverageColours.CoverageTouchedColours) &&
-                CoverageNotTouchedColours.Equals(lastCoverageColours.CoverageNotTouchedColours) &&
-                CoveragePartiallyTouchedColours.Equals(lastCoverageColours.CoveragePartiallyTouchedColours);
-        }
-
-        public IItemCoverageColours GetColor(CoverageType coverageType)
-        {
-            switch (coverageType)
-            {
-                case CoverageType.Partial:
-                    return CoveragePartiallyTouchedColours;
-                case CoverageType.NotCovered:
-                    return CoverageNotTouchedColours;
-                case CoverageType.Covered:
-                    return CoverageTouchedColours;
-            }
-            return default;
-        }
-
-    }
-
-    internal interface IShouldAddCoverageMarkersLogic
-    {
-        bool ShouldAddCoverageMarkers();
-    }
-
-    [Export(typeof(IShouldAddCoverageMarkersLogic))]
-    class ShouldAddCoverageMarkersLogic : IShouldAddCoverageMarkersLogic
-    {
-        public bool ShouldAddCoverageMarkers()
-        {
-            return !AppDomain.CurrentDomain.GetAssemblies().Any(a => a.GetName().Name == "Microsoft.CodeCoverage.VisualStudio.Window");
-        }
-    }
-
-    public interface IClassificationFormatMetadata : IEditorFormatMetadata, IOrderable
-    {
-        string[] ClassificationTypeNames { get; }
-    }
-    public interface IEditorFormatMetadata
-    {
-        string Name { get; }
-
-        [DefaultValue(false)]
-        bool UserVisible { get; }
-
-        [DefaultValue(0)]
-        int Priority { get; }
-    }
-
-    public interface IClassificationTypeDefinitionMetadata
-    {
-        string Name { get; }
-
-        [DefaultValue(null)]
-        IEnumerable<string> BaseDefinition { get; }
-    }
-
-    // this will sync up using CoverageColoursProvider / Use the base ClassificationFormatDefinition
-    internal abstract class CoverageEditorFormatDefinition : EditorFormatDefinition, ICoverageEditorFormatDefinition
-    {
-        public CoverageEditorFormatDefinition(
-            string identifier,
-            ICoverageColoursProvider coverageColoursProvider,
-            CoverageType coverageType)
-        {
-            Identifier = identifier;
-            CoverageType = coverageType;
-            BackgroundColor = Colors.Pink;
-            ForegroundColor = Colors.Black;
-            ForegroundBrush = new SolidColorBrush(ForegroundColor.Value);
-            // WHY IS IT NOT AVAILABLE YET ?
-            //var coverageColours = coverageColoursProvider.GetCoverageColours();
-            //BackgroundColor = coverageColours.GetColor(coverageType);
-        }
-        public string Identifier { get; private set; }
-        public void SetBackgroundColor(Color backgroundColor)
-        {
-            BackgroundColor = backgroundColor;
-        }
-        public CoverageType CoverageType { get; }
-    }
-
-
-   // [Export(typeof(EditorFormatDefinition))]
-    [Name(ResourceName)]
-    [UserVisible(false)]
-    [Microsoft.VisualStudio.Utilities.Order(Before = "formal language")]
-    internal class NotCoveredEditorFormatDefinition : CoverageEditorFormatDefinition
-    {
-        public const string ResourceName = "FCCNotCovered";
-        [ImportingConstructor]
-        public NotCoveredEditorFormatDefinition(
-            ICoverageColoursProvider coverageColoursProvider
-        ) : base(ResourceName,coverageColoursProvider, CoverageType.NotCovered)
-        {
-        }
-    }
-
-    //[Export(typeof(EditorFormatDefinition))]
-    [Name(ResourceName)]
-    [UserVisible(false)]
-    [Microsoft.VisualStudio.Utilities.Order(Before = "formal language")]
-    internal class PartiallyCoveredEditorFormatDefinition : CoverageEditorFormatDefinition
-    {
-        public const string ResourceName = "FCCPartial";
-        [ImportingConstructor]
-        public PartiallyCoveredEditorFormatDefinition(
-            ICoverageColoursProvider coverageColoursProvider
-        ) : base(ResourceName,coverageColoursProvider, CoverageType.Partial)
-        {
-        }
-    }
-
-    //[Export(typeof(EditorFormatDefinition))]
-    [Name(ResourceName)]
-    [UserVisible(false)]
-    [Microsoft.VisualStudio.Utilities.Order(Before = "formal language")]
-    internal class CoveredEditorFormatDefinition : CoverageEditorFormatDefinition
-    {
-        public const string ResourceName = "FCCCovered";
-        [ImportingConstructor]
-        public CoveredEditorFormatDefinition(
-            ICoverageColoursProvider coverageColoursProvider
-        ) : base(ResourceName,coverageColoursProvider, CoverageType.Covered)
-        {
-        }
-    }
-
-    internal interface IItemCoverageColours:IEquatable<IItemCoverageColours>
-    {
-        Color Foreground { get; }
-        Color Background { get; }
-        
-    }
-
-    internal class ItemCoverageColours : IItemCoverageColours
-    {
-        public ItemCoverageColours(Color foreground, Color background)
-        {
-            this.Foreground = foreground;
-            this.Background = background;
-        }
-
-        public Color Foreground { get; }
-        public Color Background { get; }
-
-        public bool Equals(IItemCoverageColours other)
-        {
-            if (other == this) return true;
-            if (other == null) return false;
-            return Foreground == other.Foreground && Background == other.Background;
-
-        }
-    }
-
-
+    [Export(typeof(ICoverageTypeService))]
     [Export(typeof(CoverageColoursProvider))]
     [Export(typeof(ICoverageColoursProvider))]
     [Guid(TextMarkerProviderString)]
-    internal class CoverageColoursProvider : ICoverageColoursProvider, IVsTextMarkerTypeProvider
+    internal class CoverageColoursProvider : ICoverageColoursProvider, ICoverageTypeService, IVsTextMarkerTypeProvider
     {
-        public const string TouchedGuidString = "{E25C42FC-2A01-4C17-B553-AF3F9B93E1D5}";
-        public static readonly Guid TouchedGuid = new Guid(TouchedGuidString);
-        public const string NotTouchedGuidString = "{0B46CA71-A74C-40F2-A3C8-8FE5542F5DE5}";
-        public static readonly Guid NotTouchedGuid = new Guid(NotTouchedGuidString);
-        public const string PartiallyTouchedGuidString = "{5E04DD15-3061-4C03-B23E-93AAB9D923A2}";
-        public static readonly Guid PartiallyTouchedGuid = new Guid(PartiallyTouchedGuidString);
-
-        public const string TextMarkerProviderString = "1D1E3CAA-74ED-48B3-9923-5BDC48476CB0";
-
-        public static readonly Guid EditorTextMarkerFontAndColorCategory = new Guid("FF349800-EA43-46C1-8C98-878E78F46501");
-
-        private readonly CoverageMarkerType _covTouched;
-        private readonly CoverageMarkerType _covNotTouched;
-        private readonly CoverageMarkerType _covPartiallyTouched;
-
-        private readonly IEditorFormatMap editorFormatMap;
+        private readonly Guid EditorTextMarkerFontAndColorCategory = new Guid("FF349800-EA43-46C1-8C98-878E78F46501");
         private readonly IEventAggregator eventAggregator;
         private readonly ICoverageColoursEditorFormatMapNames coverageColoursEditorFormatMapNames;
         private readonly IFontsAndColorsHelper fontsAndColorsHelper;
-        private readonly bool shouldAddCoverageMarkers;
-        private CoverageColours lastCoverageColours;
+        #region markers
+        #region marker guids
+        public const string TouchedGuidString = "{E25C42FC-2A01-4C17-B553-AF3F9B93E1D5}";
+        public const string NotTouchedGuidString = "{0B46CA71-A74C-40F2-A3C8-8FE5542F5DE5}";
+        public const string PartiallyTouchedGuidString = "{5E04DD15-3061-4C03-B23E-93AAB9D923A2}";
 
+        public const string TextMarkerProviderString = "1D1E3CAA-74ED-48B3-9923-5BDC48476CB0";
+        #endregion
+        private readonly IReadOnlyDictionary<Guid, IVsPackageDefinedTextMarkerType> markerTypes;
+        private readonly bool shouldAddCoverageMarkers;
+        #endregion
+        #region classification types
+        public const string FCCCoveredClassificationTypeName = "FCCCovered";
+        public const string FCCNotCoveredClassificationTypeName = "FCCNotCovered";
+        public const string FCCPartiallyCoveredClassificationTypeName = "FCCPartial";
 
         [Export]
-        [Name(NotCoveredEditorFormatDefinition.ResourceName)]
+        [Name(FCCNotCoveredClassificationTypeName)]
         public ClassificationTypeDefinition FCCNotCoveredTypeDefinition { get; set; }
 
         [Export]
-        [Name(CoveredEditorFormatDefinition.ResourceName)]
+        [Name(FCCCoveredClassificationTypeName)]
         public ClassificationTypeDefinition FCCCoveredTypeDefinition { get; set; }
 
         [Export]
-        [Name(PartiallyCoveredEditorFormatDefinition.ResourceName)]
+        [Name(FCCPartiallyCoveredClassificationTypeName)]
         public ClassificationTypeDefinition FCCPartiallyCoveredTypeDefinition { get; set; }
 
-        private IClassificationType coveredClassificationType;
-        private IClassificationFormatMap classificationFormatMap;
-        private IClassificationType highestPriorityClassificationType;
-        private IClassificationType notCoveredClassificationType;
-        private IClassificationType partiallyCoveredClassificationType;
+        private class ClassificationTypes
+        {
+            public ClassificationTypes(IClassificationFormatMap classificationFormatMap, IClassificationTypeRegistryService classificationTypeRegistryService)
+            {
+                HighestPriorityClassificationType = classificationFormatMap.CurrentPriorityOrder.Where(ct => ct != null).Last();
+
+                var notCoveredClassificationType = classificationTypeRegistryService.GetClassificationType(FCCNotCoveredClassificationTypeName);
+                var coveredClassificationType = classificationTypeRegistryService.GetClassificationType(FCCCoveredClassificationTypeName);
+                var partiallyCoveredClassificationType = classificationTypeRegistryService.GetClassificationType(FCCPartiallyCoveredClassificationTypeName);
+                CoverageClassificationTypes = new ReadOnlyDictionary<CoverageType, IClassificationType>(new Dictionary<CoverageType, IClassificationType>
+                {
+                    { CoverageType.Covered, coveredClassificationType },
+                    { CoverageType.NotCovered, notCoveredClassificationType },
+                    { CoverageType.Partial, partiallyCoveredClassificationType }
+                });
+            }
+
+            public IClassificationType HighestPriorityClassificationType { get; }
+            public ReadOnlyDictionary<CoverageType, IClassificationType> CoverageClassificationTypes { get; }
+        }
+
+        private readonly ClassificationTypes classificationTypes;
+        #endregion
+
+        private readonly IClassificationFormatMap classificationFormatMap;
+        private readonly IEditorFormatMap editorFormatMap;
+        private CoverageColours lastCoverageColours;
+        private bool changingColours;
+        private bool hasSetClassificationTypeColours;
 
         [ImportingConstructor]
         public CoverageColoursProvider(
@@ -501,43 +114,50 @@ namespace FineCodeCoverage.Impl
             IFontsAndColorsHelper fontsAndColorsHelper
         )
         {
+            this.eventAggregator = eventAggregator;
             this.fontsAndColorsHelper = fontsAndColorsHelper;
-            var touchedColours = GetColors(coverageColoursEditorFormatMapNames.CoverageTouchedArea);
-            
-            classificationFormatMap = classificationFormatMapService.GetClassificationFormatMap("text");
-            highestPriorityClassificationType = classificationFormatMap.CurrentPriorityOrder.Where(ct => ct != null).Last();
-            notCoveredClassificationType = classificationTypeRegistryService.GetClassificationType(NotCoveredEditorFormatDefinition.ResourceName);
-            coveredClassificationType = classificationTypeRegistryService.GetClassificationType(CoveredEditorFormatDefinition.ResourceName);
-            partiallyCoveredClassificationType =  classificationTypeRegistryService.GetClassificationType(PartiallyCoveredEditorFormatDefinition.ResourceName);
-            
-            SetCoverageColour(notCoveredClassificationType, new ItemCoverageColours(Colors.Black, Colors.Red));
-            SetCoverageColour(coveredClassificationType, new ItemCoverageColours(Colors.Black, Colors.Green));
-            SetCoverageColour(partiallyCoveredClassificationType, new ItemCoverageColours(Colors.Black, Color.FromRgb(255, 165, 0)));
+            this.coverageColoursEditorFormatMapNames = coverageColoursEditorFormatMapNames;
 
-            this._covTouched = new CoverageMarkerType(coverageColoursEditorFormatMapNames.CoverageTouchedArea,Colors.Black,Colors.Green);
-            this._covNotTouched = new CoverageMarkerType(coverageColoursEditorFormatMapNames.CoverageNotTouchedArea,Colors.Black,Colors.Red);
-            this._covPartiallyTouched = new CoverageMarkerType(coverageColoursEditorFormatMapNames.CoveragePartiallyTouchedArea, Colors.Black, Color.FromRgb(255, 165, 0));
+            classificationFormatMap = classificationFormatMapService.GetClassificationFormatMap("text");
+            classificationTypes = new ClassificationTypes(classificationFormatMap, classificationTypeRegistryService);
+
+            shouldAddCoverageMarkers = shouldAddCoverageMarkersLogic.ShouldAddCoverageMarkers();
+            if (shouldAddCoverageMarkers)
+            {
+                this.markerTypes = CreateMarkerTypes();
+            }
 
             editorFormatMap = editorFormatMapService.GetEditorFormatMap("text");
             editorFormatMap.FormatMappingChanged += EditorFormatMap_FormatMappingChanged;
-            this.eventAggregator = eventAggregator;
-            this.coverageColoursEditorFormatMapNames = coverageColoursEditorFormatMapNames;
-            
-            shouldAddCoverageMarkers = shouldAddCoverageMarkersLogic.ShouldAddCoverageMarkers();
+
+            InitializeClassificationTypeColours();
         }
 
-        private void SetCoverageColour(IClassificationType classificationType, IItemCoverageColours coverageColours)
+        private IReadOnlyDictionary<Guid, IVsPackageDefinedTextMarkerType> CreateMarkerTypes()
         {
-            changingColours = true;
-            classificationFormatMap.AddExplicitTextProperties(classificationType, TextFormattingRunProperties.CreateTextFormattingRunProperties(
-                new SolidColorBrush(coverageColours.Foreground), new SolidColorBrush(coverageColours.Background), null, null, null, null, null, null
-                ),
-                highestPriorityClassificationType
+            var coverageColours = new CoverageColours(
+                new ItemCoverageColours(Colors.Black, Colors.Green),
+                new ItemCoverageColours(Colors.Black, Colors.Red),
+                new ItemCoverageColours(Colors.Black, Color.FromRgb(255, 165, 0))
             );
-            changingColours = false;
+            var _covTouched = new CoverageMarkerType(coverageColoursEditorFormatMapNames.CoverageTouchedArea, coverageColours.CoverageTouchedColours);
+            var _covNotTouched = new CoverageMarkerType(coverageColoursEditorFormatMapNames.CoverageNotTouchedArea, coverageColours.CoverageNotTouchedColours);
+            var _covPartiallyTouched = new CoverageMarkerType(coverageColoursEditorFormatMapNames.CoveragePartiallyTouchedArea, coverageColours.CoveragePartiallyTouchedColours);
+            
+            return new ReadOnlyDictionary<Guid, IVsPackageDefinedTextMarkerType>(new Dictionary<Guid, IVsPackageDefinedTextMarkerType>
+            {
+                {new Guid(TouchedGuidString),_covTouched },
+                {new Guid(NotTouchedGuidString),_covNotTouched },
+                {new Guid(PartiallyTouchedGuidString),_covPartiallyTouched }
+            });
         }
 
-        private bool changingColours;
+        public int GetTextMarkerType(ref Guid markerGuid, out IVsPackageDefinedTextMarkerType markerType)
+        {
+            markerType = shouldAddCoverageMarkers ? markerTypes[markerGuid] : null;
+            return 0;
+        }
+
         private void EditorFormatMap_FormatMappingChanged(object sender, FormatItemsEventArgs e)
         {
             if (changingColours) return;
@@ -550,44 +170,92 @@ namespace FineCodeCoverage.Impl
             if (coverageChanged)
             {
                 var currentCoverageColours = GetCoverageColoursFromFontsAndColors();
-                if (!currentCoverageColours.AreEqual(lastCoverageColours))
-                {
-                    if(!lastCoverageColours.CoverageNotTouchedColours.Equals(currentCoverageColours.CoverageNotTouchedColours))
-                    {
-                        SetCoverageColour(notCoveredClassificationType,currentCoverageColours.CoverageNotTouchedColours);
-                    }
-                    if(!lastCoverageColours.CoveragePartiallyTouchedColours.Equals(currentCoverageColours.CoveragePartiallyTouchedColours))
-                    {
-                        SetCoverageColour(partiallyCoveredClassificationType,currentCoverageColours.CoveragePartiallyTouchedColours);
-                    }
-                    if(!lastCoverageColours.CoverageTouchedColours.Equals(currentCoverageColours.CoverageTouchedColours))
-                    {
-                        SetCoverageColour(coveredClassificationType, currentCoverageColours.CoverageTouchedColours);
-                    }
-                    lastCoverageColours = currentCoverageColours;
-                    eventAggregator.SendMessage(new CoverageColoursChangedMessage(currentCoverageColours));
-                    
-                }
+                SetClassificationTypeColoursIfChanged(currentCoverageColours,lastCoverageColours);
             }
         }
 
-        public int GetTextMarkerType(ref Guid markerGuid, out IVsPackageDefinedTextMarkerType markerType)
+        private void InitializeClassificationTypeColours()
         {
-            markerType = null;
-            if (shouldAddCoverageMarkers)
+            // if being loaded for the IVsTextMarkerTypeProvider service then this will run after 
+            // GetTextMarkerType has been called.
+            _ = System.Threading.Tasks.Task.Delay(0).ContinueWith(async (t) =>
             {
-                markerType = markerGuid.Equals(TouchedGuid) ? this._covTouched :
-                (markerGuid.Equals(PartiallyTouchedGuid) ? this._covPartiallyTouched :
-                this._covNotTouched);
-                return 0;
+                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                if(!hasSetClassificationTypeColours)
+                {
+                    // if not being loaded for the IVsTextMarkerTypeProvider service then this will get vs to ask for the markers
+                    var _ = editorFormatMap.GetProperties(coverageColoursEditorFormatMapNames.CoverageTouchedArea);
+                    // markers available now
+                    var coverageColors = GetCoverageColoursPrivate();
+                    SetClassificationTypeColoursIfChanged(coverageColors, null);
+                }
+            },TaskScheduler.Default);
+        }
+
+        private void SetClassificationTypeColoursIfChanged(CoverageColours coverageColours,CoverageColours last)
+        {
+            var changes = coverageColours.GetChanges(last);
+            if (changes.Any())
+            {
+                changingColours = true; 
+                BatchUpdateIfRequired(() =>
+                {
+                    foreach (var change in changes)
+                    {
+                        SetCoverageColour(classificationTypes.CoverageClassificationTypes[change.Key], change.Value);
+                    }
+                });
+                hasSetClassificationTypeColours = changes.Count == 3;
+                changingColours = false;
+                lastCoverageColours = coverageColours;
+                eventAggregator.SendMessage(new CoverageColoursChangedMessage(coverageColours));
             }
-            
-            return 0;
+        }
+        
+        private void BatchUpdateIfRequired(Action action)
+        {
+            if (classificationFormatMap.IsInBatchUpdate)
+            {
+                action();
+            }
+            else
+            {
+                classificationFormatMap.BeginBatchUpdate();
+                action();
+                classificationFormatMap.EndBatchUpdate();
+            }
+        }
+
+        // todo - consider a MEF export to allow other extensions to change the formatting
+        private void SetCoverageColour(IClassificationType classificationType, IItemCoverageColours coverageColours)
+        {
+            classificationFormatMap.AddExplicitTextProperties(classificationType, TextFormattingRunProperties.CreateTextFormattingRunProperties(
+                new SolidColorBrush(coverageColours.Foreground), new SolidColorBrush(coverageColours.Background), 
+                null, // Typeface
+                null, // size
+                null, // hinting size
+               /*
+                   TextDecorationCollection
+                    https://docs.microsoft.com/en-us/dotnet/api/system.windows.textdecorations?view=windowsdesktop-8.0
+                    https://learn.microsoft.com/en-us/dotnet/api/system.windows.textdecorations?view=windowsdesktop-8.0
+               */
+               null, 
+                // TextEffectCollection https://learn.microsoft.com/en-us/dotnet/api/system.windows.media.texteffect?view=windowsdesktop-8.0
+                null, // 
+                null // CultureInfo
+                ),
+                classificationTypes.HighestPriorityClassificationType
+            );
         }
 
         public ICoverageColours GetCoverageColours()
         {
-            if(lastCoverageColours != null)
+            return GetCoverageColoursPrivate();
+        }
+
+        private CoverageColours GetCoverageColoursPrivate()
+        {
+            if (lastCoverageColours != null)
             {
                 return lastCoverageColours;
             }
@@ -597,39 +265,39 @@ namespace FineCodeCoverage.Impl
 
         private CoverageColours GetCoverageColoursFromFontsAndColors()
         {
-            var fromFontsAndColors = fontsAndColorsHelper.GetColorsAsync(EditorTextMarkerFontAndColorCategory, new[] {
-                coverageColoursEditorFormatMapNames.CoverageTouchedArea,
-                coverageColoursEditorFormatMapNames.CoverageNotTouchedArea,
-                coverageColoursEditorFormatMapNames.CoveragePartiallyTouchedArea
-            }).GetAwaiter().GetResult();
-            
+            var fromFontsAndColors = GetItemCoverageColoursFromFontsAndColors();
+            return CreateCoverageColours(fromFontsAndColors);
+        }
+
+        private List<IItemCoverageColours> GetItemCoverageColoursFromFontsAndColors()
+        {
+            return ThreadHelper.JoinableTaskFactory.Run(() =>
+            {
+                return fontsAndColorsHelper.GetColorsAsync(
+                    EditorTextMarkerFontAndColorCategory,
+                    new[] {
+                        coverageColoursEditorFormatMapNames.CoverageTouchedArea,
+                        coverageColoursEditorFormatMapNames.CoverageNotTouchedArea,
+                        coverageColoursEditorFormatMapNames.CoveragePartiallyTouchedArea
+                     }
+                );
+            });
+        }
+        
+        private static CoverageColours CreateCoverageColours(List<IItemCoverageColours> fromFontsAndColors)
+        {
             return new CoverageColours(
                 fromFontsAndColors[0],
                 fromFontsAndColors[1],
                 fromFontsAndColors[2]
             );
         }
-
-
-
-        private IItemCoverageColours GetColors(string coverageName)
+        
+        public IClassificationType GetClassificationType(CoverageType coverageType)
         {
-            //var backgroundColor = (Color)editorFormatMap.GetProperties(coverageName)["BackgroundColor"];
-            // use the visual studio way of waiting
-            var allColors = fontsAndColorsHelper.GetColorsAsync(EditorTextMarkerFontAndColorCategory, new[] { coverageName }).GetAwaiter().GetResult();
-            return allColors.FirstOrDefault();
-            //var foregroundColor = (Color)editorFormatMap.GetProperties(coverageName)["ForegroundColor"];
-            //return new ItemCoverageColours(foregroundColor, backgroundColor);
+            return classificationTypes.CoverageClassificationTypes[coverageType];
         }
     }
 
-    internal class CoverageColoursChangedMessage
-    {
-        public ICoverageColours CoverageColours { get; }
 
-        public CoverageColoursChangedMessage(ICoverageColours currentCoverageColours)
-        {
-            this.CoverageColours = currentCoverageColours;
-        }
-    }
 }

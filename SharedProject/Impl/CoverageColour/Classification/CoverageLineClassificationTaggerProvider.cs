@@ -20,40 +20,40 @@ namespace SharedProject.Impl.CoverageColour.Classification
     [Export(typeof(ITaggerProvider))]
     internal class CoverageLineClassificationTaggerProvider : CoverageLineTaggerProviderBase<CoverageLineClassificationTagger, IClassificationTag>
     {
-        private readonly IClassificationTypeRegistryService classificationTypeRegistryService;
+        private readonly ICoverageTypeService coverageTypeService;
         private readonly ICoverageLineCoverageTypeInfoHelper coverageLineCoverageTypeInfoHelper;
 
         [ImportingConstructor]
         public CoverageLineClassificationTaggerProvider(
             IEventAggregator eventAggregator,
-            IClassificationTypeRegistryService classificationTypeRegistryService,
+            ICoverageTypeService coverageTypeService,
              ICoverageLineCoverageTypeInfoHelper coverageLineCoverageTypeInfoHelper
             ) : base(eventAggregator)
         {
-            this.classificationTypeRegistryService = classificationTypeRegistryService;
+            this.coverageTypeService = coverageTypeService;
             this.coverageLineCoverageTypeInfoHelper = coverageLineCoverageTypeInfoHelper;
         }
 
         protected override CoverageLineClassificationTagger CreateTagger(ITextBuffer textBuffer, FileLineCoverage lastCoverageLines, IEventAggregator eventAggregator)
         {
             return new CoverageLineClassificationTagger(
-                textBuffer, lastCoverageLines, eventAggregator, classificationTypeRegistryService, coverageLineCoverageTypeInfoHelper);
+                textBuffer, lastCoverageLines, eventAggregator, coverageTypeService, coverageLineCoverageTypeInfoHelper);
         }
     }
     internal class CoverageLineClassificationTagger : CoverageLineTaggerBase<IClassificationTag>
     {
+        private readonly ICoverageTypeService coverageTypeService;
         private readonly ICoverageLineCoverageTypeInfoHelper coverageLineCoverageTypeInfoHelper;
-        private readonly IClassificationTypeRegistryService classificationTypeRegistryService;
 
         public CoverageLineClassificationTagger(
             ITextBuffer textBuffer,
             FileLineCoverage lastCoverageLines,
             IEventAggregator eventAggregator,
-            IClassificationTypeRegistryService classificationTypeRegistryService,
-             ICoverageLineCoverageTypeInfoHelper coverageLineCoverageTypeInfoHelper
+            ICoverageTypeService coverageTypeService,
+            ICoverageLineCoverageTypeInfoHelper coverageLineCoverageTypeInfoHelper
         ) : base(textBuffer, lastCoverageLines, eventAggregator)
         {
-            this.classificationTypeRegistryService = classificationTypeRegistryService;
+            this.coverageTypeService = coverageTypeService;
             this.coverageLineCoverageTypeInfoHelper = coverageLineCoverageTypeInfoHelper;
         }
 
@@ -61,9 +61,7 @@ namespace SharedProject.Impl.CoverageColour.Classification
         {
             span = GetLineSnapshotSpan(coverageLine.Number, span);
             var coverageType = coverageLineCoverageTypeInfoHelper.GetInfo(coverageLine).CoverageType;
-            var ct = classificationTypeRegistryService.GetClassificationType(
-                GetClassificationTypeName(coverageType)
-            ); 
+            var ct = coverageTypeService.GetClassificationType(coverageType);
             return new TagSpan<IClassificationTag>(span, new ClassificationTag(ct));
         }
 
@@ -75,21 +73,6 @@ namespace SharedProject.Impl.CoverageColour.Classification
             var endPoint = line.End;
 
             return new SnapshotSpan(startPoint, endPoint);
-        }
-
-        private string GetClassificationTypeName(CoverageType coverageType)
-        {
-            var classificationTypeName = CoveredEditorFormatDefinition.ResourceName;
-            switch (coverageType)
-            {
-                case CoverageType.NotCovered:
-                    classificationTypeName = NotCoveredEditorFormatDefinition.ResourceName;
-                    break;
-                case CoverageType.Partial:
-                    classificationTypeName = PartiallyCoveredEditorFormatDefinition.ResourceName;
-                    break;
-            }
-            return classificationTypeName;
         }
     }
 }
