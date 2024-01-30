@@ -18,7 +18,7 @@ namespace FineCodeCoverage.Impl
         {
             set
             {
-                if (value.ShowEditorCoverage && Enabled(value))
+                if (value.ShowEditorCoverage && EnabledPrivate(value))
                 {
                     showLookup = GetShowLookup(value);
                     if (showLookup == null || showLookup.Count != 3)
@@ -29,10 +29,19 @@ namespace FineCodeCoverage.Impl
             }
         }
 
+        private bool EnabledPrivate(IAppOptions appOptions)
+        {
+            var enabled = Enabled(appOptions);
+            Disabled = !enabled;
+            return enabled;
+        }
+
         protected abstract bool Enabled(IAppOptions appOptions);
         protected abstract Dictionary<CoverageType, bool> GetShowLookup(IAppOptions appOptions);
 
         public abstract string TypeIdentifier { get; }
+
+        public bool Disabled { get; set; } = true;
 
         public bool Show(CoverageType coverageType)
         {

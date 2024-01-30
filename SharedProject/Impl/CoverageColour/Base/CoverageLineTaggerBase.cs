@@ -59,7 +59,7 @@ namespace FineCodeCoverage.Impl
 		{
 			var result = new List<ITagSpan<TTag>>();
 
-			if (spans == null || coverageLines == null)
+			if (spans == null || coverageLines == null || coverageTypeFilter.Disabled)
 			{
 				return result;
 			}

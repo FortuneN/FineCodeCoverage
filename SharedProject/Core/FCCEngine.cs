@@ -87,7 +87,7 @@ namespace FineCodeCoverage.Engine
             this.solutionEvents = solutionEvents;
             this.eventAggregator = eventAggregator;
             this.disposeAwareTaskRunner = disposeAwareTaskRunner;
-            solutionEvents.AfterClosing += (s,args) => ClearOutputWindow(false);
+            solutionEvents.AfterClosing += (s,args) => ClearUI(false);
             appOptionsProvider.OptionsChanged += (appOptions) =>
             {
                 if (!appOptions.Enabled)
@@ -125,10 +125,10 @@ namespace FineCodeCoverage.Engine
             msCodeCoverageRunSettingsService.Initialize(AppDataFolderPath, this,cancellationToken);
         }
 
-        public void ClearUI()
+        public void ClearUI(bool clearOutputWindowHistory = true)
         {
             ClearCoverageLines();
-            ClearOutputWindow(true);
+            ClearOutputWindow(clearOutputWindowHistory);
         }
 
         private void ClearOutputWindow(bool withHistory)
