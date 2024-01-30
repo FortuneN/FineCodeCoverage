@@ -108,7 +108,6 @@ namespace FineCodeCoverage.Output
 			);
 			await componentModel.GetService<IInitializer>().InitializeAsync(cancellationToken);
 			var coverageColours = componentModel.GetService<CoverageColoursProvider>();
-            //((IServiceContainer)this).AddService(typeof(CoverageColours), (_,__) => coverageColours, true);
             this.AddService(typeof(CoverageColoursProvider),(_,__,___) => Task.FromResult(coverageColours as object),true);
         }
 

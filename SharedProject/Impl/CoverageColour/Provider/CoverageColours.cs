@@ -43,7 +43,7 @@ namespace FineCodeCoverage.Impl
             return changes;
         }
 
-        public IItemCoverageColours GetColor(CoverageType coverageType)
+        public IItemCoverageColours GetColour(CoverageType coverageType)
         {
             switch (coverageType)
             {

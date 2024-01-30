@@ -3,7 +3,6 @@ using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 using OrderAttribute = Microsoft.VisualStudio.Utilities.OrderAttribute;
-using System;
 
 namespace FineCodeCoverage.Impl
 {
@@ -14,12 +13,6 @@ namespace FineCodeCoverage.Impl
 	[Export(typeof(IGlyphFactoryProvider))]
 	internal class CoverageLineGlyphFactoryProvider: IGlyphFactoryProvider
 	{
-  //      [ImportingConstructor]
-		//public CoverageLineGlyphFactoryProvider(
-		//)
-		//{
-  //      }
-
         public IGlyphFactory GetGlyphFactory(IWpfTextView textView, IWpfTextViewMargin textViewMargin)
 		{
 			return new CoverageLineGlyphFactory();

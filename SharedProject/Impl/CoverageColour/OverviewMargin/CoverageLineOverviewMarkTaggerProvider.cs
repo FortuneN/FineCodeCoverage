@@ -12,39 +12,26 @@ namespace FineCodeCoverage.Impl
     [TagType(typeof(OverviewMarkTag))]
     [Name("FCC.CoverageLineOverviewMarkTaggerProvider")]
     [Export(typeof(ITaggerProvider))]
-    internal class CoverageLineOverviewMarkTaggerProvider : CoverageLineTaggerProviderBase<CoverageLineOverviewMarkTagger, OverviewMarkTag>
+    internal class CoverageLineOverviewMarkTaggerProvider : 
+        CoverageLineTaggerProviderBase<CoverageLineOverviewMarkTagger, OverviewMarkTag,CoverageOverviewMarginFilter>
     {
-        private CoverageMarginOptions coverageMarginOptions;
-        private readonly ICoverageLineCoverageTypeInfoHelper coverageLineCoverageTypeInfoHelper;
+        private readonly ICoverageColoursEditorFormatMapNames coverageColoursEditorFormatMapNames;
 
         [ImportingConstructor]
         public CoverageLineOverviewMarkTaggerProvider(
             IEventAggregator eventAggregator,
             IAppOptionsProvider appOptionsProvider,
-            ICoverageLineCoverageTypeInfoHelper coverageLineCoverageTypeInfoHelper
-        ) : base(eventAggregator)
+            ICoverageColoursEditorFormatMapNames coverageColoursEditorFormatMapNames
+        ) : base(eventAggregator,appOptionsProvider)
         {
-            var appOptions = appOptionsProvider.Get();
-            coverageMarginOptions = CoverageMarginOptions.Create(appOptions);
-            appOptionsProvider.OptionsChanged += AppOptionsProvider_OptionsChanged;
-            this.coverageLineCoverageTypeInfoHelper = coverageLineCoverageTypeInfoHelper;
-        }
-
-        private void AppOptionsProvider_OptionsChanged(IAppOptions appOptions)
-        {
-            var newCoverageMarginOptions = CoverageMarginOptions.Create(appOptions);
-            if (!newCoverageMarginOptions.AreEqual(coverageMarginOptions))
-            {
-                coverageMarginOptions = newCoverageMarginOptions;
-                eventAggregator.SendMessage(new CoverageMarginOptionsChangedMessage(coverageMarginOptions));
-            }
+            this.coverageColoursEditorFormatMapNames = coverageColoursEditorFormatMapNames;
         }
 
         protected override CoverageLineOverviewMarkTagger CreateTagger(
-            ITextBuffer textBuffer, FileLineCoverage lastCoverageLines, IEventAggregator eventAggregator)
+            ITextBuffer textBuffer, FileLineCoverage lastCoverageLines, IEventAggregator eventAggregator, ICoverageTypeFilter coverageTypeFilter)
         {
             return new CoverageLineOverviewMarkTagger(
-                textBuffer, lastCoverageLines, coverageMarginOptions, eventAggregator, coverageLineCoverageTypeInfoHelper);
+                textBuffer, lastCoverageLines, eventAggregator, coverageColoursEditorFormatMapNames, coverageTypeFilter);
         }
     }
 }

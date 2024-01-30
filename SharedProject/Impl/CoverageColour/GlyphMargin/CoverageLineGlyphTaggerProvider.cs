@@ -4,7 +4,7 @@ using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Text.Tagging;
 using FineCodeCoverage.Core.Utilities;
 using FineCodeCoverage.Engine.Model;
-using Microsoft.VisualStudio.Text.Classification;
+using FineCodeCoverage.Options;
 
 namespace FineCodeCoverage.Impl
 {
@@ -12,26 +12,24 @@ namespace FineCodeCoverage.Impl
     [TagType(typeof(CoverageLineGlyphTag))]
     [Name(Vsix.TaggerProviderName)]
 	[Export(typeof(ITaggerProvider))]
-	internal class CoverageLineGlyphTaggerProvider : CoverageLineTaggerProviderBase<CoverageLineGlyphTagger, CoverageLineGlyphTag>
+	internal class CoverageLineGlyphTaggerProvider : CoverageLineTaggerProviderBase<CoverageLineGlyphTagger, CoverageLineGlyphTag, GlyphTagFilter>
     {
         private readonly ICoverageColoursProvider coverageColoursProvider;
-        private readonly ICoverageLineCoverageTypeInfoHelper coverageLineCoverageTypeInfoHelper;
 
         [ImportingConstructor]
         public CoverageLineGlyphTaggerProvider(
             IEventAggregator eventAggregator,
             ICoverageColoursProvider coverageColoursProvider,
-            ICoverageLineCoverageTypeInfoHelper coverageLineCoverageTypeInfoHelper
-        ) : base(eventAggregator)
+            IAppOptionsProvider appOptionsProvider
+        ) : base(eventAggregator,appOptionsProvider)
         {
             this.coverageColoursProvider = coverageColoursProvider;
-            this.coverageLineCoverageTypeInfoHelper = coverageLineCoverageTypeInfoHelper;
         }
 
-
-        protected override CoverageLineGlyphTagger CreateTagger(ITextBuffer textBuffer, FileLineCoverage lastCoverageLines, IEventAggregator eventAggregator)
+        protected override CoverageLineGlyphTagger CreateTagger(ITextBuffer textBuffer, FileLineCoverage lastCoverageLines, IEventAggregator eventAggregator,ICoverageTypeFilter coverageTypeFilter)
         {
-            return new CoverageLineGlyphTagger(textBuffer, lastCoverageLines,eventAggregator,coverageColoursProvider.GetCoverageColours(), coverageLineCoverageTypeInfoHelper);
+            return new CoverageLineGlyphTagger(textBuffer, lastCoverageLines,eventAggregator,coverageColoursProvider.GetCoverageColours(), coverageTypeFilter);
         }
+
     }
 }

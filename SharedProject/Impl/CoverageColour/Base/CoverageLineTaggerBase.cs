@@ -5,22 +5,33 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace FineCodeCoverage.Impl
 {
-	internal abstract class CoverageLineTaggerBase<TTag> : IDisposable, ICoverageLineTagger<TTag> where TTag : ITag
-	{
+	internal abstract class CoverageLineTaggerBase<TTag> : 
+		IListener<CoverageTypeFilterChangedMessage>,
+        IListener<NewCoverageLinesMessage>,
+        IDisposable, 
+		ITagger<TTag>
+		where TTag : ITag
+
+    {
 		private readonly ITextBuffer _textBuffer;
 		private FileLineCoverage coverageLines;
+        private ICoverageTypeFilter coverageTypeFilter;
         private readonly IEventAggregator eventAggregator;
-
         public event EventHandler<SnapshotSpanEventArgs> TagsChanged;
 
-		public CoverageLineTaggerBase(ITextBuffer textBuffer, FileLineCoverage lastCoverageLines, Core.Utilities.IEventAggregator eventAggregator)
+		public CoverageLineTaggerBase(
+			ITextBuffer textBuffer, 
+			FileLineCoverage lastCoverageLines,
+            ICoverageTypeFilter coverageTypeFilter,
+            Core.Utilities.IEventAggregator eventAggregator
+        )
 		{
 			_textBuffer = textBuffer;
 			coverageLines = lastCoverageLines;
+            this.coverageTypeFilter = coverageTypeFilter;
             this.eventAggregator = eventAggregator;
             if (lastCoverageLines != null)
 			{
@@ -73,20 +84,40 @@ namespace FineCodeCoverage.Impl
 
 				foreach (var applicableCoverageLine in applicableCoverageLines)
 				{
+					if (!coverageTypeFilter.Show(applicableCoverageLine.CoverageType))
+					{
+                        continue;
+                    }
 					var tagSpan = GetTagSpan(applicableCoverageLine, span);
-					if (tagSpan != null)
-                    {
-						result.Add(tagSpan);
-					}
+                    result.Add(tagSpan);
 				}
 			}
 		}
 
-		protected abstract TagSpan<TTag> GetTagSpan(Engine.Cobertura.Line coverageLine, SnapshotSpan span);
+        protected SnapshotSpan GetLineSnapshotSpan(int lineNumber, SnapshotSpan originalSpan)
+        {
+            var line = originalSpan.Snapshot.GetLineFromLineNumber(lineNumber - 1);
+
+            var startPoint = line.Start;
+            var endPoint = line.End;
+
+            return new SnapshotSpan(startPoint, endPoint);
+        }
+
+        protected abstract TagSpan<TTag> GetTagSpan(Engine.Cobertura.Line coverageLine, SnapshotSpan span);
 
         public void Dispose()
         {
             eventAggregator.RemoveListener(this);
+        }
+
+        public void Handle(CoverageTypeFilterChangedMessage message)
+        {
+			if(message.Filter.TypeIdentifier == coverageTypeFilter.TypeIdentifier)
+			{
+                coverageTypeFilter = message.Filter;
+                RaiseTagsChanged();
+            }
         }
     }
 }

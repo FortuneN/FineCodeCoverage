@@ -1,4 +1,5 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using FineCodeCoverage.Impl;
+using System.Diagnostics.CodeAnalysis;
 using System.Xml.Serialization;
 
 // Generated from cobertura XML schema
@@ -23,5 +24,32 @@ namespace FineCodeCoverage.Engine.Cobertura
 
         [XmlAttribute(AttributeName = "condition-coverage")]
         public string ConditionCoverage { get; set; }
+
+        private CoverageType? coverageType;
+        public CoverageType CoverageType
+        {
+            get
+            {
+                if(coverageType == null)
+                {
+                    
+                    var lineConditionCoverage = ConditionCoverage?.Trim();
+
+                    coverageType = CoverageType.NotCovered;
+
+                    if (Hits > 0)
+                    {
+                        coverageType = CoverageType.Covered;
+
+                        if (!string.IsNullOrWhiteSpace(lineConditionCoverage) && !lineConditionCoverage.StartsWith("100"))
+                        {
+                            coverageType = CoverageType.Partial;
+                        }
+                    }
+                }
+                return coverageType.Value;
+            }
+        }
+        
     }
 }

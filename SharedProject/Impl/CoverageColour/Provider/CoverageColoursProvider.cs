@@ -11,41 +11,28 @@ using FineCodeCoverage.Core.Utilities;
 using Microsoft.VisualStudio.Utilities;
 using Microsoft.VisualStudio.Text.Formatting;
 using System.Collections.ObjectModel;
-using FineCodeCoverage.Options;
-using Microsoft.VisualStudio.Shell.Interop;
 using System.Threading.Tasks;
-using System.Diagnostics;
 
 namespace FineCodeCoverage.Impl
 {
-    interface ICoverageColoursEditorFormatMapNames
-    {
-        string CoverageTouchedArea { get; }
-        string CoverageNotTouchedArea { get; }
-        string CoveragePartiallyTouchedArea {get;}
-    }
-
-    [Export(typeof(ICoverageColoursEditorFormatMapNames))]
-    internal class EnterpriseFontsAndColorsNames : ICoverageColoursEditorFormatMapNames
-    {
-        public string CoverageTouchedArea { get; } = "Coverage Touched Area";
-        public string CoverageNotTouchedArea { get; } = "Coverage Not Touched Area";
-        public string CoveragePartiallyTouchedArea { get; } = "Coverage Partially Touched Area";
-    }
-
-    
-
     [Export(typeof(ICoverageTypeService))]
     [Export(typeof(CoverageColoursProvider))]
     [Export(typeof(ICoverageColoursProvider))]
+    [Export(typeof(ICoverageColoursEditorFormatMapNames))]
     [Guid(TextMarkerProviderString)]
-    internal class CoverageColoursProvider : ICoverageColoursProvider, ICoverageTypeService, IVsTextMarkerTypeProvider
+    internal class CoverageColoursProvider : 
+        ICoverageColoursProvider, ICoverageTypeService, ICoverageColoursEditorFormatMapNames, IVsTextMarkerTypeProvider
     {
         private readonly Guid EditorTextMarkerFontAndColorCategory = new Guid("FF349800-EA43-46C1-8C98-878E78F46501");
         private readonly IEventAggregator eventAggregator;
-        private readonly ICoverageColoursEditorFormatMapNames coverageColoursEditorFormatMapNames;
         private readonly IFontsAndColorsHelper fontsAndColorsHelper;
+
         #region markers
+        #region names
+        private const string CoverageTouchedArea = "Coverage Touched Area";
+        private const string CoverageNotTouchedArea = "Coverage Not Touched Area";
+        private const string CoveragePartiallyTouchedArea = "Coverage Partially Touched Area";
+        #endregion
         #region marker guids
         public const string TouchedGuidString = "{E25C42FC-2A01-4C17-B553-AF3F9B93E1D5}";
         public const string NotTouchedGuidString = "{0B46CA71-A74C-40F2-A3C8-8FE5542F5DE5}";
@@ -108,7 +95,6 @@ namespace FineCodeCoverage.Impl
             IEditorFormatMapService editorFormatMapService,
             IEventAggregator eventAggregator,
             IShouldAddCoverageMarkersLogic shouldAddCoverageMarkersLogic,
-            ICoverageColoursEditorFormatMapNames coverageColoursEditorFormatMapNames,
             IClassificationFormatMapService classificationFormatMapService,
             IClassificationTypeRegistryService classificationTypeRegistryService,
             IFontsAndColorsHelper fontsAndColorsHelper
@@ -116,7 +102,6 @@ namespace FineCodeCoverage.Impl
         {
             this.eventAggregator = eventAggregator;
             this.fontsAndColorsHelper = fontsAndColorsHelper;
-            this.coverageColoursEditorFormatMapNames = coverageColoursEditorFormatMapNames;
 
             classificationFormatMap = classificationFormatMapService.GetClassificationFormatMap("text");
             classificationTypes = new ClassificationTypes(classificationFormatMap, classificationTypeRegistryService);
@@ -140,9 +125,10 @@ namespace FineCodeCoverage.Impl
                 new ItemCoverageColours(Colors.Black, Colors.Red),
                 new ItemCoverageColours(Colors.Black, Color.FromRgb(255, 165, 0))
             );
-            var _covTouched = new CoverageMarkerType(coverageColoursEditorFormatMapNames.CoverageTouchedArea, coverageColours.CoverageTouchedColours);
-            var _covNotTouched = new CoverageMarkerType(coverageColoursEditorFormatMapNames.CoverageNotTouchedArea, coverageColours.CoverageNotTouchedColours);
-            var _covPartiallyTouched = new CoverageMarkerType(coverageColoursEditorFormatMapNames.CoveragePartiallyTouchedArea, coverageColours.CoveragePartiallyTouchedColours);
+
+            var _covTouched = new CoverageMarkerType(CoverageTouchedArea, coverageColours.CoverageTouchedColours);
+            var _covNotTouched = new CoverageMarkerType(CoverageNotTouchedArea, coverageColours.CoverageNotTouchedColours);
+            var _covPartiallyTouched = new CoverageMarkerType(CoveragePartiallyTouchedArea, coverageColours.CoveragePartiallyTouchedColours);
             
             return new ReadOnlyDictionary<Guid, IVsPackageDefinedTextMarkerType>(new Dictionary<Guid, IVsPackageDefinedTextMarkerType>
             {
@@ -163,9 +149,9 @@ namespace FineCodeCoverage.Impl
             if (changingColours) return;
 
             var coverageChanged = e.ChangedItems.Any(c => 
-                c == coverageColoursEditorFormatMapNames.CoverageTouchedArea || 
-                c == coverageColoursEditorFormatMapNames.CoverageNotTouchedArea || 
-                c == coverageColoursEditorFormatMapNames.CoveragePartiallyTouchedArea
+                c == CoverageTouchedArea || 
+                c == CoverageNotTouchedArea || 
+                c == CoveragePartiallyTouchedArea
             );
             if (coverageChanged)
             {
@@ -184,7 +170,7 @@ namespace FineCodeCoverage.Impl
                 if(!hasSetClassificationTypeColours)
                 {
                     // if not being loaded for the IVsTextMarkerTypeProvider service then this will get vs to ask for the markers
-                    var _ = editorFormatMap.GetProperties(coverageColoursEditorFormatMapNames.CoverageTouchedArea);
+                    var _ = editorFormatMap.GetProperties(CoverageTouchedArea);
                     // markers available now
                     var coverageColors = GetCoverageColoursPrivate();
                     SetClassificationTypeColoursIfChanged(coverageColors, null);
@@ -276,9 +262,9 @@ namespace FineCodeCoverage.Impl
                 return fontsAndColorsHelper.GetColorsAsync(
                     EditorTextMarkerFontAndColorCategory,
                     new[] {
-                        coverageColoursEditorFormatMapNames.CoverageTouchedArea,
-                        coverageColoursEditorFormatMapNames.CoverageNotTouchedArea,
-                        coverageColoursEditorFormatMapNames.CoveragePartiallyTouchedArea
+                        CoverageTouchedArea,
+                        CoverageNotTouchedArea,
+                        CoveragePartiallyTouchedArea
                      }
                 );
             });
@@ -297,7 +283,20 @@ namespace FineCodeCoverage.Impl
         {
             return classificationTypes.CoverageClassificationTypes[coverageType];
         }
+
+        public string GetEditorFormatDefinitionName(CoverageType coverageType)
+        {
+            var editorFormatDefinitionName = FCCCoveredClassificationTypeName;
+            switch (coverageType)
+            {
+                case CoverageType.Partial:
+                    editorFormatDefinitionName = FCCPartiallyCoveredClassificationTypeName;
+                    break;
+                case CoverageType.NotCovered:
+                    editorFormatDefinitionName = FCCNotCoveredClassificationTypeName;
+                    break;
+            }
+            return editorFormatDefinitionName;
+        }
     }
-
-
 }

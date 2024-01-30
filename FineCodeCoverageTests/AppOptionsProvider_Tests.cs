@@ -273,7 +273,6 @@ namespace FineCodeCoverageTests
                 { nameof(IAppOptions.AttributesInclude), new string[]{ "ainclude"}},
                 { nameof(IAppOptions.CompanyNamesExclude), new string[]{ "cexclude"}},
                 { nameof(IAppOptions.CompanyNamesInclude), new string[]{ "cinclude"}},
-                { nameof(IAppOptions.CoverageColoursFromFontsAndColours), true},
                 { nameof(IAppOptions.CoverletCollectorDirectoryPath), "p"},
                 { nameof(IAppOptions.CoverletConsoleCustomPath), "cp"},
                 { nameof(IAppOptions.CoverletConsoleGlobal), true},

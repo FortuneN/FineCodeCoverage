@@ -179,15 +179,19 @@
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\VsThreading\IThreadHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\XmlFileEscaper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\ZipFileWrapper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Base\CoverageTypeFilterBase.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Base\CoverageTypeFilterChangedMessage.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Base\ICoverageTypeFilter.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Classification\CoverageClassificationFilter.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Classification\CoverageLineClassificationTagger.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Classification\CoverageLineClassificationTaggerProvider.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\GlyphMargin\Glyph.xaml.cs">
-      <SubType>Code</SubType>
-      <DependentUpon>Glyph.xaml</DependentUpon>
-    </Compile>
+    <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\GlyphMargin\GlyphTagFilter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Provider\CoverageColours.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Provider\CoverageColoursChangedMessage.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Provider\CoverageMarkerType.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Provider\FontsAndColorsHelper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Provider\ICoverageColoursEditorFormatMapNames.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Provider\ICoverageColoursProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Provider\ICoverageTypeService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Provider\IFontsAndColorsHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Provider\IItemCoverageColours.cs" />
@@ -195,15 +199,11 @@
     <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Provider\ItemCoverageColours.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Provider\ProvideTextMarkerAttribute.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Provider\ShouldAddCoverageMarkersLogic.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\TaggerBase\CoverageLineTaggerBase.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\TaggerBase\CoverageLineTaggerProviderBase.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\TaggerBase\ICoverageLineTagger.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Base\CoverageLineTaggerBase.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Base\CoverageLineTaggerProviderBase.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\OverviewMargin\CoverageLineOverviewMarkTagger.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\OverviewMargin\CoverageLineOverviewMarkTaggerProvider.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\OverviewMargin\CoverageMarginOptions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\OverviewMargin\CoverageMarginOptionsChangedMessage.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\OverviewMargin\ICoverageEditorFormatDefinition.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\OverviewMargin\ICoverageMarginOptions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\OverviewMargin\CoverageOverviewMarginFilter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Provider\CoverageColoursProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\GlyphMargin\CoverageLineGlyphFactory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\GlyphMargin\CoverageLineGlyphFactoryProvider.cs" />
@@ -271,10 +271,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\ShownToolWindowHistory.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Page Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\GlyphMargin\Glyph.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
     <Page Include="$(MSBuildThisFileDirectory)Output\OutputToolWindowControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
