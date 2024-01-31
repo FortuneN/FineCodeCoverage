@@ -7,9 +7,35 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.ComponentModel.Composition;
+using Microsoft.VisualStudio.TextManager.Interop;
 
 namespace FineCodeCoverage.Impl
 {
+
+    internal interface IFontsAndColorsInfo : IEquatable<IFontsAndColorsInfo>
+    {
+        IItemCoverageColours ItemCoverageColours { get; }
+        bool IsBold { get; }
+    }
+
+    internal class FontsAndColorsInfo : IFontsAndColorsInfo
+    {
+        public FontsAndColorsInfo(IItemCoverageColours itemCoverageColours, bool isBold)
+        {
+            ItemCoverageColours = itemCoverageColours;
+            IsBold = isBold;
+        }
+
+        public IItemCoverageColours ItemCoverageColours { get; }
+        public bool IsBold { get; }
+
+        public bool Equals(IFontsAndColorsInfo other)
+        {
+            return IsBold == other.IsBold && ItemCoverageColours.Equals(other.ItemCoverageColours);
+        }
+    }
+    
+
     [Export(typeof(IFontsAndColorsHelper))]
     internal class FontsAndColorsHelper : IFontsAndColorsHelper
     {
@@ -35,16 +61,16 @@ namespace FineCodeCoverage.Impl
             return System.Windows.Media.Color.FromArgb(dcolor.A, dcolor.R, dcolor.G, dcolor.B);
         }
 
-        public async System.Threading.Tasks.Task<List<IItemCoverageColours>> GetColorsAsync(Guid category, IEnumerable<string> names)
+        public async System.Threading.Tasks.Task<List<IFontsAndColorsInfo>> GetInfosAsync(Guid category, IEnumerable<string> names)
         {
-            var colors = new List<IItemCoverageColours>();
+            var infos = new List<IFontsAndColorsInfo>();
             var fontAndColorStorage = await lazyIVsFontAndColorStorage.GetValueAsync();
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
             var success = fontAndColorStorage.OpenCategory(ref category, storeFlags);
             if (success == VSConstants.S_OK)
             {
                 // https://github.com/microsoft/vs-threading/issues/993
-                IItemCoverageColours GetColor(string displayName)
+                IFontsAndColorsInfo GetInfo(string displayName)
                 {
                     var touchAreaInfo = new ColorableItemInfo[1];
                     var getItemSuccess = fontAndColorStorage.GetItem(displayName, touchAreaInfo);
@@ -52,16 +78,15 @@ namespace FineCodeCoverage.Impl
                     {
                         var bgColor = ParseColor(touchAreaInfo[0].crBackground);
                         var fgColor = ParseColor(touchAreaInfo[0].crForeground);
-                        return new ItemCoverageColours(fgColor, bgColor);
-
+                        return new FontsAndColorsInfo(new ItemCoverageColours(fgColor, bgColor), touchAreaInfo[0].dwFontFlags == (uint)FONTFLAGS.FF_BOLD);
                     }
                     return null;
                 }
-                colors = names.Select(name => GetColor(name)).Where(color => color != null).ToList();
+                infos = names.Select(name => GetInfo(name)).Where(color => color != null).ToList();
             }
 
             fontAndColorStorage.CloseCategory();
-            return colors;
+            return infos;
         }
     }
 

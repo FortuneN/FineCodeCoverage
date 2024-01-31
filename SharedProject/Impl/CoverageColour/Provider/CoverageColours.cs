@@ -4,41 +4,41 @@ namespace FineCodeCoverage.Impl
 {
     internal class CoverageColours : ICoverageColours
     {
-        public IItemCoverageColours CoverageTouchedColours { get; }
-        public IItemCoverageColours CoverageNotTouchedColours { get; }
-        public IItemCoverageColours CoveragePartiallyTouchedColours { get; }
+        public IFontsAndColorsInfo CoverageTouchedInfo { get; }
+        public IFontsAndColorsInfo CoverageNotTouchedInfo { get; }
+        public IFontsAndColorsInfo CoveragePartiallyTouchedInfo { get; }
         public CoverageColours(
-            IItemCoverageColours coverageTouchedColors,
-            IItemCoverageColours coverageNotTouched,
-            IItemCoverageColours coveragePartiallyTouchedColors
+            IFontsAndColorsInfo coverageTouchedColors,
+            IFontsAndColorsInfo coverageNotTouched,
+            IFontsAndColorsInfo coveragePartiallyTouchedColors
         )
         {
-            CoverageTouchedColours = coverageTouchedColors;
-            CoverageNotTouchedColours = coverageNotTouched;
-            CoveragePartiallyTouchedColours = coveragePartiallyTouchedColors;
+            CoverageTouchedInfo = coverageTouchedColors;
+            CoverageNotTouchedInfo = coverageNotTouched;
+            CoveragePartiallyTouchedInfo = coveragePartiallyTouchedColors;
         }
 
-        internal Dictionary<CoverageType, IItemCoverageColours> GetChanges(CoverageColours lastCoverageColours)
+        internal Dictionary<CoverageType, IFontsAndColorsInfo> GetChanges(CoverageColours lastCoverageColours)
         {
-            var changes = new Dictionary<CoverageType, IItemCoverageColours>();
-            if (lastCoverageColours == null) return new Dictionary<CoverageType, IItemCoverageColours>
+            var changes = new Dictionary<CoverageType, IFontsAndColorsInfo>();
+            if (lastCoverageColours == null) return new Dictionary<CoverageType, IFontsAndColorsInfo>
             {
-                { CoverageType.Covered, CoverageTouchedColours},
-                {CoverageType.NotCovered, CoverageNotTouchedColours },
-                { CoverageType.Partial, CoveragePartiallyTouchedColours}
+                { CoverageType.Covered, CoverageTouchedInfo},
+                {CoverageType.NotCovered, CoverageNotTouchedInfo },
+                { CoverageType.Partial, CoveragePartiallyTouchedInfo}
             };
 
-            if (!CoverageTouchedColours.Equals(lastCoverageColours.CoverageTouchedColours))
+            if (!CoverageTouchedInfo.Equals(lastCoverageColours.CoverageTouchedInfo))
             {
-                changes.Add(CoverageType.Covered, CoverageTouchedColours);
+                changes.Add(CoverageType.Covered, CoverageTouchedInfo);
             }
-            if (!CoverageNotTouchedColours.Equals(lastCoverageColours.CoverageNotTouchedColours))
+            if (!CoverageNotTouchedInfo.Equals(lastCoverageColours.CoverageNotTouchedInfo))
             {
-                changes.Add(CoverageType.NotCovered, CoverageNotTouchedColours);
+                changes.Add(CoverageType.NotCovered, CoverageNotTouchedInfo);
             }
-            if (!CoveragePartiallyTouchedColours.Equals(lastCoverageColours.CoveragePartiallyTouchedColours))
+            if (!CoveragePartiallyTouchedInfo.Equals(lastCoverageColours.CoveragePartiallyTouchedInfo))
             {
-                changes.Add(CoverageType.Partial, CoveragePartiallyTouchedColours);
+                changes.Add(CoverageType.Partial, CoveragePartiallyTouchedInfo);
             }
             return changes;
         }
@@ -48,11 +48,11 @@ namespace FineCodeCoverage.Impl
             switch (coverageType)
             {
                 case CoverageType.Partial:
-                    return CoveragePartiallyTouchedColours;
+                    return CoveragePartiallyTouchedInfo.ItemCoverageColours;
                 case CoverageType.NotCovered:
-                    return CoverageNotTouchedColours;
+                    return CoverageNotTouchedInfo.ItemCoverageColours;
                 case CoverageType.Covered:
-                    return CoverageTouchedColours;
+                    return CoverageTouchedInfo.ItemCoverageColours;
             }
             return default;
         }

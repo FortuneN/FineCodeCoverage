@@ -120,15 +120,9 @@ namespace FineCodeCoverage.Impl
 
         private IReadOnlyDictionary<Guid, IVsPackageDefinedTextMarkerType> CreateMarkerTypes()
         {
-            var coverageColours = new CoverageColours(
-                new ItemCoverageColours(Colors.Black, Colors.Green),
-                new ItemCoverageColours(Colors.Black, Colors.Red),
-                new ItemCoverageColours(Colors.Black, Color.FromRgb(255, 165, 0))
-            );
-
-            var _covTouched = new CoverageMarkerType(CoverageTouchedArea, coverageColours.CoverageTouchedColours);
-            var _covNotTouched = new CoverageMarkerType(CoverageNotTouchedArea, coverageColours.CoverageNotTouchedColours);
-            var _covPartiallyTouched = new CoverageMarkerType(CoveragePartiallyTouchedArea, coverageColours.CoveragePartiallyTouchedColours);
+            var _covTouched = new CoverageMarkerType(CoverageTouchedArea, new ItemCoverageColours(Colors.Black, Colors.Green));
+            var _covNotTouched = new CoverageMarkerType(CoverageNotTouchedArea, new ItemCoverageColours(Colors.Black, Colors.Red));
+            var _covPartiallyTouched = new CoverageMarkerType(CoveragePartiallyTouchedArea, new ItemCoverageColours(Colors.Black, Color.FromRgb(255, 165, 0)));
             
             return new ReadOnlyDictionary<Guid, IVsPackageDefinedTextMarkerType>(new Dictionary<Guid, IVsPackageDefinedTextMarkerType>
             {
@@ -213,10 +207,11 @@ namespace FineCodeCoverage.Impl
         }
 
         // todo - consider a MEF export to allow other extensions to change the formatting
-        private void SetCoverageColour(IClassificationType classificationType, IItemCoverageColours coverageColours)
+        private void SetCoverageColour(IClassificationType classificationType, IFontsAndColorsInfo fontsAndColorsInfo)
         {
-            classificationFormatMap.AddExplicitTextProperties(classificationType, TextFormattingRunProperties.CreateTextFormattingRunProperties(
-                new SolidColorBrush(coverageColours.Foreground), new SolidColorBrush(coverageColours.Background), 
+            var coverageColours = fontsAndColorsInfo.ItemCoverageColours;
+            var textFormattingRunProperties = TextFormattingRunProperties.CreateTextFormattingRunProperties(
+                new SolidColorBrush(coverageColours.Foreground), new SolidColorBrush(coverageColours.Background),
                 null, // Typeface
                 null, // size
                 null, // hinting size
@@ -225,13 +220,13 @@ namespace FineCodeCoverage.Impl
                     https://docs.microsoft.com/en-us/dotnet/api/system.windows.textdecorations?view=windowsdesktop-8.0
                     https://learn.microsoft.com/en-us/dotnet/api/system.windows.textdecorations?view=windowsdesktop-8.0
                */
-               null, 
+               null,
                 // TextEffectCollection https://learn.microsoft.com/en-us/dotnet/api/system.windows.media.texteffect?view=windowsdesktop-8.0
                 null, // 
                 null // CultureInfo
-                ),
-                classificationTypes.HighestPriorityClassificationType
-            );
+                ).SetBold(fontsAndColorsInfo.IsBold);
+
+            classificationFormatMap.AddExplicitTextProperties(classificationType, textFormattingRunProperties, classificationTypes.HighestPriorityClassificationType);
         }
 
         public ICoverageColours GetCoverageColours()
@@ -251,15 +246,15 @@ namespace FineCodeCoverage.Impl
 
         private CoverageColours GetCoverageColoursFromFontsAndColors()
         {
-            var fromFontsAndColors = GetItemCoverageColoursFromFontsAndColors();
+            var fromFontsAndColors = GetItemCoverageInfosFromFontsAndColors();
             return CreateCoverageColours(fromFontsAndColors);
         }
 
-        private List<IItemCoverageColours> GetItemCoverageColoursFromFontsAndColors()
+        private List<IFontsAndColorsInfo> GetItemCoverageInfosFromFontsAndColors()
         {
             return ThreadHelper.JoinableTaskFactory.Run(() =>
             {
-                return fontsAndColorsHelper.GetColorsAsync(
+                return fontsAndColorsHelper.GetInfosAsync(
                     EditorTextMarkerFontAndColorCategory,
                     new[] {
                         CoverageTouchedArea,
@@ -270,7 +265,7 @@ namespace FineCodeCoverage.Impl
             });
         }
         
-        private static CoverageColours CreateCoverageColours(List<IItemCoverageColours> fromFontsAndColors)
+        private static CoverageColours CreateCoverageColours(List<IFontsAndColorsInfo> fromFontsAndColors)
         {
             return new CoverageColours(
                 fromFontsAndColors[0],
