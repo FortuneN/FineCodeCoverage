@@ -11,12 +11,13 @@ namespace FineCodeCoverage.Impl
 
         public CoverageLineOverviewMarkTagger(
 			ITextBuffer textBuffer, 
-			FileLineCoverage lastCoverageLines, 
+			IFileLineCoverage lastCoverageLines, 
 			IEventAggregator eventAggregator,
             ICoverageColoursEditorFormatMapNames coverageColoursEditorFormatMapNames,
-			ICoverageTypeFilter coverageTypeFilter
+			ICoverageTypeFilter coverageTypeFilter,
+			ILineSpanLogic lineSpanLogic
 
-        ) : base(textBuffer, lastCoverageLines,coverageTypeFilter,eventAggregator)
+        ) : base(textBuffer, lastCoverageLines,coverageTypeFilter,eventAggregator, lineSpanLogic)
 		{
             this.coverageColoursEditorFormatMapNames = coverageColoursEditorFormatMapNames;
         }
@@ -24,7 +25,6 @@ namespace FineCodeCoverage.Impl
         protected override TagSpan<OverviewMarkTag> GetTagSpan(Engine.Cobertura.Line coverageLine, SnapshotSpan span)
 		{
 			var editorFormatDefinitionName = coverageColoursEditorFormatMapNames.GetEditorFormatDefinitionName(coverageLine.CoverageType);
-			span = GetLineSnapshotSpan(coverageLine.Number, span);
 			return new TagSpan<OverviewMarkTag>(span, new OverviewMarkTag(editorFormatDefinitionName));
 		}
 	}

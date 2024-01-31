@@ -85,6 +85,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Core\Model\ICoverageProjectSettingsManager.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Model\ICoverageProjectSettingsProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Model\IFCCSettingsFilesProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Model\IFileLineCoverage.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Model\ISettingsMerger.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Model\IVsBuildFCCSettingsProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Model\ReferencedProject.cs" />

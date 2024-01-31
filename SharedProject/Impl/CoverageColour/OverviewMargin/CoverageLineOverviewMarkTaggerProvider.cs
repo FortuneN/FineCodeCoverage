@@ -21,17 +21,18 @@ namespace FineCodeCoverage.Impl
         public CoverageLineOverviewMarkTaggerProvider(
             IEventAggregator eventAggregator,
             IAppOptionsProvider appOptionsProvider,
-            ICoverageColoursEditorFormatMapNames coverageColoursEditorFormatMapNames
-        ) : base(eventAggregator,appOptionsProvider)
+            ICoverageColoursEditorFormatMapNames coverageColoursEditorFormatMapNames,
+            ILineSpanLogic lineSpanLogic
+        ) : base(eventAggregator,appOptionsProvider, lineSpanLogic)
         {
             this.coverageColoursEditorFormatMapNames = coverageColoursEditorFormatMapNames;
         }
 
-        protected override CoverageLineOverviewMarkTagger CreateTagger(
-            ITextBuffer textBuffer, FileLineCoverage lastCoverageLines, IEventAggregator eventAggregator, ICoverageTypeFilter coverageTypeFilter)
+        protected override CoverageLineOverviewMarkTagger CreateCoverageTagger(
+            ITextBuffer textBuffer, IFileLineCoverage lastCoverageLines, IEventAggregator eventAggregator, CoverageOverviewMarginFilter coverageTypeFilter,ILineSpanLogic lineSpanLogic)
         {
             return new CoverageLineOverviewMarkTagger(
-                textBuffer, lastCoverageLines, eventAggregator, coverageColoursEditorFormatMapNames, coverageTypeFilter);
+                textBuffer, lastCoverageLines, eventAggregator, coverageColoursEditorFormatMapNames, coverageTypeFilter,lineSpanLogic);
         }
     }
 }

@@ -24,7 +24,7 @@ namespace FineCodeCoverage.Engine.Cobertura
 			}
 		}
 
-		public FileLineCoverage ProcessCoberturaXml(string xmlFile)
+		public IFileLineCoverage ProcessCoberturaXml(string xmlFile)
 		{
 			var fileLineCoverage = new FileLineCoverage();
 

@@ -11,19 +11,19 @@ namespace FineCodeCoverage.Impl
 
         public CoverageLineGlyphTagger(
 			ITextBuffer textBuffer, 
-			FileLineCoverage lastCoverageLines, 
+			IFileLineCoverage lastCoverageLines, 
 			IEventAggregator eventAggregator,
 			ICoverageColours coverageColours,
-            ICoverageTypeFilter coverageTypeFilter
+            ICoverageTypeFilter coverageTypeFilter,
+            ILineSpanLogic lineSpanLogic
 
-        ) : base(textBuffer, lastCoverageLines, coverageTypeFilter, eventAggregator)
+        ) : base(textBuffer, lastCoverageLines, coverageTypeFilter, eventAggregator,lineSpanLogic)
 		{
 			this.coverageColours = coverageColours;
         }
 
         protected override TagSpan<CoverageLineGlyphTag> GetTagSpan(Engine.Cobertura.Line coverageLine, SnapshotSpan span)
         {
-            span = base.GetLineSnapshotSpan(coverageLine.Number, span);
             var colour = coverageColours.GetColour(coverageLine.CoverageType).Background;
             return new TagSpan<CoverageLineGlyphTag>(span, new CoverageLineGlyphTag(coverageLine,colour));
         }

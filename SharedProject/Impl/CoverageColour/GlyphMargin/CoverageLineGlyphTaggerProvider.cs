@@ -20,15 +20,17 @@ namespace FineCodeCoverage.Impl
         public CoverageLineGlyphTaggerProvider(
             IEventAggregator eventAggregator,
             ICoverageColoursProvider coverageColoursProvider,
-            IAppOptionsProvider appOptionsProvider
-        ) : base(eventAggregator,appOptionsProvider)
+            IAppOptionsProvider appOptionsProvider,
+            ILineSpanLogic lineSpanLogic
+        ) : base(eventAggregator,appOptionsProvider, lineSpanLogic)
         {
             this.coverageColoursProvider = coverageColoursProvider;
         }
 
-        protected override CoverageLineGlyphTagger CreateTagger(ITextBuffer textBuffer, FileLineCoverage lastCoverageLines, IEventAggregator eventAggregator,ICoverageTypeFilter coverageTypeFilter)
+        protected override CoverageLineGlyphTagger CreateCoverageTagger(
+            ITextBuffer textBuffer, IFileLineCoverage lastCoverageLines, IEventAggregator eventAggregator, GlyphTagFilter coverageTypeFilter, ILineSpanLogic lineSpanLogic)
         {
-            return new CoverageLineGlyphTagger(textBuffer, lastCoverageLines,eventAggregator,coverageColoursProvider.GetCoverageColours(), coverageTypeFilter);
+            return new CoverageLineGlyphTagger(textBuffer, lastCoverageLines,eventAggregator,coverageColoursProvider.GetCoverageColours(), coverageTypeFilter, lineSpanLogic);
         }
 
     }

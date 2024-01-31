@@ -1,13 +1,12 @@
 ﻿using FineCodeCoverage.Core.Utilities;
 using FineCodeCoverage.Engine.Model;
-using FineCodeCoverage.Impl;
 using FineCodeCoverage.Options;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
 using System.ComponentModel.Composition;
 
-namespace SharedProject.Impl.CoverageColour.Classification
+namespace FineCodeCoverage.Impl
 {
     [ContentType("code")]
     [TagType(typeof(IClassificationTag))]
@@ -21,16 +20,18 @@ namespace SharedProject.Impl.CoverageColour.Classification
         public CoverageLineClassificationTaggerProvider(
             IEventAggregator eventAggregator,
             ICoverageTypeService coverageTypeService,
-             IAppOptionsProvider appOptionsProvider
-            ) : base(eventAggregator, appOptionsProvider)
+             IAppOptionsProvider appOptionsProvider,
+             ILineSpanLogic lineSpanLogic
+            ) : base(eventAggregator, appOptionsProvider,lineSpanLogic)
         {
             this.coverageTypeService = coverageTypeService;
         }
 
-        protected override CoverageLineClassificationTagger CreateTagger(ITextBuffer textBuffer, FileLineCoverage lastCoverageLines, IEventAggregator eventAggregator, ICoverageTypeFilter coverageTypeFilter)
+        protected override CoverageLineClassificationTagger CreateCoverageTagger(
+            ITextBuffer textBuffer, IFileLineCoverage lastCoverageLines, IEventAggregator eventAggregator, CoverageClassificationFilter coverageTypeFilter,ILineSpanLogic lineSpanLogic)
         {
             return new CoverageLineClassificationTagger(
-                textBuffer, lastCoverageLines, eventAggregator, coverageTypeService,coverageTypeFilter);
+                textBuffer, lastCoverageLines, eventAggregator, coverageTypeService,coverageTypeFilter,lineSpanLogic);
         }
     }
 }

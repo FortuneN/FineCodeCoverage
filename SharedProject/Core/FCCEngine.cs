@@ -18,7 +18,7 @@ namespace FineCodeCoverage.Engine
 
     internal sealed class NewCoverageLinesMessage
     {
-        public FileLineCoverage CoverageLines { get; set; }
+        public IFileLineCoverage CoverageLines { get; set; }
     }
 
     internal class CoverageTaskState
@@ -29,7 +29,7 @@ namespace FineCodeCoverage.Engine
 
     internal class ReportResult
     {
-        public FileLineCoverage FileLineCoverage { get; set; }
+        public IFileLineCoverage FileLineCoverage { get; set; }
         public string ProcessedReport { get; set; }
         public string HotspotsFile { get; set; }
         public string CoberturaFile { get; set; }
@@ -212,12 +212,12 @@ namespace FineCodeCoverage.Engine
             RaiseCoverageLines(null);
         }
 
-        private void RaiseCoverageLines(FileLineCoverage coverageLines)
+        private void RaiseCoverageLines(IFileLineCoverage coverageLines)
         {
             eventAggregator.SendMessage(new NewCoverageLinesMessage { CoverageLines = coverageLines});
         }
 
-        private void UpdateUI(FileLineCoverage coverageLines, string reportHtml)
+        private void UpdateUI(IFileLineCoverage coverageLines, string reportHtml)
         {
             RaiseCoverageLines(coverageLines);
             if (reportHtml == null)

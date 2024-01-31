@@ -14,12 +14,14 @@ namespace FineCodeCoverage.Impl
         where TCoverageTypeFilter : ICoverageTypeFilter, new()
     {
         protected readonly IEventAggregator eventAggregator;
-        private FileLineCoverage lastCoverageLines;
+        private readonly ILineSpanLogic lineSpanLogic;
+        private IFileLineCoverage lastCoverageLines;
         private TCoverageTypeFilter coverageTypeFilter;
 
         public CoverageLineTaggerProviderBase(
             IEventAggregator eventAggregator,
-            IAppOptionsProvider appOptionsProvider
+            IAppOptionsProvider appOptionsProvider,
+            ILineSpanLogic lineSpanLogic
         )
         {
             var appOptions = appOptionsProvider.Get();
@@ -27,6 +29,7 @@ namespace FineCodeCoverage.Impl
             appOptionsProvider.OptionsChanged += AppOptionsProvider_OptionsChanged;
             eventAggregator.AddListener(this);
             this.eventAggregator = eventAggregator;
+            this.lineSpanLogic = lineSpanLogic;
         }
 
         private TCoverageTypeFilter CreateFilter(IAppOptions appOptions)
@@ -49,12 +52,13 @@ namespace FineCodeCoverage.Impl
 
         public ITagger<T> CreateTagger<T>(ITextBuffer textBuffer) where T : ITag
         {
-            var tagger = CreateTagger(textBuffer, lastCoverageLines,eventAggregator,coverageTypeFilter);
+            var tagger = CreateCoverageTagger(textBuffer, lastCoverageLines,eventAggregator,coverageTypeFilter,lineSpanLogic);
             eventAggregator.AddListener(tagger);
             return tagger as ITagger<T>;
         }
 
-        protected abstract TTaggerListener CreateTagger(ITextBuffer textBuffer, FileLineCoverage lastCoverageLines, IEventAggregator eventAggregator,ICoverageTypeFilter coverageTypeFilter );
+        protected abstract TTaggerListener CreateCoverageTagger(
+            ITextBuffer textBuffer, IFileLineCoverage lastCoverageLines, IEventAggregator eventAggregator,TCoverageTypeFilter coverageTypeFilter,ILineSpanLogic lineSpanLogic );
 
         public void Handle(NewCoverageLinesMessage message)
         {

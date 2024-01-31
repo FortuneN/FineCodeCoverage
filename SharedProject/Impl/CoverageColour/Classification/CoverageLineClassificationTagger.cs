@@ -12,17 +12,18 @@ namespace FineCodeCoverage.Impl
 
         public CoverageLineClassificationTagger(
             ITextBuffer textBuffer,
-            FileLineCoverage lastCoverageLines,
+            IFileLineCoverage lastCoverageLines,
             IEventAggregator eventAggregator,
             ICoverageTypeService coverageTypeService,
-            ICoverageTypeFilter coverageTypeFilter) : base(textBuffer, lastCoverageLines, coverageTypeFilter, eventAggregator)
+            ICoverageTypeFilter coverageTypeFilter,
+            ILineSpanLogic lineSpanLogic
+            ) : base(textBuffer, lastCoverageLines, coverageTypeFilter, eventAggregator, lineSpanLogic)
         {
             this.coverageTypeService = coverageTypeService;
         }
 
         protected override TagSpan<IClassificationTag> GetTagSpan(Line coverageLine, SnapshotSpan span)
         {
-            span = GetLineSnapshotSpan(coverageLine.Number, span);
             var ct = coverageTypeService.GetClassificationType(coverageLine.CoverageType);
             return new TagSpan<IClassificationTag>(span, new ClassificationTag(ct));
         }

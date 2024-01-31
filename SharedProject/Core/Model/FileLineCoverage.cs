@@ -6,7 +6,7 @@ using System.Collections.Generic;
 namespace FineCodeCoverage.Engine.Model
 {
     // FileLineCoverage maps from a filename to the list of lines in the file
-    internal class FileLineCoverage
+    internal class FileLineCoverage : IFileLineCoverage
     {
         private Dictionary<string, List<Line>> m_coverageLines = new Dictionary<string, List<Line>>(StringComparer.OrdinalIgnoreCase);
 
