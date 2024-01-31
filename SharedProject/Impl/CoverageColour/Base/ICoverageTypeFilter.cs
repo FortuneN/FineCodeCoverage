@@ -4,7 +4,7 @@ namespace FineCodeCoverage.Impl
 {
     interface ICoverageTypeFilter
     {
-        IAppOptions AppOptions { set; }
+        void Initialize(IAppOptions appOptions);
         bool Disabled { get; }
         bool Show(CoverageType coverageType);
         string TypeIdentifier { get; }

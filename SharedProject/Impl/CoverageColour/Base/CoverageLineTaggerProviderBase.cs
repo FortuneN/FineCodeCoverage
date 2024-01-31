@@ -23,15 +23,22 @@ namespace FineCodeCoverage.Impl
         )
         {
             var appOptions = appOptionsProvider.Get();
-            coverageTypeFilter =  new TCoverageTypeFilter() { AppOptions = appOptions };
+            coverageTypeFilter = CreateFilter(appOptions);
             appOptionsProvider.OptionsChanged += AppOptionsProvider_OptionsChanged;
             eventAggregator.AddListener(this);
             this.eventAggregator = eventAggregator;
         }
 
+        private TCoverageTypeFilter CreateFilter(IAppOptions appOptions)
+        {
+            var newCoverageTypeFilter = new TCoverageTypeFilter();
+            newCoverageTypeFilter.Initialize(appOptions);
+            return newCoverageTypeFilter;
+        }
+
         private void AppOptionsProvider_OptionsChanged(IAppOptions appOptions)
         {
-            var newCoverageTypeFilter = new TCoverageTypeFilter() { AppOptions = appOptions };
+            var newCoverageTypeFilter = CreateFilter(appOptions);
             if (newCoverageTypeFilter.Changed(coverageTypeFilter))
             {
                 coverageTypeFilter = newCoverageTypeFilter;

@@ -1,4 +1,5 @@
 ﻿using FineCodeCoverage.Options;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 
@@ -14,17 +15,14 @@ namespace FineCodeCoverage.Impl
         };
         private Dictionary<CoverageType, bool> showLookup = doNotShowLookup;
 
-        public IAppOptions AppOptions
+        public void Initialize(IAppOptions appOptions)
         {
-            set
+            if (appOptions.ShowEditorCoverage && EnabledPrivate(appOptions))
             {
-                if (value.ShowEditorCoverage && EnabledPrivate(value))
+                showLookup = GetShowLookup(appOptions);
+                if (showLookup == null || showLookup.Count != 3)
                 {
-                    showLookup = GetShowLookup(value);
-                    if (showLookup == null || showLookup.Count != 3)
-                    {
-                        throw new Exception("Invalid showLookup");
-                    }
+                    throw new Exception("Invalid showLookup");
                 }
             }
         }
