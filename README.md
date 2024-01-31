@@ -24,10 +24,30 @@ Assembly level exclusions and inclusions can be achieved - see ExcludeAssemblies
 Configuration is ( mostly ) determined from Visual Studio options, finecodecoverage-settings.xml files and project msbuild properties.  All of these settings are optional.
 For options that have a project scope, these settings form a hierarchy where lower levels override or, for collections, override or merge with the level above.  This is described in detail further on.  
 
-Regardless of the coverage tool employed the process begins with FCC reacting to the test explorer in visual studio.  One of the 3 coverage tools provides the coverage results that are presented as a single unified report in the Fine Code Coverage Tool Window.  The report shows line and branch coverage and risk hotspots with the facility to open your class files, that will have coloured margins to indicate uncovered or partially covered code.  
+Regardless of the coverage tool employed the process begins with FCC reacting to the test explorer in visual studio.  One of the 3 coverage tools provides the coverage results and the results can be opened from buttons on the Fine Code Coverage Tool Window.
 This coverage is not dynamic and represents the coverage obtained from the last time you executed tests.  When the coverage becomes outdated, you can click the 'FCC Clear UI' button in Tools or run coverage again.
 
 Details of how FCC is progressing with code coverage can be found in the Coverage Log tab in the Fine Code Coverage Tool Window with more detailed logs in the FCC Output Window Pane.  If you experience issues then providing the logs from the output window will help to understand the nature of the problem.
+
+### Coverage Result Presentation
+### Report
+Present a single unified report in the Fine Code Coverage Tool Window.  The report shows line and branch coverage and risk hotspots with the facility to open your class files.
+
+### Editor
+
+Coloured margins to indicate the coverage status of your code.
+
+If desired, lines can be highlighted too by setting the available Visual Studio options.  Read on for more details.
+
+The colours can be controlled via Visual Studio / Tools / Options / Environment / Fonts and Colors / Text Editor / Display Items :
+
+Coverage Not Touched Area
+
+Coverage Partially Touched Area
+
+Coverage Touched Area
+
+
 
 ## Why use MS Code Coverage ?
 
@@ -90,21 +110,19 @@ This can be changed with the ToolsDirectory Visual Studio option.  Ensure that t
  
 ---
 
-### <a href="https://www.youtube.com/watch?v=Rae5bTE2D3o" target="_blank">Watch Introduction Video</a>
-
 ### Highlights unit test code coverage
 Run a(some) unit test(s) and ...
 
 #### Get highlights on the code being tested and the code doing the testing
 ![Highlights](Art/preview-coverage.png)
 
-#### See Coverage View
+#### Report Coverage View
 ![Coverage View](Art/Output-Coverage.png)
 
-#### See Summary View
+#### Report Summary View
 ![Summary View](Art/Output-Summary.png)
 
-#### See Risk Hotspots View
+#### Report Risk Hotspots View
 ![Risk Hotspots View](Art/Output-RiskHotspots.png)
 
 ## Project configuration
@@ -231,13 +249,21 @@ If you are using option 1) then project and global options will only be used whe
 |Option |Description|
 |--|---|
 |**Common**||
-|CoverageColoursFromFontsAndColours|Specify true to use Environment / Fonts and Colors / Text Editor for editor Coverage colouring ( if present). Coverage Touched Area / Coverage Not Touched Area / Coverage Partially Touched Area. When false colours used are Green, Red and Gold.|
+|ShowEditorCoverage|Set to false to disable all editor coverage indicators|
+|ShowCoverageInGlyphMargin|Set to false to prevent coverage marks in the glyph margin|
+|ShowCoveredInGlyphMargin|Set to false to prevent covered marks in the glyph margin|
+|ShowUncoveredInGlyphMargin|Set to false to prevent uncovered marks in the glyph margin|
+|ShowPartiallyCoveredInGlyphMargin|Set to false to prevent partially covered marks in the glyph margin|
 |ShowCoverageInOverviewMargin|Set to false to prevent coverage marks in the overview margin|
 |ShowCoveredInOverviewMargin|Set to false to prevent covered marks in the overview margin|
 |ShowUncoveredInOverviewMargin|Set to false to prevent uncovered marks in the overview margin|
 |ShowPartiallyCoveredInOverviewMargin|Set to false to prevent partially covered marks in the overview margin|
+|ShowLineCoverageHighlighting|Set to true to allow coverage line highlighting|
+|ShowLineCoveredHighlighting|Set to false to prevent covered line highlighting|
+|ShowLineUncoveredHighlighting|Set to false to prevent uncovered line highlighting|
+|ShowLinePartiallyCoveredHighlighting|Set to false to prevent partially covered line highlighting|
 |ShowToolWindowToolbar|Set to false to hide the toolbar on the tool window.  Requires restarting Visual Studio.  The toolbar has buttons for viewing the Cobertura xml and the risk hotspots.|
-|FCCSolutionOutputDirectoryName|To have fcc output visible in a sub folder of your solution provide this name|
+|FCC Solution Output Directory Name|To have fcc output visible in a sub folder of your solution provide this name|
 |ToolsDirectory|Folder to which copy tools subfolder. Must alredy exist. Requires restart of VS.|
 |ThresholdForCyclomaticComplexity| When [cyclomatic complexity](https://en.wikipedia.org/wiki/Cyclomatic_complexity) exceeds this value for a method then the method will be present in the risk hotspots tab. |
 |StickyCoverageTable|Set to true for coverage table to have a sticky thead.|
@@ -269,8 +295,8 @@ If you are using option 1) then project and global options will only be used whe
 |ModulePathsInclude|Include - Matches assemblies specified by assembly name or file path.|
 |CompanyNamesExclude|Exclude - Matches assemblies by the Company attribute.|
 |CompanyNamesInclude|Include - Matches assemblies by the Company attribute.|
-|PublicKeyTokensExclude|Exclude - Matches signed assemblies by the public key token.|
-|PublicKeyTokensInclude|Include - Matches signed assemblies by the public key token.|
+|PublicKeyTokens Exclude|Exclude - Matches signed assemblies by the public key token.|
+|PublicKeyTokens Include|Include - Matches signed assemblies by the public key token.|
 |SourcesExclude|Exclude - Matches elements by the path name of the source file in which they're defined.|
 |SourcesInclude|Include - Matches elements by the path name of the source file in which they're defined.|
 |AttributesExclude|Exclude - Matches elements that have the specified attribute. Specify the full name of the attribute|
@@ -366,4 +392,4 @@ used by this project.
 | Provider | Type      | Link                                                                                                                              |
 |:---------|:---------:|:---------------------------------------------------------------------------------------------------------------------------------:|
 | Paypal   | Once      | [<img src="https://www.paypalobjects.com/webstatic/mktg/Logo/pp-logo-100px.png">](https://paypal.me/FortuneNgwenya)               |
-| Librepay | Recurring | [<img alt="Donate using Liberapay" src="Art/librepay.png">](https://liberapay.com/FortuneN/donate)                                |
+| Liberapay | Recurring | [<img alt="Donate using Liberapay" src="Art/librepay.png">](https://liberapay.com/FortuneN/donate)                                |
