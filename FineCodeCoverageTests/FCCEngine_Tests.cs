@@ -73,6 +73,17 @@ namespace Test
             mocker.Verify<IEventAggregator>(ea => ea.SendMessage(It.Is<NewCoverageLinesMessage>(msg => msg.CoverageLines == null), null));
         }
 
+        [Test]
+        public void Should_Clear_UI_When_Solution_Closes()
+        {
+            var mockSolutionEvents = mocker.GetMock<ISolutionEvents>();
+            mocker.Setup<IReportGeneratorUtil,string>(reportGeneratorUtil => reportGeneratorUtil.BlankReport(false)).Returns("reportHtml");
+            mockSolutionEvents.Raise(s => s.AfterClosing += null, EventArgs.Empty);
+
+            mocker.Verify<IEventAggregator>(ea => ea.SendMessage(It.Is<NewCoverageLinesMessage>(msg => msg.CoverageLines == null), null));
+            mocker.Verify<IEventAggregator>(ea => ea.SendMessage(It.Is<NewReportMessage>(msg => msg.Report == "reportHtml"), null));
+          
+        }
     }
 
     public class FCCEngine_ReloadCoverage_Tests
