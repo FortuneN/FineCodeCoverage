@@ -12,6 +12,7 @@ using Microsoft.VisualStudio.Utilities;
 using Microsoft.VisualStudio.Text.Formatting;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
+using Microsoft.VisualStudio.PlatformUI;
 
 namespace FineCodeCoverage.Impl
 {
@@ -120,7 +121,8 @@ namespace FineCodeCoverage.Impl
 
         private IReadOnlyDictionary<Guid, IVsPackageDefinedTextMarkerType> CreateMarkerTypes()
         {
-            var _covTouched = new CoverageMarkerType(CoverageTouchedArea, new ItemCoverageColours(Colors.Black, Colors.Green));
+            //Colors.Green fails WCAG AA
+            var _covTouched = new CoverageMarkerType(CoverageTouchedArea, new ItemCoverageColours(Colors.Black, Color.FromRgb(16,135,24)));
             var _covNotTouched = new CoverageMarkerType(CoverageNotTouchedArea, new ItemCoverageColours(Colors.Black, Colors.Red));
             var _covPartiallyTouched = new CoverageMarkerType(CoveragePartiallyTouchedArea, new ItemCoverageColours(Colors.Black, Color.FromRgb(255, 165, 0)));
             
