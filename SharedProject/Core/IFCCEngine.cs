@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using FineCodeCoverage.Core.Initialization;
 using FineCodeCoverage.Engine.Model;
 
 namespace FineCodeCoverage.Engine
@@ -12,7 +11,7 @@ namespace FineCodeCoverage.Engine
         void StopCoverage();
         void ReloadCoverage(Func<System.Threading.Tasks.Task<List<ICoverageProject>>> coverageRequestCallback);
         void RunAndProcessReport(string[] coberturaFiles,Action cleanUp = null);
-        void ClearUI();
+        void ClearUI(bool clearOutputWindowHistory = true);
     }
 
 }
