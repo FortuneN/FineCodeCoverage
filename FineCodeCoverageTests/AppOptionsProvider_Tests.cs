@@ -205,7 +205,15 @@ namespace FineCodeCoverageTests
                 nameof(IAppOptions.ShowPartiallyCoveredInOverviewMargin),
                 nameof(IAppOptions.ShowToolWindowToolbar),
                 nameof(IAppOptions.Hide0Coverable),
-                nameof(IAppOptions.DisabledNoCoverage)
+                nameof(IAppOptions.DisabledNoCoverage),
+                nameof(IAppOptions.ShowEditorCoverage),
+                nameof(IAppOptions.ShowCoverageInGlyphMargin),
+                nameof(IAppOptions.ShowCoveredInGlyphMargin),
+                nameof(IAppOptions.ShowUncoveredInGlyphMargin),
+                nameof(IAppOptions.ShowPartiallyCoveredInGlyphMargin),
+                nameof(IAppOptions.ShowLineCoveredHighlighting),
+                nameof(IAppOptions.ShowLinePartiallyCoveredHighlighting),
+                nameof(IAppOptions.ShowLineUncoveredHighlighting),
             };
             CollectionAssert.AreEquivalent(expectedSetters.Select(s => $"set_{s}"), invocationNames);
         }
@@ -319,7 +327,16 @@ namespace FineCodeCoverageTests
                 {nameof(IAppOptions.NamespaceQualification),NamespaceQualification.AlwaysUnqualified },
                 {nameof(IAppOptions.OpenCoverRegister),OpenCoverRegister.Default },
                 {nameof(IAppOptions.OpenCoverTarget),"" },
-                {nameof(IAppOptions.OpenCoverTargetArgs),"" }
+                {nameof(IAppOptions.OpenCoverTargetArgs),"" },
+                {nameof(IAppOptions.ShowEditorCoverage),true },
+                {nameof(IAppOptions.ShowCoverageInGlyphMargin),true },
+                {nameof(IAppOptions.ShowCoveredInGlyphMargin),true },
+                {nameof(IAppOptions.ShowPartiallyCoveredInGlyphMargin),true },
+                {nameof(IAppOptions.ShowUncoveredInGlyphMargin),true },
+                {nameof(IAppOptions.ShowLineCoverageHighlighting),true },
+                {nameof(IAppOptions.ShowLineCoveredHighlighting),true },
+                {nameof(IAppOptions.ShowLinePartiallyCoveredHighlighting),true },
+                {nameof(IAppOptions.ShowLineUncoveredHighlighting),true },
             };
             var mockJsonConvertService = autoMocker.GetMock<IJsonConvertService>();
             mockJsonConvertService.Setup(
