@@ -687,4 +687,51 @@ namespace FineCodeCoverageTests
         }
     }
 
+    public class LineSpanLogic_Tests
+    {
+        [Test]
+        public void Should_ForEach_Normalized_Span_Should_Have_A_Full_LineSpan_For_Each_Coverage_Line_In_The_Range()
+        {
+            var mockTextSnapshot = new Mock<ITextSnapshot>();
+
+            mockTextSnapshot.Setup(textSnapshot => textSnapshot.GetLineFromPosition(1)).Returns(GetMockedLine(0));
+            mockTextSnapshot.Setup(textSnapshot => textSnapshot.GetLineFromPosition(199)).Returns(GetMockedLine(9));
+            mockTextSnapshot.Setup(textSnapshot => textSnapshot.GetLineFromPosition(200)).Returns(GetMockedLine(14));
+            mockTextSnapshot.Setup(textSnapshot => textSnapshot.GetLineFromPosition(299)).Returns(GetMockedLine(19));
+
+            // is a normalized span collection linked to the ITextSnapshot
+            var normalizedSpanCollection = new NormalizedSnapshotSpanCollection(mockTextSnapshot.Object,new List<Span> { 
+                Span.FromBounds(100, 199),
+                Span.FromBounds(200, 299)
+            });
+
+            ITextSnapshotLine GetMockedLine(int lineNumber)
+            {
+                var mockTextSnapshotLine = new Mock<ITextSnapshotLine>();
+                mockTextSnapshotLine.SetupGet(textSnapshotLine => textSnapshotLine.LineNumber).Returns(lineNumber);
+                return mockTextSnapshotLine.Object;
+            }
+
+            // SnapshotPoint is just a Position int and a ITextSnapshot
+            // GetContainingLine() comes from ITextSnapshot.GetLineFromPosition
+
+            // *** also from the ITextSnapshot GetLineFromLineNumber
+
+            var mockFileLineCoverage = new Mock<IFileLineCoverage>();
+            mockFileLineCoverage.Setup(fileLineCoverage => fileLineCoverage.GetLines("filepath", 1, 10)).Returns(new List<ILine>
+            {
+
+            });
+            mockFileLineCoverage.Setup(fileLineCoverage => fileLineCoverage.GetLines("filepath", 15, 20)).Returns(new List<ILine>
+            {
+
+            });
+
+            var lineSpanLogic = new LineSpanLogic();
+            var lineSpans = lineSpanLogic.GetLineSpans(mockFileLineCoverage.Object, "filepath", normalizedSpanCollection);
+
+        }
+       
+    }
+
 }
