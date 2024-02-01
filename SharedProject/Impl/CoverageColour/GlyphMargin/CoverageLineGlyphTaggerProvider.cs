@@ -4,7 +4,6 @@ using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Text.Tagging;
 using FineCodeCoverage.Core.Utilities;
 using FineCodeCoverage.Engine.Model;
-using FineCodeCoverage.Options;
 
 namespace FineCodeCoverage.Impl
 {
@@ -12,26 +11,39 @@ namespace FineCodeCoverage.Impl
     [TagType(typeof(CoverageLineGlyphTag))]
     [Name(Vsix.TaggerProviderName)]
 	[Export(typeof(ITaggerProvider))]
-	internal class CoverageLineGlyphTaggerProvider : CoverageLineTaggerProviderBase<CoverageLineGlyphTagger, CoverageLineGlyphTag, GlyphTagFilter>
+	internal class CoverageLineGlyphTaggerProvider : ITaggerProvider, ILineSpanTagger<CoverageLineGlyphTag>
     {
+        private readonly ICoverageTaggerProvider<CoverageLineGlyphTag> coverageTaggerProvider;
+        private readonly IEventAggregator eventAggregator;
         private readonly ICoverageColoursProvider coverageColoursProvider;
 
         [ImportingConstructor]
         public CoverageLineGlyphTaggerProvider(
             IEventAggregator eventAggregator,
             ICoverageColoursProvider coverageColoursProvider,
-            IAppOptionsProvider appOptionsProvider,
-            ILineSpanLogic lineSpanLogic
-        ) : base(eventAggregator,appOptionsProvider, lineSpanLogic)
+            ICoverageTaggerProviderFactory coverageTaggerProviderFactory
+        )
         {
+            coverageTaggerProvider = coverageTaggerProviderFactory.Create<CoverageLineGlyphTag,GlyphTagFilter>(this);
+            this.eventAggregator = eventAggregator;
             this.coverageColoursProvider = coverageColoursProvider;
         }
 
-        protected override CoverageLineGlyphTagger CreateCoverageTagger(
-            ITextBuffer textBuffer, IFileLineCoverage lastCoverageLines, IEventAggregator eventAggregator, GlyphTagFilter coverageTypeFilter, ILineSpanLogic lineSpanLogic)
+        public ITagger<T> CreateTagger<T>(ITextBuffer buffer) where T : ITag
         {
-            return new CoverageLineGlyphTagger(textBuffer, lastCoverageLines,eventAggregator,coverageColoursProvider.GetCoverageColours(), coverageTypeFilter, lineSpanLogic);
+            var coverageTagger =  coverageTaggerProvider.CreateTagger(buffer);
+            if (coverageTagger == null) return null;
+            return new CoverageLineGlyphTagger(eventAggregator, coverageTagger) as ITagger<T>;
         }
 
+        public TagSpan<CoverageLineGlyphTag> GetTagSpan(ILineSpan lineSpan)
+        {
+            var coverageLine = lineSpan.Line;
+            var coverageColours = coverageColoursProvider.GetCoverageColours();
+            var colour = coverageColours.GetColour(coverageLine.CoverageType).Background;
+            return new TagSpan<CoverageLineGlyphTag>(lineSpan.Span, new CoverageLineGlyphTag(coverageLine, colour));
+        }
     }
+
+    
 }

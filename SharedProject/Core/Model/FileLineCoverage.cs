@@ -1,20 +1,26 @@
 ﻿using FineCodeCoverage.Core.Utilities;
-using FineCodeCoverage.Engine.Cobertura;
+using FineCodeCoverage.Impl;
 using System;
 using System.Collections.Generic;
 
 namespace FineCodeCoverage.Engine.Model
 {
+    internal interface ILine
+    {
+        int Number { get; }
+        CoverageType CoverageType { get; }
+    }
+
     // FileLineCoverage maps from a filename to the list of lines in the file
     internal class FileLineCoverage : IFileLineCoverage
     {
-        private Dictionary<string, List<Line>> m_coverageLines = new Dictionary<string, List<Line>>(StringComparer.OrdinalIgnoreCase);
+        private Dictionary<string, List<ILine>> m_coverageLines = new Dictionary<string, List<ILine>>(StringComparer.OrdinalIgnoreCase);
 
-        public void Add(string filename, IEnumerable<Line> lines)
+        public void Add(string filename, IEnumerable<ILine> lines)
         {
             if (!m_coverageLines.TryGetValue(filename, out var fileCoverageLines))
             {
-                fileCoverageLines = new List<Line>();
+                fileCoverageLines = new List<ILine>();
                 m_coverageLines.Add(filename, fileCoverageLines);
             }
 
@@ -27,7 +33,7 @@ namespace FineCodeCoverage.Engine.Model
                 lines.Sort((a, b) => a.Number - b.Number);
         }
 
-        public IEnumerable<Line> GetLines(string filePath, int startLineNumber, int endLineNumber)
+        public IEnumerable<ILine> GetLines(string filePath, int startLineNumber, int endLineNumber)
         {
             if (!m_coverageLines.TryGetValue(filePath, out var lines))
                 yield break;

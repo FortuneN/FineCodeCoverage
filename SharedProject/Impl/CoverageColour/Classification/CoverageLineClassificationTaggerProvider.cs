@@ -1,6 +1,4 @@
-﻿using FineCodeCoverage.Core.Utilities;
-using FineCodeCoverage.Engine.Model;
-using FineCodeCoverage.Options;
+﻿using FineCodeCoverage.Engine.Model;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
@@ -12,26 +10,30 @@ namespace FineCodeCoverage.Impl
     [TagType(typeof(IClassificationTag))]
     [Name("FCC.CoverageLineClassificationTaggerProvider")]
     [Export(typeof(ITaggerProvider))]
-    internal class CoverageLineClassificationTaggerProvider : CoverageLineTaggerProviderBase<CoverageLineClassificationTagger, IClassificationTag, CoverageClassificationFilter>
+    internal class CoverageLineClassificationTaggerProvider : ITaggerProvider, ILineSpanTagger<IClassificationTag>
     {
         private readonly ICoverageTypeService coverageTypeService;
+        private readonly ICoverageTaggerProvider<IClassificationTag> coverageTaggerProvider;
 
         [ImportingConstructor]
         public CoverageLineClassificationTaggerProvider(
-            IEventAggregator eventAggregator,
             ICoverageTypeService coverageTypeService,
-             IAppOptionsProvider appOptionsProvider,
-             ILineSpanLogic lineSpanLogic
-            ) : base(eventAggregator, appOptionsProvider,lineSpanLogic)
+             ICoverageTaggerProviderFactory coverageTaggerProviderFactory
+        )
         {
             this.coverageTypeService = coverageTypeService;
+            this.coverageTaggerProvider =  coverageTaggerProviderFactory.Create<IClassificationTag, CoverageClassificationFilter>(this);
         }
 
-        protected override CoverageLineClassificationTagger CreateCoverageTagger(
-            ITextBuffer textBuffer, IFileLineCoverage lastCoverageLines, IEventAggregator eventAggregator, CoverageClassificationFilter coverageTypeFilter,ILineSpanLogic lineSpanLogic)
+        public ITagger<T> CreateTagger<T>(ITextBuffer buffer) where T : ITag
         {
-            return new CoverageLineClassificationTagger(
-                textBuffer, lastCoverageLines, eventAggregator, coverageTypeService,coverageTypeFilter,lineSpanLogic);
+            return coverageTaggerProvider.CreateTagger(buffer) as ITagger<T>;
+        }
+
+        public TagSpan<IClassificationTag> GetTagSpan(ILineSpan lineSpan)
+        {
+            var ct = coverageTypeService.GetClassificationType(lineSpan.Line.CoverageType);
+            return new TagSpan<IClassificationTag>(lineSpan.Span, new ClassificationTag(ct));
         }
     }
 }

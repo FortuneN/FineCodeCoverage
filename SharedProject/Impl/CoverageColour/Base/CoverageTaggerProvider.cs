@@ -1,28 +1,26 @@
-﻿using FineCodeCoverage.Core.Utilities;
+﻿using FineCodeCoverage.Engine.Model;
 using FineCodeCoverage.Engine;
-using FineCodeCoverage.Engine.Model;
 using FineCodeCoverage.Options;
-using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
-using System;
+using Microsoft.VisualStudio.Text;
+using FineCodeCoverage.Core.Utilities;
 
 namespace FineCodeCoverage.Impl
 {
-    internal abstract class CoverageLineTaggerProviderBase<TTaggerListener, TTag, TCoverageTypeFilter> : ITaggerProvider, IListener<NewCoverageLinesMessage>
-        where TTaggerListener : ITagger<TTag>, IListener<NewCoverageLinesMessage>, IListener<CoverageTypeFilterChangedMessage>, IDisposable
-        where TTag : ITag
-        where TCoverageTypeFilter : ICoverageTypeFilter, new()
+    internal class CoverageTaggerProvider<TCoverageTypeFilter, TTag> : IListener<NewCoverageLinesMessage>, ICoverageTaggerProvider<TTag>
+         where TTag : ITag where TCoverageTypeFilter : ICoverageTypeFilter, new()
     {
         protected readonly IEventAggregator eventAggregator;
         private readonly ILineSpanLogic lineSpanLogic;
+        private readonly ILineSpanTagger<TTag> coverageTagger;
         private IFileLineCoverage lastCoverageLines;
         private TCoverageTypeFilter coverageTypeFilter;
 
-        public CoverageLineTaggerProviderBase(
+        public CoverageTaggerProvider(
             IEventAggregator eventAggregator,
             IAppOptionsProvider appOptionsProvider,
-            ILineSpanLogic lineSpanLogic
-        )
+            ILineSpanLogic lineSpanLogic,
+            ILineSpanTagger<TTag> coverageTagger)
         {
             var appOptions = appOptionsProvider.Get();
             coverageTypeFilter = CreateFilter(appOptions);
@@ -30,8 +28,8 @@ namespace FineCodeCoverage.Impl
             eventAggregator.AddListener(this);
             this.eventAggregator = eventAggregator;
             this.lineSpanLogic = lineSpanLogic;
+            this.coverageTagger = coverageTagger;
         }
-
         private TCoverageTypeFilter CreateFilter(IAppOptions appOptions)
         {
             var newCoverageTypeFilter = new TCoverageTypeFilter();
@@ -50,20 +48,30 @@ namespace FineCodeCoverage.Impl
             }
         }
 
-        public ITagger<T> CreateTagger<T>(ITextBuffer textBuffer) where T : ITag
-        {
-            var tagger = CreateCoverageTagger(textBuffer, lastCoverageLines,eventAggregator,coverageTypeFilter,lineSpanLogic);
-            eventAggregator.AddListener(tagger);
-            return tagger as ITagger<T>;
-        }
-
-        protected abstract TTaggerListener CreateCoverageTagger(
-            ITextBuffer textBuffer, IFileLineCoverage lastCoverageLines, IEventAggregator eventAggregator,TCoverageTypeFilter coverageTypeFilter,ILineSpanLogic lineSpanLogic );
-
         public void Handle(NewCoverageLinesMessage message)
         {
             lastCoverageLines = message.CoverageLines;
         }
 
+        public ICoverageTagger<TTag> CreateTagger(ITextBuffer textBuffer)
+        {
+            string filePath = null;
+            if (textBuffer.Properties.TryGetProperty(typeof(ITextDocument), out ITextDocument document))
+            {
+                filePath = document.FilePath;
+            }
+            if (filePath == null)
+            {
+                return null;
+            }
+            return new CoverageTagger<TTag>(
+                new TextBufferWithFilePath(textBuffer, filePath),
+                lastCoverageLines, 
+                coverageTypeFilter, 
+                eventAggregator, 
+                lineSpanLogic, 
+                coverageTagger);
+        }
     }
+
 }

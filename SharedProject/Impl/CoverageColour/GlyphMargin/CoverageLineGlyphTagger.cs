@@ -1,37 +1,44 @@
 ﻿using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
-using FineCodeCoverage.Engine.Model;
 using FineCodeCoverage.Core.Utilities;
+using System.Collections.Generic;
+using System;
 
 namespace FineCodeCoverage.Impl
 {
-	internal class CoverageLineGlyphTagger : CoverageLineTaggerBase<CoverageLineGlyphTag>,IListener<CoverageColoursChangedMessage>
-	{
-        private ICoverageColours coverageColours;
+    internal class CoverageLineGlyphTagger : ITagger<CoverageLineGlyphTag>, IDisposable, IListener<CoverageColoursChangedMessage>
+    {
+        private readonly IEventAggregator eventAggregator;
+        private readonly ICoverageTagger<CoverageLineGlyphTag> coverageTagger;
 
-        public CoverageLineGlyphTagger(
-			ITextBuffer textBuffer, 
-			IFileLineCoverage lastCoverageLines, 
-			IEventAggregator eventAggregator,
-			ICoverageColours coverageColours,
-            ICoverageTypeFilter coverageTypeFilter,
-            ILineSpanLogic lineSpanLogic
+        public CoverageLineGlyphTagger(IEventAggregator eventAggregator, ICoverageTagger<CoverageLineGlyphTag> coverageTagger)
+        {
+            ThrowIf.Null(coverageTagger, nameof(coverageTagger));
+            eventAggregator.AddListener(this);
+            this.eventAggregator = eventAggregator;
+            this.coverageTagger = coverageTagger;
 
-        ) : base(textBuffer, lastCoverageLines, coverageTypeFilter, eventAggregator,lineSpanLogic)
-		{
-			this.coverageColours = coverageColours;
+        }
+        public event EventHandler<SnapshotSpanEventArgs> TagsChanged
+        {
+            add { coverageTagger.TagsChanged += value; }
+            remove { coverageTagger.TagsChanged -= value; }
         }
 
-        protected override TagSpan<CoverageLineGlyphTag> GetTagSpan(Engine.Cobertura.Line coverageLine, SnapshotSpan span)
+        public void Dispose()
         {
-            var colour = coverageColours.GetColour(coverageLine.CoverageType).Background;
-            return new TagSpan<CoverageLineGlyphTag>(span, new CoverageLineGlyphTag(coverageLine,colour));
+            coverageTagger.Dispose();
+            eventAggregator.RemoveListener(this);
+        }
+
+        public IEnumerable<ITagSpan<CoverageLineGlyphTag>> GetTags(NormalizedSnapshotSpanCollection spans)
+        {
+            return coverageTagger.GetTags(spans);
         }
 
         public void Handle(CoverageColoursChangedMessage message)
         {
-            this.coverageColours = message.CoverageColours;
-            RaiseTagsChanged();
+            coverageTagger.RaiseTagsChanged();
         }
     }
 }

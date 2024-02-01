@@ -1,4 +1,5 @@
-﻿using FineCodeCoverage.Impl;
+﻿using FineCodeCoverage.Engine.Model;
+using FineCodeCoverage.Impl;
 using System.Diagnostics.CodeAnalysis;
 using System.Xml.Serialization;
 
@@ -8,7 +9,7 @@ namespace FineCodeCoverage.Engine.Cobertura
 {
     [XmlRoot(ElementName = "line")]
     [ExcludeFromCodeCoverage]
-    public class Line
+    public class Line : ILine
     {
         [XmlAttribute(AttributeName = "number")]
         public int Number { get; set; }
