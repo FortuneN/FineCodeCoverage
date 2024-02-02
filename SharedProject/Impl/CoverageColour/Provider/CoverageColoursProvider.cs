@@ -8,23 +8,22 @@ using Microsoft.VisualStudio.TextManager.Interop;
 using System.Runtime.InteropServices;
 using Microsoft.VisualStudio.Text.Classification;
 using FineCodeCoverage.Core.Utilities;
-using Microsoft.VisualStudio.Utilities;
 using Microsoft.VisualStudio.Text.Formatting;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 
 namespace FineCodeCoverage.Impl
 {
-    [Export(typeof(ICoverageTypeService))]
     [Export(typeof(CoverageColoursProvider))]
     [Export(typeof(ICoverageColoursProvider))]
-    [Export(typeof(ICoverageColoursEditorFormatMapNames))]
+    
     [Guid(TextMarkerProviderString)]
     internal class CoverageColoursProvider : 
-        ICoverageColoursProvider, ICoverageTypeService, ICoverageColoursEditorFormatMapNames, IVsTextMarkerTypeProvider
+        ICoverageColoursProvider, IVsTextMarkerTypeProvider
     {
         private readonly Guid EditorTextMarkerFontAndColorCategory = new Guid("FF349800-EA43-46C1-8C98-878E78F46501");
         private readonly IEventAggregator eventAggregator;
+        private readonly ICoverageClassificationColourService coverageClassificationColourService;
         private readonly IFontsAndColorsHelper fontsAndColorsHelper;
 
         #region markers
@@ -43,48 +42,7 @@ namespace FineCodeCoverage.Impl
         private readonly IReadOnlyDictionary<Guid, IVsPackageDefinedTextMarkerType> markerTypes;
         private readonly bool shouldAddCoverageMarkers;
         #endregion
-        #region classification types
-        public const string FCCCoveredClassificationTypeName = "FCCCovered";
-        public const string FCCNotCoveredClassificationTypeName = "FCCNotCovered";
-        public const string FCCPartiallyCoveredClassificationTypeName = "FCCPartial";
-
-        [Export]
-        [Name(FCCNotCoveredClassificationTypeName)]
-        public ClassificationTypeDefinition FCCNotCoveredTypeDefinition { get; set; }
-
-        [Export]
-        [Name(FCCCoveredClassificationTypeName)]
-        public ClassificationTypeDefinition FCCCoveredTypeDefinition { get; set; }
-
-        [Export]
-        [Name(FCCPartiallyCoveredClassificationTypeName)]
-        public ClassificationTypeDefinition FCCPartiallyCoveredTypeDefinition { get; set; }
-
-        private class ClassificationTypes
-        {
-            public ClassificationTypes(IClassificationFormatMap classificationFormatMap, IClassificationTypeRegistryService classificationTypeRegistryService)
-            {
-                HighestPriorityClassificationType = classificationFormatMap.CurrentPriorityOrder.Where(ct => ct != null).Last();
-
-                var notCoveredClassificationType = classificationTypeRegistryService.GetClassificationType(FCCNotCoveredClassificationTypeName);
-                var coveredClassificationType = classificationTypeRegistryService.GetClassificationType(FCCCoveredClassificationTypeName);
-                var partiallyCoveredClassificationType = classificationTypeRegistryService.GetClassificationType(FCCPartiallyCoveredClassificationTypeName);
-                CoverageClassificationTypes = new ReadOnlyDictionary<CoverageType, IClassificationType>(new Dictionary<CoverageType, IClassificationType>
-                {
-                    { CoverageType.Covered, coveredClassificationType },
-                    { CoverageType.NotCovered, notCoveredClassificationType },
-                    { CoverageType.Partial, partiallyCoveredClassificationType }
-                });
-            }
-
-            public IClassificationType HighestPriorityClassificationType { get; }
-            public ReadOnlyDictionary<CoverageType, IClassificationType> CoverageClassificationTypes { get; }
-        }
-
-        private readonly ClassificationTypes classificationTypes;
-        #endregion
-
-        private readonly IClassificationFormatMap classificationFormatMap;
+        
         private readonly IEditorFormatMap editorFormatMap;
         private CoverageColours lastCoverageColours;
         private bool changingColours;
@@ -95,17 +53,13 @@ namespace FineCodeCoverage.Impl
             IEditorFormatMapService editorFormatMapService,
             IEventAggregator eventAggregator,
             IShouldAddCoverageMarkersLogic shouldAddCoverageMarkersLogic,
-            IClassificationFormatMapService classificationFormatMapService,
-            IClassificationTypeRegistryService classificationTypeRegistryService,
+            ICoverageClassificationColourService coverageClassificationColourService,
             IFontsAndColorsHelper fontsAndColorsHelper
         )
         {
             this.eventAggregator = eventAggregator;
+            this.coverageClassificationColourService = coverageClassificationColourService;
             this.fontsAndColorsHelper = fontsAndColorsHelper;
-
-            classificationFormatMap = classificationFormatMapService.GetClassificationFormatMap("text");
-            classificationTypes = new ClassificationTypes(classificationFormatMap, classificationTypeRegistryService);
-
             shouldAddCoverageMarkers = shouldAddCoverageMarkersLogic.ShouldAddCoverageMarkers();
             if (shouldAddCoverageMarkers)
             {
@@ -143,16 +97,19 @@ namespace FineCodeCoverage.Impl
         {
             if (changingColours) return;
 
-            var coverageChanged = e.ChangedItems.Any(c => 
-                c == CoverageTouchedArea || 
-                c == CoverageNotTouchedArea || 
-                c == CoveragePartiallyTouchedArea
-            );
-            if (coverageChanged)
+            if (ChangedCoverageItem(e.ChangedItems))
             {
                 var currentCoverageColours = GetCoverageColoursFromFontsAndColors();
                 SetClassificationTypeColoursIfChanged(currentCoverageColours,lastCoverageColours);
             }
+        }
+
+        private bool ChangedCoverageItem(ReadOnlyCollection<string> changedItems)
+        {
+            return changedItems.Any(c =>
+                c == CoverageTouchedArea ||
+                c == CoverageNotTouchedArea ||
+                c == CoveragePartiallyTouchedArea);
         }
 
         private void InitializeClassificationTypeColours()
@@ -178,14 +135,8 @@ namespace FineCodeCoverage.Impl
             var changes = coverageColours.GetChanges(last);
             if (changes.Any())
             {
-                changingColours = true; 
-                BatchUpdateIfRequired(() =>
-                {
-                    foreach (var change in changes)
-                    {
-                        SetCoverageColour(classificationTypes.CoverageClassificationTypes[change.Key], change.Value);
-                    }
-                });
+                changingColours = true;
+                SetClassificationTypeColours(changes);
                 hasSetClassificationTypeColours = changes.Count == 3;
                 changingColours = false;
                 lastCoverageColours = coverageColours;
@@ -193,25 +144,18 @@ namespace FineCodeCoverage.Impl
             }
         }
         
-        private void BatchUpdateIfRequired(Action action)
+        private void SetClassificationTypeColours(Dictionary<CoverageType,IFontsAndColorsInfo> changes)
         {
-            if (classificationFormatMap.IsInBatchUpdate)
-            {
-                action();
-            }
-            else
-            {
-                classificationFormatMap.BeginBatchUpdate();
-                action();
-                classificationFormatMap.EndBatchUpdate();
-            }
+            var coverageTypeColours = changes.Select(change => new CoverageTypeColour(change.Key, GetTextFormattingRunProperties(change.Value)));
+            coverageClassificationColourService.SetCoverageColours(coverageTypeColours);
         }
 
+
         // todo - consider a MEF export to allow other extensions to change the formatting
-        private void SetCoverageColour(IClassificationType classificationType, IFontsAndColorsInfo fontsAndColorsInfo)
+        private TextFormattingRunProperties GetTextFormattingRunProperties(IFontsAndColorsInfo fontsAndColorsInfo)
         {
             var coverageColours = fontsAndColorsInfo.ItemCoverageColours;
-            var textFormattingRunProperties = TextFormattingRunProperties.CreateTextFormattingRunProperties(
+            return TextFormattingRunProperties.CreateTextFormattingRunProperties(
                 new SolidColorBrush(coverageColours.Foreground), new SolidColorBrush(coverageColours.Background),
                 null, // Typeface
                 null, // size
@@ -226,8 +170,6 @@ namespace FineCodeCoverage.Impl
                 null, // 
                 null // CultureInfo
                 ).SetBold(fontsAndColorsInfo.IsBold);
-
-            classificationFormatMap.AddExplicitTextProperties(classificationType, textFormattingRunProperties, classificationTypes.HighestPriorityClassificationType);
         }
 
         public ICoverageColours GetCoverageColours()
@@ -269,25 +211,6 @@ namespace FineCodeCoverage.Impl
                 );
             });
         }
-        
-        public IClassificationType GetClassificationType(CoverageType coverageType)
-        {
-            return classificationTypes.CoverageClassificationTypes[coverageType];
-        }
-
-        public string GetEditorFormatDefinitionName(CoverageType coverageType)
-        {
-            var editorFormatDefinitionName = FCCCoveredClassificationTypeName;
-            switch (coverageType)
-            {
-                case CoverageType.Partial:
-                    editorFormatDefinitionName = FCCPartiallyCoveredClassificationTypeName;
-                    break;
-                case CoverageType.NotCovered:
-                    editorFormatDefinitionName = FCCNotCoveredClassificationTypeName;
-                    break;
-            }
-            return editorFormatDefinitionName;
-        }
+    
     }
 }

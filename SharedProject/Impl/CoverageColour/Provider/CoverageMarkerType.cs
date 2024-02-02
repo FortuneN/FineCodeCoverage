@@ -116,9 +116,6 @@ namespace FineCodeCoverage.Impl
             cdElement 
             0 is foreground, 1 is background, 2 is line color
         */
-
-
-
         public int GetColorData(int cdElement, out uint crColor)
         {
             crColor = 0U;

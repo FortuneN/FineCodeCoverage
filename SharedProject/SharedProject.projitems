@@ -198,12 +198,16 @@
     <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Classification\CoverageClassificationFilter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Classification\CoverageLineClassificationTaggerProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\GlyphMargin\GlyphTagFilter.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Provider\CoverageClassificationTypeService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Provider\CoverageColours.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Provider\CoverageColoursChangedMessage.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Provider\CoverageMarkerType.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Provider\CoverageTypeColour.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Provider\FontsAndColorsHelper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Provider\ICoverageClassificationColourService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Provider\ICoverageColoursEditorFormatMapNames.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Provider\ICoverageColoursProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Provider\ICoverageTypeColour.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Provider\ICoverageTypeService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Provider\IFontsAndColorsHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Provider\IItemCoverageColours.cs" />

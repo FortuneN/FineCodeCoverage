@@ -8,6 +8,7 @@ using FineCodeCoverage.Options;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Tagging;
+using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Utilities;
 using Moq;
 using NUnit.Framework;
@@ -756,5 +757,64 @@ namespace FineCodeCoverageTests
 
         }
 
+    }
+
+    public class CoverageColoursProvider_Tests
+    {
+        [Test]
+        public void Should_Not_GetTextMarkerType_If_Should_Not()
+        {
+            var autoMoqer = new AutoMoqer();
+            var mockEditorFormatMapService = autoMoqer.GetMock<IEditorFormatMapService>();
+            mockEditorFormatMapService.Setup(editorFormatMapService => editorFormatMapService.GetEditorFormatMap("text")).Returns(new Mock<IEditorFormatMap>().Object);
+            autoMoqer.Setup<IShouldAddCoverageMarkersLogic,bool>(shouldAddCoverageMarkersLogic => shouldAddCoverageMarkersLogic.ShouldAddCoverageMarkers()).Returns(false);
+
+            var coverageColoursProvider = autoMoqer.Create<CoverageColoursProvider>();
+
+            var guids = new List<string> { CoverageColoursProvider.TouchedGuidString, CoverageColoursProvider.PartiallyTouchedGuidString, CoverageColoursProvider.NotTouchedGuidString };
+            guids.ForEach(guid =>
+            {
+                var markerGuid = new Guid(guid);
+                var success = coverageColoursProvider.GetTextMarkerType(ref markerGuid, out var markerType);
+                Assert.That(success, Is.EqualTo(0));
+                Assert.That(markerType, Is.Null);
+            });
+            
+        }
+
+        [TestCase("Coverage Touched Area", CoverageColoursProvider.TouchedGuidString)]
+        [TestCase("Coverage Not Touched Area", CoverageColoursProvider.NotTouchedGuidString)]
+        [TestCase("Coverage Partially Touched Area", CoverageColoursProvider.PartiallyTouchedGuidString)]
+        public void Should_Get_CoverageTouchedArea_MarkerType_If_Should_Matching_Enterprise_Names(string name,string guidString)
+        {
+            var autoMoqer = new AutoMoqer();
+            var mockEditorFormatMapService = autoMoqer.GetMock<IEditorFormatMapService>();
+            mockEditorFormatMapService.Setup(editorFormatMapService => editorFormatMapService.GetEditorFormatMap("text")).Returns(new Mock<IEditorFormatMap>().Object);
+            autoMoqer.Setup<IShouldAddCoverageMarkersLogic, bool>(shouldAddCoverageMarkersLogic => shouldAddCoverageMarkersLogic.ShouldAddCoverageMarkers()).Returns(true);
+
+            var coverageColoursProvider = autoMoqer.Create<CoverageColoursProvider>();
+
+            var guid = new Guid(guidString);
+            var success = coverageColoursProvider.GetTextMarkerType(ref guid, out var markerType);
+            Assert.That(success, Is.EqualTo(0));
+
+            var vsMergeableUIItem = markerType as IVsMergeableUIItem;
+            success = vsMergeableUIItem.GetDisplayName(out var displayName);
+            Assert.That(success, Is.EqualTo(0));
+            Assert.That(displayName, Is.EqualTo(name));
+
+            success = vsMergeableUIItem.GetCanonicalName(out var canonicalName);
+            Assert.That(success, Is.EqualTo(0));
+            Assert.That(canonicalName, Is.EqualTo(name));
+
+            var vsHiColorItem = markerType as IVsHiColorItem;
+            //0 is foreground, 1 is background, 2 is line color
+            success = vsHiColorItem.GetColorData(0, out var foregroundColor);
+            Assert.That(success, Is.EqualTo(0));
+            success = vsHiColorItem.GetColorData(1, out var backgroundColor);
+            Assert.That(success, Is.EqualTo(0));
+        }
+
+        
     }
 }
