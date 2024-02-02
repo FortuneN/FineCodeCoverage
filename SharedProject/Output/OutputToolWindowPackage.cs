@@ -43,10 +43,10 @@ namespace FineCodeCoverage.Output
     [ProvideProfile(typeof(AppOptionsPage), Vsix.Name, Vsix.Name, 101, 102, true)]
     [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
 	[ProvideToolWindow(typeof(OutputToolWindow), Style = VsDockStyle.Tabbed, DockedHeight = 300, Window = EnvDTE.Constants.vsWindowKindOutput)]
-	[ProvideTextMarker("FCCCovered","FCCCovered", CoverageColoursProvider.TouchedGuidString, CoverageColoursProvider.TextMarkerProviderString)]
-    [ProvideTextMarker("FCCUncovered", "FCCUncovered", CoverageColoursProvider.NotTouchedGuidString, CoverageColoursProvider.TextMarkerProviderString)]
-    [ProvideTextMarker("FCCPartiallyCovered", "FCCPartiallyCovered", CoverageColoursProvider.PartiallyTouchedGuidString, CoverageColoursProvider.TextMarkerProviderString)]
-	[ProvideService(typeof(CoverageColoursProvider))]
+	[ProvideTextMarker("FCCCovered","FCCCovered", CoverageColoursManager.TouchedGuidString, CoverageColoursManager.TextMarkerProviderString)]
+    [ProvideTextMarker("FCCUncovered", "FCCUncovered", CoverageColoursManager.NotTouchedGuidString, CoverageColoursManager.TextMarkerProviderString)]
+    [ProvideTextMarker("FCCPartiallyCovered", "FCCPartiallyCovered", CoverageColoursManager.PartiallyTouchedGuidString, CoverageColoursManager.TextMarkerProviderString)]
+	[ProvideService(typeof(CoverageColoursManager))]
     [ProvideAutoLoad("0FA5E26B-3EAA-4D5E-B689-129B0D2A8690", PackageAutoLoadFlags.SkipWhenUIContextRulesActive)]
     [ProvideUIContextRule("0FA5E26B-3EAA-4D5E-B689-129B0D2A8690", "CoverageWindowLoad", "(TestContainer | TestProjects | WindowStoreTestProjects | CppTestProjects)", new string[] { "TestContainer", "TestProjects", "WindowStoreTestProjects", "CppTestProjects" }, new string[] { "SolutionHasProjectCapability:TestContainer", "SolutionHasProjectFlavor:3AC096D0-A1C2-E12C-1390-A8335801FDAB", "SolutionHasProjectFlavor:BC8A1FFA-BEE3-4634-8014-F334798102B3", "SolutionHasProjectFlavor:8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942" }, 0)]
     public sealed class OutputToolWindowPackage : AsyncPackage
@@ -107,8 +107,8 @@ namespace FineCodeCoverage.Output
 				componentModel.GetService<IShownToolWindowHistory>()
 			);
 			await componentModel.GetService<IInitializer>().InitializeAsync(cancellationToken);
-			var coverageColours = componentModel.GetService<CoverageColoursProvider>();
-            this.AddService(typeof(CoverageColoursProvider),(_,__,___) => Task.FromResult(coverageColours as object),true);
+			var coverageColours = componentModel.GetService<CoverageColoursManager>();
+            this.AddService(typeof(CoverageColoursManager),(_,__,___) => Task.FromResult(coverageColours as object),true);
         }
 
         protected override Task<object> InitializeToolWindowAsync(Type toolWindowType, int id, CancellationToken cancellationToken)

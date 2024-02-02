@@ -15,10 +15,7 @@ namespace FineCodeCoverage.Impl
 
         public bool Equals(IItemCoverageColours other)
         {
-            if (other == this) return true;
-            if (other == null) return false;
             return Foreground == other.Foreground && Background == other.Background;
-
         }
     }
 

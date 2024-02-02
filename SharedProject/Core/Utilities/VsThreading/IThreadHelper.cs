@@ -1,6 +1,7 @@
 ﻿using Microsoft.VisualStudio.Shell;
 using System;
 using System.Threading;
+using System.Threading.Tasks;
 using Task = System.Threading.Tasks.Task;
 
 namespace FineCodeCoverage.Core.Utilities.VsThreading
@@ -13,6 +14,7 @@ namespace FineCodeCoverage.Core.Utilities.VsThreading
     internal interface IJoinableTaskFactory
     {
         void Run(Func<Task> asyncMethod);
+        T Run<T>(Func<Task<T>> asyncMethod);
         Task SwitchToMainThreadAsync(CancellationToken cancellationToken = default);
     }
 
@@ -21,6 +23,11 @@ namespace FineCodeCoverage.Core.Utilities.VsThreading
         public void Run(Func<Task> asyncMethod)
         {
             ThreadHelper.JoinableTaskFactory.Run(asyncMethod);
+        }
+
+        public T Run<T>(Func<Task<T>> asyncMethod)
+        {
+            return ThreadHelper.JoinableTaskFactory.Run(asyncMethod);
         }
 
         public async Task SwitchToMainThreadAsync(CancellationToken cancellationToken = default)

@@ -1,7 +1,7 @@
 ﻿using FineCodeCoverage.Options;
-using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace FineCodeCoverage.Impl
 {
@@ -22,7 +22,7 @@ namespace FineCodeCoverage.Impl
                 showLookup = GetShowLookup(appOptions);
                 if (showLookup == null || showLookup.Count != 3)
                 {
-                    throw new Exception("Invalid showLookup");
+                    throw new InvalidOperationException("Invalid showLookup");
                 }
             }
         }

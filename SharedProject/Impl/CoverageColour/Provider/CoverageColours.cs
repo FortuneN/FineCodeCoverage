@@ -4,24 +4,31 @@ namespace FineCodeCoverage.Impl
 {
     internal class CoverageColours : ICoverageColours
     {
-        public IFontsAndColorsInfo CoverageTouchedInfo { get; }
-        public IFontsAndColorsInfo CoverageNotTouchedInfo { get; }
-        public IFontsAndColorsInfo CoveragePartiallyTouchedInfo { get; }
+        public IFontAndColorsInfo CoverageTouchedInfo { get; }
+        public IFontAndColorsInfo CoverageNotTouchedInfo { get; }
+        public IFontAndColorsInfo CoveragePartiallyTouchedInfo { get; }
+        private readonly Dictionary<CoverageType, IFontAndColorsInfo> coverageTypeToFontAndColorsInfo;
         public CoverageColours(
-            IFontsAndColorsInfo coverageTouchedColors,
-            IFontsAndColorsInfo coverageNotTouched,
-            IFontsAndColorsInfo coveragePartiallyTouchedColors
+            IFontAndColorsInfo coverageTouchedColors,
+            IFontAndColorsInfo coverageNotTouched,
+            IFontAndColorsInfo coveragePartiallyTouchedColors
         )
         {
             CoverageTouchedInfo = coverageTouchedColors;
             CoverageNotTouchedInfo = coverageNotTouched;
             CoveragePartiallyTouchedInfo = coveragePartiallyTouchedColors;
+            coverageTypeToFontAndColorsInfo = new Dictionary<CoverageType, IFontAndColorsInfo>
+            {
+                { CoverageType.Covered, coverageTouchedColors},
+                {CoverageType.NotCovered, coverageNotTouched },
+                { CoverageType.Partial, coveragePartiallyTouchedColors}
+            };
         }
 
-        internal Dictionary<CoverageType, IFontsAndColorsInfo> GetChanges(CoverageColours lastCoverageColours)
+        internal Dictionary<CoverageType, IFontAndColorsInfo> GetChanges(CoverageColours lastCoverageColours)
         {
-            var changes = new Dictionary<CoverageType, IFontsAndColorsInfo>();
-            if (lastCoverageColours == null) return new Dictionary<CoverageType, IFontsAndColorsInfo>
+            var changes = new Dictionary<CoverageType, IFontAndColorsInfo>();
+            if (lastCoverageColours == null) return new Dictionary<CoverageType, IFontAndColorsInfo>
             {
                 { CoverageType.Covered, CoverageTouchedInfo},
                 {CoverageType.NotCovered, CoverageNotTouchedInfo },
@@ -45,18 +52,8 @@ namespace FineCodeCoverage.Impl
 
         public IItemCoverageColours GetColour(CoverageType coverageType)
         {
-            switch (coverageType)
-            {
-                case CoverageType.Partial:
-                    return CoveragePartiallyTouchedInfo.ItemCoverageColours;
-                case CoverageType.NotCovered:
-                    return CoverageNotTouchedInfo.ItemCoverageColours;
-                case CoverageType.Covered:
-                    return CoverageTouchedInfo.ItemCoverageColours;
-            }
-            return default;
+            return coverageTypeToFontAndColorsInfo[coverageType].ItemCoverageColours;
         }
-
     }
 
 }
