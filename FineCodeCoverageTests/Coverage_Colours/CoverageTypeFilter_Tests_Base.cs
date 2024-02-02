@@ -80,7 +80,7 @@ namespace FineCodeCoverageTests
         public void Should_Be_Disabled_When_ShowEditorCoverage_False()
         {
             var coverageTypeFilter = new TCoverageTypeFilter();
-            var appOptions = new Mock<IAppOptions>().SetupAllProperties().Object;
+            var appOptions = GetAppOptions();
             ShowCoverage(appOptions,true);
             appOptions.ShowEditorCoverage = false;
 
@@ -93,12 +93,17 @@ namespace FineCodeCoverageTests
         public void Should_Be_Disabled_When_Show_Coverage_False()
         {
             var coverageTypeFilter = new TCoverageTypeFilter();
-            var appOptions = new Mock<IAppOptions>().SetupAllProperties().Object;
+            var appOptions = GetAppOptions();
             ShowCoverage(appOptions,false);
             appOptions.ShowEditorCoverage = true;
 
             coverageTypeFilter.Initialize(appOptions);
             Assert.True(coverageTypeFilter.Disabled);
+        }
+
+        private IAppOptions GetAppOptions()
+        {
+            return new Mock<IAppOptions>().SetupAllProperties().Object;
         }
 
         [TestCase(true, true, true)]
@@ -119,89 +124,98 @@ namespace FineCodeCoverageTests
             Assert.That(coverageTypeFilter.Show(CoverageType.NotCovered), Is.EqualTo(showUncovered));
             Assert.That(coverageTypeFilter.Show(CoverageType.Partial), Is.EqualTo(showPartiallyCovered));
         }
-    }
 
-    internal class CoverageClassificationFilterX_Tests
-    {
         [TestCaseSource(nameof(ChangedTestSource))]
         public void Should_Be_Changed_When_AppOptions_Changed(ChangedTestArguments changedTestArguments)
         {
-            var coverageClassificationFilter = new CoverageClassificationFilter();
-            coverageClassificationFilter.Initialize(changedTestArguments.InitialAppOptions);
-            var newCoverageClassificationFilter = new CoverageClassificationFilter();
-            newCoverageClassificationFilter.Initialize(changedTestArguments.ChangedAppOptions);
-            
-            Assert.That(newCoverageClassificationFilter.Changed(coverageClassificationFilter), Is.EqualTo(changedTestArguments.ExpectedChanged));
+            var coverageTypeFilter = new TCoverageTypeFilter();
+            coverageTypeFilter.Initialize(SetAppOptions(changedTestArguments.InitialAppOptions));
+            var newCoverageTypeFilter = new TCoverageTypeFilter();
+            newCoverageTypeFilter.Initialize(SetAppOptions(changedTestArguments.ChangedAppOptions));
+
+            Assert.That(newCoverageTypeFilter.Changed(coverageTypeFilter), Is.EqualTo(changedTestArguments.ExpectedChanged));
+        }
+
+        private IAppOptions SetAppOptions(CoverageAppOptions coverageAppOptions)
+        {
+            var appOptions = GetAppOptions();
+            appOptions.ShowEditorCoverage = coverageAppOptions.ShowEditorCoverage;
+            ShowCoverage(appOptions,coverageAppOptions.ShowCoverage);
+            ShowCovered(appOptions,coverageAppOptions.ShowCovered);
+            ShowUncovered(appOptions,coverageAppOptions.ShowUncovered);
+            ShowPartiallyCovered(appOptions,coverageAppOptions.ShowPartiallyCovered);
+            return appOptions;
+        }
+
+        public class CoverageAppOptions
+        {
+            public bool ShowCoverage { get; set; }
+            public bool ShowCovered { get; set; }
+            public bool ShowUncovered { get; set; }
+            public bool ShowPartiallyCovered { get; set; }
+            public bool ShowEditorCoverage { get; set; }
+            public CoverageAppOptions(
+                bool showCovered,
+                bool showUncovered,
+                bool showPartiallyCovered,
+                bool showEditorCoverage = true,
+                bool showCoverage = true
+            )
+            {
+                ShowCoverage = showCoverage;
+                ShowCovered = showCovered;
+                ShowUncovered = showUncovered;
+                ShowPartiallyCovered = showPartiallyCovered;
+                ShowEditorCoverage = showEditorCoverage;
+            }
         }
 
         internal class ChangedTestArguments
         {
-            public ChangedTestArguments(IAppOptions initialAppOptions, IAppOptions changedAppOptions, bool expectedChanged)
+            
+            public ChangedTestArguments(CoverageAppOptions initialAppOptions, CoverageAppOptions changedAppOptions, bool expectedChanged)
             {
                 InitialAppOptions = initialAppOptions;
                 ChangedAppOptions = changedAppOptions;
                 ExpectedChanged = expectedChanged;
             }
-            public IAppOptions InitialAppOptions { get; }
-            public IAppOptions ChangedAppOptions { get; }
+            public CoverageAppOptions InitialAppOptions { get; }
+            public CoverageAppOptions ChangedAppOptions { get; }
             public bool ExpectedChanged { get; }
-
-            public static IAppOptions Create(
-                bool showLineCoveredHighlighting,
-                bool showLineUncoveredHighlighting,
-                bool showLinePartiallyCoveredHighlighting,
-                bool showEditorCoverage = true,
-                bool showLineCoverageHighlighting = true
-                )
-            {
-                var appOptions = new Mock<IAppOptions>().SetupAllProperties().Object;
-
-                appOptions.ShowEditorCoverage = showEditorCoverage;
-                appOptions.ShowLineCoverageHighlighting = showLineCoverageHighlighting;
-
-                appOptions.ShowLineCoveredHighlighting = showLineCoveredHighlighting;
-                appOptions.ShowLineUncoveredHighlighting = showLineUncoveredHighlighting;
-                appOptions.ShowLinePartiallyCoveredHighlighting = showLinePartiallyCoveredHighlighting;
-
-                return appOptions;
-            }
-
         }
 
-        public static ChangedTestArguments[] ChangedTestSource =
-        
-            new ChangedTestArguments[]{
+        public static ChangedTestArguments[] ChangedTestSource = new ChangedTestArguments[]{
                 new ChangedTestArguments(
-                    ChangedTestArguments.Create(true,true,true),
-                    ChangedTestArguments.Create(false,true,true),
+                    new CoverageAppOptions(true,true,true),
+                    new CoverageAppOptions(false,true,true),
                     true
                 ),
                 new ChangedTestArguments(
-                    ChangedTestArguments.Create(true,true,true),
-                    ChangedTestArguments.Create(true,false,true),
+                    new CoverageAppOptions(true,true,true),
+                    new CoverageAppOptions(true,false,true),
                     true
                 ),
                 new ChangedTestArguments(
-                    ChangedTestArguments.Create(true,true,true),
-                    ChangedTestArguments.Create(true,true,false),
+                    new CoverageAppOptions(true,true,true),
+                    new CoverageAppOptions(true,true,false),
                     true
                 ),
                 new ChangedTestArguments(
-                    ChangedTestArguments.Create(true,true,true,true,true),
-                    ChangedTestArguments.Create(true,true,true,false,true),
+                    new CoverageAppOptions(true,true,true,true,true),
+                    new CoverageAppOptions(true,true,true,false,true),
                     true
                 ),
                 new ChangedTestArguments(
-                    ChangedTestArguments.Create(true,true,true,true,true),
-                    ChangedTestArguments.Create(true,true,true,true,false),
+                    new CoverageAppOptions(true,true,true,true,true),
+                    new CoverageAppOptions(true,true,true,true,false),
                     true
                 ),
                 new ChangedTestArguments(
-                    ChangedTestArguments.Create(true,true,true),
-                    ChangedTestArguments.Create(true,true,true),
+                    new CoverageAppOptions(true,true,true),
+                    new CoverageAppOptions(true,true,true),
                     false
                 )
-            
         };
-    }    
+    }
+
 }

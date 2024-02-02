@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace FineCodeCoverage.Impl
 {
-    internal class GlyphTagFilter : CoverageTypeFilterBase
+    internal class GlyphFilter : CoverageTypeFilterBase
     {
         public override string TypeIdentifier => "Glyph";
 

@@ -24,7 +24,7 @@ namespace FineCodeCoverage.Impl
             ICoverageTaggerProviderFactory coverageTaggerProviderFactory
         )
         {
-            coverageTaggerProvider = coverageTaggerProviderFactory.Create<CoverageLineGlyphTag,GlyphTagFilter>(this);
+            coverageTaggerProvider = coverageTaggerProviderFactory.Create<CoverageLineGlyphTag,GlyphFilter>(this);
             this.eventAggregator = eventAggregator;
             this.coverageColoursProvider = coverageColoursProvider;
         }

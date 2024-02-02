@@ -28,7 +28,7 @@ namespace FineCodeCoverageTests
 
             var mockCoverageTaggerProviderFactory = mocker.GetMock<ICoverageTaggerProviderFactory>();
             mockCoverageTaggerProviderFactory.Setup(
-                coverageTaggerProviderFactory => coverageTaggerProviderFactory.Create<CoverageLineGlyphTag, GlyphTagFilter>(
+                coverageTaggerProviderFactory => coverageTaggerProviderFactory.Create<CoverageLineGlyphTag, GlyphFilter>(
                     It.IsAny<ILineSpanTagger<CoverageLineGlyphTag>>())
                 )
                 .Returns(mockCoverageTaggerProvider.Object);

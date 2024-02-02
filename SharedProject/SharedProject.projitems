@@ -197,7 +197,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Base\TextBufferWithFilePath.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Classification\CoverageClassificationFilter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Classification\CoverageLineClassificationTaggerProvider.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\GlyphMargin\GlyphTagFilter.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\GlyphMargin\GlyphFilter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Provider\CoverageClassificationTypeService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Provider\CoverageColours.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Provider\CoverageColoursChangedMessage.cs" />

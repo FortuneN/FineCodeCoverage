@@ -1,7 +1,6 @@
 ﻿using FineCodeCoverage.Options;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace FineCodeCoverage.Impl
 {
