@@ -12,7 +12,6 @@ using Microsoft.VisualStudio.Utilities;
 using Microsoft.VisualStudio.Text.Formatting;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
-using Microsoft.VisualStudio.PlatformUI;
 
 namespace FineCodeCoverage.Impl
 {
@@ -249,7 +248,11 @@ namespace FineCodeCoverage.Impl
         private CoverageColours GetCoverageColoursFromFontsAndColors()
         {
             var fromFontsAndColors = GetItemCoverageInfosFromFontsAndColors();
-            return CreateCoverageColours(fromFontsAndColors);
+            return new CoverageColours(
+                fromFontsAndColors[0],
+                fromFontsAndColors[1],
+                fromFontsAndColors[2]
+            );
         }
 
         private List<IFontsAndColorsInfo> GetItemCoverageInfosFromFontsAndColors()
@@ -265,15 +268,6 @@ namespace FineCodeCoverage.Impl
                      }
                 );
             });
-        }
-        
-        private static CoverageColours CreateCoverageColours(List<IFontsAndColorsInfo> fromFontsAndColors)
-        {
-            return new CoverageColours(
-                fromFontsAndColors[0],
-                fromFontsAndColors[1],
-                fromFontsAndColors[2]
-            );
         }
         
         public IClassificationType GetClassificationType(CoverageType coverageType)
