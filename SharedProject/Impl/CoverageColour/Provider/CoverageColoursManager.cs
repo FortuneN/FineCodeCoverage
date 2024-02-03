@@ -9,12 +9,6 @@ using System.Collections.ObjectModel;
 
 namespace FineCodeCoverage.Impl
 {
-    interface ICoverageInitializable
-    {
-        bool RequiresInitialization { get; }
-        void Initialize();
-    }
-
     [Export(typeof(CoverageColoursManager))]
     [Guid(TextMarkerProviderString)]
     internal class CoverageColoursManager :  IVsTextMarkerTypeProvider, ICoverageInitializable
@@ -55,7 +49,7 @@ namespace FineCodeCoverage.Impl
             this.editorFormatMapTextSpecificListener = editorFormatMapTextSpecificListener;
             this.textFormattingRunPropertiesFactory = textFormattingRunPropertiesFactory;
             this.editorFormatMapTextSpecificListener.ListenFor(
-                new List<string> { markerTypeNames.Covered, markerTypeNames.NotCovered, markerTypeNames.PartiallyCovered }, 
+                new List<string> { markerTypeNames.Covered, markerTypeNames.NotCovered, markerTypeNames.PartiallyCovered },
                 () =>
                 {
                     var changedColours = fontAndColorsInfosProvider.GetChangedFontAndColorsInfos();

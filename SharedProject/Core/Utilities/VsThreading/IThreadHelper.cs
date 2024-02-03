@@ -1,5 +1,6 @@
 ﻿using Microsoft.VisualStudio.Shell;
 using System;
+using System.ComponentModel.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Task = System.Threading.Tasks.Task;
@@ -36,6 +37,7 @@ namespace FineCodeCoverage.Core.Utilities.VsThreading
         }
     }
 
+    [Export(typeof(IThreadHelper))]
     internal class VsThreadHelper : IThreadHelper
     {
         public IJoinableTaskFactory JoinableTaskFactory { get; } = new VsJoinableTaskFactory();

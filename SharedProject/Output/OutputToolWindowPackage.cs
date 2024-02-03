@@ -107,8 +107,8 @@ namespace FineCodeCoverage.Output
 				componentModel.GetService<IShownToolWindowHistory>()
 			);
 			await componentModel.GetService<IInitializer>().InitializeAsync(cancellationToken);
-			var coverageColours = componentModel.GetService<CoverageColoursManager>();
-            this.AddService(typeof(CoverageColoursManager),(_,__,___) => Task.FromResult(coverageColours as object),true);
+			var coverageColoursManager = componentModel.GetService<CoverageColoursManager>();
+            this.AddService(typeof(CoverageColoursManager),(_,__,___) => Task.FromResult(coverageColoursManager as object),true);
         }
 
         protected override Task<object> InitializeToolWindowAsync(Type toolWindowType, int id, CancellationToken cancellationToken)
