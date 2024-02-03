@@ -52,6 +52,8 @@ namespace FineCodeCoverage.Impl
             eventAggregator.AddListener(this);
         }
 
+        public bool HasCoverage => coverageLines != null;
+
         public void RaiseTagsChanged()
         {
             var span = new SnapshotSpan(textBuffer.CurrentSnapshot, 0, textBuffer.CurrentSnapshot.Length);

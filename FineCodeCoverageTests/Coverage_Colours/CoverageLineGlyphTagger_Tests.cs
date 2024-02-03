@@ -3,6 +3,7 @@ using FineCodeCoverage.Core.Utilities;
 using FineCodeCoverage.Impl;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
+using Moq;
 using NUnit.Framework;
 
 namespace FineCodeCoverageTests
@@ -56,15 +57,19 @@ namespace FineCodeCoverageTests
             Assert.That(raisedArgs, Is.SameAs(coverageTaggerArgs));
         }
 
-        [Test]
-        public void Should_RaiseTagsChanged_On_CoverageTagger_When_Receive_CoverageColoursChangedMessage()
+        [TestCase(true)]
+        [TestCase(false)]
+        public void Should_RaiseTagsChanged_On_CoverageTagger_When_Receive_CoverageColoursChangedMessage_And_There_Is_Coverage(bool hasCoverage)
         {
             var autoMoqer = new AutoMoqer();
+            var mockCoverageTagger = autoMoqer.GetMock<ICoverageTagger<CoverageLineGlyphTag>>();
+            mockCoverageTagger.SetupGet(ct => ct.HasCoverage).Returns(hasCoverage);
+            
             var coverageLineGlyphTagger = autoMoqer.Create<CoverageLineGlyphTagger>();
 
             coverageLineGlyphTagger.Handle(new CoverageColoursChangedMessage());
 
-            autoMoqer.Verify<ICoverageTagger<CoverageLineGlyphTag>>(coverageTagger => coverageTagger.RaiseTagsChanged());
+            autoMoqer.Verify<ICoverageTagger<CoverageLineGlyphTag>>(coverageTagger => coverageTagger.RaiseTagsChanged(),hasCoverage ? Times.Once() : Times.Never());
         }
 
         [Test]

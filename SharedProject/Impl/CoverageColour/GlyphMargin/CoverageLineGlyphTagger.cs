@@ -38,7 +38,10 @@ namespace FineCodeCoverage.Impl
 
         public void Handle(CoverageColoursChangedMessage message)
         {
-            coverageTagger.RaiseTagsChanged();
+            if (coverageTagger.HasCoverage)
+            {
+                coverageTagger.RaiseTagsChanged();
+            }
         }
     }
 }

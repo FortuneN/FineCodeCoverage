@@ -60,6 +60,22 @@ namespace FineCodeCoverageTests
 
         [TestCase(true)]
         [TestCase(false)]
+        public void Should_HasCoverage_When_Has(bool hasCoverage)
+        {
+            var coverageTagger = new CoverageTagger<DummyTag>(
+                new Mock<ITextBufferWithFilePath>().Object,
+                hasCoverage ? new Mock<IFileLineCoverage>().Object : null,
+                new Mock<ICoverageTypeFilter>().Object,
+                new Mock<IEventAggregator>().Object,
+                new Mock<ILineSpanLogic>(MockBehavior.Strict).Object,
+                new Mock<ILineSpanTagger<DummyTag>>().Object
+            );
+
+            Assert.That(coverageTagger.HasCoverage, Is.EqualTo(hasCoverage));
+        }
+
+        [TestCase(true)]
+        [TestCase(false)]
         public void Should_Raise_TagsChanged_For_CoverageTypeFilterChangedMessage_With_The_Same_TypeIdentifier(bool same)
         {
             var autoMoqer = new AutoMoqer();
