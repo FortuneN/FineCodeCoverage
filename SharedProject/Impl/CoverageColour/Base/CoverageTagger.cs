@@ -100,7 +100,10 @@ namespace FineCodeCoverage.Impl
             if (message.Filter.TypeIdentifier == coverageTypeFilter.TypeIdentifier)
             {
                 coverageTypeFilter = message.Filter;
-                RaiseTagsChanged();
+                if (HasCoverage)
+                {
+                    RaiseTagsChanged();
+                }
             }
         }
     }

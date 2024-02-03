@@ -76,7 +76,7 @@ namespace FineCodeCoverageTests
 
         [TestCase(true)]
         [TestCase(false)]
-        public void Should_Raise_TagsChanged_For_CoverageTypeFilterChangedMessage_With_The_Same_TypeIdentifier(bool same)
+        public void Should_Raise_TagsChanged_For_CoverageTypeFilterChangedMessage_With_The_Same_TypeIdentifier_If_Has_Coverage(bool same)
         {
             var autoMoqer = new AutoMoqer();
             autoMoqer.SetInstance<ICoverageTypeFilter>(new DummyCoverageTypeFilter());
@@ -96,8 +96,30 @@ namespace FineCodeCoverageTests
             coverageTagger.Handle(coverageTypeFilterChangedMessage);
 
             Assert.That(tagsChanged, Is.EqualTo(same));
+        }
 
+        [Test]
+        public void Should_Not_Raise_TagsChanged_For_CoverageTypeFilterChangedMessage_If_No_Coverage()
+        {
+            var coverageTagger = new CoverageTagger<DummyTag>(
+                new Mock<ITextBufferWithFilePath>().Object,
+                null,
+                new DummyCoverageTypeFilter(),
+                new Mock<IEventAggregator>().Object,
+                new Mock<ILineSpanLogic>(MockBehavior.Strict).Object,
+                new Mock<ILineSpanTagger<DummyTag>>().Object
+            );
+            
+            var tagsChanged = false;
+            coverageTagger.TagsChanged += (sender, args) =>
+            {
+                tagsChanged = true;
+            };
 
+            var coverageTypeFilterChangedMessage = new CoverageTypeFilterChangedMessage(new DummyCoverageTypeFilter());
+            coverageTagger.Handle(coverageTypeFilterChangedMessage);
+
+            Assert.That(tagsChanged, Is.False);
         }
 
         [Test]
