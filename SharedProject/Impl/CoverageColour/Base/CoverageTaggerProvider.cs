@@ -20,8 +20,10 @@ namespace FineCodeCoverage.Impl
             IEventAggregator eventAggregator,
             IAppOptionsProvider appOptionsProvider,
             ILineSpanLogic lineSpanLogic,
-            ILineSpanTagger<TTag> coverageTagger)
+            ILineSpanTagger<TTag> coverageTagger,
+            IFileLineCoverage fileLineCoverage)
         {
+            lastCoverageLines = fileLineCoverage;
             var appOptions = appOptionsProvider.Get();
             coverageTypeFilter = CreateFilter(appOptions);
             appOptionsProvider.OptionsChanged += AppOptionsProvider_OptionsChanged;

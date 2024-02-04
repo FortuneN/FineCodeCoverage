@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.Composition;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AutoMoq;
@@ -19,7 +21,17 @@ namespace Test
         public void SetUp()
         {
             mocker = new AutoMoqer();
+			mocker.SetInstance(new IInitializable[] { });
             initializer = mocker.Create<Initializer>();
+        }
+
+		[Test]
+		public void Should_ImportMany_IInitializable()
+		{
+			var constructor = typeof(Initializer).GetConstructors().Single();
+			var initializablesConstructorParameter = constructor.GetParameters().Single(p => p.ParameterType == typeof(IInitializable[]));
+			var hasImportManyAttribute = initializablesConstructorParameter.GetCustomAttributes(typeof(ImportManyAttribute), false).Any();
+			Assert.True(hasImportManyAttribute);
         }
 
 		[Test]

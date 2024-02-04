@@ -477,6 +477,7 @@
     <Compile Include="Coverage_Colours\CoverageLineGlyphTagger_Tests.cs" />
     <Compile Include="Coverage_Colours\CoverageLineOverviewMarkTaggerProvider_Tests.cs" />
     <Compile Include="Coverage_Colours\CoverageOverviewMargin_Tests.cs" />
+    <Compile Include="Coverage_Colours\CoverageTaggerProviderFactory_Tests.cs" />
     <Compile Include="Coverage_Colours\CoverageTaggerProvider_Tests.cs" />
     <Compile Include="Coverage_Colours\CoverageTagger_Tests.cs" />
     <Compile Include="Coverage_Colours\CoverageTypeFilterBase_Exception_Tests.cs" />

@@ -140,11 +140,12 @@ namespace FineCodeCoverageTests
             };
             var autoMocker = new AutoMoqer();
             var coverageTaggerProvider = autoMocker.Create<CoverageTaggerProvider<DummyCoverageTypeFilter, DummyTag>>();
-            IFileLineCoverage fileLineCoverage = null;
+            var expectedFileLineCoverage = autoMocker.GetMock<IFileLineCoverage>().Object;
             if (newCoverageLinesMessage)
             {
-                fileLineCoverage = new Mock<IFileLineCoverage>().Object;
-                coverageTaggerProvider.Handle(new NewCoverageLinesMessage { CoverageLines = fileLineCoverage });
+                var newFileLineCoverage = new Mock<IFileLineCoverage>().Object;
+                coverageTaggerProvider.Handle(new NewCoverageLinesMessage { CoverageLines = newFileLineCoverage });
+                expectedFileLineCoverage = newFileLineCoverage;
             }
             var mockAppOptionsProvider = autoMocker.GetMock<IAppOptionsProvider>();
             mockAppOptionsProvider.Raise(appOptionsProvider => appOptionsProvider.OptionsChanged += null, new AppOptions());
@@ -162,7 +163,7 @@ namespace FineCodeCoverageTests
             Assert.Multiple(() =>
             {
                 Assert.That(filePathArg, Is.EqualTo("filepath"));
-                Assert.That(fileLineCoverageArg, Is.SameAs(fileLineCoverage));
+                Assert.That(fileLineCoverageArg, Is.SameAs(expectedFileLineCoverage));
                 Assert.That(coverageTypeFilterArg, Is.SameAs(lastFilter));
             });
         }
