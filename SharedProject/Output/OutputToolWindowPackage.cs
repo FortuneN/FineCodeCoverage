@@ -47,8 +47,6 @@ namespace FineCodeCoverage.Output
     [ProvideTextMarker("FCCUncovered", "FCCUncovered", CoverageColoursManager.NotTouchedGuidString, CoverageColoursManager.TextMarkerProviderString)]
     [ProvideTextMarker("FCCPartiallyCovered", "FCCPartiallyCovered", CoverageColoursManager.PartiallyTouchedGuidString, CoverageColoursManager.TextMarkerProviderString)]
 	[ProvideService(typeof(CoverageColoursManager))]
-    [ProvideAutoLoad("0FA5E26B-3EAA-4D5E-B689-129B0D2A8690", PackageAutoLoadFlags.SkipWhenUIContextRulesActive)]
-    [ProvideUIContextRule("0FA5E26B-3EAA-4D5E-B689-129B0D2A8690", "CoverageWindowLoad", "(TestContainer | TestProjects | WindowStoreTestProjects | CppTestProjects)", new string[] { "TestContainer", "TestProjects", "WindowStoreTestProjects", "CppTestProjects" }, new string[] { "SolutionHasProjectCapability:TestContainer", "SolutionHasProjectFlavor:3AC096D0-A1C2-E12C-1390-A8335801FDAB", "SolutionHasProjectFlavor:BC8A1FFA-BEE3-4634-8014-F334798102B3", "SolutionHasProjectFlavor:8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942" }, 0)]
     public sealed class OutputToolWindowPackage : AsyncPackage
 	{
 		private static Microsoft.VisualStudio.ComponentModelHost.IComponentModel componentModel;

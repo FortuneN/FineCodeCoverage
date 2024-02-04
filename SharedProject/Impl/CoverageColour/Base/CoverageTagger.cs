@@ -5,6 +5,7 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 
 namespace FineCodeCoverage.Impl
@@ -50,6 +51,9 @@ namespace FineCodeCoverage.Impl
             this.lineSpanLogic = lineSpanLogic;
             this.lineSpanTagger = lineSpanTagger;
             eventAggregator.AddListener(this);
+            Debug.WriteLine($"Tagger for {coverageTypeFilter.TypeIdentifier} {filePath}");
+            textBuffer.Changing += (s,args) => Debug.WriteLine($"{coverageTypeFilter.TypeIdentifier} Changing {filePath}");
+            textBuffer.Changed += (s, args) => Debug.WriteLine($"{coverageTypeFilter.TypeIdentifier} Changed {filePath}");
         }
 
         public bool HasCoverage => coverageLines != null;
@@ -64,6 +68,7 @@ namespace FineCodeCoverage.Impl
         
         public IEnumerable<ITagSpan<TTag>> GetTags(NormalizedSnapshotSpanCollection spans)
         {
+            Debug.WriteLine($"{coverageTypeFilter.TypeIdentifier} - {filePath} {spans} - {spans[0].Snapshot.Version.VersionNumber}");
             if (coverageLines == null || coverageTypeFilter.Disabled)
             {
                 return Enumerable.Empty<ITagSpan<TTag>>();
