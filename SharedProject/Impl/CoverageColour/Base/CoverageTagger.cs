@@ -5,7 +5,6 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 
 namespace FineCodeCoverage.Impl
@@ -13,7 +12,7 @@ namespace FineCodeCoverage.Impl
     internal class CoverageTagger<TTag> :
         ICoverageTagger<TTag>,
         IListener<CoverageTypeFilterChangedMessage>,
-        IListener<NewCoverageLinesMessage>,
+        IListener<CoverageChangedMessage>,
         IDisposable,
         ITagger<TTag>
         where TTag : ITag
@@ -21,7 +20,7 @@ namespace FineCodeCoverage.Impl
     {
         private readonly ITextBuffer textBuffer;
         private readonly string filePath;
-        private IFileLineCoverage coverageLines;
+        private IBufferLineCoverage coverageLines;
         private ICoverageTypeFilter coverageTypeFilter;
         private readonly IEventAggregator eventAggregator;
         private readonly ILineSpanLogic lineSpanLogic;
@@ -31,7 +30,7 @@ namespace FineCodeCoverage.Impl
 
         public CoverageTagger(
             ITextBufferWithFilePath textBufferWithFilePath,
-            IFileLineCoverage lastCoverageLines,
+            IBufferLineCoverage lastCoverageLines,
             ICoverageTypeFilter coverageTypeFilter,
             IEventAggregator eventAggregator,
             ILineSpanLogic lineSpanLogic,
@@ -69,7 +68,7 @@ namespace FineCodeCoverage.Impl
             {
                 return Enumerable.Empty<ITagSpan<TTag>>();
             }
-            var lineSpans = lineSpanLogic.GetLineSpans(coverageLines, filePath, spans);
+            var lineSpans = lineSpanLogic.GetLineSpans(coverageLines, spans);
             return GetTags(lineSpans);
         }
 
@@ -90,10 +89,13 @@ namespace FineCodeCoverage.Impl
             eventAggregator.RemoveListener(this);
         }
 
-        public void Handle(NewCoverageLinesMessage message)
+        public void Handle(CoverageChangedMessage message)
         {
             coverageLines = message.CoverageLines;
-            RaiseTagsChanged();
+            if(message.AppliesTo == null || message.AppliesTo == filePath)
+            {
+                RaiseTagsChanged();
+            }
         }
 
         public void Handle(CoverageTypeFilterChangedMessage message)

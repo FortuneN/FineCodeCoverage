@@ -7,13 +7,13 @@ using FineCodeCoverage.Core.Utilities;
 
 namespace FineCodeCoverage.Impl
 {
-    internal class CoverageTaggerProvider<TCoverageTypeFilter, TTag> : IListener<NewCoverageLinesMessage>, ICoverageTaggerProvider<TTag>
+    internal class CoverageTaggerProvider<TCoverageTypeFilter, TTag> : ICoverageTaggerProvider<TTag>
          where TTag : ITag where TCoverageTypeFilter : ICoverageTypeFilter, new()
     {
         protected readonly IEventAggregator eventAggregator;
         private readonly ILineSpanLogic lineSpanLogic;
         private readonly ILineSpanTagger<TTag> coverageTagger;
-        private IFileLineCoverage lastCoverageLines;
+        private readonly IDynamicCoverageManager dynamicCoverageManager;
         private TCoverageTypeFilter coverageTypeFilter;
 
         public CoverageTaggerProvider(
@@ -21,13 +21,12 @@ namespace FineCodeCoverage.Impl
             IAppOptionsProvider appOptionsProvider,
             ILineSpanLogic lineSpanLogic,
             ILineSpanTagger<TTag> coverageTagger,
-            IFileLineCoverage fileLineCoverage)
+            IDynamicCoverageManager dynamicCoverageManager)
         {
-            lastCoverageLines = fileLineCoverage;
+            this.dynamicCoverageManager = dynamicCoverageManager;
             var appOptions = appOptionsProvider.Get();
             coverageTypeFilter = CreateFilter(appOptions);
             appOptionsProvider.OptionsChanged += AppOptionsProvider_OptionsChanged;
-            eventAggregator.AddListener(this);
             this.eventAggregator = eventAggregator;
             this.lineSpanLogic = lineSpanLogic;
             this.coverageTagger = coverageTagger;
@@ -49,12 +48,7 @@ namespace FineCodeCoverage.Impl
                 eventAggregator.SendMessage(message);
             }
         }
-
-        public void Handle(NewCoverageLinesMessage message)
-        {
-            lastCoverageLines = message.CoverageLines;
-        }
-
+        
         public ICoverageTagger<TTag> CreateTagger(ITextBuffer textBuffer)
         {
             string filePath = null;
@@ -66,6 +60,7 @@ namespace FineCodeCoverage.Impl
             {
                 return null;
             }
+            var lastCoverageLines = dynamicCoverageManager.Manage(textBuffer, filePath);
             return new CoverageTagger<TTag>(
                 new TextBufferWithFilePath(textBuffer, filePath),
                 lastCoverageLines, 

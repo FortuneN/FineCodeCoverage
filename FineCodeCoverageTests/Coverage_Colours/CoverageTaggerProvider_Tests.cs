@@ -128,44 +128,45 @@ namespace FineCodeCoverageTests
         [TestCase(false)]
         public void Should_Create_A_Coverage_Tagger_With_Last_Coverage_Lines_And_Last_Coverage_Type_Filter_When_The_TextBuffer_Has_An_Associated_Document(bool newCoverageLinesMessage)
         {
-            DummyCoverageTypeFilter lastFilter = null;
-            DummyCoverageTypeFilter.Initialized += (sender, args) =>
-            {
-                lastFilter = args.DummyCoverageTypeFilter;
-                lastFilter.ChangedFunc = other =>
-                {
-                    return true;
-                };
+            //DummyCoverageTypeFilter lastFilter = null;
+            //DummyCoverageTypeFilter.Initialized += (sender, args) =>
+            //{
+            //    lastFilter = args.DummyCoverageTypeFilter;
+            //    lastFilter.ChangedFunc = other =>
+            //    {
+            //        return true;
+            //    };
 
-            };
-            var autoMocker = new AutoMoqer();
-            var coverageTaggerProvider = autoMocker.Create<CoverageTaggerProvider<DummyCoverageTypeFilter, DummyTag>>();
-            var expectedFileLineCoverage = autoMocker.GetMock<IFileLineCoverage>().Object;
-            if (newCoverageLinesMessage)
-            {
-                var newFileLineCoverage = new Mock<IFileLineCoverage>().Object;
-                coverageTaggerProvider.Handle(new NewCoverageLinesMessage { CoverageLines = newFileLineCoverage });
-                expectedFileLineCoverage = newFileLineCoverage;
-            }
-            var mockAppOptionsProvider = autoMocker.GetMock<IAppOptionsProvider>();
-            mockAppOptionsProvider.Raise(appOptionsProvider => appOptionsProvider.OptionsChanged += null, new AppOptions());
+            //};
+            //var autoMocker = new AutoMoqer();
+            //var coverageTaggerProvider = autoMocker.Create<CoverageTaggerProvider<DummyCoverageTypeFilter, DummyTag>>();
+            //var expectedFileLineCoverage = autoMocker.GetMock<IFileLineCoverage>().Object;
+            //if (newCoverageLinesMessage)
+            //{
+            //    var newFileLineCoverage = new Mock<IFileLineCoverage>().Object;
+            //    coverageTaggerProvider.Handle(new NewCoverageLinesMessage { CoverageLines = newFileLineCoverage });
+            //    expectedFileLineCoverage = newFileLineCoverage;
+            //}
+            //var mockAppOptionsProvider = autoMocker.GetMock<IAppOptionsProvider>();
+            //mockAppOptionsProvider.Raise(appOptionsProvider => appOptionsProvider.OptionsChanged += null, new AppOptions());
 
-            var tagger = coverageTaggerProvider.CreateTagger(GetMockTextBufferForFile("filepath").Object);
+            //var tagger = coverageTaggerProvider.CreateTagger(GetMockTextBufferForFile("filepath").Object);
 
-            Assert.That(tagger, Is.InstanceOf<CoverageTagger<DummyTag>>());
+            //Assert.That(tagger, Is.InstanceOf<CoverageTagger<DummyTag>>());
 
-            var coverageTaggerType = typeof(CoverageTagger<DummyTag>);
+            //var coverageTaggerType = typeof(CoverageTagger<DummyTag>);
 
-            var fileLineCoverageArg = coverageTaggerType.GetField("coverageLines", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).GetValue(tagger) as IFileLineCoverage;
-            var coverageTypeFilterArg = coverageTaggerType.GetField("coverageTypeFilter", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).GetValue(tagger) as ICoverageTypeFilter;
-            var filePathArg = coverageTaggerType.GetField("filePath", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).GetValue(tagger) as string;
+            //var fileLineCoverageArg = coverageTaggerType.GetField("coverageLines", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).GetValue(tagger) as IFileLineCoverage;
+            //var coverageTypeFilterArg = coverageTaggerType.GetField("coverageTypeFilter", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).GetValue(tagger) as ICoverageTypeFilter;
+            //var filePathArg = coverageTaggerType.GetField("filePath", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).GetValue(tagger) as string;
 
-            Assert.Multiple(() =>
-            {
-                Assert.That(filePathArg, Is.EqualTo("filepath"));
-                Assert.That(fileLineCoverageArg, Is.SameAs(expectedFileLineCoverage));
-                Assert.That(coverageTypeFilterArg, Is.SameAs(lastFilter));
-            });
+            //Assert.Multiple(() =>
+            //{
+            //    Assert.That(filePathArg, Is.EqualTo("filepath"));
+            //    Assert.That(fileLineCoverageArg, Is.SameAs(expectedFileLineCoverage));
+            //    Assert.That(coverageTypeFilterArg, Is.SameAs(lastFilter));
+            //});
+            throw new NotImplementedException();
         }
     }
 }

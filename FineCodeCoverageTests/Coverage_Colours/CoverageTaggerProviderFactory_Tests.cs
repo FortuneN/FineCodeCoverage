@@ -45,16 +45,17 @@ namespace FineCodeCoverageTests
         [Test]
         public void Should_Create_CoverageTaggerProvider_With_Existing_FileLineCoverage()
         {
-            var autoMoqer = new AutoMoqer();
-            var coverageTaggerProviderFactory = autoMoqer.Create<CoverageTaggerProviderFactory>();
+            //var autoMoqer = new AutoMoqer();
+            //var coverageTaggerProviderFactory = autoMoqer.Create<CoverageTaggerProviderFactory>();
 
-            var existingFileLineCoverage = new Mock<IFileLineCoverage>().Object;
-            coverageTaggerProviderFactory.Handle(new NewCoverageLinesMessage { CoverageLines = existingFileLineCoverage});
+            //var existingFileLineCoverage = new Mock<IFileLineCoverage>().Object;
+            //coverageTaggerProviderFactory.Handle(new NewCoverageLinesMessage { CoverageLines = existingFileLineCoverage});
 
-            var coverageTaggerProvider = coverageTaggerProviderFactory.Create<DummyTag, DummyCoverageTypeFilter>(new DummyLineSpanTagger());
-            
-            var fileLineCoverage = coverageTaggerProvider.GetType().GetField("lastCoverageLines", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).GetValue(coverageTaggerProvider);
-            Assert.That(fileLineCoverage, Is.SameAs(existingFileLineCoverage));
+            //var coverageTaggerProvider = coverageTaggerProviderFactory.Create<DummyTag, DummyCoverageTypeFilter>(new DummyLineSpanTagger());
+
+            //var fileLineCoverage = coverageTaggerProvider.GetType().GetField("lastCoverageLines", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).GetValue(coverageTaggerProvider);
+            //Assert.That(fileLineCoverage, Is.SameAs(existingFileLineCoverage));
+            throw new NotImplementedException();
         }
     }
 }

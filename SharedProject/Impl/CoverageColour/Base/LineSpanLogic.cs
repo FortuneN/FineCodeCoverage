@@ -10,23 +10,22 @@ namespace FineCodeCoverage.Impl
     internal class LineSpanLogic : ILineSpanLogic
     {
         public IEnumerable<ILineSpan> GetLineSpans(
-            IFileLineCoverage fileLineCoverage, 
-            string filePath, 
+            IBufferLineCoverage bufferLineCoverage, 
             NormalizedSnapshotSpanCollection normalizedSnapshotSpanCollection)
         {
-            return normalizedSnapshotSpanCollection.SelectMany(snapshotSpan => GetApplicableLineSpans(snapshotSpan, fileLineCoverage, filePath));
+            return normalizedSnapshotSpanCollection.SelectMany(snapshotSpan => GetApplicableLineSpans(snapshotSpan, bufferLineCoverage));
         }
 
-        private static IEnumerable<ILineSpan> GetApplicableLineSpans(SnapshotSpan snapshotSpan, IFileLineCoverage fileLineCoverage, string filePath)
+        private static IEnumerable<ILineSpan> GetApplicableLineSpans(SnapshotSpan snapshotSpan, IBufferLineCoverage bufferLineCoverage)
         {
-            var applicableCoverageLines = GetApplicableCoverageLines(fileLineCoverage, filePath, snapshotSpan);
+            var applicableCoverageLines = GetApplicableCoverageLines(bufferLineCoverage, snapshotSpan);
             return applicableCoverageLines.Select(applicableCoverageLine => new LineSpan(applicableCoverageLine, GetLineSnapshotSpan(applicableCoverageLine.Number, snapshotSpan)));
         }
 
-        private static IEnumerable<ILine> GetApplicableCoverageLines(IFileLineCoverage fileLineCoverage,string filePath,SnapshotSpan span)
+        private static IEnumerable<ILine> GetApplicableCoverageLines(IBufferLineCoverage bufferLineCoverage,SnapshotSpan span)
         {
             var (coverageStartLineNumber, coverageEndLineNumber) = GetStartEndCoverageLineNumbers(span);
-            return fileLineCoverage.GetLines(filePath, coverageStartLineNumber, coverageEndLineNumber);
+            return bufferLineCoverage.GetLines(coverageStartLineNumber, coverageEndLineNumber);
         }
 
         private static (int, int) GetStartEndCoverageLineNumbers(SnapshotSpan span)
