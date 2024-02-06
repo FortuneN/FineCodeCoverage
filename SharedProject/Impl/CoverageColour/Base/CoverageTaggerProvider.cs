@@ -1,9 +1,8 @@
-﻿using FineCodeCoverage.Engine.Model;
-using FineCodeCoverage.Engine;
-using FineCodeCoverage.Options;
+﻿using FineCodeCoverage.Options;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Text;
 using FineCodeCoverage.Core.Utilities;
+using Microsoft.VisualStudio.Text.Editor;
 
 namespace FineCodeCoverage.Impl
 {
@@ -49,7 +48,7 @@ namespace FineCodeCoverage.Impl
             }
         }
         
-        public ICoverageTagger<TTag> CreateTagger(ITextBuffer textBuffer)
+        public ICoverageTagger<TTag> CreateTagger(ITextView textView, ITextBuffer textBuffer)
         {
             string filePath = null;
             if (textBuffer.Properties.TryGetProperty(typeof(ITextDocument), out ITextDocument document))
@@ -60,7 +59,7 @@ namespace FineCodeCoverage.Impl
             {
                 return null;
             }
-            var lastCoverageLines = dynamicCoverageManager.Manage(textBuffer, filePath);
+            var lastCoverageLines = dynamicCoverageManager.Manage(textView, textBuffer, filePath);
             return new CoverageTagger<TTag>(
                 new TextBufferWithFilePath(textBuffer, filePath),
                 lastCoverageLines, 

@@ -1,6 +1,5 @@
-﻿using FineCodeCoverage.Engine.Cobertura;
-using FineCodeCoverage.Engine.Model;
-using Microsoft.VisualStudio.Text;
+﻿using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
 using System.ComponentModel.Composition;
@@ -10,8 +9,8 @@ namespace FineCodeCoverage.Impl
     [ContentType("code")]
     [TagType(typeof(OverviewMarkTag))]
     [Name("FCC.CoverageLineOverviewMarkTaggerProvider")]
-    [Export(typeof(ITaggerProvider))]
-    internal class CoverageLineOverviewMarkTaggerProvider : ITaggerProvider, ILineSpanTagger<OverviewMarkTag>
+    [Export(typeof(IViewTaggerProvider))]
+    internal class CoverageLineOverviewMarkTaggerProvider : IViewTaggerProvider, ILineSpanTagger<OverviewMarkTag>
     {
         private readonly ICoverageTaggerProvider<OverviewMarkTag> coverageTaggerProvider;
         private readonly ICoverageColoursEditorFormatMapNames coverageColoursEditorFormatMapNames;
@@ -27,9 +26,9 @@ namespace FineCodeCoverage.Impl
             this.coverageColoursEditorFormatMapNames = coverageColoursEditorFormatMapNames;
         }
 
-        public ITagger<T> CreateTagger<T>(ITextBuffer buffer) where T : ITag
+        public ITagger<T> CreateTagger<T>(ITextView textView,ITextBuffer buffer) where T : ITag
         {
-            return coverageTaggerProvider.CreateTagger(buffer) as ITagger<T>;
+            return coverageTaggerProvider.CreateTagger(textView, buffer) as ITagger<T>;
         }
 
         public TagSpan<OverviewMarkTag> GetTagSpan(ILineSpan lineSpan)

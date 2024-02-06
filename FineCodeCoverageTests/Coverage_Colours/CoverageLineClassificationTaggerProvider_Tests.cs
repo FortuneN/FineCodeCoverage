@@ -6,6 +6,7 @@ using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Tagging;
 using Moq;
 using NUnit.Framework;
+using System;
 
 namespace FineCodeCoverageTests
 {
@@ -14,26 +15,27 @@ namespace FineCodeCoverageTests
         [Test]
         public void Should_Create_Tagger_From_The_ICoverageTaggerProviderFactory()
         {
-            var mocker = new AutoMoqer();
+            //var mocker = new AutoMoqer();
 
-            var textBuffer = new Mock<ITextBuffer>().Object;
+            //var textBuffer = new Mock<ITextBuffer>().Object;
 
-            var coverageTagger = new Mock<ICoverageTagger<IClassificationTag>>().Object;
-            var mockCoverageTaggerProvider = new Mock<ICoverageTaggerProvider<IClassificationTag>>();
-            mockCoverageTaggerProvider.Setup(coverageTaggerProvider => coverageTaggerProvider.CreateTagger(textBuffer)).Returns(coverageTagger);
+            //var coverageTagger = new Mock<ICoverageTagger<IClassificationTag>>().Object;
+            //var mockCoverageTaggerProvider = new Mock<ICoverageTaggerProvider<IClassificationTag>>();
+            //mockCoverageTaggerProvider.Setup(coverageTaggerProvider => coverageTaggerProvider.CreateTagger(textBuffer)).Returns(coverageTagger);
 
-            var mockCoverageTaggerProviderFactory = mocker.GetMock<ICoverageTaggerProviderFactory>();
-            mockCoverageTaggerProviderFactory.Setup(
-                coverageTaggerProviderFactory => coverageTaggerProviderFactory.Create<IClassificationTag, CoverageClassificationFilter>(
-                    It.IsAny<ILineSpanTagger<IClassificationTag>>())
-                )
-                .Returns(mockCoverageTaggerProvider.Object);
+            //var mockCoverageTaggerProviderFactory = mocker.GetMock<ICoverageTaggerProviderFactory>();
+            //mockCoverageTaggerProviderFactory.Setup(
+            //    coverageTaggerProviderFactory => coverageTaggerProviderFactory.Create<IClassificationTag, CoverageClassificationFilter>(
+            //        It.IsAny<ILineSpanTagger<IClassificationTag>>())
+            //    )
+            //    .Returns(mockCoverageTaggerProvider.Object);
 
-            var coverageLineClassificationTaggerProvider = mocker.Create<CoverageLineClassificationTaggerProvider>();
+            //var coverageLineClassificationTaggerProvider = mocker.Create<CoverageLineClassificationTaggerProvider>();
 
-            var tagger = coverageLineClassificationTaggerProvider.CreateTagger<IClassificationTag>(textBuffer);
+            //var tagger = coverageLineClassificationTaggerProvider.CreateTagger<IClassificationTag>(textBuffer);
 
-            Assert.That(tagger, Is.SameAs(coverageTagger));
+            //Assert.That(tagger, Is.SameAs(coverageTagger));
+            throw new NotImplementedException();
         }
 
         [TestCase(CoverageType.Covered)]

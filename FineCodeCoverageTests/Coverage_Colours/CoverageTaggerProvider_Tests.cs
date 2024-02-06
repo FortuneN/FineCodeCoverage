@@ -116,12 +116,13 @@ namespace FineCodeCoverageTests
         [Test]
         public void Should_Not_Create_A_Coverage_Tagger_When_The_TextBuffer_Has_No_Associated_Document()
         {
-            var autoMocker = new AutoMoqer();
-            var coverageTaggerProvider = autoMocker.Create<CoverageTaggerProvider<DummyCoverageTypeFilter, DummyTag>>();
+            //var autoMocker = new AutoMoqer();
+            //var coverageTaggerProvider = autoMocker.Create<CoverageTaggerProvider<DummyCoverageTypeFilter, DummyTag>>();
 
-            var tagger = coverageTaggerProvider.CreateTagger(GetMockTextBuffer().Object);
+            //var tagger = coverageTaggerProvider.CreateTagger(GetMockTextBuffer().Object);
 
-            Assert.That(tagger, Is.Null);
+            //Assert.That(tagger, Is.Null);
+            throw new NotImplementedException();
         }
 
         [TestCase(true)]

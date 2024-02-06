@@ -3,14 +3,15 @@ using Microsoft.VisualStudio.Utilities;
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Text.Tagging;
 using FineCodeCoverage.Core.Utilities;
+using Microsoft.VisualStudio.Text.Editor;
 
 namespace FineCodeCoverage.Impl
 {
     [ContentType("code")]
     [TagType(typeof(CoverageLineGlyphTag))]
     [Name(Vsix.TaggerProviderName)]
-	[Export(typeof(ITaggerProvider))]
-	internal class CoverageLineGlyphTaggerProvider : ITaggerProvider, ILineSpanTagger<CoverageLineGlyphTag>
+	[Export(typeof(IViewTaggerProvider))]
+	internal class CoverageLineGlyphTaggerProvider : IViewTaggerProvider, ILineSpanTagger<CoverageLineGlyphTag>
     {
         private readonly ICoverageTaggerProvider<CoverageLineGlyphTag> coverageTaggerProvider;
         private readonly IEventAggregator eventAggregator;
@@ -28,9 +29,9 @@ namespace FineCodeCoverage.Impl
             this.coverageColoursProvider = coverageColoursProvider;
         }
 
-        public ITagger<T> CreateTagger<T>(ITextBuffer buffer) where T : ITag
+        public ITagger<T> CreateTagger<T>(ITextView textView,ITextBuffer buffer) where T : ITag
         {
-            var coverageTagger =  coverageTaggerProvider.CreateTagger(buffer);
+            var coverageTagger =  coverageTaggerProvider.CreateTagger(textView,buffer);
             if (coverageTagger == null) return null;
             return new CoverageLineGlyphTagger(eventAggregator, coverageTagger) as ITagger<T>;
         }

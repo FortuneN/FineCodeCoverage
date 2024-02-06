@@ -4,6 +4,7 @@ using FineCodeCoverage.Impl;
 using Microsoft.VisualStudio.Text;
 using Moq;
 using NUnit.Framework;
+using System;
 using System.Windows.Media;
 
 namespace FineCodeCoverageTests
@@ -14,37 +15,37 @@ namespace FineCodeCoverageTests
         [TestCase(false)]
         public void Should_Create_A_CoverageLineGlyphTagger_Using_The_Tagger_From_The_ICoverageTaggerProviderFactory_If_Not_Null(bool isNull)
         {
-            var mocker = new AutoMoqer();
+            //var mocker = new AutoMoqer();
 
-            var textBuffer = new Mock<ITextBuffer>().Object;
+            //var textBuffer = new Mock<ITextBuffer>().Object;
 
-            var coverageTagger = new Mock<ICoverageTagger<CoverageLineGlyphTag>>().Object;
-            var mockCoverageTaggerProvider = new Mock<ICoverageTaggerProvider<CoverageLineGlyphTag>>();
-            var createTaggerSetup = mockCoverageTaggerProvider.Setup(coverageTaggerProvider => coverageTaggerProvider.CreateTagger(textBuffer));
-            if (!isNull)
-            {
-                createTaggerSetup.Returns(coverageTagger);
-            }
+            //var coverageTagger = new Mock<ICoverageTagger<CoverageLineGlyphTag>>().Object;
+            //var mockCoverageTaggerProvider = new Mock<ICoverageTaggerProvider<CoverageLineGlyphTag>>();
+            //var createTaggerSetup = mockCoverageTaggerProvider.Setup(coverageTaggerProvider => coverageTaggerProvider.CreateTagger(textBuffer));
+            //if (!isNull)
+            //{
+            //    createTaggerSetup.Returns(coverageTagger);
+            //}
 
-            var mockCoverageTaggerProviderFactory = mocker.GetMock<ICoverageTaggerProviderFactory>();
-            mockCoverageTaggerProviderFactory.Setup(
-                coverageTaggerProviderFactory => coverageTaggerProviderFactory.Create<CoverageLineGlyphTag, GlyphFilter>(
-                    It.IsAny<ILineSpanTagger<CoverageLineGlyphTag>>())
-                )
-                .Returns(mockCoverageTaggerProvider.Object);
+            //var mockCoverageTaggerProviderFactory = mocker.GetMock<ICoverageTaggerProviderFactory>();
+            //mockCoverageTaggerProviderFactory.Setup(
+            //    coverageTaggerProviderFactory => coverageTaggerProviderFactory.Create<CoverageLineGlyphTag, GlyphFilter>(
+            //        It.IsAny<ILineSpanTagger<CoverageLineGlyphTag>>())
+            //    )
+            //    .Returns(mockCoverageTaggerProvider.Object);
 
-            var coverageLineGlyphTaggerProvider = mocker.Create<CoverageLineGlyphTaggerProvider>();
+            //var coverageLineGlyphTaggerProvider = mocker.Create<CoverageLineGlyphTaggerProvider>();
 
-            var tagger = coverageLineGlyphTaggerProvider.CreateTagger<CoverageLineGlyphTag>(textBuffer);
-            if (isNull)
-            {
-                Assert.That(tagger, Is.Null);
-            }
-            else
-            {
-                Assert.That(tagger, Is.InstanceOf<CoverageLineGlyphTagger>());
-            }
-
+            //var tagger = coverageLineGlyphTaggerProvider.CreateTagger<CoverageLineGlyphTag>(textBuffer);
+            //if (isNull)
+            //{
+            //    Assert.That(tagger, Is.Null);
+            //}
+            //else
+            //{
+            //    Assert.That(tagger, Is.InstanceOf<CoverageLineGlyphTagger>());
+            //}
+            throw new NotImplementedException();
         }
 
         [TestCase(CoverageType.Covered)]
