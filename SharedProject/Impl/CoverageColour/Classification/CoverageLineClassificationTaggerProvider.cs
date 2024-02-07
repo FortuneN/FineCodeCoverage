@@ -6,7 +6,9 @@ using System.ComponentModel.Composition;
 
 namespace FineCodeCoverage.Impl
 {
-    [ContentType("code")]
+    [ContentType(SupportedContentTypeLanguages.CSharp)]
+    [ContentType(SupportedContentTypeLanguages.VisualBasic)]
+    [ContentType(SupportedContentTypeLanguages.CPP)]
     [TagType(typeof(IClassificationTag))]
     [Name("FCC.CoverageLineClassificationTaggerProvider")]
     [Export(typeof(IViewTaggerProvider))]

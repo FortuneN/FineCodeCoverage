@@ -13,6 +13,7 @@ namespace FineCodeCoverage.Impl
         private readonly IEventAggregator eventAggregator;
         private readonly ITrackedLinesFactory trackedLinesFactory;
         private readonly string filePath;
+        private readonly Language language;
         private readonly ITextBuffer textBuffer;
         private ITrackedLines trackedLines;
         public BufferLineCoverage(
@@ -23,6 +24,7 @@ namespace FineCodeCoverage.Impl
         )
         {
             this.filePath = textInfo.FilePath;
+            language = SupportedContentTypeLanguages.GetLanguage(textInfo.TextBuffer.ContentType.TypeName);
             this.textBuffer = textInfo.TextBuffer;
             this.eventAggregator = eventAggregator;
             this.trackedLinesFactory = trackedLinesFactory;
@@ -47,7 +49,7 @@ namespace FineCodeCoverage.Impl
         private void CreateTrackedLines(IFileLineCoverage fileLineCoverage)
         {
             var lines = GetLines(fileLineCoverage);
-            trackedLines = trackedLinesFactory.Create(lines, textBuffer.CurrentSnapshot);
+            trackedLines = trackedLinesFactory.Create(lines, textBuffer.CurrentSnapshot, language);
         }
 
         private List<ILine> GetLines(IFileLineCoverage fileLineCoverage)

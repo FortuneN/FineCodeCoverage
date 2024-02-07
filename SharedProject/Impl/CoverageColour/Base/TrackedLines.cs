@@ -13,6 +13,10 @@ namespace FineCodeCoverage.Impl
             var lineIndex = 0;
             foreach (var containingCodeLineRange in orderedContainingCodeLineRanges)
             {
+                if (lineIndex >= lines.Count)
+                {
+                    break;
+                }
                 var containingCodeTracker = new ContainingCodeTracker();
 
                 for (var i = containingCodeLineRange.StartLine; i <= containingCodeLineRange.EndLine; i++)

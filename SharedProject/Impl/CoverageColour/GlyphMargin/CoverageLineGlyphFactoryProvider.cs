@@ -6,8 +6,10 @@ using OrderAttribute = Microsoft.VisualStudio.Utilities.OrderAttribute;
 
 namespace FineCodeCoverage.Impl
 {
-	[ContentType("code")]
-	[TagType(typeof(CoverageLineGlyphTag))]
+    [ContentType(SupportedContentTypeLanguages.CSharp)]
+    [ContentType(SupportedContentTypeLanguages.VisualBasic)]
+    [ContentType(SupportedContentTypeLanguages.CPP)]
+    [TagType(typeof(CoverageLineGlyphTag))]
 	[Order(Before = "VsTextMarker")]
 	[Name(Vsix.GlyphFactoryProviderName)]
 	[Export(typeof(IGlyphFactoryProvider))]

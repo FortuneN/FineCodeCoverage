@@ -207,6 +207,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Base\LineSpan.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Base\RoslynService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Base\SpanConversions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Base\SupportedContentTypeLanguages.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Base\TextBufferWithFilePath.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Base\TextInfo.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Base\TrackedLine.cs" />

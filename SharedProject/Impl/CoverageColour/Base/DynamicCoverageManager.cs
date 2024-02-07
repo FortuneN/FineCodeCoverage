@@ -34,9 +34,6 @@ namespace FineCodeCoverage.Impl
 
         public IBufferLineCoverage Manage(ITextView textView, ITextBuffer textBuffer, string filePath)
         {
-            /*
-                todo - what about projection buffers ? 
-            */
             return textBuffer.Properties.GetOrCreateSingletonProperty<IBufferLineCoverage>(() =>
             {
                 return new BufferLineCoverage(

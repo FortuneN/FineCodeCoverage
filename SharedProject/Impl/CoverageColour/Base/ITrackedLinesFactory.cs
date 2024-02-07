@@ -6,6 +6,6 @@ namespace FineCodeCoverage.Impl
 {
     interface ITrackedLinesFactory
     {
-        ITrackedLines Create(List<ILine> lines, ITextSnapshot textSnapshot);
+        ITrackedLines Create(List<ILine> lines, ITextSnapshot textSnapshot, Language language);
     }
 }

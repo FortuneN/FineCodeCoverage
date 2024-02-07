@@ -7,7 +7,9 @@ using Microsoft.VisualStudio.Text.Editor;
 
 namespace FineCodeCoverage.Impl
 {
-    [ContentType("code")]
+    [ContentType(SupportedContentTypeLanguages.CSharp)]
+    [ContentType(SupportedContentTypeLanguages.VisualBasic)]
+    [ContentType(SupportedContentTypeLanguages.CPP)]
     [TagType(typeof(CoverageLineGlyphTag))]
     [Name(Vsix.TaggerProviderName)]
 	[Export(typeof(IViewTaggerProvider))]

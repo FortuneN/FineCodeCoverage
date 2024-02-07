@@ -13,7 +13,6 @@ using EnvDTE80;
 using FineCodeCoverage.Core.Utilities;
 using FineCodeCoverage.Core.Initialization;
 using FineCodeCoverage.Impl;
-using System.ComponentModel.Design;
 
 namespace FineCodeCoverage.Output
 {
