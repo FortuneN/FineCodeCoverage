@@ -12,7 +12,7 @@ using NUnit.Framework;
 using System;
 using System.Collections.Generic;
 
-namespace FineCodeCoverageTests
+namespace FineCodeCoverageTests.Coverage_Colours
 {
     public class CoverageTaggerProvider_Tests
     {
@@ -111,7 +111,7 @@ namespace FineCodeCoverageTests
             var autoMocker = new AutoMoqer();
             var coverageTaggerProvider = autoMocker.Create<CoverageTaggerProvider<DummyCoverageTypeFilter, DummyTag>>();
 
-            var tagger = coverageTaggerProvider.CreateTagger(new Mock<ITextView>().Object,GetMockTextBuffer().Object);
+            var tagger = coverageTaggerProvider.CreateTagger(new Mock<ITextView>().Object, GetMockTextBuffer().Object);
 
             Assert.That(tagger, Is.Null);
         }
@@ -151,7 +151,7 @@ namespace FineCodeCoverageTests
             var mockAppOptionsProvider = autoMocker.GetMock<IAppOptionsProvider>();
             mockAppOptionsProvider.Raise(appOptionsProvider => appOptionsProvider.OptionsChanged += null, new AppOptions());
 
-            var tagger = coverageTaggerProvider.CreateTagger(textView,textBuffer);
+            var tagger = coverageTaggerProvider.CreateTagger(textView, textBuffer);
 
             Assert.That(tagger, Is.InstanceOf<CoverageTagger<DummyTag>>());
 

@@ -2,7 +2,7 @@
 using FineCodeCoverage.Options;
 using System;
 
-namespace FineCodeCoverageTests
+namespace FineCodeCoverageTests.Coverage_Colours
 {
     internal class OtherCoverageTypeFilter : ICoverageTypeFilter
     {

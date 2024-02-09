@@ -6,7 +6,7 @@ using Microsoft.VisualStudio.Text.Tagging;
 using Moq;
 using NUnit.Framework;
 
-namespace FineCodeCoverageTests
+namespace FineCodeCoverageTests.Coverage_Colours
 {
     public class CoverageLineGlyphTagger_Tests
     {
@@ -64,12 +64,12 @@ namespace FineCodeCoverageTests
             var autoMoqer = new AutoMoqer();
             var mockCoverageTagger = autoMoqer.GetMock<ICoverageTagger<CoverageLineGlyphTag>>();
             mockCoverageTagger.SetupGet(ct => ct.HasCoverage).Returns(hasCoverage);
-            
+
             var coverageLineGlyphTagger = autoMoqer.Create<CoverageLineGlyphTagger>();
 
             coverageLineGlyphTagger.Handle(new CoverageColoursChangedMessage());
 
-            autoMoqer.Verify<ICoverageTagger<CoverageLineGlyphTag>>(coverageTagger => coverageTagger.RaiseTagsChanged(),hasCoverage ? Times.Once() : Times.Never());
+            autoMoqer.Verify<ICoverageTagger<CoverageLineGlyphTag>>(coverageTagger => coverageTagger.RaiseTagsChanged(), hasCoverage ? Times.Once() : Times.Never());
         }
 
         [Test]

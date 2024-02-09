@@ -8,7 +8,7 @@ using Moq;
 using NUnit.Framework;
 using System;
 
-namespace FineCodeCoverageTests
+namespace FineCodeCoverageTests.Coverage_Colours
 {
     public class CoverageLineOverviewMarkTaggerProvider_Tests
     {

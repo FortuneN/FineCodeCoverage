@@ -3,14 +3,14 @@ using Moq;
 using NUnit.Framework;
 using System;
 
-namespace FineCodeCoverageTests
+namespace FineCodeCoverageTests.Coverage_Colours
 {
     public class FontAndColorsInfo_Equatable_Tests
     {
         [Test]
         public void Should_Be_Equal_When_Bold_Same_And_IItemCoverageColours_Equals()
         {
-            var fontAndColors = new FontAndColorsInfo(GetItemCoverageColours(true),true);
+            var fontAndColors = new FontAndColorsInfo(GetItemCoverageColours(true), true);
             var fontAndColorsEqual = new FontAndColorsInfo(null, true);
 
             Assert.IsTrue(fontAndColors.Equals(fontAndColorsEqual));

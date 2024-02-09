@@ -2,7 +2,7 @@
 using NUnit.Framework;
 using System.Windows.Media;
 
-namespace FineCodeCoverageTests
+namespace FineCodeCoverageTests.Coverage_Colours
 {
     public class ItemCoverageColours_Equatable_Tests
     {

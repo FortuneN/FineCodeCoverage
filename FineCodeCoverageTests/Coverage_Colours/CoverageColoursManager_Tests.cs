@@ -8,7 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace FineCodeCoverageTests
+namespace FineCodeCoverageTests.Coverage_Colours
 {
     public class CoverageColoursManager_Tests
     {
@@ -16,7 +16,7 @@ namespace FineCodeCoverageTests
         public void Should_Not_GetTextMarkerType_If_Should_Not()
         {
             var autoMoqer = new AutoMoqer();
-            autoMoqer.Setup<IShouldAddCoverageMarkersLogic,bool>(shouldAddCoverageMarkersLogic => shouldAddCoverageMarkersLogic.ShouldAddCoverageMarkers()).Returns(false);
+            autoMoqer.Setup<IShouldAddCoverageMarkersLogic, bool>(shouldAddCoverageMarkersLogic => shouldAddCoverageMarkersLogic.ShouldAddCoverageMarkers()).Returns(false);
 
             var coverageColoursManager = autoMoqer.Create<CoverageColoursManager>();
 
@@ -28,13 +28,13 @@ namespace FineCodeCoverageTests
                 Assert.That(success, Is.EqualTo(0));
                 Assert.That(markerType, Is.Null);
             });
-            
+
         }
 
         [TestCase("Coverage Touched Area", CoverageColoursManager.TouchedGuidString)]
         [TestCase("Coverage Not Touched Area", CoverageColoursManager.NotTouchedGuidString)]
         [TestCase("Coverage Partially Touched Area", CoverageColoursManager.PartiallyTouchedGuidString)]
-        public void Should_Get_CoverageTouchedArea_MarkerType_If_Should_Matching_Enterprise_Names(string name,string guidString)
+        public void Should_Get_CoverageTouchedArea_MarkerType_If_Should_Matching_Enterprise_Names(string name, string guidString)
         {
             var autoMoqer = new AutoMoqer();
             autoMoqer.Setup<IShouldAddCoverageMarkersLogic, bool>(shouldAddCoverageMarkersLogic => shouldAddCoverageMarkersLogic.ShouldAddCoverageMarkers()).Returns(true);
@@ -100,7 +100,7 @@ namespace FineCodeCoverageTests
                 TextFormattingRunProperties.CreateTextFormattingRunProperties().SetItalic(true)
             };
             var count = 0;
-            foreach(var change in changedFontAndColorsInfos)
+            foreach (var change in changedFontAndColorsInfos)
             {
                 mockTextFormattingRunPropertiesFactory.Setup(
                     textFormattingRunPropertiesFactory => textFormattingRunPropertiesFactory.Create(change.Value)
@@ -117,7 +117,7 @@ namespace FineCodeCoverageTests
             var listener = mockEditorFormatMapTextSpecificListener.Invocations[0].Arguments[1] as Action;
             listener();
 
-            
+
             if (executePauseListeningWhenExecuting)
             {
                 var coverageTypeColours = (autoMoqer.GetMock<ICoverageClassificationColourService>().Invocations[0].Arguments[0] as IEnumerable<ICoverageTypeColour>).ToList();
@@ -154,7 +154,7 @@ namespace FineCodeCoverageTests
             autoMoqer.Verify<ICoverageClassificationColourService>(
                 coverageClassificationColourService => coverageClassificationColourService.SetCoverageColours(
                     It.IsAny<IEnumerable<ICoverageTypeColour>>()
-                ), 
+                ),
                 Times.Never()
             );
         }
@@ -183,13 +183,13 @@ namespace FineCodeCoverageTests
         }
 
         [TestCase(0, true)]
-        [TestCase(1,true)]
-        [TestCase(2,true)]
+        [TestCase(1, true)]
+        [TestCase(2, true)]
         [TestCase(3, false)]
-        public void Should_RequireInitialization_If_Has_Not_Already_Set_All_From_Listening(int numChanges,bool requiresInitialization)
+        public void Should_RequireInitialization_If_Has_Not_Already_Set_All_From_Listening(int numChanges, bool requiresInitialization)
         {
             var changes = new Dictionary<CoverageType, IFontAndColorsInfo>();
-            for(var i = 0; i < numChanges; i++)
+            for (var i = 0; i < numChanges; i++)
             {
                 changes.Add((CoverageType)i, new Mock<IFontAndColorsInfo>().Object);
             }

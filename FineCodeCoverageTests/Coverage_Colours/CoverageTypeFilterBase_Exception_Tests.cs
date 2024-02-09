@@ -5,7 +5,7 @@ using NUnit.Framework;
 using System;
 using System.Collections.Generic;
 
-namespace FineCodeCoverageTests
+namespace FineCodeCoverageTests.Coverage_Colours
 {
     internal class CoverageTypeFilterExceptions : CoverageTypeFilterBase
     {
@@ -21,7 +21,7 @@ namespace FineCodeCoverageTests
             return ShowLookup?.Invoke();
         }
     }
-    
+
     internal class CoverageTypeFilterBase_Exception_Tests
     {
         [Test]
@@ -32,7 +32,7 @@ namespace FineCodeCoverageTests
             appOptions.ShowEditorCoverage = true;
 
             Assert.Throws<InvalidOperationException>(() => coverageTypeFilterExceptions.Initialize(appOptions));
-            
+
         }
 
         [Test]

@@ -8,7 +8,7 @@ using NUnit.Framework;
 using System;
 using System.Windows.Media;
 
-namespace FineCodeCoverageTests
+namespace FineCodeCoverageTests.Coverage_Colours
 {
     public class CoverageLineGlyphTaggerProvider_Tests
     {

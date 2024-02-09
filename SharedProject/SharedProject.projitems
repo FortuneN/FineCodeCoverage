@@ -205,7 +205,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Base\CoverageTaggerProviderFactory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Base\CoverageTypeFilterBase.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Base\CoverageTypeFilterChangedMessage.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Base\CSharpContainingCodeVisitor.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Base\Roslyn\CSharpContainingCodeVisitor.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Base\DynamicCoverageManager.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Base\IBufferLineCoverage.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Base\IContainingCodeTrackedLinesFactory.cs" />
@@ -215,16 +215,16 @@
     <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Base\ICoverageTaggerProviderFactory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Base\ICoverageTypeFilter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Base\IDynamicCoverageManager.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Base\ILanguageContainingCodeVisitor.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Base\Roslyn\ILanguageContainingCodeVisitor.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Base\ILineSpan.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Base\ILineSpanLogic.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Base\ILineSpanTagger.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Base\IRoslynService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Base\Roslyn\IRoslynService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Base\ITextBufferWithFilePath.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Base\ITrackedLines.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Base\ITrackedLinesFactory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Base\LineSpan.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Base\RoslynService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Base\Roslyn\RoslynService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Base\SpanConversions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Base\SupportedContentTypeLanguages.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Base\TextBufferWithFilePath.cs" />
@@ -238,7 +238,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Base\TrackingLineFactory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Base\TrackingSpanRange.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Base\TrackingSpanRangeFactory.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Base\VBContainingCodeVisitor.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Base\Roslyn\VBContainingCodeVisitor.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Classification\CoverageClassificationFilter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Classification\CoverageLineClassificationTaggerProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\GlyphMargin\GlyphFilter.cs" />
@@ -358,5 +358,8 @@
   <ItemGroup>
     <None Include="$(MSBuildThisFileDirectory)Core\Utilities\Directory.Build.props" />
     <None Include="$(MSBuildThisFileDirectory)Output\Directory.Build.props" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Base\Roslyn\" />
   </ItemGroup>
 </Project>

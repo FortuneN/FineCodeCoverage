@@ -8,7 +8,7 @@ using NUnit.Framework;
 using System;
 using System.Collections.Generic;
 
-namespace FineCodeCoverageTests
+namespace FineCodeCoverageTests.Coverage_Colours
 {
     public class CoverageTagger_Tests
     {
@@ -48,9 +48,9 @@ namespace FineCodeCoverageTests
             {
                 snapshotSpan = args.Span;
             };
-            coverageTagger.Handle(new CoverageChangedMessage(null,appliesTo ? "filepath" : "otherfile"));
+            coverageTagger.Handle(new CoverageChangedMessage(null, appliesTo ? "filepath" : "otherfile"));
 
-            if(appliesTo)
+            if (appliesTo)
             {
                 Assert.Multiple(() =>
                 {
@@ -116,7 +116,7 @@ namespace FineCodeCoverageTests
                 new Mock<ILineSpanLogic>(MockBehavior.Strict).Object,
                 new Mock<ILineSpanTagger<DummyTag>>().Object
             );
-            
+
             var tagsChanged = false;
             coverageTagger.TagsChanged += (sender, args) =>
             {
@@ -180,7 +180,7 @@ namespace FineCodeCoverageTests
             if (newCoverage)
             {
                 expectedBufferLineCoverageForLogic = new Mock<IBufferLineCoverage>().Object;
-                coverageTagger.Handle(new CoverageChangedMessage(expectedBufferLineCoverageForLogic,"filepath"));
+                coverageTagger.Handle(new CoverageChangedMessage(expectedBufferLineCoverageForLogic, "filepath"));
             }
 
             coverageTagger.GetTags(spans);

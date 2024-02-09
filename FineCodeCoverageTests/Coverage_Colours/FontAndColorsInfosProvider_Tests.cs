@@ -9,7 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Windows.Media;
 
-namespace FineCodeCoverageTests
+namespace FineCodeCoverageTests.Coverage_Colours
 {
     public class FontAndColorsInfosProvider_Tests
     {
@@ -22,7 +22,7 @@ namespace FineCodeCoverageTests
             mockFontsAndColorsHelper.Setup(
                 fontsAndColorsHelper => fontsAndColorsHelper.GetInfosAsync(
                     editorTextMarkerFontAndColorCategory,
-                    new List<string> { "Coverage Touched Area" , "Coverage Not Touched Area" , "Coverage Partially Touched Area" })
+                    new List<string> { "Coverage Touched Area", "Coverage Not Touched Area", "Coverage Partially Touched Area" })
                 ).ReturnsAsync(new List<IFontAndColorsInfo>
                 {
                     FontAndColorsInfoFactory.CreateFontAndColorsInfo(true, Colors.Green, Colors.Red),
@@ -45,7 +45,7 @@ namespace FineCodeCoverageTests
 
             var previousColors = fontAndColorsInfosProvider.GetCoverageColours();
 
-            Assert.That(previousColors,Is.SameAs(colours));
+            Assert.That(previousColors, Is.SameAs(colours));
             Assert.That(mockFontsAndColorsHelper.Invocations.Count, Is.EqualTo(1));
         }
 

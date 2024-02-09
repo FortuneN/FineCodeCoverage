@@ -498,8 +498,8 @@
     <Compile Include="Coverage_Colours\CoverageTagger_Tests.cs" />
     <Compile Include="Coverage_Colours\CoverageTypeFilterBase_Exception_Tests.cs" />
     <Compile Include="Coverage_Colours\CoverageTypeFilter_Tests_Base.cs" />
-    <Compile Include="Coverage_Colours\DummyCoverageTypeFilter.cs" />
-    <Compile Include="Coverage_Colours\DummyTag.cs" />
+    <Compile Include="Coverage_Colours\Types\DummyCoverageTypeFilter.cs" />
+    <Compile Include="Coverage_Colours\Types\DummyTag.cs" />
     <Compile Include="Coverage_Colours\DynamicCoverageManager_Tests.cs" />
     <Compile Include="Coverage_Colours\EditorFormatMapTextSpecificListener_Tests.cs" />
     <Compile Include="Coverage_Colours\FontAndColorsInfoFactory.cs" />
@@ -507,10 +507,10 @@
     <Compile Include="Coverage_Colours\FontAndColorsInfo_Equatable_Tests.cs" />
     <Compile Include="Coverage_Colours\GlyphFilter_Tests.cs" />
     <Compile Include="Coverage_Colours\ItemCoverageColours_Equatable_Tests.cs" />
-    <Compile Include="Coverage_Colours\LineSpan.cs" />
+    <Compile Include="Coverage_Colours\Types\LineSpan.cs" />
     <Compile Include="Coverage_Colours\LineSpanLogic_Tests.cs" />
-    <Compile Include="Coverage_Colours\OtherCoverageTypeFilter.cs" />
-    <Compile Include="Coverage_Colours\SnapshotSpanFactory.cs" />
+    <Compile Include="Coverage_Colours\Types\OtherCoverageTypeFilter.cs" />
+    <Compile Include="Coverage_Colours\Types\SnapshotSpanFactory.cs" />
     <Compile Include="Coverage_Colours\TextFormattingRunPropertiesFactory_Tests.cs" />
     <Compile Include="Coverage_Colours\ContainingCodeTrackedLinesBuilder_Tests.cs" />
     <Compile Include="Coverage_Colours\TrackedCoverageLines_Test.cs" />

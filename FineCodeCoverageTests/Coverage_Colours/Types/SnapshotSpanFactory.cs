@@ -1,7 +1,7 @@
 ﻿using Microsoft.VisualStudio.Text;
 using Moq;
 
-namespace FineCodeCoverageTests
+namespace FineCodeCoverageTests.Coverage_Colours
 {
     public static class SnapshotSpanFactory
     {

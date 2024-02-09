@@ -5,14 +5,14 @@ using NUnit.Framework;
 using System;
 using System.Linq.Expressions;
 
-namespace FineCodeCoverageTests
+namespace FineCodeCoverageTests.Coverage_Colours
 {
-    internal abstract class CoverageTypeFilter_Tests_Base<TCoverageTypeFilter> where TCoverageTypeFilter:ICoverageTypeFilter, new()
+    internal abstract class CoverageTypeFilter_Tests_Base<TCoverageTypeFilter> where TCoverageTypeFilter : ICoverageTypeFilter, new()
     {
-        public static Action<IAppOptions,bool> GetSetter(Expression<Func<IAppOptions, bool>> propertyGetExpression)
+        public static Action<IAppOptions, bool> GetSetter(Expression<Func<IAppOptions, bool>> propertyGetExpression)
         {
             var entityParameterExpression =
-            (ParameterExpression)(((MemberExpression)(propertyGetExpression.Body)).Expression);
+            (ParameterExpression)((MemberExpression)propertyGetExpression.Body).Expression;
             var valueParameterExpression = Expression.Parameter(typeof(bool));
 
             return Expression.Lambda<Action<IAppOptions, bool>>(
@@ -21,7 +21,7 @@ namespace FineCodeCoverageTests
                 valueParameterExpression).Compile();
         }
         #region expressions / actions
-        protected abstract Expression<Func<IAppOptions,bool>> ShowCoverageExpression { get;}
+        protected abstract Expression<Func<IAppOptions, bool>> ShowCoverageExpression { get; }
         protected abstract Expression<Func<IAppOptions, bool>> ShowCoveredExpression { get; }
         protected abstract Expression<Func<IAppOptions, bool>> ShowUncoveredExpression { get; }
         protected abstract Expression<Func<IAppOptions, bool>> ShowPartiallyCoveredExpression { get; }
@@ -31,7 +31,7 @@ namespace FineCodeCoverageTests
         {
             get
             {
-                if(showCoverage == null)
+                if (showCoverage == null)
                 {
                     showCoverage = GetSetter(ShowCoverageExpression);
                 }
@@ -81,11 +81,11 @@ namespace FineCodeCoverageTests
         {
             var coverageTypeFilter = new TCoverageTypeFilter();
             var appOptions = GetAppOptions();
-            ShowCoverage(appOptions,true);
+            ShowCoverage(appOptions, true);
             appOptions.ShowEditorCoverage = false;
 
             coverageTypeFilter.Initialize(appOptions);
-            
+
             Assert.True(coverageTypeFilter.Disabled);
         }
 
@@ -94,7 +94,7 @@ namespace FineCodeCoverageTests
         {
             var coverageTypeFilter = new TCoverageTypeFilter();
             var appOptions = GetAppOptions();
-            ShowCoverage(appOptions,false);
+            ShowCoverage(appOptions, false);
             appOptions.ShowEditorCoverage = true;
 
             coverageTypeFilter.Initialize(appOptions);
@@ -112,11 +112,11 @@ namespace FineCodeCoverageTests
         {
             var coverageTypeFilter = new TCoverageTypeFilter();
             var appOptions = new Mock<IAppOptions>().SetupAllProperties().Object;
-            ShowCoverage(appOptions,true);
+            ShowCoverage(appOptions, true);
             appOptions.ShowEditorCoverage = true;
-            ShowCovered(appOptions,showCovered);
-            ShowUncovered(appOptions,showUncovered);
-            ShowPartiallyCovered(appOptions,showPartiallyCovered);
+            ShowCovered(appOptions, showCovered);
+            ShowUncovered(appOptions, showUncovered);
+            ShowPartiallyCovered(appOptions, showPartiallyCovered);
 
             coverageTypeFilter.Initialize(appOptions);
 
@@ -140,10 +140,10 @@ namespace FineCodeCoverageTests
         {
             var appOptions = GetAppOptions();
             appOptions.ShowEditorCoverage = coverageAppOptions.ShowEditorCoverage;
-            ShowCoverage(appOptions,coverageAppOptions.ShowCoverage);
-            ShowCovered(appOptions,coverageAppOptions.ShowCovered);
-            ShowUncovered(appOptions,coverageAppOptions.ShowUncovered);
-            ShowPartiallyCovered(appOptions,coverageAppOptions.ShowPartiallyCovered);
+            ShowCoverage(appOptions, coverageAppOptions.ShowCoverage);
+            ShowCovered(appOptions, coverageAppOptions.ShowCovered);
+            ShowUncovered(appOptions, coverageAppOptions.ShowUncovered);
+            ShowPartiallyCovered(appOptions, coverageAppOptions.ShowPartiallyCovered);
             return appOptions;
         }
 
@@ -172,7 +172,7 @@ namespace FineCodeCoverageTests
 
         internal class ChangedTestArguments
         {
-            
+
             public ChangedTestArguments(CoverageAppOptions initialAppOptions, CoverageAppOptions changedAppOptions, bool expectedChanged)
             {
                 InitialAppOptions = initialAppOptions;

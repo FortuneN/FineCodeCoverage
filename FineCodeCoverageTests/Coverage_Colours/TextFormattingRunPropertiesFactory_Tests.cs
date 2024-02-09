@@ -3,7 +3,7 @@ using FineCodeCoverage.Impl;
 using NUnit.Framework;
 using System.Windows.Media;
 
-namespace FineCodeCoverageTests
+namespace FineCodeCoverageTests.Coverage_Colours
 {
     public class TextFormattingRunPropertiesFactory_Tests
     {
@@ -13,7 +13,7 @@ namespace FineCodeCoverageTests
         {
             var autoMoqer = new AutoMoqer();
             var textFormattingRunPropertiesFactory = autoMoqer.Create<TextFormattingRunPropertiesFactory>();
-            Assert.That(textFormattingRunPropertiesFactory.Create(FontAndColorsInfoFactory.CreateFontAndColorsInfo(bold)).Bold,Is.EqualTo(bold));
+            Assert.That(textFormattingRunPropertiesFactory.Create(FontAndColorsInfoFactory.CreateFontAndColorsInfo(bold)).Bold, Is.EqualTo(bold));
         }
 
         [Test]
@@ -30,10 +30,10 @@ namespace FineCodeCoverageTests
         {
             var autoMoqer = new AutoMoqer();
             var textFormattingRunPropertiesFactory = autoMoqer.Create<TextFormattingRunPropertiesFactory>();
-            var foegroundBrush = textFormattingRunPropertiesFactory.Create(FontAndColorsInfoFactory.CreateFontAndColorsInfo(false, default,Colors.Green)).BackgroundBrush as SolidColorBrush;
+            var foegroundBrush = textFormattingRunPropertiesFactory.Create(FontAndColorsInfoFactory.CreateFontAndColorsInfo(false, default, Colors.Green)).BackgroundBrush as SolidColorBrush;
             Assert.That(foegroundBrush.Color, Is.EqualTo(Colors.Green));
         }
 
-        
+
     }
 }

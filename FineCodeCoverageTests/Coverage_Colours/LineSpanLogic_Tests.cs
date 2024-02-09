@@ -6,7 +6,7 @@ using NUnit.Framework;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace FineCodeCoverageTests
+namespace FineCodeCoverageTests.Coverage_Colours
 {
     public class LineSpanLogic_Tests
     {
@@ -44,7 +44,7 @@ namespace FineCodeCoverageTests
                 {
                     firstLine
                 });
-                mockBufferLineCoverage.Setup(fileLineCoverage => fileLineCoverage.GetLines( 15, 20)).Returns(new List<IDynamicLine>
+                mockBufferLineCoverage.Setup(fileLineCoverage => fileLineCoverage.GetLines(15, 20)).Returns(new List<IDynamicLine>
                 {
                     secondLine
                 });
@@ -79,7 +79,7 @@ namespace FineCodeCoverageTests
                 Assert.That(lineSpans[1].Line, Is.SameAs(secondLine));
                 Assert.That(lineSpans[1].Span, Is.EqualTo(new SnapshotSpan(txtSnapshot, new Span(250, 10))));
             }
-                
+
         }
 
     }

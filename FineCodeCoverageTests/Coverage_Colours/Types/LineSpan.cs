@@ -1,7 +1,7 @@
 ﻿using FineCodeCoverage.Impl;
 using Microsoft.VisualStudio.Text;
 
-namespace FineCodeCoverageTests
+namespace FineCodeCoverageTests.Coverage_Colours
 {
     internal class LineSpan : ILineSpan
     {

@@ -3,11 +3,11 @@ using FineCodeCoverage.Options;
 using System;
 using System.Linq.Expressions;
 
-namespace FineCodeCoverageTests
+namespace FineCodeCoverageTests.Coverage_Colours
 {
     internal class CoverageClassificationFilter_Tests : CoverageTypeFilter_Tests_Base<CoverageClassificationFilter>
     {
-        protected override Expression<Func<IAppOptions, bool>> ShowCoverageExpression { get;} = appOptions => appOptions.ShowLineCoverageHighlighting;
+        protected override Expression<Func<IAppOptions, bool>> ShowCoverageExpression { get; } = appOptions => appOptions.ShowLineCoverageHighlighting;
 
         protected override Expression<Func<IAppOptions, bool>> ShowCoveredExpression { get; } = appOptions => appOptions.ShowLineCoveredHighlighting;
 

@@ -3,7 +3,7 @@ using FineCodeCoverage.Options;
 using System;
 using System.Linq.Expressions;
 
-namespace FineCodeCoverageTests
+namespace FineCodeCoverageTests.Coverage_Colours
 {
     internal class CoverageOverviewMargin_Tests : CoverageTypeFilter_Tests_Base<CoverageOverviewMarginFilter>
     {
