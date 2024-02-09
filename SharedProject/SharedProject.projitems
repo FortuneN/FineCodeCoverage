@@ -182,12 +182,14 @@
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\XmlFileEscaper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\ZipFileWrapper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Base\BufferLineCoverage.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Base\BufferLineCoverageFactory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Base\CodeSpanRange.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Base\ContainingCodeTrackedLinesFactory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Base\ContainingCodeTracker.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Base\CoverageLine.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Base\CoverageLineFactory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Base\CoverageLineUpdateType.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Base\IBufferLineCoverageFactory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Base\ICoverageLine.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Base\ICoverageLineFactory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Base\ITrackedContainingCodeTrackerFactory.cs" />

@@ -14,14 +14,16 @@ namespace FineCodeCoverage.Impl
     {
         private readonly IEventAggregator eventAggregator;
         private readonly ITrackedLinesFactory trackedLinesFactory;
+        private readonly IBufferLineCoverageFactory bufferLineCoverageFactory;
         private IFileLineCoverage lastCoverageLines;
 
         [ImportingConstructor]
         public DynamicCoverageManager(
             IEventAggregator eventAggregator,
-            ITrackedLinesFactory trackedLinesFactory
-        )
+            ITrackedLinesFactory trackedLinesFactory,
+            IBufferLineCoverageFactory bufferLineCoverageFactory)
         {
+            this.bufferLineCoverageFactory = bufferLineCoverageFactory;
             eventAggregator.AddListener(this);
             this.eventAggregator = eventAggregator;
             this.trackedLinesFactory = trackedLinesFactory;
@@ -33,14 +35,9 @@ namespace FineCodeCoverage.Impl
 
         public IBufferLineCoverage Manage(ITextView textView, ITextBuffer textBuffer, string filePath)
         {
-            return textBuffer.Properties.GetOrCreateSingletonProperty<IBufferLineCoverage>(() =>
-            {
-                return new BufferLineCoverage(
-                    lastCoverageLines,
-                    new TextInfo(textView, textBuffer, filePath),
-                    eventAggregator,
-                    trackedLinesFactory);
-            });
+            return textBuffer.Properties.GetOrCreateSingletonProperty(
+                () => bufferLineCoverageFactory.Create(lastCoverageLines, new TextInfo(textView, textBuffer, filePath), eventAggregator, trackedLinesFactory)
+            );
         }
     }
 }

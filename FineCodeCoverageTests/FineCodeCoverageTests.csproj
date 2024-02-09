@@ -500,6 +500,7 @@
     <Compile Include="Coverage_Colours\CoverageTypeFilter_Tests_Base.cs" />
     <Compile Include="Coverage_Colours\DummyCoverageTypeFilter.cs" />
     <Compile Include="Coverage_Colours\DummyTag.cs" />
+    <Compile Include="Coverage_Colours\DynamicCoverageManager_Tests.cs" />
     <Compile Include="Coverage_Colours\EditorFormatMapTextSpecificListener_Tests.cs" />
     <Compile Include="Coverage_Colours\FontAndColorsInfoFactory.cs" />
     <Compile Include="Coverage_Colours\FontAndColorsInfosProvider_Tests.cs" />

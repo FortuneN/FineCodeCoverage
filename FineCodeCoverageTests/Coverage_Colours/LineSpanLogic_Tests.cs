@@ -3,7 +3,6 @@ using FineCodeCoverage.Impl;
 using Microsoft.VisualStudio.Text;
 using Moq;
 using NUnit.Framework;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 
