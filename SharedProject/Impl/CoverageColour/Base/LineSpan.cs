@@ -5,12 +5,12 @@ namespace FineCodeCoverage.Impl
 {
     internal class LineSpan : ILineSpan
     {
-        public LineSpan(ILine line, SnapshotSpan span)
+        public LineSpan(IDynamicLine line, SnapshotSpan span)
         {
             Line = line;
             Span = span;
         }
-        public ILine Line { get; }
+        public IDynamicLine Line { get; }
 
         public SnapshotSpan Span { get; }
     }

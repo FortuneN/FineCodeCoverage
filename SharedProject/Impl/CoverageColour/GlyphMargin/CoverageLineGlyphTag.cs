@@ -1,5 +1,4 @@
-﻿using FineCodeCoverage.Engine.Cobertura;
-using FineCodeCoverage.Engine.Model;
+﻿using FineCodeCoverage.Engine.Model;
 using Microsoft.VisualStudio.Text.Editor;
 using System.Windows.Media;
 

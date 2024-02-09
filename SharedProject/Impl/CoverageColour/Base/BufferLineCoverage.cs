@@ -35,27 +35,22 @@ namespace FineCodeCoverage.Impl
             eventAggregator.AddListener(this);
 
             textBuffer.Changed += TextBuffer_Changed;
-            EventHandler textViewClosedHandler = null;
-            textViewClosedHandler = (s, e) =>
+            void textViewClosedHandler(object s, EventArgs e)
             {
                 textBuffer.Changed -= TextBuffer_Changed;
                 textInfo.TextView.Closed -= textViewClosedHandler;
                 eventAggregator.RemoveListener(this);
-            };
+            }
 
             textInfo.TextView.Closed += textViewClosedHandler;
         }
 
         private void CreateTrackedLines(IFileLineCoverage fileLineCoverage)
         {
-            var lines = GetLines(fileLineCoverage);
-            trackedLines = trackedLinesFactory.Create(lines, textBuffer.CurrentSnapshot, language);
-        }
-
-        private List<ILine> GetLines(IFileLineCoverage fileLineCoverage)
-        {
-            var numLines = this.textBuffer.CurrentSnapshot.LineCount;
-            return fileLineCoverage.GetLines(filePath, 1, numLines + 1).ToList();
+            var currentSnapshot = textBuffer.CurrentSnapshot;
+            var numLines = currentSnapshot.LineCount;
+            var lines = fileLineCoverage.GetLines(filePath, 1, numLines + 1).ToList();
+            trackedLines = trackedLinesFactory.Create(lines, currentSnapshot, language);
         }
 
         private void TextBuffer_Changed(object sender, TextContentChangedEventArgs e)
@@ -75,11 +70,11 @@ namespace FineCodeCoverage.Impl
             eventAggregator.SendMessage(new CoverageChangedMessage(this, filePath));
         }
 
-        public IEnumerable<ILine> GetLines(int startLineNumber, int endLineNumber)
+        public IEnumerable<IDynamicLine> GetLines(int startLineNumber, int endLineNumber)
         {
             if (trackedLines == null)
             {
-                return Enumerable.Empty<ILine>();
+                return Enumerable.Empty<IDynamicLine>();
             }
             return trackedLines.GetLines(startLineNumber, endLineNumber);
         }

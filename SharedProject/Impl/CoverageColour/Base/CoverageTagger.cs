@@ -92,7 +92,7 @@ namespace FineCodeCoverage.Impl
         public void Handle(CoverageChangedMessage message)
         {
             coverageLines = message.CoverageLines;
-            if(message.AppliesTo == null || message.AppliesTo == filePath)
+            if(message.AppliesTo == filePath)
             {
                 RaiseTagsChanged();
             }

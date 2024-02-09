@@ -14,7 +14,7 @@ namespace FineCodeCoverage.Engine.Model
     // FileLineCoverage maps from a filename to the list of lines in the file
     internal class FileLineCoverage : IFileLineCoverage
     {
-        private Dictionary<string, List<ILine>> m_coverageLines = new Dictionary<string, List<ILine>>(StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<string, List<ILine>> m_coverageLines = new Dictionary<string, List<ILine>>(StringComparer.OrdinalIgnoreCase);
 
         public void Add(string filename, IEnumerable<ILine> lines)
         {

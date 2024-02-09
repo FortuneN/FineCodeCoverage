@@ -2,7 +2,7 @@
 
 namespace FineCodeCoverage.Impl
 {
-    class TrackedLineLine : ILine
+    class TrackedLineLine : IDynamicLine
     {
         public TrackedLineLine(ILine line)
         {
@@ -13,5 +13,7 @@ namespace FineCodeCoverage.Impl
         public int Number { get; set; }
 
         public CoverageType CoverageType { get; }
+
+        public bool IsDirty { get; set; }
     }
 }

@@ -1,5 +1,4 @@
-﻿using FineCodeCoverage.Engine.Model;
-using Microsoft.VisualStudio.Text;
+﻿using Microsoft.VisualStudio.Text;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
@@ -22,7 +21,7 @@ namespace FineCodeCoverage.Impl
             return applicableCoverageLines.Select(applicableCoverageLine => new LineSpan(applicableCoverageLine, GetLineSnapshotSpan(applicableCoverageLine.Number, snapshotSpan)));
         }
 
-        private static IEnumerable<ILine> GetApplicableCoverageLines(IBufferLineCoverage bufferLineCoverage,SnapshotSpan span)
+        private static IEnumerable<IDynamicLine> GetApplicableCoverageLines(IBufferLineCoverage bufferLineCoverage,SnapshotSpan span)
         {
             var (coverageStartLineNumber, coverageEndLineNumber) = GetStartEndCoverageLineNumbers(span);
             return bufferLineCoverage.GetLines(coverageStartLineNumber, coverageEndLineNumber);

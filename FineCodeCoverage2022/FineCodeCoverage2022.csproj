@@ -157,6 +157,9 @@
     <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.MSBuild">
       <Version>4.0.1</Version>
     </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Composition.Analyzers">
+      <Version>17.7.40</Version>
+    </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.SDK" Version="17.1.32210.191" ExcludeAssets="runtime">
       <IncludeAssets>compile; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>

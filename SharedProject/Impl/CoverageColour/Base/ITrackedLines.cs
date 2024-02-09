@@ -4,9 +4,13 @@ using System.Collections.Generic;
 
 namespace FineCodeCoverage.Impl
 {
+    interface IDynamicLine : ILine
+    {
+        bool IsDirty { get; }
+    }
     interface ITrackedLines
     {
-        IEnumerable<ILine> GetLines(int startLineNumber, int endLineNumber);
+        IEnumerable<IDynamicLine> GetLines(int startLineNumber, int endLineNumber);
         bool Changed(ITextSnapshot currentSnapshot, List<Span> newSpanChanges);
     }
 }

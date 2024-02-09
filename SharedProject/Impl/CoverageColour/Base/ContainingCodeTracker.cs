@@ -1,76 +1,50 @@
 ﻿using Microsoft.VisualStudio.Text;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace FineCodeCoverage.Impl
 {
-    internal class ContainingCodeTracker
+    internal class ContainingCodeTracker : IContainingCodeTracker
     {
-        private List<ITrackingSpan> trackingSpans = new List<ITrackingSpan>();
-        private List<TrackedLine> trackedLines = new List<TrackedLine>();
-        public List<TrackedLine> TrackedLines => trackedLines;
-        public void AddTrackedLine(TrackedLine trackedLine)
+        private bool isDirty;
+        private readonly ITrackingSpanRange trackingSpanRange;
+        private readonly ITrackedCoverageLines trackedCoverageLines;
+
+        public ContainingCodeTracker(ITrackedCoverageLines trackedCoverageLines, ITrackingSpanRange trackingSpanRange = null)
         {
-            trackedLines.Add(trackedLine);
-            AddTrackingSpan(trackedLine.TrackingSpan);
-        }
-        public void AddTrackingSpan(ITrackingSpan trackingSpan)
-        {
-            trackingSpans.Add(trackingSpan);
+            this.trackingSpanRange = trackingSpanRange;
+            this.trackedCoverageLines = trackedCoverageLines;
         }
 
-        private bool ProcessTrackingSpanChanges(ITextSnapshot currentSnapshot, List<Span> newSpanChanges)
+        private bool ProcessTrackingSpanRangeChangesIfNotDirty(ITextSnapshot currentSnapshot, List<Span> newSpanChanges)
         {
-            var containingCodeChanged = false;
-            foreach (var trackingSpan in trackingSpans)
+            if (!isDirty)
             {
-                var currentSpan = trackingSpan.GetSpan(currentSnapshot).Span;
-                var spanIntersected = newSpanChanges.Any(newSpan => newSpan.IntersectsWith(currentSpan));
-                if (spanIntersected)
-                {
-                    containingCodeChanged = true;
-                    trackedLines.Clear();
-                    break;
-                }
+                return ProcessTrackingSpanRangeChanges(currentSnapshot, newSpanChanges);
             }
-            return containingCodeChanged;
+            return false;
         }
 
-        private bool ProcessCoverageLineChanges(ITextSnapshot currentSnapshot)
+        private bool ProcessTrackingSpanRangeChanges(ITextSnapshot currentSnapshot, List<Span> newSpanChanges)
         {
-            var hasChanged = false;
-            var removals = new List<TrackedLine>();
-            foreach (var trackedLine in trackedLines)
-            {
-                var newSnapshotSpan = trackedLine.TrackingSpan.GetSpan(currentSnapshot);
-                if (newSnapshotSpan.IsEmpty)
-                {
-                    hasChanged = true;
-                    removals.Add(trackedLine);
-                }
-                else
-                {
-                    var newLineNumber = currentSnapshot.GetLineNumberFromPosition(newSnapshotSpan.Start) + 1;
-                    if (newLineNumber != trackedLine.Line.Number)
-                    {
-                        hasChanged = true;
-                    }
-                    trackedLine.Line.Number = newLineNumber;
-                }
+            if (trackingSpanRange == null) return false;
 
+            var trackingSpanRangeChanged = trackingSpanRange.IntersectsWith(currentSnapshot, newSpanChanges);
+            if (trackingSpanRangeChanged)
+            {
+                trackedCoverageLines.Dirty();
+                isDirty = true;
             }
-            removals.ForEach(r => trackedLines.Remove(r));
-            return hasChanged;
+            return trackingSpanRangeChanged;
         }
 
-        public ContainingCodeChangeResult ProcessChanges(ITextSnapshot currentSnapshot, List<Span> newSpanChanges)
+        public bool ProcessChanges(ITextSnapshot currentSnapshot, List<Span> newSpanChanges)
         {
-            if (ProcessTrackingSpanChanges(currentSnapshot, newSpanChanges))
-            {
-                return ContainingCodeChangeResult.ContainingCodeChanged;
-            }
-            return ProcessCoverageLineChanges(currentSnapshot) ? ContainingCodeChangeResult.LineChanges : ContainingCodeChangeResult.Unchanged;
+            var trackingSpanRangeChanged = ProcessTrackingSpanRangeChangesIfNotDirty(currentSnapshot, newSpanChanges);
+            var coverageLinesChanged = trackedCoverageLines.Update(currentSnapshot);
+            return trackingSpanRangeChanged || coverageLinesChanged;
         }
+
+        public IEnumerable<IDynamicLine> Lines => trackedCoverageLines.Lines;
     }
-
+    
 }

@@ -88,24 +88,24 @@ namespace FineCodeCoverage.Output
 			// Do any initialization that requires the UI thread after switching to the UI thread.
 			await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-			var _dte2 = (DTE2)GetGlobalService(typeof(SDTE));			
+			var _dte2 = (DTE2)GetGlobalService(typeof(SDTE));
 			var sp = new ServiceProvider(_dte2 as Microsoft.VisualStudio.OLE.Interop.IServiceProvider);
 			// you cannot MEF import in the constructor of the package
 			componentModel = sp.GetService(typeof(Microsoft.VisualStudio.ComponentModelHost.SComponentModel)) as Microsoft.VisualStudio.ComponentModelHost.IComponentModel;
-            Assumes.Present(componentModel);
+			Assumes.Present(componentModel);
 			fccEngine = componentModel.GetService<IFCCEngine>();
 			var eventAggregator = componentModel.GetService<IEventAggregator>();
 			await OpenCoberturaCommand.InitializeAsync(this, eventAggregator);
 			await OpenHotspotsCommand.InitializeAsync(this, eventAggregator);
-            await ClearUICommand.InitializeAsync(this, fccEngine);
-            await OutputToolWindowCommand.InitializeAsync(
-				this, 
+			await ClearUICommand.InitializeAsync(this, fccEngine);
+			await OutputToolWindowCommand.InitializeAsync(
+				this,
 				componentModel.GetService<ILogger>(),
 				componentModel.GetService<IShownToolWindowHistory>()
 			);
 			await componentModel.GetService<IInitializer>().InitializeAsync(cancellationToken);
 			var coverageColoursManager = componentModel.GetService<CoverageColoursManager>();
-            this.AddService(typeof(CoverageColoursManager),(_,__,___) => Task.FromResult(coverageColoursManager as object),true);
+			this.AddService(typeof(CoverageColoursManager), (_, __, ___) => Task.FromResult(coverageColoursManager as object), true);
         }
 
         protected override Task<object> InitializeToolWindowAsync(Type toolWindowType, int id, CancellationToken cancellationToken)

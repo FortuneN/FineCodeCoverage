@@ -1,77 +1,57 @@
-﻿using FineCodeCoverage.Engine.Model;
-using Microsoft.VisualStudio.Text;
+﻿using Microsoft.VisualStudio.Text;
 using System.Collections.Generic;
 
 namespace FineCodeCoverage.Impl
 {
+    interface IContainingCodeTracker
+    {
+        bool ProcessChanges(ITextSnapshot currentSnapshot, List<Span> newSpanChanges);
+        IEnumerable<IDynamicLine> Lines { get; }
+    }
     internal class TrackedLines : ITrackedLines
     {
-        private List<ContainingCodeTracker> containingCodeTrackers = new List<ContainingCodeTracker>();
-
-        public TrackedLines(List<ILine> lines, ITextSnapshot textSnapshot, List<ContainingCodeLineRange> orderedContainingCodeLineRanges)
+        private readonly List<IContainingCodeTracker> containingCodeTrackers;
+        public TrackedLines(List<IContainingCodeTracker> containingCodeTrackers)
         {
-            var lineIndex = 0;
-            foreach (var containingCodeLineRange in orderedContainingCodeLineRanges)
-            {
-                if (lineIndex >= lines.Count)
-                {
-                    break;
-                }
-                var containingCodeTracker = new ContainingCodeTracker();
-
-                for (var i = containingCodeLineRange.StartLine; i <= containingCodeLineRange.EndLine; i++)
-                {
-                    var span = textSnapshot.GetLineFromLineNumber(i).Extent;
-                    var trackingSpan = textSnapshot.CreateTrackingSpan(span, SpanTrackingMode.EdgeExclusive);
-                    var line = lines[lineIndex];
-                    // instead of keep moving line numbers around****************************************
-                    if (line.Number - 1 == i)
-                    {
-                        var trackedLine = new TrackedLine(line, trackingSpan);
-                        containingCodeTracker.AddTrackedLine(trackedLine);
-                        lineIndex++;
-                    }
-                    else
-                    {
-                        containingCodeTracker.AddTrackingSpan(trackingSpan);
-                    }
-                }
-                containingCodeTrackers.Add(containingCodeTracker);
-            }
+            this.containingCodeTrackers = containingCodeTrackers;
         }
 
+
+        // normalized spans
         public bool Changed(ITextSnapshot currentSnapshot, List<Span> newSpanChanges)
         {
             var changed = false;
-            var removals = new List<ContainingCodeTracker>();
             foreach (var containingCodeTracker in containingCodeTrackers)
             {
-                var changeResult = containingCodeTracker.ProcessChanges(currentSnapshot, newSpanChanges);
-                if (changeResult == ContainingCodeChangeResult.ContainingCodeChanged)
-                {
-                    changed = true;
-                    removals.Add(containingCodeTracker);
-                }
-                else if (changeResult == ContainingCodeChangeResult.LineChanges)
+                var trackerChanged = containingCodeTracker.ProcessChanges(currentSnapshot, newSpanChanges);
+                if (trackerChanged)
                 {
                     changed = true;
                 }
             }
-            removals.ForEach(r => containingCodeTrackers.Remove(r));
             return changed;
         }
 
-        public IEnumerable<ILine> GetLines(int startLineNumber, int endLineNumber)
+        public IEnumerable<IDynamicLine> GetLines(int startLineNumber, int endLineNumber)
         {
             foreach (var containingCodeTracker in containingCodeTrackers)
             {
-                // todo - no need to iterate over all
-                foreach (var trackedLine in containingCodeTracker.TrackedLines)
+                var done = false;
+                foreach (var line in containingCodeTracker.Lines)
                 {
-                    if (trackedLine.Line.Number >= startLineNumber && trackedLine.Line.Number <= endLineNumber)
+                    if(line.Number > endLineNumber)
                     {
-                        yield return trackedLine.Line;
+                        done = true;
+                        break;
                     }
+                    if (line.Number >= startLineNumber)
+                    {
+                        yield return line;
+                    }
+                }
+                if (done)
+                {
+                    break;
                 }
             }
         }

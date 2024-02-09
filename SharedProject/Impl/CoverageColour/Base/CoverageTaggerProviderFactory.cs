@@ -2,9 +2,11 @@
 using FineCodeCoverage.Options;
 using Microsoft.VisualStudio.Text.Tagging;
 using System.ComponentModel.Composition;
+using System.Diagnostics.CodeAnalysis;
 
 namespace FineCodeCoverage.Impl
 {
+    [ExcludeFromCodeCoverage]
     [Export(typeof(ICoverageTaggerProviderFactory))]
     internal class CoverageTaggerProviderFactory : ICoverageTaggerProviderFactory
     {

@@ -2,9 +2,10 @@
 
 namespace FineCodeCoverage.Impl
 {
-    interface ILineSpan
+    interface ICoverageLine
     {
+        CoverageLineUpdateType Update(ITextSnapshot currentSnapshot);
+        void Dirty();
         IDynamicLine Line { get; }
-        SnapshotSpan Span { get; }
     }
 }

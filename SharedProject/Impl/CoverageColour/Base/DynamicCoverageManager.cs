@@ -29,7 +29,6 @@ namespace FineCodeCoverage.Impl
         public void Handle(NewCoverageLinesMessage message)
         {
             lastCoverageLines = message.CoverageLines;
-
         }
 
         public IBufferLineCoverage Manage(ITextView textView, ITextBuffer textBuffer, string filePath)

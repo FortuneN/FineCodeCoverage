@@ -11,7 +11,8 @@ namespace FineCodeCoverage.Impl
     [Export(typeof(ICoverageTypeService))]
     [Export(typeof(ICoverageColoursEditorFormatMapNames))]
     [Export(typeof(ICoverageClassificationColourService))]
-    internal class CoverageClassificationTypeService : ICoverageClassificationColourService, ICoverageColoursEditorFormatMapNames, ICoverageTypeService
+    internal class CoverageClassificationTypeService : 
+        ICoverageClassificationColourService, ICoverageColoursEditorFormatMapNames, ICoverageTypeService
     {
         public const string FCCCoveredClassificationTypeName = "FCCCovered";
         public const string FCCNotCoveredClassificationTypeName = "FCCNotCovered";
@@ -102,7 +103,8 @@ namespace FineCodeCoverage.Impl
         private void SetCoverageColour(ICoverageTypeColour coverageTypeColour)
         {
             var classificationType = classificationTypes[coverageTypeColour.CoverageType];
-            classificationFormatMap.AddExplicitTextProperties(classificationType, coverageTypeColour.TextFormattingRunProperties, highestPriorityClassificationType);
+            classificationFormatMap.AddExplicitTextProperties(
+                classificationType, coverageTypeColour.TextFormattingRunProperties, highestPriorityClassificationType);
         }
     }
 
