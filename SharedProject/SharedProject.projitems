@@ -190,6 +190,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Base\CoverageLineFactory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Base\CoverageLineUpdateType.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Base\IBufferLineCoverageFactory.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Base\IContainingCodeTracker.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Base\ICoverageLine.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Base\ICoverageLineFactory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Base\ITrackedContainingCodeTrackerFactory.cs" />
@@ -231,7 +232,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Base\TrackedContainingCodeTrackerFactory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Base\TrackedCoverageLines.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Base\TrackedCoverageLinesFactory.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Base\TrackedLine.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Base\TrackedLineLine.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Base\TrackedLines.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\CoverageColour\Base\ContainingCodeTrackedLinesBuilder.cs" />
