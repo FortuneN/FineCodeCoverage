@@ -1,6 +1,7 @@
 ﻿using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.TextManager.Interop;
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Windows.Media;
 
 namespace FineCodeCoverage.Editor.Management
@@ -79,6 +80,7 @@ namespace FineCodeCoverage.Editor.Management
         #endregion
 
         //If yours is the primary package to be defining the marker, use 0x2000 or greater.
+        [ExcludeFromCodeCoverage]
         public int GetMergingPriority(out int piMergingPriority)
         {
             piMergingPriority = 0x2000;
@@ -86,6 +88,7 @@ namespace FineCodeCoverage.Editor.Management
         }
 
         // This is not called.  Could be AllColorableItemInfo.bstrDescription - ( This feature is currently disabled )
+        [ExcludeFromCodeCoverage]
         public int GetDescription(out string pbstrDesc)
         {
             pbstrDesc = "Coverage Description goes here";

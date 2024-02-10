@@ -7,6 +7,7 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
 using Moq;
 using NUnit.Framework;
+using System;
 
 namespace FineCodeCoverageTests.Editor.Tagging.GlyphMargin
 {
@@ -57,6 +58,21 @@ namespace FineCodeCoverageTests.Editor.Tagging.GlyphMargin
                 .Raise(coverageTagger => coverageTagger.TagsChanged += null, coverageTaggerArgs);
 
             Assert.That(raisedArgs, Is.SameAs(coverageTaggerArgs));
+        }
+
+        [Test]
+        public void Should_Remove_TagsChanged_Handler_When_Own_Handler_Removed()
+        {
+            var autoMoqer = new AutoMoqer();
+            var mockCoverageTagger = autoMoqer.GetMock<ICoverageTagger<CoverageLineGlyphTag>>();
+            
+            void handler(object sender, SnapshotSpanEventArgs args) { }
+
+            var coverageLineGlyphTagger = autoMoqer.Create<CoverageLineGlyphTagger>();
+            coverageLineGlyphTagger.TagsChanged += handler;
+            mockCoverageTagger.VerifyAdd(coverageTagger => coverageTagger.TagsChanged += handler, Times.Once());
+            coverageLineGlyphTagger.TagsChanged -= handler;
+            mockCoverageTagger.VerifyRemove(coverageTagger => coverageTagger.TagsChanged -= handler, Times.Once());
         }
 
         [TestCase(true)]

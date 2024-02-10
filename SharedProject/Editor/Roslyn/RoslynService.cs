@@ -11,18 +11,29 @@ namespace FineCodeCoverage.Editor.Roslyn
     [Export(typeof(IRoslynService))]
     internal class RoslynService : IRoslynService
     {
+        private readonly ILanguageContainingCodeVisitorFactory languageContainingCodeVisitorFactory;
+        private readonly ITextSnapshotToSyntaxService textSnapshotToSyntaxService;
+
+        [ImportingConstructor]
+        public RoslynService(
+            ILanguageContainingCodeVisitorFactory languageContainingCodeVisitorFactory,
+            ITextSnapshotToSyntaxService textSnapshotToSyntaxService)
+        {
+            this.languageContainingCodeVisitorFactory = languageContainingCodeVisitorFactory;
+            this.textSnapshotToSyntaxService = textSnapshotToSyntaxService;
+        }
         public async Task<List<TextSpan>> GetContainingCodeSpansAsync(ITextSnapshot textSnapshot)
         {
-            var document = textSnapshot.GetOpenDocumentInCurrentContextWithChanges();
-            if (document != null)
+            var rootNodeAndLanguage = await textSnapshotToSyntaxService.GetRootAndLanguageAsync(textSnapshot);
+            if(rootNodeAndLanguage == null)
             {
-                var language = document.Project.Language;
-                var isCSharp = language == LanguageNames.CSharp;
-                var root = await document.GetSyntaxRootAsync();
-                var languageContainingCodeVisitor = isCSharp ? new CSharpContainingCodeVisitor() as ILanguageContainingCodeVisitor : new VBContainingCodeVisitor();
-                return languageContainingCodeVisitor.GetSpans(root);
+                return Enumerable.Empty<TextSpan>().ToList();
             }
-            return Enumerable.Empty<TextSpan>().ToList();
+            
+            var isCSharp = rootNodeAndLanguage.Language == LanguageNames.CSharp;
+            var languageContainingCodeVisitor = languageContainingCodeVisitorFactory.Create(isCSharp);
+            return languageContainingCodeVisitor.GetSpans(rootNodeAndLanguage.Root);
+           
         }
     }
 }

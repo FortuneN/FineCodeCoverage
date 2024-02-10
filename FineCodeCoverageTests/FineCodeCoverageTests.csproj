@@ -487,6 +487,10 @@
     <Compile Include="CoverageUtilManager_Tests.cs" />
     <Compile Include="Editor\DynamicCoverage\BufferLineCoverage_Tests.cs" />
     <Compile Include="Editor\DynamicCoverage\ContainingCodeTracker_Tests.cs" />
+    <Compile Include="Editor\DynamicCoverage\CoverageLine_Tests.cs" />
+    <Compile Include="Editor\DynamicCoverage\TrackingLineFactory_Tests.cs" />
+    <Compile Include="Editor\Roslyn\LanguageContainingCodeVisitorFactory_Tests.cs" />
+    <Compile Include="Editor\Roslyn\RoslynService_Tests.cs" />
     <Compile Include="Editor\Tagging\Classification\CoverageClassificationFilter_Tests.cs" />
     <Compile Include="Editor\Management\CoverageColoursManager_Tests.cs" />
     <Compile Include="Editor\Tagging\Classification\CoverageLineClassificationTaggerProvider_Tests.cs" />

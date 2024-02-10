@@ -1,6 +1,7 @@
 ﻿using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 namespace FineCodeCoverage.Editor.DynamicCoverage
 {
@@ -17,6 +18,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
         public ITextBuffer TextBuffer { get; }
         public string FilePath { get; }
 
+        [ExcludeFromCodeCoverage]
         public override bool Equals(object obj)
         {
             return obj is TextInfo info &&
@@ -25,6 +27,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
                    FilePath == info.FilePath;
         }
 
+        [ExcludeFromCodeCoverage]
         public override int GetHashCode()
         {
             int hashCode = -5208965;

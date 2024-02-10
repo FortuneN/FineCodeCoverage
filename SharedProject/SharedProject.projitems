@@ -203,6 +203,11 @@
     <Compile Include="$(MSBuildThisFileDirectory)Editor\DynamicCoverage\ITrackingSpanRangeFactory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editor\DynamicCoverage\LinesContainingCodeTrackerFactory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editor\DynamicCoverage\CoverageChangedMessage.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Editor\Roslyn\ILanguageContainingCodeVisitorFactory.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Editor\Roslyn\ITextSnapshotToSyntaxService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Editor\Roslyn\LanguageContainingCodeVisitorFactory.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Editor\Roslyn\RootNodeAndLanguage.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Editor\Roslyn\TextSnapshotToSyntaxService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editor\Tagging\Base\CoverageTaggerProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editor\Tagging\Base\CoverageTaggerProviderFactory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editor\Tagging\Base\CoverageTypeFilter\CoverageTypeFilterBase.cs" />
@@ -359,8 +364,5 @@
   <ItemGroup>
     <None Include="$(MSBuildThisFileDirectory)Core\Utilities\Directory.Build.props" />
     <None Include="$(MSBuildThisFileDirectory)Output\Directory.Build.props" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="$(MSBuildThisFileDirectory)Editor\" />
   </ItemGroup>
 </Project>

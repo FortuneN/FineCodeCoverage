@@ -1,9 +1,11 @@
 ﻿using Microsoft.VisualStudio.Shell;
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics.Contracts;
 
 namespace FineCodeCoverage.Editor.Management
 {
+    [ExcludeFromCodeCoverage]
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = true, Inherited = true)]
     public class ProvideTextMarker : RegistrationAttribute
     {
@@ -21,9 +23,8 @@ namespace FineCodeCoverage.Editor.Management
             _markerProviderGUID = markerProviderGUID;
         }
 
-        public override void Register(RegistrationAttribute.RegistrationContext context)
+        public override void Register(RegistrationContext context)
         {
-            //Key markerkey = context.CreateKey("Text Editor\\External Markers\\{" + _markerGUID + "}");
             Key markerkey = context.CreateKey("Text Editor\\External Markers\\" + _markerGUID);
             markerkey.SetValue("", _markerName);
             markerkey.SetValue("Service", "{" + _markerProviderGUID + "}");
@@ -31,7 +32,7 @@ namespace FineCodeCoverage.Editor.Management
             markerkey.SetValue("Package", "{" + context.ComponentType.GUID + "}");
         }
 
-        public override void Unregister(RegistrationAttribute.RegistrationContext context)
+        public override void Unregister(RegistrationContext context)
         {
             context.RemoveKey("Text Editor\\External Markers\\" + _markerGUID);
         }
