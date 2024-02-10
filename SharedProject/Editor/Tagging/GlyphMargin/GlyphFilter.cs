@@ -1,8 +1,9 @@
-﻿using FineCodeCoverage.Engine.Model;
+﻿using FineCodeCoverage.Editor.Tagging.Base;
+using FineCodeCoverage.Engine.Model;
 using FineCodeCoverage.Options;
 using System.Collections.Generic;
 
-namespace FineCodeCoverage.Impl
+namespace FineCodeCoverage.Editor.Tagging.GlyphMargin
 {
     internal class GlyphFilter : CoverageTypeFilterBase
     {

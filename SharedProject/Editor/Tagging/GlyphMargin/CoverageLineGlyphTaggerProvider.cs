@@ -4,8 +4,10 @@ using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Text.Tagging;
 using FineCodeCoverage.Core.Utilities;
 using Microsoft.VisualStudio.Text.Editor;
+using FineCodeCoverage.Editor.Tagging.Base;
+using FineCodeCoverage.Editor.Management;
 
-namespace FineCodeCoverage.Impl
+namespace FineCodeCoverage.Editor.Tagging.GlyphMargin
 {
     [ContentType(SupportedContentTypeLanguages.CSharp)]
     [ContentType(SupportedContentTypeLanguages.VisualBasic)]

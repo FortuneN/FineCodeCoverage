@@ -1,6 +1,6 @@
 ﻿using System.Windows.Media;
 
-namespace FineCodeCoverage.Impl
+namespace FineCodeCoverage.Editor.Management
 {
     internal class ItemCoverageColours : IItemCoverageColours
     {

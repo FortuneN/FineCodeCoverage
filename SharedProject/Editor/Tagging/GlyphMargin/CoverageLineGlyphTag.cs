@@ -2,7 +2,7 @@
 using Microsoft.VisualStudio.Text.Editor;
 using System.Windows.Media;
 
-namespace FineCodeCoverage.Impl
+namespace FineCodeCoverage.Editor.Tagging.GlyphMargin
 {
 	internal class CoverageLineGlyphTag : IGlyphTag
 	{

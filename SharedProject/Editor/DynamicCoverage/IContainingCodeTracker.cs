@@ -1,7 +1,7 @@
 ﻿using Microsoft.VisualStudio.Text;
 using System.Collections.Generic;
 
-namespace FineCodeCoverage.Impl
+namespace FineCodeCoverage.Editor.DynamicCoverage
 {
     interface IContainingCodeTracker
     {

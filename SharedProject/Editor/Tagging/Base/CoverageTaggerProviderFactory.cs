@@ -1,10 +1,11 @@
 ﻿using FineCodeCoverage.Core.Utilities;
+using FineCodeCoverage.Editor.DynamicCoverage;
 using FineCodeCoverage.Options;
 using Microsoft.VisualStudio.Text.Tagging;
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
 
-namespace FineCodeCoverage.Impl
+namespace FineCodeCoverage.Editor.Tagging.Base
 {
     [ExcludeFromCodeCoverage]
     [Export(typeof(ICoverageTaggerProviderFactory))]

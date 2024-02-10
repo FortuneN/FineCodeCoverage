@@ -1,7 +1,7 @@
 ﻿using FineCodeCoverage.Core.Utilities;
 using FineCodeCoverage.Engine.Model;
 
-namespace FineCodeCoverage.Impl
+namespace FineCodeCoverage.Editor.DynamicCoverage
 {
     interface IBufferLineCoverageFactory
     {

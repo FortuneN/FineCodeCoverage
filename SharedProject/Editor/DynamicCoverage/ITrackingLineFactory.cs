@@ -1,6 +1,6 @@
 ﻿using Microsoft.VisualStudio.Text;
 
-namespace FineCodeCoverage.Impl
+namespace FineCodeCoverage.Editor.DynamicCoverage
 {
     interface ITrackingLineFactory
     {

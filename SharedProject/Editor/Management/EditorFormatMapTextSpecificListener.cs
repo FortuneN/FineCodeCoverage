@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
 
-namespace FineCodeCoverage.Impl
+namespace FineCodeCoverage.Editor.Management
 {
     [Export(typeof(IEditorFormatMapTextSpecificListener))]
     internal class EditorFormatMapTextSpecificListener : IEditorFormatMapTextSpecificListener

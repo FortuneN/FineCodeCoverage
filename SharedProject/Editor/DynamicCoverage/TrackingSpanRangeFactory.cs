@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 
-namespace FineCodeCoverage.Impl
+namespace FineCodeCoverage.Editor.DynamicCoverage
 {
     [Export(typeof(ITrackingSpanRangeFactory))]
     internal class TrackingSpanRangeFactory : ITrackingSpanRangeFactory

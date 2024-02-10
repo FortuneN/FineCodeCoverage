@@ -1,6 +1,7 @@
-﻿using Microsoft.VisualStudio.Text;
+﻿using FineCodeCoverage.Editor.DynamicCoverage;
+using Microsoft.VisualStudio.Text;
 
-namespace FineCodeCoverage.Impl
+namespace FineCodeCoverage.Editor.Tagging.Base
 {
     internal class LineSpan : ILineSpan
     {

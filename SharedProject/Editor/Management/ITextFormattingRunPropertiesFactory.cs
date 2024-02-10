@@ -1,6 +1,6 @@
 ﻿using Microsoft.VisualStudio.Text.Formatting;
 
-namespace FineCodeCoverage.Impl
+namespace FineCodeCoverage.Editor.Management
 {
     interface ITextFormattingRunPropertiesFactory
     {

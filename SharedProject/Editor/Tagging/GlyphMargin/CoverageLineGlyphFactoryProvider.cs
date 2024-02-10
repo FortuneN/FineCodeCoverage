@@ -3,8 +3,9 @@ using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 using OrderAttribute = Microsoft.VisualStudio.Utilities.OrderAttribute;
+using FineCodeCoverage.Editor.Tagging.Base;
 
-namespace FineCodeCoverage.Impl
+namespace FineCodeCoverage.Editor.Tagging.GlyphMargin
 {
     [ContentType(SupportedContentTypeLanguages.CSharp)]
     [ContentType(SupportedContentTypeLanguages.VisualBasic)]

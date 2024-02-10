@@ -5,11 +5,11 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.VisualBasic.Syntax;
 using System.Linq;
 
-namespace FineCodeCoverage.Impl
+namespace FineCodeCoverage.Editor.Roslyn
 {
     class VBContainingCodeVisitor : VisualBasicSyntaxVisitor, ILanguageContainingCodeVisitor
     {
-        private List<TextSpan> spans = new List<TextSpan>();
+        private readonly List<TextSpan> spans = new List<TextSpan>();
         public List<TextSpan> GetSpans(SyntaxNode rootNode)
         {
             Visit(rootNode);

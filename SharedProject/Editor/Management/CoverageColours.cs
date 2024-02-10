@@ -1,7 +1,7 @@
 ﻿using FineCodeCoverage.Engine.Model;
 using System.Collections.Generic;
 
-namespace FineCodeCoverage.Impl
+namespace FineCodeCoverage.Editor.Management
 {
     internal class CoverageColours : ICoverageColours
     {

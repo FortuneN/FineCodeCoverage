@@ -7,7 +7,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel.Composition;
 using System.Linq;
 
-namespace FineCodeCoverage.Impl
+namespace FineCodeCoverage.Editor.Management
 {
     [Export(typeof(ICoverageTypeService))]
     [Export(typeof(ICoverageColoursEditorFormatMapNames))]

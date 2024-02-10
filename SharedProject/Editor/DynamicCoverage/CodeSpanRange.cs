@@ -1,4 +1,4 @@
-﻿namespace FineCodeCoverage.Impl
+﻿namespace FineCodeCoverage.Editor.DynamicCoverage
 {
     internal class CodeSpanRange
     {

@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.Composition;
 
-namespace FineCodeCoverage.Impl
+namespace FineCodeCoverage.Editor.Management
 {
     [Export]
     public class MarkerTypeNames

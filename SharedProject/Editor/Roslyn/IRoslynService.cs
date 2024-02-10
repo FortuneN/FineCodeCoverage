@@ -3,7 +3,7 @@ using Microsoft.VisualStudio.Text;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace FineCodeCoverage.Impl
+namespace FineCodeCoverage.Editor.Roslyn
 {
     interface IRoslynService
     {

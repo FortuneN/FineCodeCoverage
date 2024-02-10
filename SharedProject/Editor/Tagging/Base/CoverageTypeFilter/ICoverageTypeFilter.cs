@@ -1,7 +1,7 @@
 ﻿using FineCodeCoverage.Engine.Model;
 using FineCodeCoverage.Options;
 
-namespace FineCodeCoverage.Impl
+namespace FineCodeCoverage.Editor.Tagging.Base
 {
     interface ICoverageTypeFilter
     {

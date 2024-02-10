@@ -1,7 +1,7 @@
 ﻿using FineCodeCoverage.Core.Utilities;
 using Microsoft.VisualStudio.Text;
 
-namespace FineCodeCoverage.Impl
+namespace FineCodeCoverage.Editor.Tagging.Base
 {
     internal class TextBufferWithFilePath : ITextBufferWithFilePath
     {

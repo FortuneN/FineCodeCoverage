@@ -3,8 +3,10 @@ using Microsoft.VisualStudio.Text.Tagging;
 using FineCodeCoverage.Core.Utilities;
 using System.Collections.Generic;
 using System;
+using FineCodeCoverage.Editor.Tagging.Base;
+using FineCodeCoverage.Editor.Management;
 
-namespace FineCodeCoverage.Impl
+namespace FineCodeCoverage.Editor.Tagging.GlyphMargin
 {
     internal class CoverageLineGlyphTagger : ITagger<CoverageLineGlyphTag>, IDisposable, IListener<CoverageColoursChangedMessage>
     {

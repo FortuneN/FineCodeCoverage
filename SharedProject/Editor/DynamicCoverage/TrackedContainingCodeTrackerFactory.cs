@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.Composition;
 
-namespace FineCodeCoverage.Impl
+namespace FineCodeCoverage.Editor.DynamicCoverage
 {
     [Export(typeof(ITrackedContainingCodeTrackerFactory))]
     internal class TrackedContainingCodeTrackerFactory : ITrackedContainingCodeTrackerFactory

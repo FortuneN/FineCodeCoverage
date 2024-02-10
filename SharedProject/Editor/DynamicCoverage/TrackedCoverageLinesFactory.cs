@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel.Composition;
 
-namespace FineCodeCoverage.Impl
+namespace FineCodeCoverage.Editor.DynamicCoverage
 {
     [Export(typeof(ITrackedCoverageLinesFactory))]
     internal class TrackedCoverageLinesFactory : ITrackedCoverageLinesFactory

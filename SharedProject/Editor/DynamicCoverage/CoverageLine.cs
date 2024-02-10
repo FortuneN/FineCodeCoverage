@@ -1,7 +1,7 @@
 ﻿using FineCodeCoverage.Engine.Model;
 using Microsoft.VisualStudio.Text;
 
-namespace FineCodeCoverage.Impl
+namespace FineCodeCoverage.Editor.DynamicCoverage
 {
     class CoverageLine : ICoverageLine
     {

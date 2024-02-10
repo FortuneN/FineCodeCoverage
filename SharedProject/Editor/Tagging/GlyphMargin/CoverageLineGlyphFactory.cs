@@ -4,7 +4,7 @@ using System.Windows.Shapes;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Formatting;
 
-namespace FineCodeCoverage.Impl
+namespace FineCodeCoverage.Editor.Tagging.GlyphMargin
 {
     internal class CoverageLineGlyphFactory : IGlyphFactory
 	{

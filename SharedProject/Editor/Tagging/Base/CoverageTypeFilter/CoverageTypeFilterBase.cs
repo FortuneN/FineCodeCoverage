@@ -3,7 +3,7 @@ using FineCodeCoverage.Options;
 using System;
 using System.Collections.Generic;
 
-namespace FineCodeCoverage.Impl
+namespace FineCodeCoverage.Editor.Tagging.Base
 {
     internal abstract class CoverageTypeFilterBase : ICoverageTypeFilter
     {

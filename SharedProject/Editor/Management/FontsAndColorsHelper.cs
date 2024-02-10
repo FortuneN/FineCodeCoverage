@@ -8,7 +8,7 @@ using System.Linq;
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.TextManager.Interop;
 
-namespace FineCodeCoverage.Impl
+namespace FineCodeCoverage.Editor.Management
 {
     [Export(typeof(IFontsAndColorsHelper))]
     internal class FontsAndColorsHelper : IFontsAndColorsHelper

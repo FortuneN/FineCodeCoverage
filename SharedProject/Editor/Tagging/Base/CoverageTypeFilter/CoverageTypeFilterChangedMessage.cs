@@ -1,4 +1,4 @@
-﻿namespace FineCodeCoverage.Impl
+﻿namespace FineCodeCoverage.Editor.Tagging.Base
 {
     internal class CoverageTypeFilterChangedMessage
     {

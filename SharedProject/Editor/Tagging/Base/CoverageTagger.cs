@@ -1,13 +1,12 @@
 ﻿using FineCodeCoverage.Core.Utilities;
-using FineCodeCoverage.Engine;
-using FineCodeCoverage.Engine.Model;
+using FineCodeCoverage.Editor.DynamicCoverage;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace FineCodeCoverage.Impl
+namespace FineCodeCoverage.Editor.Tagging.Base
 {
     internal class CoverageTagger<TTag> :
         ICoverageTagger<TTag>,

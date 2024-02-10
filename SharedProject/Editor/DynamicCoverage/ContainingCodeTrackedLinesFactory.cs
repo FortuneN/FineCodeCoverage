@@ -2,7 +2,7 @@
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
 
-namespace FineCodeCoverage.Impl
+namespace FineCodeCoverage.Editor.DynamicCoverage
 {
     [ExcludeFromCodeCoverage]
     [Export(typeof(IContainingCodeTrackedLinesFactory))]

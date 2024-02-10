@@ -1,7 +1,7 @@
 ﻿using FineCodeCoverage.Engine.Model;
 using Microsoft.VisualStudio.Text.Formatting;
 
-namespace FineCodeCoverage.Impl
+namespace FineCodeCoverage.Editor.Management
 {
     class CoverageTypeColour : ICoverageTypeColour
     {

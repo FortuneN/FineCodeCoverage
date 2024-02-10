@@ -3,8 +3,9 @@ using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Text;
 using FineCodeCoverage.Core.Utilities;
 using Microsoft.VisualStudio.Text.Editor;
+using FineCodeCoverage.Editor.DynamicCoverage;
 
-namespace FineCodeCoverage.Impl
+namespace FineCodeCoverage.Editor.Tagging.Base
 {
     internal class CoverageTaggerProvider<TCoverageTypeFilter, TTag> : ICoverageTaggerProvider<TTag>
          where TTag : ITag where TCoverageTypeFilter : ICoverageTypeFilter, new()

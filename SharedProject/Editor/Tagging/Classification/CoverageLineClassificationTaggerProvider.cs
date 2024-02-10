@@ -1,10 +1,12 @@
-﻿using Microsoft.VisualStudio.Text;
+﻿using FineCodeCoverage.Editor.Management;
+using FineCodeCoverage.Editor.Tagging.Base;
+using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
 using System.ComponentModel.Composition;
 
-namespace FineCodeCoverage.Impl
+namespace FineCodeCoverage.Editor.Tagging.Classification
 {
     [ContentType(SupportedContentTypeLanguages.CSharp)]
     [ContentType(SupportedContentTypeLanguages.VisualBasic)]

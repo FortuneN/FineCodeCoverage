@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Windows.Media;
 
-namespace FineCodeCoverage.Impl
+namespace FineCodeCoverage.Editor.Management
 {
     internal interface IItemCoverageColours : IEquatable<IItemCoverageColours>
     {

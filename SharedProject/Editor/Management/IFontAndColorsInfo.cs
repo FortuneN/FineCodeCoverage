@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace FineCodeCoverage.Impl
+namespace FineCodeCoverage.Editor.Management
 {
     internal interface IFontAndColorsInfo : IEquatable<IFontAndColorsInfo>
     {

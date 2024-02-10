@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
 
-namespace FineCodeCoverage.Impl
+namespace FineCodeCoverage.Editor.DynamicCoverage
 {
     [Export(typeof(ILinesContainingCodeTrackerFactory))]
     internal class LinesContainingCodeTrackerFactory : ILinesContainingCodeTrackerFactory

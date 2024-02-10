@@ -2,7 +2,7 @@
 using System.ComponentModel.Composition;
 using System.Linq;
 
-namespace FineCodeCoverage.Impl
+namespace FineCodeCoverage.Editor.Management
 {
     [Export(typeof(IShouldAddCoverageMarkersLogic))]
     class ShouldAddCoverageMarkersLogic : IShouldAddCoverageMarkersLogic

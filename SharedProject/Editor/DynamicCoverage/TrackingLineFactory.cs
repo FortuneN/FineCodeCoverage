@@ -1,7 +1,7 @@
 ﻿using Microsoft.VisualStudio.Text;
 using System.ComponentModel.Composition;
 
-namespace FineCodeCoverage.Impl
+namespace FineCodeCoverage.Editor.DynamicCoverage
 {
     [Export(typeof(ITrackingLineFactory))]
     public class TrackingLineFactory : ITrackingLineFactory

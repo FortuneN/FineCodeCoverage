@@ -2,7 +2,7 @@
 using Microsoft.CodeAnalysis.Text;
 using System.Collections.Generic;
 
-namespace FineCodeCoverage.Impl
+namespace FineCodeCoverage.Editor.Roslyn
 {
     interface ILanguageContainingCodeVisitor
     {

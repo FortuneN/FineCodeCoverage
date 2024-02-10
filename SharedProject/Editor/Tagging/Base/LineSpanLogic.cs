@@ -1,9 +1,10 @@
-﻿using Microsoft.VisualStudio.Text;
+﻿using FineCodeCoverage.Editor.DynamicCoverage;
+using Microsoft.VisualStudio.Text;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
 
-namespace FineCodeCoverage.Impl
+namespace FineCodeCoverage.Editor.Tagging.Base
 {
     [Export(typeof(ILineSpanLogic))]
     internal class LineSpanLogic : ILineSpanLogic

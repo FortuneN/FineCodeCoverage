@@ -3,7 +3,7 @@ using Microsoft.VisualStudio.Text.Classification;
 using System.ComponentModel.Composition;
 using System.Threading.Tasks;
 
-namespace FineCodeCoverage.Impl
+namespace FineCodeCoverage.Editor.Management
 {
     [Export(typeof(ICoverageTextMarkerInitializeTiming))]
     internal class CoverageTextMarkerInitializeTiming : ICoverageTextMarkerInitializeTiming

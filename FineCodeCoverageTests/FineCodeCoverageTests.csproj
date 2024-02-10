@@ -485,37 +485,37 @@
     <Compile Include="CoverageToolOutput_Tests\SolutionFolderProvider_Tests.cs" />
     <Compile Include="AppOptionsProvider_Tests.cs" />
     <Compile Include="CoverageUtilManager_Tests.cs" />
-    <Compile Include="Coverage_Colours\BufferLineCoverage_Tests.cs" />
-    <Compile Include="Coverage_Colours\ContainingCodeTracker_Tests.cs" />
-    <Compile Include="Coverage_Colours\CoverageClassificationFilter_Tests.cs" />
-    <Compile Include="Coverage_Colours\CoverageColoursManager_Tests.cs" />
-    <Compile Include="Coverage_Colours\CoverageLineClassificationTaggerProvider_Tests.cs" />
-    <Compile Include="Coverage_Colours\CoverageLineGlyphTaggerProvider_Tests.cs" />
-    <Compile Include="Coverage_Colours\CoverageLineGlyphTagger_Tests.cs" />
-    <Compile Include="Coverage_Colours\CoverageLineOverviewMarkTaggerProvider_Tests.cs" />
-    <Compile Include="Coverage_Colours\CoverageOverviewMargin_Tests.cs" />
-    <Compile Include="Coverage_Colours\CoverageTaggerProvider_Tests.cs" />
-    <Compile Include="Coverage_Colours\CoverageTagger_Tests.cs" />
-    <Compile Include="Coverage_Colours\CoverageTypeFilterBase_Exception_Tests.cs" />
-    <Compile Include="Coverage_Colours\CoverageTypeFilter_Tests_Base.cs" />
-    <Compile Include="Coverage_Colours\Types\DummyCoverageTypeFilter.cs" />
-    <Compile Include="Coverage_Colours\Types\DummyTag.cs" />
-    <Compile Include="Coverage_Colours\DynamicCoverageManager_Tests.cs" />
-    <Compile Include="Coverage_Colours\EditorFormatMapTextSpecificListener_Tests.cs" />
-    <Compile Include="Coverage_Colours\FontAndColorsInfoFactory.cs" />
-    <Compile Include="Coverage_Colours\FontAndColorsInfosProvider_Tests.cs" />
-    <Compile Include="Coverage_Colours\FontAndColorsInfo_Equatable_Tests.cs" />
-    <Compile Include="Coverage_Colours\GlyphFilter_Tests.cs" />
-    <Compile Include="Coverage_Colours\ItemCoverageColours_Equatable_Tests.cs" />
-    <Compile Include="Coverage_Colours\Types\LineSpan.cs" />
-    <Compile Include="Coverage_Colours\LineSpanLogic_Tests.cs" />
-    <Compile Include="Coverage_Colours\Types\OtherCoverageTypeFilter.cs" />
-    <Compile Include="Coverage_Colours\Types\SnapshotSpanFactory.cs" />
-    <Compile Include="Coverage_Colours\TextFormattingRunPropertiesFactory_Tests.cs" />
-    <Compile Include="Coverage_Colours\ContainingCodeTrackedLinesBuilder_Tests.cs" />
-    <Compile Include="Coverage_Colours\TrackedCoverageLines_Test.cs" />
-    <Compile Include="Coverage_Colours\TrackedLines_Test.cs" />
-    <Compile Include="Coverage_Colours\TrackingSpanRange_Tests.cs" />
+    <Compile Include="Editor\DynamicCoverage\BufferLineCoverage_Tests.cs" />
+    <Compile Include="Editor\DynamicCoverage\ContainingCodeTracker_Tests.cs" />
+    <Compile Include="Editor\Tagging\Classification\CoverageClassificationFilter_Tests.cs" />
+    <Compile Include="Editor\Management\CoverageColoursManager_Tests.cs" />
+    <Compile Include="Editor\Tagging\Classification\CoverageLineClassificationTaggerProvider_Tests.cs" />
+    <Compile Include="Editor\Tagging\GlyphMargin\CoverageLineGlyphTaggerProvider_Tests.cs" />
+    <Compile Include="Editor\Tagging\GlyphMargin\CoverageLineGlyphTagger_Tests.cs" />
+    <Compile Include="Editor\Tagging\OverviewMargin\CoverageLineOverviewMarkTaggerProvider_Tests.cs" />
+    <Compile Include="Editor\Tagging\OverviewMargin\CoverageOverviewMargin_Tests.cs" />
+    <Compile Include="Editor\Tagging\Base\CoverageTaggerProvider_Tests.cs" />
+    <Compile Include="Editor\Tagging\Base\CoverageTagger_Tests.cs" />
+    <Compile Include="Editor\Tagging\Base\CoverageTypeFilterBase_Exception_Tests.cs" />
+    <Compile Include="Editor\Tagging\CoverageTypeFilter_Tests_Base.cs" />
+    <Compile Include="Editor\Tagging\Base\Types\DummyCoverageTypeFilter.cs" />
+    <Compile Include="Editor\Tagging\Base\Types\DummyTag.cs" />
+    <Compile Include="Editor\DynamicCoverage\DynamicCoverageManager_Tests.cs" />
+    <Compile Include="Editor\Management\EditorFormatMapTextSpecificListener_Tests.cs" />
+    <Compile Include="Editor\Management\FontAndColorsInfoFactory.cs" />
+    <Compile Include="Editor\Management\FontAndColorsInfosProvider_Tests.cs" />
+    <Compile Include="Editor\Management\FontAndColorsInfo_Equatable_Tests.cs" />
+    <Compile Include="Editor\Tagging\GlyphMargin\GlyphFilter_Tests.cs" />
+    <Compile Include="Editor\Management\ItemCoverageColours_Equatable_Tests.cs" />
+    <Compile Include="Editor\Tagging\Types\LineSpan.cs" />
+    <Compile Include="Editor\Tagging\Base\LineSpanLogic_Tests.cs" />
+    <Compile Include="Editor\Tagging\Base\Types\OtherCoverageTypeFilter.cs" />
+    <Compile Include="Editor\Tagging\Types\SnapshotSpanFactory.cs" />
+    <Compile Include="Editor\Management\TextFormattingRunPropertiesFactory_Tests.cs" />
+    <Compile Include="Editor\DynamicCoverage\ContainingCodeTrackedLinesBuilder_Tests.cs" />
+    <Compile Include="Editor\DynamicCoverage\TrackedCoverageLines_Test.cs" />
+    <Compile Include="Editor\DynamicCoverage\TrackedLines_Test.cs" />
+    <Compile Include="Editor\DynamicCoverage\TrackingSpanRange_Tests.cs" />
     <Compile Include="FileLineCoverage_Tests.cs" />
     <Compile Include="FirstTimeToolWindowOpener_Tests.cs" />
     <Compile Include="MefTests.cs" />
@@ -591,6 +591,7 @@
       <Name>FineCodeCoverage2022</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup />
   <PropertyGroup Label="FineCodeCoverage">
     <IncludeReferencedProjects>true</IncludeReferencedProjects>
   </PropertyGroup>

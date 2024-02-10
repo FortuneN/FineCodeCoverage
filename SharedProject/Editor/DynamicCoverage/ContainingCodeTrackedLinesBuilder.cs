@@ -1,4 +1,6 @@
 ﻿using FineCodeCoverage.Core.Utilities.VsThreading;
+using FineCodeCoverage.Editor.Roslyn;
+using FineCodeCoverage.Editor.Tagging.Base;
 using FineCodeCoverage.Engine.Model;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
@@ -6,7 +8,7 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
 
-namespace FineCodeCoverage.Impl
+namespace FineCodeCoverage.Editor.DynamicCoverage
 {
     [Export(typeof(ITrackedLinesFactory))]
     internal class ContainingCodeTrackedLinesBuilder : ITrackedLinesFactory

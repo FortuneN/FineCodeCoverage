@@ -8,7 +8,7 @@ using System.Runtime.InteropServices;
 using System.Collections.ObjectModel;
 using FineCodeCoverage.Engine.Model;
 
-namespace FineCodeCoverage.Impl
+namespace FineCodeCoverage.Editor.Management
 {
     [Export(typeof(CoverageColoursManager))]
     [Guid(TextMarkerProviderString)]

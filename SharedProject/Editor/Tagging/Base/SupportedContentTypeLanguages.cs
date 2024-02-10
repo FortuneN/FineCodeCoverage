@@ -1,4 +1,4 @@
-﻿namespace FineCodeCoverage.Impl
+﻿namespace FineCodeCoverage.Editor.Tagging.Base
 {
     internal enum Language { CSharp, VB, CPP }
     internal class SupportedContentTypeLanguages

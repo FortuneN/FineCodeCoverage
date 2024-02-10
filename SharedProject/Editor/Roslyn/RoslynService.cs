@@ -6,7 +6,7 @@ using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace FineCodeCoverage.Impl
+namespace FineCodeCoverage.Editor.Roslyn
 {
     [Export(typeof(IRoslynService))]
     internal class RoslynService : IRoslynService

@@ -3,7 +3,7 @@ using Microsoft.VisualStudio.TextManager.Interop;
 using System;
 using System.Windows.Media;
 
-namespace FineCodeCoverage.Impl
+namespace FineCodeCoverage.Editor.Management
 {
     // Thiis will be converted internally to AllColorableItemInfo
     internal class CoverageMarkerType :

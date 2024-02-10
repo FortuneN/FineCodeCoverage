@@ -1,4 +1,5 @@
 ﻿using FineCodeCoverage.Core.Utilities;
+using FineCodeCoverage.Editor.Tagging.Base;
 using FineCodeCoverage.Engine;
 using FineCodeCoverage.Engine.Model;
 using Microsoft.VisualStudio.Text;
@@ -6,7 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace FineCodeCoverage.Impl
+namespace FineCodeCoverage.Editor.DynamicCoverage
 {
     class BufferLineCoverage : IBufferLineCoverage, IListener<NewCoverageLinesMessage>
     {

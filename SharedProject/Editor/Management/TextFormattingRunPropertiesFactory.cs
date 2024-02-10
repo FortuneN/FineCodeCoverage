@@ -2,7 +2,7 @@
 using System.ComponentModel.Composition;
 using System.Windows.Media;
 
-namespace FineCodeCoverage.Impl
+namespace FineCodeCoverage.Editor.Management
 {
     // todo - consider a MEF export to allow other extensions to change the formatting
     [Export(typeof(ITextFormattingRunPropertiesFactory))]
