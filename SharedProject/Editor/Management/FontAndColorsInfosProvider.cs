@@ -1,5 +1,6 @@
 ﻿using FineCodeCoverage.Core.Utilities;
 using FineCodeCoverage.Core.Utilities.VsThreading;
+using FineCodeCoverage.Engine.Model;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;

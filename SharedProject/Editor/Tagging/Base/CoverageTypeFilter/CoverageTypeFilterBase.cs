@@ -1,4 +1,5 @@
-﻿using FineCodeCoverage.Options;
+﻿using FineCodeCoverage.Engine.Model;
+using FineCodeCoverage.Options;
 using System;
 using System.Collections.Generic;
 

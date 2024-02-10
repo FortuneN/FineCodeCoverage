@@ -1,4 +1,6 @@
-﻿namespace FineCodeCoverage.Impl
+﻿using FineCodeCoverage.Engine.Model;
+
+namespace FineCodeCoverage.Impl
 {
     internal interface ICoverageColours
     {

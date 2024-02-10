@@ -5,12 +5,6 @@ using System.Collections.Generic;
 
 namespace FineCodeCoverage.Engine.Model
 {
-    internal interface ILine
-    {
-        int Number { get; }
-        CoverageType CoverageType { get; }
-    }
-
     // FileLineCoverage maps from a filename to the list of lines in the file
     internal class FileLineCoverage : IFileLineCoverage
     {

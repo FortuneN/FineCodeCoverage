@@ -1,4 +1,4 @@
-﻿using FineCodeCoverage.Impl;
+﻿using FineCodeCoverage.Engine.Model;
 using System.Collections.Generic;
 
 namespace FineCodeCoverage.Impl

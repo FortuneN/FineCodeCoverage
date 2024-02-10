@@ -1,4 +1,5 @@
-﻿using FineCodeCoverage.Options;
+﻿using FineCodeCoverage.Engine.Model;
+using FineCodeCoverage.Options;
 
 namespace FineCodeCoverage.Impl
 {

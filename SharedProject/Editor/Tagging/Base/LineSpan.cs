@@ -1,5 +1,4 @@
-﻿using FineCodeCoverage.Engine.Model;
-using Microsoft.VisualStudio.Text;
+﻿using Microsoft.VisualStudio.Text;
 
 namespace FineCodeCoverage.Impl
 {

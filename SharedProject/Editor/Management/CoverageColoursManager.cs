@@ -6,6 +6,7 @@ using System.Windows.Media;
 using Microsoft.VisualStudio.TextManager.Interop;
 using System.Runtime.InteropServices;
 using System.Collections.ObjectModel;
+using FineCodeCoverage.Engine.Model;
 
 namespace FineCodeCoverage.Impl
 {
