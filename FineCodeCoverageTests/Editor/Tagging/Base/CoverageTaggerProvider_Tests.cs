@@ -14,7 +14,7 @@ using System.Collections.Generic;
 
 namespace FineCodeCoverageTests.Editor.Tagging.Base
 {
-    public class CoverageTaggerProvider_Tests
+    internal class CoverageTaggerProvider_Tests
     {
         [TestCase(false)]
         [TestCase(true)]

@@ -9,7 +9,7 @@ using System.Linq;
 
 namespace FineCodeCoverageTests.Editor.Management
 {
-    public class EditorFormatMapTextSpecificListener_Tests
+    internal class EditorFormatMapTextSpecificListener_Tests
     {
         [TestCase(new string[] { "This" }, new string[] { "That" }, false)]
         [TestCase(new string[] { "Other", "Match" }, new string[] { "NoMatch", "Match" }, true)]

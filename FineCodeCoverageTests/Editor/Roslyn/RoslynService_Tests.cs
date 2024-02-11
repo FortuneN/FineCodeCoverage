@@ -11,31 +11,6 @@ using System.Threading.Tasks;
 
 namespace FineCodeCoverageTests.Editor.Roslyn
 {
-    internal class CSharpContainingCodeVisitor_Tests
-    {
-        [Test]
-        public void Should_Visit_Methods()
-        {
-            var cSharpContainingCodeVisitor = new CSharpContainingCodeVisitor();
-
-            var text = @"
-namespace MyNamespace
-{
-    public class MyClass
-    {
-        public void MyMethod()
-        {
-            var x = 1;
-        }
-    }
-}
-";
-            var rootNode = SyntaxFactory.ParseCompilationUnit(text);
-            var textSpans = cSharpContainingCodeVisitor.GetSpans(rootNode);
-            Assert.That(textSpans, Has.Count.EqualTo(1));
-
-        }
-    }
     internal class RoslynService_Tests
     {
         [Test]

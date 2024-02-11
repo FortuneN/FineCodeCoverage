@@ -3,7 +3,7 @@ using FineCodeCoverage.Core.Utilities;
 using FineCodeCoverage.Core.Utilities.VsThreading;
 using FineCodeCoverage.Editor.Management;
 using FineCodeCoverage.Engine.Model;
-using FineCodeCoverageTests.Test_helpers;
+using FineCodeCoverageTests.TestHelpers;
 using Moq;
 using NUnit.Framework;
 using System;
@@ -12,7 +12,7 @@ using System.Windows.Media;
 
 namespace FineCodeCoverageTests.Editor.Management
 {
-    public class FontAndColorsInfosProvider_Tests
+    internal class FontAndColorsInfosProvider_Tests
     {
         [Test]
         public void GetCoverageColours_If_Required()

@@ -13,7 +13,7 @@ using LineSpan = FineCodeCoverageTests.Editor.Tagging.Types.LineSpan;
 
 namespace FineCodeCoverageTests.Editor.Tagging.OverviewMargin
 {
-    public class CoverageLineOverviewMarkTaggerProvider_Tests
+    internal class CoverageLineOverviewMarkTaggerProvider_Tests
     {
         [Test]
         public void Should_Create_Tagger_From_The_ICoverageTaggerProviderFactory()

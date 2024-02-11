@@ -9,7 +9,6 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
 using Moq;
 using NUnit.Framework;
-using System;
 using System.ComponentModel.Composition;
 using System.Linq;
 

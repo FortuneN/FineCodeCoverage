@@ -4,7 +4,7 @@ using System.Windows.Media;
 
 namespace FineCodeCoverageTests.Editor.Management
 {
-    public class ItemCoverageColours_Equatable_Tests
+    internal class ItemCoverageColours_Equatable_Tests
     {
         [Test]
         public void Should_Be_Equal_When_Foreground_And_Background_Equals()

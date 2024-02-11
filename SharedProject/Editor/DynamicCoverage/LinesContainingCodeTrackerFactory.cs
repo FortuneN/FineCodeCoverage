@@ -32,24 +32,25 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
 
         public IContainingCodeTracker Create(ITextSnapshot textSnapshot, List<ILine> lines, CodeSpanRange containingRange)
         {
-            var trackingLineSpans = Enumerable.Range(containingRange.StartLine, containingRange.EndLine - containingRange.StartLine)
+            var trackingLineSpans = Enumerable.Range(containingRange.StartLine, containingRange.EndLine - containingRange.StartLine + 1)
                 .Select(lineNumber => trackingLineFactory.Create(textSnapshot, lineNumber)).ToList();
             var trackingSpanRange = trackingSpanRangeFactory.Create(trackingLineSpans);
 
             var coverageLines = GetTrackedCoverageLines(textSnapshot, lines);
-            return trackedContainingCodeTrackerFactory.Create(trackingSpanRange, GetTrackedCoverageLines(textSnapshot,lines));
-        }
-
-        private ITrackedCoverageLines GetTrackedCoverageLines(ITextSnapshot textSnapshot, List<ILine> lines)
-        {
-            var coverageLines = lines.Select(line => coverageLineFactory.Create(trackingLineFactory.Create(textSnapshot, line.Number - 1), line)).ToList();
-            return trackedCoverageLinesFactory.Create(coverageLines.ToList());
+            return trackedContainingCodeTrackerFactory.Create(trackingSpanRange, coverageLines);
         }
 
         public IContainingCodeTracker Create(ITextSnapshot textSnapshot, ILine line)
         {
             return trackedContainingCodeTrackerFactory.Create(GetTrackedCoverageLines(textSnapshot, new List<ILine> { line }));
         }
-    }
 
+        private ITrackedCoverageLines GetTrackedCoverageLines(ITextSnapshot textSnapshot, List<ILine> lines)
+        {
+            var coverageLines = lines.Select(line => coverageLineFactory.Create(
+                trackingLineFactory.Create(textSnapshot, line.Number - 1), line)
+            ).ToList();
+            return trackedCoverageLinesFactory.Create(coverageLines.ToList());
+        }
+    }
 }

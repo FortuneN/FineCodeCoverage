@@ -99,11 +99,21 @@ namespace FineCodeCoverage.Editor.Roslyn
         {
             if (!IsAbstract(node.Modifiers) && node.AccessorList != null)
             {
+                var isInterfaceProperty = node.Parent is InterfaceDeclarationSyntax;
                 foreach (var accessor in node.AccessorList.Accessors)
                 {
-                    spans.Add(accessor.FullSpan);
+                    var addAccessor = !isInterfaceProperty || AccessorHasBody(accessor);
+                    if(addAccessor)
+                    {
+                        spans.Add(accessor.FullSpan);
+                    }
                 }
             }
+        }
+
+        private bool AccessorHasBody(AccessorDeclarationSyntax accessor)
+        {
+            return accessor.Body != null || accessor.ExpressionBody != null;
         }
 
         private void VisitMembers(SyntaxList<MemberDeclarationSyntax> members)

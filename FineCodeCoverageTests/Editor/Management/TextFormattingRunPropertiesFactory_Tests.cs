@@ -5,7 +5,7 @@ using System.Windows.Media;
 
 namespace FineCodeCoverageTests.Editor.Management
 {
-    public class TextFormattingRunPropertiesFactory_Tests
+    internal class TextFormattingRunPropertiesFactory_Tests
     {
         [TestCase(true)]
         [TestCase(false)]

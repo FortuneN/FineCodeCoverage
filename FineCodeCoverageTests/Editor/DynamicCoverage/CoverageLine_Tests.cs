@@ -2,6 +2,7 @@
 using FineCodeCoverage.Editor.DynamicCoverage;
 using FineCodeCoverage.Engine.Model;
 using Microsoft.VisualStudio.Text;
+using Moq;
 using NUnit.Framework;
 
 namespace FineCodeCoverageTests.Editor.DynamicCoverage
@@ -69,5 +70,16 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
 
             Assert.That(coverageLine.Line.Number, Is.EqualTo(1));
         }
+
+        [TestCase(CoverageType.Covered)]
+        [TestCase(CoverageType.NotCovered)]
+        [TestCase(CoverageType.Partial)]
+        public void Should_Have_Line_With_Correct_CoverageType(CoverageType coverageType)
+        {
+            var mockLine = new Mock<ILine>();
+            mockLine.SetupGet(line => line.CoverageType).Returns(coverageType);
+            Assert.That(new CoverageLine(null, mockLine.Object).Line.CoverageType, Is.EqualTo(coverageType));
+        }
+
     }
 }

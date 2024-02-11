@@ -2,7 +2,7 @@
 using FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage;
 using System.Xml.Linq;
 using System.Xml.XPath;
-using FineCodeCoverageTests.Test_helpers;
+using FineCodeCoverageTests.TestHelpers;
 
 namespace FineCodeCoverageTests.MsCodeCoverage
 {

@@ -13,7 +13,7 @@ using LineSpan = FineCodeCoverageTests.Editor.Tagging.Types.LineSpan;
 
 namespace FineCodeCoverageTests.Editor.Tagging.GlyphMargin
 {
-    public class CoverageLineGlyphTaggerProvider_Tests
+    internal class CoverageLineGlyphTaggerProvider_Tests
     {
         [TestCase(true)]
         [TestCase(false)]

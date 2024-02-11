@@ -3,7 +3,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace FineCodeCoverageTests.Test_helpers
+namespace FineCodeCoverageTests.TestHelpers
 {
     internal class TestThreadHelper : IThreadHelper
     {

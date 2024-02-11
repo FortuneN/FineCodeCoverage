@@ -7,11 +7,10 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
 using Moq;
 using NUnit.Framework;
-using System;
 
 namespace FineCodeCoverageTests.Editor.Tagging.GlyphMargin
 {
-    public class CoverageLineGlyphTagger_Tests
+    internal class CoverageLineGlyphTagger_Tests
     {
         [Test]
         public void Should_Listen_For_CoverageColoursChangedMessage()

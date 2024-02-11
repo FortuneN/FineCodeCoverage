@@ -4,7 +4,7 @@ using FineCodeCoverage.Editor.DynamicCoverage;
 using FineCodeCoverage.Editor.Roslyn;
 using FineCodeCoverage.Editor.Tagging.Base;
 using FineCodeCoverage.Engine.Model;
-using FineCodeCoverageTests.Test_helpers;
+using FineCodeCoverageTests.TestHelpers;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Moq;
@@ -268,6 +268,16 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
                     yield return new RoslynTestCase(test3CodeSpanRanges, test3Lines, new List<TrackerArgs>
                     {
                         TrackerArgs.Range(test3Lines, test3CodeSpanRanges[0])
+                    });
+
+                    var test4CodeSpanRanges = new List<CodeSpanRange>
+                    {
+                        new CodeSpanRange(10,20),
+                    };
+                    var test4Lines = new List<ILine> { GetLine(50) };
+                    yield return new RoslynTestCase(test4CodeSpanRanges, test4Lines, new List<TrackerArgs>
+                    {
+                        TrackerArgs.Single(test4Lines[0])
                     });
                 }
             }

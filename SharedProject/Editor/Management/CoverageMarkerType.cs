@@ -45,6 +45,7 @@ namespace FineCodeCoverage.Editor.Management
             
             if (((int) pdwVisualFlags & 71) != 0) - 1000111 - BUT WILL GO TO IVsHiColorItem.GetColorData instead if present
         */
+        [ExcludeFromCodeCoverage]
         public int GetDefaultColors(COLORINDEX[] piForeground, COLORINDEX[] piBackground)
         {
             return -2147467263;
@@ -60,11 +61,15 @@ namespace FineCodeCoverage.Editor.Management
             pdwFontFlags = 0U;
             return 0;
         }
+
+        [ExcludeFromCodeCoverage]
         public int GetPriorityIndex(out int piPriorityIndex)
         {
             piPriorityIndex = 0;
             return 0;
         }
+
+        [ExcludeFromCodeCoverage]
         public int DrawGlyphWithColors(
             IntPtr hdc,
             RECT[] pRect,

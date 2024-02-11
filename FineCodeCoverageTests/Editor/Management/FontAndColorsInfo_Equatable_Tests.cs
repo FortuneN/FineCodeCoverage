@@ -5,7 +5,7 @@ using System;
 
 namespace FineCodeCoverageTests.Editor.Management
 {
-    public class FontAndColorsInfo_Equatable_Tests
+    internal class FontAndColorsInfo_Equatable_Tests
     {
         [Test]
         public void Should_Be_Equal_When_Bold_Same_And_IItemCoverageColours_Equals()

@@ -11,7 +11,7 @@ using FineCodeCoverage.Impl;
 using FineCodeCoverage.Engine;
 using System.Threading.Tasks;
 using FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage;
-using FineCodeCoverageTests.Test_helpers;
+using FineCodeCoverageTests.TestHelpers;
 using FineCodeCoverage.Engine.ReportGenerator;
 using FineCodeCoverage.Engine.Model;
 using FineCodeCoverage.Options;

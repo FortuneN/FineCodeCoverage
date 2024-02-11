@@ -11,7 +11,7 @@ using System.Linq;
 
 namespace FineCodeCoverageTests.Editor.Management
 {
-    public class CoverageColoursManager_Tests
+    internal class CoverageColoursManager_Tests
     {
         [Test]
         public void Should_Not_GetTextMarkerType_If_Should_Not()
@@ -46,6 +46,20 @@ namespace FineCodeCoverageTests.Editor.Management
             var success = coverageColoursManager.GetTextMarkerType(ref guid, out var markerType);
             Assert.That(success, Is.EqualTo(0));
 
+            success = markerType.GetBehaviorFlags(out var flags);
+            Assert.That(success, Is.EqualTo(0));
+
+            success = markerType.GetVisualStyle(out var visualStyle);
+            Assert.That(success, Is.EqualTo(0));
+            Assert.That(visualStyle, Is.EqualTo((uint)MARKERVISUAL.MV_GLYPH));
+
+            success = markerType.GetDefaultFontFlags(out var fontFlags);
+            Assert.That(success, Is.EqualTo(0));
+            Assert.That(fontFlags, Is.EqualTo(0U));
+
+            success = markerType.GetDefaultLineStyle(new COLORINDEX[1], new LINESTYLE[1]);
+            Assert.That(success, Is.EqualTo(-2147467263));
+
             var vsMergeableUIItem = markerType as IVsMergeableUIItem;
             success = vsMergeableUIItem.GetDisplayName(out var displayName);
             Assert.That(success, Is.EqualTo(0));
@@ -61,6 +75,8 @@ namespace FineCodeCoverageTests.Editor.Management
             Assert.That(success, Is.EqualTo(0));
             success = vsHiColorItem.GetColorData(1, out var backgroundColor);
             Assert.That(success, Is.EqualTo(0));
+            success = vsHiColorItem.GetColorData(2, out var lineColor);
+            Assert.That(success, Is.EqualTo(2147467259));
         }
 
         [Test]

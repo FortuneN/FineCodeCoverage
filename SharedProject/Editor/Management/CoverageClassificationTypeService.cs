@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
 namespace FineCodeCoverage.Editor.Management
@@ -23,18 +24,20 @@ namespace FineCodeCoverage.Editor.Management
         private readonly ReadOnlyDictionary<CoverageType, IClassificationType> classificationTypes;
         private readonly IClassificationType highestPriorityClassificationType;
 
+        [ExcludeFromCodeCoverage]
         [Export]
         [Name(FCCNotCoveredClassificationTypeName)]
         public ClassificationTypeDefinition FCCNotCoveredTypeDefinition { get; set; }
 
+        [ExcludeFromCodeCoverage]
         [Export]
         [Name(FCCCoveredClassificationTypeName)]
         public ClassificationTypeDefinition FCCCoveredTypeDefinition { get; set; }
 
+        [ExcludeFromCodeCoverage]
         [Export]
         [Name(FCCPartiallyCoveredClassificationTypeName)]
         public ClassificationTypeDefinition FCCPartiallyCoveredTypeDefinition { get; set; }
-
 
         [ImportingConstructor]
         public CoverageClassificationTypeService(

@@ -10,7 +10,7 @@ using System.Collections.Generic;
 using FineCodeCoverage.Engine;
 using System.Linq;
 using System.Threading;
-using FineCodeCoverageTests.Test_helpers;
+using FineCodeCoverageTests.TestHelpers;
 using FineCodeCoverage.Engine.ReportGenerator;
 using FineCodeCoverage.Core.Utilities;
 using System.IO;

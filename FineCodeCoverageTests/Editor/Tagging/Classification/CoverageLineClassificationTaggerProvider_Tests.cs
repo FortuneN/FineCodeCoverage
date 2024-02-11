@@ -16,7 +16,7 @@ using LineSpan = FineCodeCoverageTests.Editor.Tagging.Types.LineSpan;
 
 namespace FineCodeCoverageTests.Editor.Tagging.Classification
 {
-    public class CoverageLineClassificationTaggerProvider_Tests
+    internal class CoverageLineClassificationTaggerProvider_Tests
     {
         [Test]
         public void Should_Create_Tagger_From_The_ICoverageTaggerProviderFactory()

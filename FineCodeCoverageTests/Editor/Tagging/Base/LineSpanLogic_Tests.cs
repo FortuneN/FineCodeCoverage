@@ -9,7 +9,7 @@ using System.Linq;
 
 namespace FineCodeCoverageTests.Editor.Tagging.Base
 {
-    public class LineSpanLogic_Tests
+    internal class LineSpanLogic_Tests
     {
         class Line : ILine
         {

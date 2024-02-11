@@ -15,7 +15,7 @@ using LineSpan = FineCodeCoverageTests.Editor.Tagging.Types.LineSpan;
 
 namespace FineCodeCoverageTests.Editor.Tagging.Base
 {
-    public class CoverageTagger_Tests
+    internal class CoverageTagger_Tests
     {
         [Test]
         public void Should_Listen_For_Changes()

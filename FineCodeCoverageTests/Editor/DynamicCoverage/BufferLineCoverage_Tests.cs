@@ -13,7 +13,7 @@ using System.Collections.Generic;
 
 namespace FineCodeCoverageTests.Editor.DynamicCoverage
 {
-    class NormalizedTextChangeCollection : List<ITextChange>, INormalizedTextChangeCollection
+    internal class NormalizedTextChangeCollection : List<ITextChange>, INormalizedTextChangeCollection
     {
         public bool IncludesLineChanges => throw new NotImplementedException();
     }
