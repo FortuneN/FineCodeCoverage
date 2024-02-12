@@ -22,7 +22,7 @@ namespace FineCodeCoverageTests.MsCodeCoverage
     internal class MsCodeCoverageRunSettingsService_Test_Execution_Not_Finished_Tests
     {
         [Test]
-        public void Should_Set_To_Not_Collecting()
+        public async Task Should_Set_To_Not_Collecting_Async()
         {
             var autoMocker = new AutoMoqer();
             var msCodeCoverageRunSettingsService = autoMocker.Create<MsCodeCoverageRunSettingsService>();
@@ -31,7 +31,7 @@ namespace FineCodeCoverageTests.MsCodeCoverage
 
             var mockTestOperation = new Mock<ITestOperation>();
             mockTestOperation.Setup(testOperation => testOperation.GetCoverageProjectsAsync()).ReturnsAsync(new List<ICoverageProject>());
-            msCodeCoverageRunSettingsService.TestExecutionNotFinishedAsync(mockTestOperation.Object);
+            await msCodeCoverageRunSettingsService.TestExecutionNotFinishedAsync(mockTestOperation.Object);
 
             Assert.That(msCodeCoverageRunSettingsService.collectionStatus, Is.EqualTo(MsCodeCoverageCollectionStatus.NotCollecting));
         }

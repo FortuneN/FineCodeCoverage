@@ -55,7 +55,9 @@ namespace Test
         public async Task Should_Call_SourceFileOpender_When_OpenFile_Async()
         {
             scriptManager.OpenFile("aname", "q.cname", 2, 3);
+#pragma warning disable VSTHRD003 // Avoid awaiting foreign Tasks
             await scriptManager.openFileTask;
+#pragma warning restore VSTHRD003 // Avoid awaiting foreign Tasks
             sourceFileOpener.Verify(engine => engine.OpenFileAsync("aname", "q.cname", 2, 3));
         }
     }

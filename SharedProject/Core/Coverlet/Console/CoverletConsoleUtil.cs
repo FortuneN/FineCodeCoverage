@@ -96,7 +96,7 @@ namespace FineCodeCoverage.Engine.Coverlet
     [Export(typeof(ICoverletConsoleExecuteRequestProvider))]
     internal class CoverletConsoleExecuteRequestProvider : ICoverletConsoleExecuteRequestProvider
     {
-        private List<ICoverletConsoleExecutor> executors;
+        private readonly List<ICoverletConsoleExecutor> executors;
 
         [ImportingConstructor]
         public CoverletConsoleExecuteRequestProvider(
@@ -140,7 +140,6 @@ namespace FineCodeCoverage.Engine.Coverlet
         private readonly ICoverletConsoleExecuteRequestProvider coverletConsoleExecuteRequestProvider;
         private readonly IFCCCoverletConsoleExecutor fccExecutor;
         private readonly ICoverletExeArgumentsProvider coverletExeArgumentsProvider;
-        private readonly List<ICoverletConsoleExecutor> executors;
 
 		[ImportingConstructor]
 		public CoverletConsoleUtil(

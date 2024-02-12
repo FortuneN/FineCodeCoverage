@@ -10,7 +10,9 @@ namespace FineCodeCoverage.Core.Utilities
     [Guid("0D915B59-2ED7-472A-9DE8-9161737EA1C5")]
     [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
     [TypeIdentifier]
+#pragma warning disable IDE1006 // Naming Styles
     public interface SVsColorThemeService
+#pragma warning restore IDE1006 // Naming Styles
     {
     }
     
@@ -66,8 +68,7 @@ namespace FineCodeCoverage.Core.Utilities
     public class VsColorTheme : IVsColorTheme
     {
         private object currentTheme;
-        private string currentThemeName;
-        private object colorThemeService;
+        private readonly object colorThemeService;
 
         private PropertyInfo indexer;
         private Type colorNameType;
@@ -98,7 +99,9 @@ namespace FineCodeCoverage.Core.Utilities
 
         }
 
+#pragma warning disable IDE1006 // Naming Styles
         private event EventHandler themeChanged;
+#pragma warning restore IDE1006 // Naming Styles
 
         public event EventHandler ThemeChanged
         {

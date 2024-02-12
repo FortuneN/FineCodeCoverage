@@ -124,7 +124,9 @@ namespace Test
             testContainerDiscoverer = mocker.Create<TestContainerDiscoverer>();
             testContainerDiscoverer.RunAsync = (taskProvider) =>
             {
+#pragma warning disable VSTHRD002 // Avoid problematic synchronous waits
                 taskProvider().Wait();
+#pragma warning restore VSTHRD002 // Avoid problematic synchronous waits
             };
             var mockTestOperationStateInvocationManager = mocker.GetMock<ITestOperationStateInvocationManager>();
             mockTestOperationStateInvocationManager.Setup(testOperationStateInvocationManager => testOperationStateInvocationManager.CanInvoke(It.IsAny<TestOperationStates>())).Returns(true);
