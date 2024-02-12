@@ -22,3 +22,4 @@ x64/
 *.ncrunchproject
 _NCrunch_WebCompiler
 /MSBuild_Logs
+/MigrationBackup/f1627d49/FineCodeCoverageTests
