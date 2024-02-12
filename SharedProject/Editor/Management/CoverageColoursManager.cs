@@ -63,7 +63,7 @@ namespace FineCodeCoverage.Editor.Management
                 this.markerTypes = CreateMarkerTypes();
             }
 
-            initializeTiming.Initializable = this;
+            initializeTiming.Initializable = this; 
         }
 
         public bool RequiresInitialization => !hasSetClassificationTypeColours;

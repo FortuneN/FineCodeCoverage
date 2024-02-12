@@ -41,7 +41,7 @@ namespace Test
         }
 
 		[Test]
-		public async Task Should_Log_Initializing_When_Initialize()
+		public async Task Should_Log_Initializing_When_Initialize_Async()
         {
 			await initializer.InitializeAsync(CancellationToken.None);
 			mocker.Verify<ILogger>(l => l.Log("Initializing"));
@@ -57,21 +57,21 @@ namespace Test
 
 		}
 		[Test]
-		public async Task Should_Set_InitializeStatus_To_Error_If_Exception_When_Initialize()
+		public async Task Should_Set_InitializeStatus_To_Error_If_Exception_When_Initialize_Async()
 		{
 			await InitializeWithExceptionAsync();
 			Assert.AreEqual(InitializeStatus.Error, initializer.InitializeStatus);
 		}
 
 		[Test]
-		public async Task Should_Set_InitializeExceptionMessage_If_Exception_When_Initialize()
+		public async Task Should_Set_InitializeExceptionMessage_If_Exception_When_Initialize_Async()
 		{
 			await InitializeWithExceptionAsync();
 			Assert.AreEqual("initialize exception", initializer.InitializeExceptionMessage);
 		}
 
 		[Test]
-		public async Task Should_Log_Failed_Initialization_With_Exception_if_Exception_When_Initialize()
+		public async Task Should_Log_Failed_Initialization_With_Exception_if_Exception_When_Initialize_Async()
         {
 			Exception initializeException = null;
 			await InitializeWithExceptionAsync(exc => initializeException = exc);
@@ -79,21 +79,21 @@ namespace Test
 		}
 
 		[Test]
-		public async Task Should_Set_InitializeStatus_To_Initialized_When_Successfully_Completed()
+		public async Task Should_Set_InitializeStatus_To_Initialized_When_Successfully_Completed_Async()
 		{
 			await initializer.InitializeAsync(CancellationToken.None);
 			Assert.AreEqual(InitializeStatus.Initialized, initializer.InitializeStatus);
 		}
 
 		[Test]
-		public async Task Should_Log_Initialized_When_Successfully_Completed()
+		public async Task Should_Log_Initialized_When_Successfully_Completed_Async()
 		{
 			await initializer.InitializeAsync(CancellationToken.None);
 			mocker.Verify<ILogger>(l => l.Log("Initialized"));
 		}
 
 		[Test]
-		public async Task Should_Initialize_Dependencies_In_Order()
+		public async Task Should_Initialize_Dependencies_In_Order_Async()
         {
 			var disposalToken = CancellationToken.None;
 			List<int> callOrder = new List<int>();

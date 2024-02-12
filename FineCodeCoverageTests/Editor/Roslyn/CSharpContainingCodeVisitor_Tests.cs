@@ -32,6 +32,24 @@ namespace MyNamespace
         }
 
         [Test]
+        public void Should_Work_With_File_Scope_Namespaces()
+        {
+            var text = @"
+namespace MyNamespace.X.Y;
+
+public class MyClass
+{
+    public void MyMethod()
+    {
+        var x = 1;
+    }
+}
+
+";
+            AssertShouldVisit<MethodDeclarationSyntax>(text);
+        }
+
+        [Test]
         public void Should_Visit_Method_With_Expression_Bodies()
         {
             var text = @"

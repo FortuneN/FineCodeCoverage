@@ -60,7 +60,7 @@ namespace Test
 
 
         [Test]
-        public async Task Should_Get_Settings_With_TestDllFile()
+        public async Task Should_Get_Settings_With_TestDllFile_Async()
         {
             mockCoverageProject.Setup(cp => cp.TestDllFile).Returns("test.dll");
             mockCoverageProject.Setup(cp => cp.CoverageOutputFolder).Returns("");
@@ -71,7 +71,7 @@ namespace Test
         }
 
         [Test]
-        public async Task Should_Get_Settings_With_Exclude_From_CoverageProject_And_RunSettings()
+        public async Task Should_Get_Settings_With_Exclude_From_CoverageProject_And_RunSettings_Async()
         {
             var projectExclude = new string[] { "excluded" };
             mockCoverageProject.Setup(cp => cp.Settings.Exclude).Returns(projectExclude);
@@ -84,7 +84,7 @@ namespace Test
         }
 
         [Test]
-        public async Task Should_Not_Throw_When_Project_Setttings_Exclude_Is_Null()
+        public async Task Should_Not_Throw_When_Project_Setttings_Exclude_Is_Null_Async()
         {
             var referencedExcluded = new List<string> { "referencedExcluded" };
             mockCoverageProject.Setup(cp => cp.ExcludedReferencedProjects).Returns(referencedExcluded);
@@ -95,7 +95,7 @@ namespace Test
         }
 
         [Test]
-        public async Task Should_Get_Settings_With_ExcludeByFile_From_CoverageProject_And_RunSettings()
+        public async Task Should_Get_Settings_With_ExcludeByFile_From_CoverageProject_And_RunSettings_Async()
         {
             var projectExcludeByFile = new string[] { "excludedByFile" };
             mockCoverageProject.Setup(cp => cp.Settings.ExcludeByFile).Returns(projectExcludeByFile);
@@ -107,7 +107,7 @@ namespace Test
         }
 
         [Test]
-        public async Task Should_Get_Settings_With_ExcludeByAttribute_From_CoverageProject_And_RunSettings()
+        public async Task Should_Get_Settings_With_ExcludeByAttribute_From_CoverageProject_And_RunSettings_Async()
         {
             var projectExcludeByAttribute = new string[] { "excludedByAttribute" };
             mockCoverageProject.Setup(cp => cp.Settings.ExcludeByAttribute).Returns(projectExcludeByAttribute);
@@ -117,7 +117,7 @@ namespace Test
         }
 
         [Test]
-        public async Task Should_Get_Settings_With_Include_From_CoverageProject_And_RunSettings()
+        public async Task Should_Get_Settings_With_Include_From_CoverageProject_And_RunSettings_Async()
         {
             var projectInclude= new string[] { "included" };
             mockCoverageProject.Setup(cp => cp.Settings.Include).Returns(projectInclude);
@@ -130,7 +130,7 @@ namespace Test
 
         [TestCase(true,"true")]
         [TestCase(false, "false")]
-        public async Task Should_Get_Settings_With_IncludeTestAssembly_From_CoverageProject_And_RunSettings(bool projectIncludeTestAssembly, string runSettingsIncludeTestAssembly)
+        public async Task Should_Get_Settings_With_IncludeTestAssembly_From_CoverageProject_And_RunSettings_Async(bool projectIncludeTestAssembly, string runSettingsIncludeTestAssembly)
         {
             mockCoverageProject.Setup(cp => cp.Settings.IncludeTestAssembly).Returns(projectIncludeTestAssembly);
             mockCoverageProject.Setup(cp => cp.CoverageOutputFolder).Returns("");
@@ -141,7 +141,7 @@ namespace Test
 
         [TestCase(true)]
         [TestCase(false)]
-        public async Task Should_Initialize_With_Options_And_Run_Settings_First(bool runSettingsOnly)
+        public async Task Should_Initialize_With_Options_And_Run_Settings_First_Async(bool runSettingsOnly)
         {
             mockCoverageProject.Setup(cp => cp.RunSettingsFile).Returns(".runsettings");
             mockCoverageProject.Setup(cp => cp.CoverageOutputFolder).Returns("output");
@@ -157,7 +157,7 @@ namespace Test
         }
 
         [Test]
-        public async Task Should_Get_Settings_With_ResultsDirectory()
+        public async Task Should_Get_Settings_With_ResultsDirectory_Async()
         {
             mockCoverageProject.Setup(cp => cp.CoverageOutputFolder).Returns("outputfolder");
             await coverletDataCollectorUtil.RunAsync(CancellationToken.None);
@@ -165,21 +165,21 @@ namespace Test
         }
 
         [Test]
-        public async Task Should_Get_Settings_With_Blame()
+        public async Task Should_Get_Settings_With_Blame_Async()
         {
             await coverletDataCollectorUtil.RunAsync(CancellationToken.None);
             mockDataCollectorSettingsBuilder.Verify(b => b.WithBlame());
         }
 
         [Test]
-        public async Task Should_Get_Settings_With_NoLogo()
+        public async Task Should_Get_Settings_With_NoLogo_Async()
         {
             await coverletDataCollectorUtil.RunAsync(CancellationToken.None);
             mockDataCollectorSettingsBuilder.Verify(b => b.WithNoLogo());
         }
 
         [Test]
-        public async Task Should_Get_Settings_With_Diagnostics()
+        public async Task Should_Get_Settings_With_Diagnostics_Async()
         {
             mockCoverageProject.Setup(cp => cp.CoverageOutputFolder).Returns("outputfolder");
             await coverletDataCollectorUtil.RunAsync(CancellationToken.None);
@@ -187,7 +187,7 @@ namespace Test
         }
 
         [Test]
-        public async Task Should_Get_Settings_With_IncludeDirectory_From_RunSettings()
+        public async Task Should_Get_Settings_With_IncludeDirectory_From_RunSettings_Async()
         {
             mockRunSettingsCoverletConfiguration.Setup(rsc => rsc.IncludeDirectory).Returns("includeDirectory");
             await coverletDataCollectorUtil.RunAsync(CancellationToken.None);
@@ -195,7 +195,7 @@ namespace Test
         }
 
         [Test]
-        public async Task Should_Get_Settings_With_SingleHit_From_RunSettings()
+        public async Task Should_Get_Settings_With_SingleHit_From_RunSettings_Async()
         {
             mockRunSettingsCoverletConfiguration.Setup(rsc => rsc.SingleHit).Returns("true...");
             await coverletDataCollectorUtil.RunAsync(CancellationToken.None);
@@ -203,7 +203,7 @@ namespace Test
         }
 
         [Test]
-        public async Task Should_Get_Settings_With_UseSourceLink_From_RunSettings()
+        public async Task Should_Get_Settings_With_UseSourceLink_From_RunSettings_Async()
         {
             mockRunSettingsCoverletConfiguration.Setup(rsc => rsc.UseSourceLink).Returns("true...");
             await coverletDataCollectorUtil.RunAsync(CancellationToken.None);
@@ -211,7 +211,7 @@ namespace Test
         }
 
         [Test]
-        public async Task Should_Get_Settings_With_SkipAutoProps_From_RunSettings()
+        public async Task Should_Get_Settings_With_SkipAutoProps_From_RunSettings_Async()
         {
             mockRunSettingsCoverletConfiguration.Setup(rsc => rsc.SkipAutoProps).Returns("true...");
             await coverletDataCollectorUtil.RunAsync(CancellationToken.None);
@@ -219,7 +219,7 @@ namespace Test
         }
 
         [Test]
-        public async Task Should_Log_VSTest_Run_With_Settings()
+        public async Task Should_Log_VSTest_Run_With_Settings_Async()
         {
             mockCoverageProject.Setup(cp => cp.ProjectName).Returns("TestProject");
             mockCoverageProject.Setup(cp => cp.CoverageOutputFolder).Returns("");
@@ -229,7 +229,7 @@ namespace Test
         }
 
         [Test]
-        public async Task Should_Execute_DotNet_Test_Collect_XPlat_With_Settings_Using_The_ProcessUtil()
+        public async Task Should_Execute_DotNet_Test_Collect_XPlat_With_Settings_Using_The_ProcessUtil_Async()
         {
             mockCoverageProject.Setup(cp => cp.ProjectOutputFolder).Returns("projectOutputFolder");
             mockCoverageProject.Setup(cp => cp.CoverageOutputFolder).Returns("");
@@ -240,7 +240,7 @@ namespace Test
             mocker.Verify<IProcessUtil>(p => p.ExecuteAsync(It.Is<ExecuteRequest>(er => er.Arguments == @"test --collect:""XPlat Code Coverage"" settings --test-adapter-path testadapterpath" && er.FilePath == "dotnet" && er.WorkingDirectory == "projectOutputFolder"),ct));
         }
 
-        private async Task<CancellationToken> Use_Custom_TestAdapterPath()
+        private async Task<CancellationToken> Use_Custom_TestAdapterPath_Async()
         {
             CreateTemporaryDirectory();
             mockCoverageProject.Setup(cp => cp.ProjectOutputFolder).Returns("projectOutputFolder");
@@ -254,21 +254,21 @@ namespace Test
         }
 
         [Test]
-        public async Task Should_Use_Custom_TestAdapterPath_Quoted_If_Specified_In_Settings_And_Exists()
+        public async Task Should_Use_Custom_TestAdapterPath_Quoted_If_Specified_In_Settings_And_Exists_Async()
         {
-            var ct = await Use_Custom_TestAdapterPath();
+            var ct = await Use_Custom_TestAdapterPath_Async();
             mocker.Verify<IProcessUtil>(p => p.ExecuteAsync(It.Is<ExecuteRequest>(er => er.Arguments == $@"test --collect:""XPlat Code Coverage"" settings --test-adapter-path ""{tempDirectory}""" && er.FilePath == "dotnet" && er.WorkingDirectory == "projectOutputFolder"),ct));
         }
 
         [Test]
-        public async Task Should_Log_When_Using_Custom_TestAdapterPath()
+        public async Task Should_Log_When_Using_Custom_TestAdapterPath_Async()
         {
-            await Use_Custom_TestAdapterPath();
+            await Use_Custom_TestAdapterPath_Async();
             mocker.Verify<ILogger>(l => l.Log($"Using custom coverlet data collector : {tempDirectory}"));
         }
 
         [Test]
-        public async Task Should_Use_The_ProcessResponseProcessor()
+        public async Task Should_Use_The_ProcessResponseProcessor_Async()
         {
             mockCoverageProject.Setup(cp => cp.ProjectName).Returns("TestProject");
             mockCoverageProject.Setup(cp => cp.CoverageOutputFolder).Returns("");
@@ -289,7 +289,7 @@ namespace Test
         [TestCase(2, false)]
         [TestCase(1,true)]
         [TestCase(0, true)]
-        public async Task Should_Only_Be_Successful_With_ExitCode_0_Or_1(int exitCode, bool expectedSuccess)
+        public async Task Should_Only_Be_Successful_With_ExitCode_0_Or_1_Async(int exitCode, bool expectedSuccess)
         {
             var mockProcessResponseProcessor = mocker.GetMock<IProcessResponseProcessor>();
             Func<int, bool> _exitCodePredicate = null;
@@ -303,7 +303,7 @@ namespace Test
         }
 
         [Test]
-        public async Task Should_Correct_The_CoberturaPath_Given_Successful_Execution()
+        public async Task Should_Correct_The_CoberturaPath_Given_Successful_Execution_Async()
         {
             mockCoverageProject.Setup(cp => cp.CoverageOutputFolder).Returns("outputFolder");
             mockCoverageProject.Setup(cp => cp.CoverageOutputFile).Returns("outputFile");

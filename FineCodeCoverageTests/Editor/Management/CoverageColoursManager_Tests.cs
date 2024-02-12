@@ -76,7 +76,7 @@ namespace FineCodeCoverageTests.Editor.Management
             success = vsHiColorItem.GetColorData(1, out var backgroundColor);
             Assert.That(success, Is.EqualTo(0));
             success = vsHiColorItem.GetColorData(2, out var lineColor);
-            Assert.That(success, Is.EqualTo(2147467259));
+            Assert.That(success, Is.EqualTo(-2147467259));
         }
 
         [Test]

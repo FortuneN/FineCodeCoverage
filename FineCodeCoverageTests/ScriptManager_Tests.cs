@@ -52,7 +52,7 @@ namespace Test
         }
 
         [Test]
-        public async Task Should_Call_SourceFileOpender_When_OpenFile()
+        public async Task Should_Call_SourceFileOpender_When_OpenFile_Async()
         {
             scriptManager.OpenFile("aname", "q.cname", 2, 3);
             await scriptManager.openFileTask;

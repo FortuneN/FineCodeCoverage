@@ -37,7 +37,7 @@ namespace FineCodeCoverageTests.MsCodeCoverage
         }
 
         [Test]
-        public async Task Should_Clean_Up_RunSettings_Coverage_Projects()
+        public async Task Should_Clean_Up_RunSettings_Coverage_Projects_Async()
         {
             var autoMocker = new AutoMoqer();
             var msCodeCoverageRunSettingsService = autoMocker.Create<MsCodeCoverageRunSettingsService>();
@@ -87,7 +87,7 @@ namespace FineCodeCoverageTests.MsCodeCoverage
         private MsCodeCoverageRunSettingsService msCodeCoverageRunSettingsService;
 
         [Test]
-        public async Task Should_Set_To_Not_Collecting()
+        public async Task Should_Set_To_Not_Collecting_Async()
         {
             var resultsUris = new List<Uri>()
             {
@@ -103,7 +103,7 @@ namespace FineCodeCoverageTests.MsCodeCoverage
         }
 
         [Test]
-        public async Task Should_FCCEngine_RunAndProcessReport_With_CoberturaResults()
+        public async Task Should_FCCEngine_RunAndProcessReport_With_CoberturaResults_Async()
         {
             var resultsUris = new List<Uri>()
             {
@@ -117,13 +117,13 @@ namespace FineCodeCoverageTests.MsCodeCoverage
         }
 
         [Test]
-        public async Task Should_Not_Throw_If_No_Results()
+        public async Task Should_Not_Throw_If_No_Results_Async()
         {
             await RunAndProcessReportAsync(null, Array.Empty<string>());
         }
 
         [Test]
-        public async Task Should_Combined_Log_When_No_Cobertura_Files()
+        public async Task Should_Combined_Log_When_No_Cobertura_Files_Async()
         {
             await RunAndProcessReportAsync(null, Array.Empty<string>());
             autoMocker.Verify<ILogger>(logger => logger.Log("No cobertura files for ms code coverage."));
@@ -133,7 +133,7 @@ namespace FineCodeCoverageTests.MsCodeCoverage
         }
 
         [Test]
-        public async Task Should_Clean_Up_RunSettings_Coverage_Projects_From_IsCollecting()
+        public async Task Should_Clean_Up_RunSettings_Coverage_Projects_From_IsCollecting_Async()
         {
             await RunAndProcessReportAsync(null, Array.Empty<string>());
             autoMocker.Verify<ITemplatedRunSettingsService>(

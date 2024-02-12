@@ -21,7 +21,9 @@ namespace FineCodeCoverageTests
 
 
         [Test]
-        public void Should_Not_Be_InitializedFromTestContainerDiscoverer_If_LoadPackageAsync()
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
+        public void Should_Not_Be_InitializedFromTestContainerDiscoverer_If_Not_LoadPackageAsync()
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
         {
             Assert.That(packageLoader.InitializedFromTestContainerDiscoverer, Is.False);
         }

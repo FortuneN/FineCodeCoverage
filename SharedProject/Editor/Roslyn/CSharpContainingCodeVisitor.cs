@@ -16,6 +16,12 @@ namespace FineCodeCoverage.Editor.Roslyn
             return spans;
         }
 
+#if VS2022
+        public override void VisitFileScopedNamespaceDeclaration(FileScopedNamespaceDeclarationSyntax node)
+        {
+            VisitMembers(node.Members);
+        }
+#endif
         public override void VisitCompilationUnit(CompilationUnitSyntax node)
         {
             VisitMembers(node.Members);

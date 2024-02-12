@@ -319,11 +319,12 @@
     <Compile Include="$(MSBuildThisFileDirectory)Options\IAppOptionsProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\IAppOptionsStorageProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\IJsonConvertService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Options\IReadOnlyConfigSettingsStoreProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\IWritableSettingsStore.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Options\IWritableSettingsStoreProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Options\IWritableUserSettingsStoreProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\JsonConvertService.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Options\VsWritableSettingsStore.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Options\VsWritableSettingsStoreProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Options\ReadOnlyConfigSettingsStoreProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Options\WritableUserSettingsStoreProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Output\OpenHotspotsCommand.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Output\OpenCoberturaCommand.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Output\ClearUICommand.cs" />

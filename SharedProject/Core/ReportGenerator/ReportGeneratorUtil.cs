@@ -1756,7 +1756,12 @@ for(var i=0;i<charts.length;i++){
             {
 				logs.Clear();
             }
-			return ProcessUnifiedHtml(resourceProvider.ReadResource("dummyReportToProcess.html"),null);
+			return ProcessUnifiedHtml(GetDummyReportToProcess(),null);
+        }
+
+		private string GetDummyReportToProcess()
+		{
+			return resourceProvider.ReadResource("dummyReportToProcess.html");
         }
 
         public void LogCoverageProcess(string message)
@@ -1780,6 +1785,10 @@ for(var i=0;i<charts.length;i++){
 
 		private void ReprocessReport()
         {
+			if(unprocessedReport == null)
+			{
+				unprocessedReport = GetDummyReportToProcess();
+			}
 			var newReport = ProcessUnifiedHtml(unprocessedReport, previousReportOutputFolder);
 			eventAggregator.SendMessage(new NewReportMessage { Report = newReport });
 		}

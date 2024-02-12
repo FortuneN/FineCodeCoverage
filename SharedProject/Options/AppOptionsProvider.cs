@@ -2,6 +2,7 @@
 using System.ComponentModel.Composition;
 using System.Reflection;
 using FineCodeCoverage.Core.Utilities;
+using Microsoft.VisualStudio.Settings;
 
 namespace FineCodeCoverage.Options
 {
@@ -10,7 +11,7 @@ namespace FineCodeCoverage.Options
     internal class AppOptionsProvider : IAppOptionsProvider, IAppOptionsStorageProvider
     {
         private readonly ILogger logger;
-        private readonly IWritableSettingsStoreProvider writableSettingsStoreProvider;
+        private readonly IWritableUserSettingsStoreProvider writableUserSettingsStoreProvider;
         private readonly IJsonConvertService jsonConvertService;
         private readonly PropertyInfo[] appOptionsPropertyInfos;
 
@@ -19,12 +20,12 @@ namespace FineCodeCoverage.Options
         [ImportingConstructor]
         public AppOptionsProvider(
             ILogger logger, 
-            IWritableSettingsStoreProvider writableSettingsStoreProvider,
+            IWritableUserSettingsStoreProvider writableUserSettingsStoreProvider,
             IJsonConvertService jsonConvertService
             )
         {
             this.logger = logger;
-            this.writableSettingsStoreProvider = writableSettingsStoreProvider;
+            this.writableUserSettingsStoreProvider = writableUserSettingsStoreProvider;
             this.jsonConvertService = jsonConvertService;
             appOptionsPropertyInfos =typeof(IAppOptions).GetPublicProperties();
         }
@@ -41,9 +42,9 @@ namespace FineCodeCoverage.Options
             return options;
         }
 
-        private IWritableSettingsStore EnsureStore()
+        private WritableSettingsStore EnsureStore()
         {
-            var settingsStore = writableSettingsStoreProvider.Provide();
+            var settingsStore = writableUserSettingsStoreProvider.Provide();
             if (!settingsStore.CollectionExists(Vsix.Code))
             {
                 settingsStore.CreateCollection(Vsix.Code);

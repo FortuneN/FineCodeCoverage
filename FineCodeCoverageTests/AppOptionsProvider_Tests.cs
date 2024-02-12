@@ -4,6 +4,7 @@ using System.Linq;
 using AutoMoq;
 using FineCodeCoverage.Core.Utilities;
 using FineCodeCoverage.Options;
+using Microsoft.VisualStudio.Settings;
 using Moq;
 using NUnit.Framework;
 
@@ -13,16 +14,16 @@ namespace FineCodeCoverageTests
     {
         private AutoMoqer autoMocker;
         private AppOptionsProvider appOptionsProvider;
-        private Mock<IWritableSettingsStore> mockWritableSettingsStore;
+        private Mock<WritableSettingsStore> mockWritableSettingsStore;
 
         [SetUp]
         public void Setup()
         {
             autoMocker = new AutoMoqer();
             appOptionsProvider = autoMocker.Create<AppOptionsProvider>();
-            mockWritableSettingsStore = new Mock<IWritableSettingsStore>();
-            var mockWritableSettingsStoreProvider = autoMocker.GetMock<IWritableSettingsStoreProvider>();
-            mockWritableSettingsStoreProvider.Setup(
+            mockWritableSettingsStore = new Mock<WritableSettingsStore>();
+            var mockWritableUserSettingsStoreProvider = autoMocker.GetMock<IWritableUserSettingsStoreProvider>();
+            mockWritableUserSettingsStoreProvider.Setup(
                 writableSettingsStoreProvider => writableSettingsStoreProvider.Provide()
             ).Returns(mockWritableSettingsStore.Object);
         }

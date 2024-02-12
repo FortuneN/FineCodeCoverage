@@ -154,7 +154,7 @@ namespace Test
         }
 
         [Test]
-        public async Task Should_Execute_The_Request_From_The_Execute_Request_Provider_With_Space_Delimited_Settings()
+        public async Task Should_Execute_The_Request_From_The_Execute_Request_Provider_With_Space_Delimited_Settings_Async()
         {
             await RunSuccessfullyAsync();
 
@@ -162,7 +162,7 @@ namespace Test
         }
 
         [Test]
-        public async Task Should_Log_Settings_Before_Executing()
+        public async Task Should_Log_Settings_Before_Executing_Async()
         {
             var mockLogger = mocker.GetMock<ILogger>();
             mockLogger.Setup(logger => logger.Log(It.IsAny<IEnumerable<string>>())).Callback<IEnumerable<string>>(messages =>
@@ -202,7 +202,7 @@ namespace Test
         }
 
         [Test]
-        public async Task Should_Log_The_ExecuteResponse_Output_On_Success()
+        public async Task Should_Log_The_ExecuteResponse_Output_On_Success_Async()
         {
             var mockLogger = mocker.GetMock<ILogger>();
             mockLogger.Setup(logger => logger.Log(It.IsAny<string[]>())).Callback<string[]>(messages =>

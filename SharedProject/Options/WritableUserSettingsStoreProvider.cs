@@ -5,11 +5,11 @@ using System.ComponentModel.Composition;
 
 namespace FineCodeCoverage.Options
 {
-    [Export(typeof(IWritableSettingsStoreProvider))]
-    internal class VsWritableSettingsStoreProvider : IWritableSettingsStoreProvider
+    [Export(typeof(IWritableUserSettingsStoreProvider))]
+    internal class WritableUserSettingsStoreProvider : IWritableUserSettingsStoreProvider
     {
-        private IWritableSettingsStore writableSettingsStore;
-        public IWritableSettingsStore Provide()
+        private WritableSettingsStore writableSettingsStore;
+        public WritableSettingsStore Provide()
         {
             if (writableSettingsStore == null)
             {
@@ -17,8 +17,7 @@ namespace FineCodeCoverage.Options
                 {
                     await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
                     var settingsManager = new ShellSettingsManager(ServiceProvider.GlobalProvider);
-                    var vsWritableSettingsStore = settingsManager.GetWritableSettingsStore(SettingsScope.UserSettings);
-                    return new VsWritableSettingsStore(vsWritableSettingsStore);
+                    return settingsManager.GetWritableSettingsStore(SettingsScope.UserSettings);
                 });
             }
             return writableSettingsStore;

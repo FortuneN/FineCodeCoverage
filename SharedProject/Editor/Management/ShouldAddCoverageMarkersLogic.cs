@@ -1,7 +1,6 @@
-﻿using System;
+﻿using FineCodeCoverage.Options;
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 
 namespace FineCodeCoverage.Editor.Management
 {
@@ -9,9 +8,20 @@ namespace FineCodeCoverage.Editor.Management
     [Export(typeof(IShouldAddCoverageMarkersLogic))]
     class ShouldAddCoverageMarkersLogic : IShouldAddCoverageMarkersLogic
     {
+        private readonly IReadOnlyConfigSettingsStoreProvider readOnlyConfigSettingsStoreProvider;
+
+        [ImportingConstructor]
+        public ShouldAddCoverageMarkersLogic(
+            IReadOnlyConfigSettingsStoreProvider readOnlyConfigSettingsStoreProvider
+        )
+        {
+            this.readOnlyConfigSettingsStoreProvider = readOnlyConfigSettingsStoreProvider;
+        }
+
         public bool ShouldAddCoverageMarkers()
         {
-            return !AppDomain.CurrentDomain.GetAssemblies().Any(a => a.GetName().Name == "Microsoft.CodeCoverage.VisualStudio.Window");
+            var readOnlySettingsStore = readOnlyConfigSettingsStoreProvider.Provide();
+            return  !readOnlySettingsStore.CollectionExists(@"Text Editor\External Markers\{b4ee9ead-e105-11d7-8a44-00065bbd20a4}");
         }
     }
 

@@ -35,7 +35,7 @@ namespace FineCodeCoverageTests
 
         [TestCase(true)]
         [TestCase(false)]
-        public async Task Should_Run_The_Appropriate_Cover_Tool_Based_On_IsDotNetSdkStyle(bool isDotNetSdkStyle)
+        public async Task Should_Run_The_Appropriate_Cover_Tool_Based_On_IsDotNetSdkStyle_Async(bool isDotNetSdkStyle)
         {
             var mockProject = new Mock<ICoverageProject>();
             mockProject.Setup(cp => cp.IsDotNetSdkStyle()).Returns(isDotNetSdkStyle);
