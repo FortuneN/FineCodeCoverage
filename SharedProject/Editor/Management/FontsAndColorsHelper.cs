@@ -9,6 +9,7 @@ using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.TextManager.Interop;
 using FineCodeCoverage.Core.Utilities.VsThreading;
 using System.Threading.Tasks;
+using FineCodeCoverage.Core.Utilities;
 
 namespace FineCodeCoverage.Editor.Management
 {
@@ -41,9 +42,7 @@ namespace FineCodeCoverage.Editor.Management
             if (vsFontAndColorStorage == null)
             {
                 await threadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-#pragma warning disable VSTHRD010 // Invoke single-threaded types on Main thread
-                vsFontAndColorStorage = serviceProvider.GetService(typeof(IVsFontAndColorStorage)) as IVsFontAndColorStorage;
-#pragma warning restore VSTHRD010 // Invoke single-threaded types on Main thread
+                vsFontAndColorStorage = serviceProvider.GetService<IVsFontAndColorStorage>();
             }
             return vsFontAndColorStorage;
         }

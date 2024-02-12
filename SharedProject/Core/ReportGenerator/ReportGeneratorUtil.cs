@@ -90,7 +90,7 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 
 		private string FontSize => environmentFontDetails == null ? "12px" : $"{environmentFontDetails.Size * dpiScale.DpiScaleX}px";
 		private string FontName => environmentFontDetails == null ? "Arial" : environmentFontDetails.Family.Source;
-		private HotspotReader hotspotsReader = new HotspotReader();
+		private readonly HotspotReader hotspotsReader = new HotspotReader();
 
 		[ImportingConstructor]
 		public ReportGeneratorUtil(
@@ -917,8 +917,8 @@ coverageInfoObserver.observe(hideCoverage);
 			{
 				return "";
 			}
-			var fullyQualifiedToName = "";
-			switch(appOptions.NamespaceQualification)
+            string fullyQualifiedToName;
+            switch (appOptions.NamespaceQualification)
 			{
                 case NamespaceQualification.AlwaysUnqualified:
                 case NamespaceQualification.UnqualifiedByNamespace:

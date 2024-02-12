@@ -167,6 +167,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\ProcessUtil.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\ReflectionExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\ResourceProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\ServiceProviderExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\SolutionEvents.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\SVsColorThemeService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\ThrowIf.cs" />
@@ -363,7 +364,6 @@
     <Resource Include="$(MSBuildThisFileDirectory)Resources\OutputToolWindowPackage.ico" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="$(MSBuildThisFileDirectory)Core\Utilities\Directory.Build.props" />
     <None Include="$(MSBuildThisFileDirectory)Output\Directory.Build.props" />
   </ItemGroup>
 </Project>

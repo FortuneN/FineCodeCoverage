@@ -1,9 +1,7 @@
 ﻿using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Threading;
 using System;
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.Text;
 using System.Threading;
 using Task = System.Threading.Tasks.Task;
 
@@ -12,9 +10,7 @@ namespace FineCodeCoverage.Core.Utilities
     
     internal interface IDisposeAwareTaskRunner
     {
-#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
-        void RunAsync(Func<Task> taskProvider);
-#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
+        void RunAsyncFunc(Func<Task> taskProvider);
         CancellationToken DisposalToken { get; }
     }
 
@@ -72,7 +68,7 @@ namespace FineCodeCoverage.Core.Utilities
             }
         }
 
-        public void RunAsync(Func<Task> taskProvider)
+        public void RunAsyncFunc(Func<Task> taskProvider)
         {
             _ = JoinableTaskFactory.RunAsync(taskProvider);
         }

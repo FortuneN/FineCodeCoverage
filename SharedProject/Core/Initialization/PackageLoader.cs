@@ -15,7 +15,7 @@ namespace FineCodeCoverage.Core.Initialization
     [Export(typeof(IShellPackageLoader))]
     internal class ShellPackageLoader : IShellPackageLoader
     {
-        private IServiceProvider serviceProvider;
+        private readonly IServiceProvider serviceProvider;
 
         [ImportingConstructor]
         public ShellPackageLoader(

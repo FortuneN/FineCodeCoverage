@@ -23,12 +23,16 @@ namespace FineCodeCoverage.Core.Utilities.VsThreading
     {
         public void Run(Func<Task> asyncMethod)
         {
+#pragma warning disable VSTHRD102 // Implement internal logic asynchronously
             ThreadHelper.JoinableTaskFactory.Run(asyncMethod);
+#pragma warning restore VSTHRD102 // Implement internal logic asynchronously
         }
 
         public T Run<T>(Func<Task<T>> asyncMethod)
         {
+#pragma warning disable VSTHRD102 // Implement internal logic asynchronously
             return ThreadHelper.JoinableTaskFactory.Run(asyncMethod);
+#pragma warning restore VSTHRD102 // Implement internal logic asynchronously
         }
 
         public async Task SwitchToMainThreadAsync(CancellationToken cancellationToken = default)

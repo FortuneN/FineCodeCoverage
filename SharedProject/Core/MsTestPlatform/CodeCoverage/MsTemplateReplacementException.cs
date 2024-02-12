@@ -5,8 +5,8 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
 {
     public class MsTemplateReplacementException : Exception
     {
-        private XmlException innerException;
-        private string replacedRunSettingsTemplate;
+        private readonly XmlException innerException;
+        private readonly string replacedRunSettingsTemplate;
         public MsTemplateReplacementException(XmlException innerException, string replacedRunSettingsTemplate)
         {
             this.innerException = innerException;

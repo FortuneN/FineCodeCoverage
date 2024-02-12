@@ -57,10 +57,6 @@ namespace Test
             Assert.IsTrue(coverletSettings.Any(coverletSetting => coverletSetting == setting));
         }
 
-        private void AssertHasEscapedSetting(List<string> coverletSettings, string setting)
-        {
-            AssertHasSetting(coverletSettings, CommandLineArguments.AddQuotes(setting));
-        }
     }
 
     public class CoverletConsoleExecuteRequestProvider_Tests

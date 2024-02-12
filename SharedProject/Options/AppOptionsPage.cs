@@ -44,6 +44,7 @@ namespace FineCodeCoverage.Options
         private static IAppOptionsStorageProvider GetAppOptionsStorageProvider()
         {
             IAppOptionsStorageProvider appOptionsStorageProvider = null;
+#pragma warning disable VSTHRD102 // Implement internal logic asynchronously
             ThreadHelper.JoinableTaskFactory.Run(async () =>
             {
                 await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
@@ -53,6 +54,7 @@ namespace FineCodeCoverage.Options
                 Assumes.Present(componentModel);
                 appOptionsStorageProvider = componentModel.GetService<IAppOptionsStorageProvider>();
             });
+#pragma warning restore VSTHRD102 // Implement internal logic asynchronously
             return appOptionsStorageProvider;
         }
 

@@ -26,11 +26,7 @@ namespace FineCodeCoverageTests.TestHelpers
             var derivations = types.Where(t => t != interfaceType && interfaceType.IsAssignableFrom(t));
             var orders = derivations.Select(d =>
             {
-                var orderAttribute = GetOrderAtrribute(d);
-                if (orderAttribute == null)
-                {
-                    throw new Exception("Missing mef attribute");
-                }
+                var orderAttribute = GetOrderAtrribute(d) ?? throw new Exception("Missing mef attribute");
                 if (orderAttribute.ContractType != interfaceType)
                 {
                     throw new Exception("Incorrect contract type");

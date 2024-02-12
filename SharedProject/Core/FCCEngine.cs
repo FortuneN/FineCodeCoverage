@@ -339,7 +339,7 @@ namespace FineCodeCoverage.Engine
         {
             var vsLinkedCancellationTokenSource = Reset();
             var vsShutdownLinkedCancellationToken = vsLinkedCancellationTokenSource.Token;
-            disposeAwareTaskRunner.RunAsync(() =>
+            disposeAwareTaskRunner.RunAsyncFunc(() =>
             {
                 reloadCoverageTask = System.Threading.Tasks.Task.Run(async () =>
                 {

@@ -55,7 +55,6 @@ public class Logger : ILogger, IShowFCCOutputPane
         _pane = pane;
     }
 
-    [SuppressMessage("Usage", "VSTHRD102:Implement internal logic asynchronously")]
     private void LogImpl(object[] message, bool withTitle)
     {
         try

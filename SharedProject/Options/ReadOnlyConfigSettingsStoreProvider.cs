@@ -12,12 +12,14 @@ namespace FineCodeCoverage.Options
     {
         public SettingsStore Provide()
         {
+#pragma warning disable VSTHRD102 // Implement internal logic asynchronously
             return ThreadHelper.JoinableTaskFactory.Run(async () =>
             {
                 await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
                 var settingsManager = new ShellSettingsManager(ServiceProvider.GlobalProvider);
                 return settingsManager.GetReadOnlySettingsStore(SettingsScope.Configuration);
             });
+#pragma warning restore VSTHRD102 // Implement internal logic asynchronously
         }
     }
 }

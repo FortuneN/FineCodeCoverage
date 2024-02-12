@@ -172,10 +172,12 @@ namespace FineCodeCoverage.Engine.Model
             {
                 if (settings == null)
                 {
+#pragma warning disable VSTHRD102 // Implement internal logic asynchronously
                     ThreadHelper.JoinableTaskFactory.Run(async () =>
                     {
                         settings = await settingsManager.GetSettingsAsync(this);
                     });
+#pragma warning restore VSTHRD102 // Implement internal logic asynchronously
                 }
                 return settings;
             }
@@ -291,12 +293,7 @@ namespace FineCodeCoverage.Engine.Model
 
         private async Task<List<ReferencedProject>> GetReferencedProjectsAsync()
         {
-            List<ReferencedProject> referencedProjects = await SafeGetReferencedProjectsFromDteAsync();
-
-            if (referencedProjects == null)
-            {
-                referencedProjects = await GetReferencedProjectsFromProjectFileAsync();
-            }
+            List<ReferencedProject> referencedProjects = await SafeGetReferencedProjectsFromDteAsync() ?? await GetReferencedProjectsFromProjectFileAsync();
             return referencedProjects;
         }
 

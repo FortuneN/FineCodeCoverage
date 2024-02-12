@@ -21,11 +21,7 @@ namespace FineCodeCoverage.Engine.Coverlet
         }
         public void CorrectPath(string coverageOutputFolder, string coverageOutputFile)
         {
-            var coberturaFile = GetCoberturaFile(coverageOutputFolder);
-            if (coberturaFile == null)
-            {
-                throw new Exception($"Data collector did not generate {collectorGeneratedCobertura}");
-            }
+            var coberturaFile = GetCoberturaFile(coverageOutputFolder) ?? throw new Exception($"Data collector did not generate {collectorGeneratedCobertura}");
             var guidDirectoryToDelete = coberturaFile.Directory;
             coberturaFile.MoveTo(coverageOutputFile);
             

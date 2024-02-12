@@ -95,7 +95,7 @@ namespace Test
             mocker = new AutoMoqer();
             var mockDisposeAwareTaskRunner = mocker.GetMock<IDisposeAwareTaskRunner>();
 #pragma warning disable VSTHRD101 // Avoid unsupported async delegates
-            mockDisposeAwareTaskRunner.Setup(runner => runner.RunAsync(It.IsAny<Func<Task>>())).Callback<Func<Task>>(async taskProvider => await taskProvider());
+            mockDisposeAwareTaskRunner.Setup(runner => runner.RunAsyncFunc(It.IsAny<Func<Task>>())).Callback<Func<Task>>(async taskProvider => await taskProvider());
 #pragma warning restore VSTHRD101 // Avoid unsupported async delegates
             fccEngine = mocker.Create<FCCEngine>();
 

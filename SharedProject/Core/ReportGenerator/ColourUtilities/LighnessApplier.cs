@@ -166,7 +166,7 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 
         public static HSL RGBtoHSL(int red, int green, int blue)
         {
-            double h = 0, s = 0, l = 0;
+            double h = 0, s = 0;
 
             // normalize red, green, blue values
             double r = (double)red / 255.0;
@@ -199,7 +199,7 @@ namespace FineCodeCoverage.Engine.ReportGenerator
             }
 
             // luminance
-            l = (max + min) / 2.0;
+            double l = (max + min) / 2.0;
 
             // saturation
             if (l == 0 || max == min)

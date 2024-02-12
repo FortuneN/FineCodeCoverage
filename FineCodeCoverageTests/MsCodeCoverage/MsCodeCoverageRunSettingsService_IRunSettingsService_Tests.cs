@@ -44,7 +44,7 @@ namespace FineCodeCoverageTests.MsCodeCoverage
         [TestCase(MsCodeCoverageCollectionStatus.Error)]
         public void Should_Not_Delegate_To_UserRunSettingsService_When_Is_Not_Collecting(MsCodeCoverageCollectionStatus status)
         {
-            msCodeCoverageRunSettingsService.collectionStatus = MsCodeCoverageCollectionStatus.NotCollecting;
+            msCodeCoverageRunSettingsService.collectionStatus = status;
             SetuserRunSettingsProjectDetailsLookup(false);
             
             ShouldNotDelegateToUserRunSettingsService(RunSettingConfigurationInfoState.Execution);

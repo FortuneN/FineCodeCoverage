@@ -19,7 +19,7 @@ namespace FineCodeCoverageTests
             Assert.That(lines.Select(l => l.Number), Is.EqualTo(expectedLineNumbers));
         }
 
-        static object[] Cases =
+        static readonly object[] Cases =
         {
             new object[] { new int[] { 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20}, 19, 20, new int[]{ 19,20} },
             new object[] { new int[] { 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20}, 12, 13, new int[]{ 12,13} },
