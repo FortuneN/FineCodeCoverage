@@ -299,10 +299,12 @@ namespace FineCodeCoverage.Engine
                         break;
                     case System.Threading.Tasks.TaskStatus.RanToCompletion:
                         LogReloadCoverageStatus(ReloadCoverageStatus.Done);
+#pragma warning disable IDE0079 // Remove unnecessary suppression
 #pragma warning disable VSTHRD002 // Avoid problematic synchronous waits
                         UpdateUI(t.Result.FileLineCoverage, t.Result.ProcessedReport);
                         RaiseReportFiles(t.Result);
 #pragma warning restore VSTHRD002 // Avoid problematic synchronous waits
+#pragma warning restore IDE0079 // Remove unnecessary suppression
                         break;
                 }
 

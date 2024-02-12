@@ -48,9 +48,11 @@ namespace FineCodeCoverage.Core.Utilities
                 try
                 {
                     // Block Dispose until all async work has completed.
+#pragma warning disable IDE0079 // Remove unnecessary suppression 
 #pragma warning disable VSTHRD102 // Implement internal logic asynchronously
                     ThreadHelper.JoinableTaskFactory.Run(this.JoinableTaskCollection.JoinTillEmptyAsync);
 #pragma warning restore VSTHRD102 // Implement internal logic asynchronously
+#pragma warning restore IDE0079 // Remove unnecessary suppression
                 }
                 catch (OperationCanceledException)
                 {

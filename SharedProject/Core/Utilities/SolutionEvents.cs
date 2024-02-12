@@ -11,8 +11,6 @@ namespace FineCodeCoverage.Core.Utilities
     [Export(typeof(ISolutionEvents))]
     public class SolutionEvents : ISolutionEvents, IVsSolutionEvents
     {
-        private readonly IServiceProvider serviceProvider;
-
         public event EventHandler AfterClosing;
         public event EventHandler AfterOpen;
 
@@ -22,16 +20,15 @@ namespace FineCodeCoverage.Core.Utilities
             IServiceProvider serviceProvider
             )
         {
-            this.serviceProvider = serviceProvider;
-            ThreadHelper.JoinableTaskFactory.Run(AdviseSolutionEventsAsync);
-        }
-
-        private async Task AdviseSolutionEventsAsync()
-        {
-            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-            var vsSolution = (IVsSolution)serviceProvider.GetService(typeof(SVsSolution));
-            Assumes.Present(vsSolution);
-            vsSolution.AdviseSolutionEvents(this, out uint _);
+#pragma warning disable VSTHRD104 // Offer async methods
+            ThreadHelper.JoinableTaskFactory.Run(async () =>
+            {
+                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                var vsSolution = (IVsSolution)serviceProvider.GetService(typeof(SVsSolution));
+                Assumes.Present(vsSolution);
+                vsSolution.AdviseSolutionEvents(this, out uint _);
+            });
+#pragma warning restore VSTHRD104 // Offer async methods
         }
 
         public int OnAfterOpenProject(IVsHierarchy pHierarchy, int fAdded)
