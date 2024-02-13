@@ -8,26 +8,49 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
 {
     internal class TrackingSpanRange_Tests
     {
-        [TestCase(true)]
-        [TestCase(false)]
-        public void Should_Return_True_If_Any_Intersect_With_Changes(bool intersects)
+        [Test]
+        public void Should_Return_Spans_That_Do_Not_Intersect()
         {
             var mockTextSnapshot = new Mock<ITextSnapshot>();
             mockTextSnapshot.SetupGet(ts => ts.Length).Returns(1000);
             var textSnapshot = mockTextSnapshot.Object;
 
             var mockTrackingSpan1 = new Mock<ITrackingSpan>();
-            mockTrackingSpan1.Setup(trackingSpan => trackingSpan.GetSpan(textSnapshot)).Returns(new SnapshotSpan(textSnapshot, new Span(0, 1)));
+            mockTrackingSpan1.Setup(trackingSpan => trackingSpan.GetSpan(textSnapshot))
+                .Returns(new SnapshotSpan(textSnapshot, new Span(10, 5)));
             var mockTrackingSpan2 = new Mock<ITrackingSpan>();
-            mockTrackingSpan2.Setup(trackingSpan => trackingSpan.GetSpan(textSnapshot)).Returns(new SnapshotSpan(textSnapshot, new Span(10, 10)));
+            mockTrackingSpan2.Setup(trackingSpan => trackingSpan.GetSpan(textSnapshot))
+                .Returns(new SnapshotSpan(textSnapshot, new Span(20, 10)));
             var trackingSpans = new List<ITrackingSpan> { mockTrackingSpan1.Object, mockTrackingSpan2.Object };
 
             var trackingSpanRange = new TrackingSpanRange(trackingSpans);
-
-            var possiblyIntersecting = intersects ? new Span(15, 1) : new Span(100, 200);
-            var newSpanChanges = new List<Span> { new Span(5, 1), possiblyIntersecting};
-            Assert.That(trackingSpanRange.IntersectsWith(textSnapshot, newSpanChanges), Is.EqualTo(intersects));
             
+            var newSpanChanges = new List<Span> { new Span(5, 1), new Span(11,5), new Span(25, 5), new Span(35, 5) };
+            var nonIntersecting = trackingSpanRange.GetNonIntersecting(textSnapshot, newSpanChanges);
+
+            Assert.That(nonIntersecting, Is.EqualTo(new List<Span> { new Span(5, 1), new Span(35, 5) }));
+        }
+
+        [Test]
+        public void Should_Stop_Tracking_When_Empty()
+        {
+            var mockTextSnapshot = new Mock<ITextSnapshot>();
+            mockTextSnapshot.SetupGet(ts => ts.Length).Returns(1000);
+            var textSnapshot = mockTextSnapshot.Object;
+
+            var mockTrackingSpan1 = new Mock<ITrackingSpan>(MockBehavior.Strict);
+            mockTrackingSpan1.Setup(trackingSpan => trackingSpan.GetSpan(textSnapshot))
+                .Returns(new SnapshotSpan(textSnapshot, new Span(11, 0)));
+            var trackingSpans = new List<ITrackingSpan> { mockTrackingSpan1.Object};
+
+            var trackingSpanRange = new TrackingSpanRange(trackingSpans);
+
+            var newSpanChanges = new List<Span> { new Span(11, 0) };
+            var nonIntersecting = trackingSpanRange.GetNonIntersecting(textSnapshot, newSpanChanges);
+            Assert.That(nonIntersecting, Has.Count.EqualTo(0));
+            nonIntersecting = trackingSpanRange.GetNonIntersecting(textSnapshot, newSpanChanges);
+            Assert.That(nonIntersecting, Has.Count.EqualTo(1));
+
         }
     }
 }

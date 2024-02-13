@@ -1,5 +1,5 @@
-﻿using FineCodeCoverage.Editor.Tagging.Base;
-using FineCodeCoverage.Engine.Model;
+﻿using FineCodeCoverage.Editor.DynamicCoverage;
+using FineCodeCoverage.Editor.Tagging.Base;
 using FineCodeCoverage.Options;
 using System.Collections.Generic;
 
@@ -14,13 +14,17 @@ namespace FineCodeCoverage.Editor.Tagging.Classification
             return appOptions.ShowLineCoverageHighlighting;
         }
 
-        protected override Dictionary<CoverageType, bool> GetShowLookup(IAppOptions appOptions)
+        protected override Dictionary<DynamicCoverageType, bool> GetShowLookup(IAppOptions appOptions)
         {
-            return new Dictionary<CoverageType, bool>()
+            return new Dictionary<DynamicCoverageType, bool>()
             {
-                { CoverageType.Covered, appOptions.ShowLineCoveredHighlighting },
-                { CoverageType.Partial, appOptions.ShowLinePartiallyCoveredHighlighting },
-                { CoverageType.NotCovered, appOptions.ShowLineUncoveredHighlighting },
+                { DynamicCoverageType.Covered, appOptions.ShowLineCoveredHighlighting },
+                { DynamicCoverageType.Partial, appOptions.ShowLinePartiallyCoveredHighlighting },
+                { DynamicCoverageType.NotCovered, appOptions.ShowLineUncoveredHighlighting },
+                { DynamicCoverageType.CoveredDirty, appOptions.ShowLineCoveredHighlighting },
+                { DynamicCoverageType.PartialDirty, appOptions.ShowLinePartiallyCoveredHighlighting },
+                { DynamicCoverageType.NotCoveredDirty, appOptions.ShowLineUncoveredHighlighting },
+                { DynamicCoverageType.NewLine, true },
             };
         }
     }

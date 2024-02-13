@@ -6,13 +6,11 @@ namespace FineCodeCoverage.Editor.Tagging.GlyphMargin
 {
 	internal class CoverageLineGlyphTag : IGlyphTag
 	{
-		public ILine CoverageLine { get; }
 		public Color Colour { get; }
 
-        public CoverageLineGlyphTag(ILine coverageLine, Color colour)
+        public CoverageLineGlyphTag(Color colour)
 		{
 			Colour = colour;
-			CoverageLine = coverageLine;
 		}
 	}
 }

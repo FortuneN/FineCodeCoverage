@@ -1,4 +1,5 @@
-﻿using FineCodeCoverage.Editor.Management;
+﻿using FineCodeCoverage.Editor.DynamicCoverage;
+using FineCodeCoverage.Editor.Management;
 using FineCodeCoverage.Editor.Tagging.Base;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -36,7 +37,8 @@ namespace FineCodeCoverage.Editor.Tagging.Classification
 
         public TagSpan<IClassificationTag> GetTagSpan(ILineSpan lineSpan)
         {
-            var ct = coverageTypeService.GetClassificationType(lineSpan.Line.CoverageType);
+            var coverageType = DirtyCoverageTypeMapper.GetClean(lineSpan.Line.CoverageType);
+            var ct = coverageTypeService.GetClassificationType(coverageType);
             return new TagSpan<IClassificationTag>(lineSpan.Span, new ClassificationTag(ct));
         }
     }

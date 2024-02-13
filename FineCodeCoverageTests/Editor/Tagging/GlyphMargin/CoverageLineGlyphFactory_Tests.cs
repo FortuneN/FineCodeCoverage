@@ -26,7 +26,7 @@ namespace FineCodeCoverageTests.Editor.Tagging.GlyphMargin
         public void Should_Return_A_Solid_Colour_Rectangle_If_GlyphTag_Is_CoverageLineGlyphTag()
         {
             var coverageLineGlyphFactory = new CoverageLineGlyphFactory();
-            var result = coverageLineGlyphFactory.GenerateGlyph(new Mock<IWpfTextViewLine>().Object, new CoverageLineGlyphTag(new Mock<ILine>().Object,Colors.DeepPink));
+            var result = coverageLineGlyphFactory.GenerateGlyph(new Mock<IWpfTextViewLine>().Object, new CoverageLineGlyphTag(Colors.DeepPink));
 
             var rectangle = result as Rectangle;
             var fill = rectangle.Fill as SolidColorBrush;

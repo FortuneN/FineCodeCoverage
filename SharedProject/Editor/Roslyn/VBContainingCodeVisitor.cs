@@ -50,14 +50,14 @@ namespace FineCodeCoverage.Editor.Roslyn
 
         public override void VisitConstructorBlock(ConstructorBlockSyntax node)
         {
-            spans.Add(node.FullSpan);
+            AddNode(node);
         }
 
         public override void VisitMethodBlock(MethodBlockSyntax node)
         {
             if (!IsPartial(node.SubOrFunctionStatement.Modifiers))
             {
-                spans.Add(node.FullSpan);
+                AddNode(node);
             }
         }
 
@@ -74,7 +74,7 @@ namespace FineCodeCoverage.Editor.Roslyn
 
         public override void VisitOperatorBlock(OperatorBlockSyntax node)
         {
-            spans.Add(node.FullSpan);
+            AddNode(node);
         }
 
         public override void VisitPropertyBlock(PropertyBlockSyntax node)
@@ -87,7 +87,7 @@ namespace FineCodeCoverage.Editor.Roslyn
         {
             if (!IsAbstract(node.Modifiers))
             {
-                spans.Add(node.FullSpan);
+                AddNode(node);
             }
         }
 
@@ -106,7 +106,12 @@ namespace FineCodeCoverage.Editor.Roslyn
 
         public override void VisitAccessorBlock(AccessorBlockSyntax node)
         {
-            spans.Add(node.FullSpan);
+            AddNode(node);
+        }
+    
+        private void AddNode(SyntaxNode node)
+        {
+            spans.Add(node.GetLeadingNoTrailingSpan());
         }
     }
 

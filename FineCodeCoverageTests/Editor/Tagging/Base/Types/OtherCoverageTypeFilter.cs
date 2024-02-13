@@ -1,5 +1,5 @@
-﻿using FineCodeCoverage.Editor.Tagging.Base;
-using FineCodeCoverage.Engine.Model;
+﻿using FineCodeCoverage.Editor.DynamicCoverage;
+using FineCodeCoverage.Editor.Tagging.Base;
 using FineCodeCoverage.Options;
 using System;
 
@@ -21,7 +21,7 @@ namespace FineCodeCoverageTests.Editor.Tagging.Base.Types
             throw new NotImplementedException();
         }
 
-        public bool Show(CoverageType coverageType)
+        public bool Show(DynamicCoverageType coverageType)
         {
             throw new NotImplementedException();
         }

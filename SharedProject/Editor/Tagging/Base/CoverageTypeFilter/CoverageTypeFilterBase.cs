@@ -1,4 +1,4 @@
-﻿using FineCodeCoverage.Engine.Model;
+﻿using FineCodeCoverage.Editor.DynamicCoverage;
 using FineCodeCoverage.Options;
 using System;
 using System.Collections.Generic;
@@ -7,20 +7,24 @@ namespace FineCodeCoverage.Editor.Tagging.Base
 {
     internal abstract class CoverageTypeFilterBase : ICoverageTypeFilter
     {
-        private static readonly Dictionary<CoverageType, bool> doNotShowLookup = new Dictionary<CoverageType, bool>()
+        private static readonly Dictionary<DynamicCoverageType, bool> doNotShowLookup = new Dictionary<DynamicCoverageType, bool>()
         {
-            { CoverageType.Covered, false },
-            { CoverageType.Partial, false },
-            { CoverageType.NotCovered, false },
+            { DynamicCoverageType.Covered, false },
+            { DynamicCoverageType.Partial, false },
+            { DynamicCoverageType.NotCovered, false },
+            { DynamicCoverageType.CoveredDirty, false },
+            { DynamicCoverageType.PartialDirty, false },
+            { DynamicCoverageType.NotCoveredDirty, false },
+            { DynamicCoverageType.NewLine, false }
         };
-        private Dictionary<CoverageType, bool> showLookup = doNotShowLookup;
+        private Dictionary<DynamicCoverageType, bool> showLookup = doNotShowLookup;
 
         public void Initialize(IAppOptions appOptions)
         {
             if (appOptions.ShowEditorCoverage && EnabledPrivate(appOptions))
             {
                 showLookup = GetShowLookup(appOptions);
-                if (showLookup == null || showLookup.Count != 3)
+                if (showLookup == null || showLookup.Count != 7)
                 {
                     throw new InvalidOperationException("Invalid showLookup");
                 }
@@ -35,13 +39,13 @@ namespace FineCodeCoverage.Editor.Tagging.Base
         }
 
         protected abstract bool Enabled(IAppOptions appOptions);
-        protected abstract Dictionary<CoverageType, bool> GetShowLookup(IAppOptions appOptions);
+        protected abstract Dictionary<DynamicCoverageType, bool> GetShowLookup(IAppOptions appOptions);
 
         public abstract string TypeIdentifier { get; }
 
         public bool Disabled { get; set; } = true;
 
-        public bool Show(CoverageType coverageType)
+        public bool Show(DynamicCoverageType coverageType)
         {
             return showLookup[coverageType];
         }

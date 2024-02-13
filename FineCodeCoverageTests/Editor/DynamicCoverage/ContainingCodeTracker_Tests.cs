@@ -26,54 +26,57 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
         [TestCase(false)]
         public void Should_Dirty_The_TrackedCoverageLines_And_Be_Changed_When_TrackingSpanRange_IntersectsWith(bool intersectsWith)
         {
-            var autoMoqer = new AutoMoqer();
+            throw new System.NotImplementedException();
+            //var autoMoqer = new AutoMoqer();
             
-            var currentSnapshot = new Mock<ITextSnapshot>().Object;
-            var newSpanChanges = new List<Span> { new Span(0, 1) };
+            //var currentSnapshot = new Mock<ITextSnapshot>().Object;
+            //var newSpanChanges = new List<Span> { new Span(0, 1) };
 
-            var mockTrackingSpanRange = autoMoqer.GetMock<ITrackingSpanRange>();
-            mockTrackingSpanRange.Setup(trackingSpanRange => trackingSpanRange.IntersectsWith(currentSnapshot, newSpanChanges)).Returns(intersectsWith);
-            var mockTrackedCoverageLines = autoMoqer.GetMock<ITrackedCoverageLines>();
+            //var mockTrackingSpanRange = autoMoqer.GetMock<ITrackingSpanRange>();
+            //mockTrackingSpanRange.Setup(trackingSpanRange => trackingSpanRange.GetNonIntersecting(currentSnapshot, newSpanChanges)).Returns(intersectsWith);
+            //var mockTrackedCoverageLines = autoMoqer.GetMock<ITrackedCoverageLines>();
 
-            var containingCodeTracker = autoMoqer.Create<ContainingCodeTracker>();
+            //var containingCodeTracker = autoMoqer.Create<ContainingCodeTracker>();
 
-            var changed = containingCodeTracker.ProcessChanges(currentSnapshot, newSpanChanges);
+            //var changed = containingCodeTracker.ProcessChanges(currentSnapshot, newSpanChanges);
 
-            Assert.That(changed, Is.EqualTo(intersectsWith));
-            mockTrackedCoverageLines.Verify(trackedCoverageLines => trackedCoverageLines.Dirty(), intersectsWith? Times.Once():Times.Never());
+            //Assert.That(changed, Is.EqualTo(intersectsWith));
+            //mockTrackedCoverageLines.Verify(trackedCoverageLines => trackedCoverageLines.Dirty(), intersectsWith? Times.Once():Times.Never());
         }
 
         [Test]
         public void Should_Call_TrackingSpanRange_IntersectsWith_No_More_Once_Dirty()
         {
-            var autoMoqer = new AutoMoqer();
+            //var autoMoqer = new AutoMoqer();
 
-            var currentSnapshot = new Mock<ITextSnapshot>().Object;
-            var newSpanChanges = new List<Span> { new Span(0, 1) };
+            //var currentSnapshot = new Mock<ITextSnapshot>().Object;
+            //var newSpanChanges = new List<Span> { new Span(0, 1) };
 
-            var mockTrackingSpanRange = autoMoqer.GetMock<ITrackingSpanRange>();
-            mockTrackingSpanRange.Setup(trackingSpanRange => trackingSpanRange.IntersectsWith(currentSnapshot, newSpanChanges)).Returns(true);
-            var mockTrackedCoverageLines = autoMoqer.GetMock<ITrackedCoverageLines>();
+            //var mockTrackingSpanRange = autoMoqer.GetMock<ITrackingSpanRange>();
+            //mockTrackingSpanRange.Setup(trackingSpanRange => trackingSpanRange.GetNonIntersecting(currentSnapshot, newSpanChanges)).Returns(true);
+            //var mockTrackedCoverageLines = autoMoqer.GetMock<ITrackedCoverageLines>();
 
-            var containingCodeTracker = autoMoqer.Create<ContainingCodeTracker>();
+            //var containingCodeTracker = autoMoqer.Create<ContainingCodeTracker>();
 
-            containingCodeTracker.ProcessChanges(currentSnapshot, newSpanChanges);
-            containingCodeTracker.ProcessChanges(currentSnapshot, newSpanChanges);
+            //containingCodeTracker.ProcessChanges(currentSnapshot, newSpanChanges);
+            //containingCodeTracker.ProcessChanges(currentSnapshot, newSpanChanges);
 
-            Assert.That(mockTrackingSpanRange.Invocations.Count, Is.EqualTo(1));
+            //Assert.That(mockTrackingSpanRange.Invocations.Count, Is.EqualTo(1));
+            throw new System.NotImplementedException();
         }
 
         [Test]
         public void Should_Not_Throw_If_No_ITrackingSpanRange()
         {
-            var containingCodeTracker = new ContainingCodeTracker(new Mock<ITrackedCoverageLines>().Object);
-            
-            var currentSnapshot = new Mock<ITextSnapshot>().Object;
-            var newSpanChanges = new List<Span> { new Span(0, 1) };
+            //var containingCodeTracker = new ContainingCodeTracker(new Mock<ITrackedCoverageLines>().Object);
 
-            var changes = containingCodeTracker.ProcessChanges(currentSnapshot, newSpanChanges);
+            //var currentSnapshot = new Mock<ITextSnapshot>().Object;
+            //var newSpanChanges = new List<Span> { new Span(0, 1) };
 
-            Assert.False(changes);
+            //var changes = containingCodeTracker.ProcessChanges(currentSnapshot, newSpanChanges);
+
+            //Assert.False(changes);
+            throw new System.NotImplementedException();
         }
 
         [TestCase(true)]

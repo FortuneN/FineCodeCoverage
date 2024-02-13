@@ -3,9 +3,14 @@ using System.Collections.Generic;
 
 namespace FineCodeCoverage.Editor.DynamicCoverage
 {
+    interface IContainingCodeTrackerProcessResult
+    {
+        bool Changed { get; }
+        List<Span> UnprocessedSpans { get; }
+    }
     interface IContainingCodeTracker
     {
-        bool ProcessChanges(ITextSnapshot currentSnapshot, List<Span> newSpanChanges);
+        IContainingCodeTrackerProcessResult ProcessChanges(ITextSnapshot currentSnapshot, List<Span> newSpanChanges);
         IEnumerable<IDynamicLine> Lines { get; }
     }
 }

@@ -111,19 +111,20 @@ namespace FineCodeCoverageTests.Editor.Tagging.CoverageTypeFilter
         [TestCase(false, false, false)]
         public void Should_Show_Using_Classification_AppOptions(bool showCovered, bool showUncovered, bool showPartiallyCovered)
         {
-            var coverageTypeFilter = new TCoverageTypeFilter();
-            var appOptions = new Mock<IAppOptions>().SetupAllProperties().Object;
-            ShowCoverage(appOptions, true);
-            appOptions.ShowEditorCoverage = true;
-            ShowCovered(appOptions, showCovered);
-            ShowUncovered(appOptions, showUncovered);
-            ShowPartiallyCovered(appOptions, showPartiallyCovered);
+            //var coverageTypeFilter = new TCoverageTypeFilter();
+            //var appOptions = new Mock<IAppOptions>().SetupAllProperties().Object;
+            //ShowCoverage(appOptions, true);
+            //appOptions.ShowEditorCoverage = true;
+            //ShowCovered(appOptions, showCovered);
+            //ShowUncovered(appOptions, showUncovered);
+            //ShowPartiallyCovered(appOptions, showPartiallyCovered);
 
-            coverageTypeFilter.Initialize(appOptions);
+            //coverageTypeFilter.Initialize(appOptions);
 
-            Assert.That(coverageTypeFilter.Show(CoverageType.Covered), Is.EqualTo(showCovered));
-            Assert.That(coverageTypeFilter.Show(CoverageType.NotCovered), Is.EqualTo(showUncovered));
-            Assert.That(coverageTypeFilter.Show(CoverageType.Partial), Is.EqualTo(showPartiallyCovered));
+            //Assert.That(coverageTypeFilter.Show(CoverageType.Covered), Is.EqualTo(showCovered));
+            //Assert.That(coverageTypeFilter.Show(CoverageType.NotCovered), Is.EqualTo(showUncovered));
+            //Assert.That(coverageTypeFilter.Show(CoverageType.Partial), Is.EqualTo(showPartiallyCovered));
+            throw new System.NotImplementedException();
         }
 
         [TestCaseSource(nameof(ChangedTestSource))]

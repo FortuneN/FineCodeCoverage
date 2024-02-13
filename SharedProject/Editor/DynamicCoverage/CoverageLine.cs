@@ -11,7 +11,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
 
         public void Dirty()
         {
-            line.IsDirty = true;
+            line.Dirty();
         }
 
         public CoverageLine(ITrackingSpan trackingSpan, ILine line)

@@ -12,10 +12,11 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
         [Test]
         public void Should_Have_A_Dirty_IDynamicLine_When_Dirty()
         {
-            var autoMoqer = new AutoMoqer();
-            var coverageLine = autoMoqer.Create<CoverageLine>();
-            coverageLine.Dirty();
-            Assert.IsTrue(coverageLine.Line.IsDirty);
+            //var autoMoqer = new AutoMoqer();
+            //var coverageLine = autoMoqer.Create<CoverageLine>();
+            //coverageLine.Dirty();
+            //Assert.IsTrue(coverageLine.Line.IsDirty);
+            throw new System.NotImplementedException();
         }
 
         [Test]

@@ -6,6 +6,8 @@ using FineCodeCoverage.Core.Utilities;
 using Microsoft.VisualStudio.Text.Editor;
 using FineCodeCoverage.Editor.Tagging.Base;
 using FineCodeCoverage.Editor.Management;
+using FineCodeCoverage.Editor.DynamicCoverage;
+using System.Windows.Media;
 
 namespace FineCodeCoverage.Editor.Tagging.GlyphMargin
 {
@@ -44,8 +46,22 @@ namespace FineCodeCoverage.Editor.Tagging.GlyphMargin
         {
             var coverageLine = lineSpan.Line;
             var coverageColours = coverageColoursProvider.GetCoverageColours();
-            var colour = coverageColours.GetColour(coverageLine.CoverageType).Background;
-            return new TagSpan<CoverageLineGlyphTag>(lineSpan.Span, new CoverageLineGlyphTag(coverageLine, colour));
+            System.Windows.Media.Color colour = Colors.Pink;
+            if(coverageLine.CoverageType != DynamicCoverageType.NewLine)
+            {
+                if (DirtyCoverageTypeMapper.IsDirty(coverageLine.CoverageType))
+                {
+                    colour = Colors.Brown;
+                }
+                else
+                {
+                    var coverageType = DirtyCoverageTypeMapper.GetClean(coverageLine.CoverageType);
+                    colour = coverageColours.GetColour(coverageType).Background;
+                }
+                
+            }
+            
+            return new TagSpan<CoverageLineGlyphTag>(lineSpan.Span, new CoverageLineGlyphTag(colour));
         }
     }
 

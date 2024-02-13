@@ -42,7 +42,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
         public ITrackedLines Create(List<ILine> lines, ITextSnapshot textSnapshot, Language language)
         {
             var containingCodeTrackers = CreateContainingCodeTrackers(lines, textSnapshot, language);
-            return trackedLinesFactory.Create(containingCodeTrackers);
+            return trackedLinesFactory.Create(containingCodeTrackers, new NewCodeTracker());
         }
 
         private List<IContainingCodeTracker> CreateContainingCodeTrackers(List<ILine> lines, ITextSnapshot textSnapshot, Language language)
@@ -64,6 +64,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
 
             void AddSingleLine(ILine line)
             {
+                // this should not happen - just in case missed something with Roslyn
                 containingCodeTrackers.Add(containingCodeTrackerFactory.Create(textSnapshot, line));
             }
            

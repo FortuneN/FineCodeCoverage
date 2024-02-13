@@ -82,7 +82,7 @@ namespace FineCodeCoverage.Editor.Roslyn
             var hasBody = node.Body != null || node.ExpressionBody != null;
             if (hasBody)
             {
-                spans.Add(node.FullSpan);
+                AddNode(node);
             }
         }
 
@@ -103,17 +103,28 @@ namespace FineCodeCoverage.Editor.Roslyn
 
         private void VisitBasePropertyDeclaration(BasePropertyDeclarationSyntax node)
         {
-            if (!IsAbstract(node.Modifiers) && node.AccessorList != null)
+            if (!IsAbstract(node.Modifiers))
             {
-                var isInterfaceProperty = node.Parent is InterfaceDeclarationSyntax;
-                foreach (var accessor in node.AccessorList.Accessors)
+                if(node.AccessorList == null)
                 {
-                    var addAccessor = !isInterfaceProperty || AccessorHasBody(accessor);
-                    if(addAccessor)
+                    if(node is PropertyDeclarationSyntax propertyDeclarationSyntax)
                     {
-                        spans.Add(accessor.FullSpan);
+                        AddNode(propertyDeclarationSyntax);
                     }
                 }
+                else
+                {
+                    var isInterfaceProperty = node.Parent is InterfaceDeclarationSyntax;
+                    foreach (var accessor in node.AccessorList.Accessors)
+                    {
+                        var addAccessor = !isInterfaceProperty || AccessorHasBody(accessor);
+                        if (addAccessor)
+                        {
+                            AddNode(accessor);
+                        }
+                    }
+                }
+                
             }
         }
 
@@ -133,6 +144,11 @@ namespace FineCodeCoverage.Editor.Roslyn
         private bool IsAbstract(SyntaxTokenList modifiers)
         {
             return modifiers.Any(modifier => modifier.IsKind(SyntaxKind.AbstractKeyword));
+        }
+
+        private void AddNode(SyntaxNode node)
+        {
+            spans.Add(node.GetLeadingNoTrailingSpan());
         }
     }
 

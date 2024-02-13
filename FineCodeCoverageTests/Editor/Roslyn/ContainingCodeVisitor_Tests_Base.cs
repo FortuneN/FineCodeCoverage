@@ -31,7 +31,7 @@ namespace FineCodeCoverageTests.Editor.Roslyn
         {
             var textSpanNode = rootNode.FindNode(textSpan);
             Assert.That(textSpanNode, Is.TypeOf<T>());
-            Assert.That(textSpanNode.FullSpan, Is.EqualTo(textSpan));
+            Assert.That(textSpanNode.GetLeadingNoTrailingSpan(), Is.EqualTo(textSpan));
         }
 
         protected void AssertShouldVisit<T>(string compilationText) where T : SyntaxNode

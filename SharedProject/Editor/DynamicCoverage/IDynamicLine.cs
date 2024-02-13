@@ -1,9 +1,14 @@
-﻿using FineCodeCoverage.Engine.Model;
-
-namespace FineCodeCoverage.Editor.DynamicCoverage
+﻿namespace FineCodeCoverage.Editor.DynamicCoverage
 {
-    interface IDynamicLine : ILine
+    internal enum DynamicCoverageType
     {
-        bool IsDirty { get; }
+        Covered, Partial, NotCovered,
+        CoveredDirty, PartialDirty, NotCoveredDirty,
+        NewLine
+    }
+    interface IDynamicLine
+    {
+        int Number { get; }
+        DynamicCoverageType CoverageType { get; }
     }
 }

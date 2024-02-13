@@ -8,9 +8,9 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
     [Export(typeof(IContainingCodeTrackedLinesFactory))]
     internal class ContainingCodeTrackedLinesFactory : IContainingCodeTrackedLinesFactory
     {
-        public ITrackedLines Create(List<IContainingCodeTracker> containingCodeTrackers)
+        public ITrackedLines Create(List<IContainingCodeTracker> containingCodeTrackers,INewCodeTracker newCodeTracker)
         {
-            return new TrackedLines(containingCodeTrackers);
+            return new TrackedLines(containingCodeTrackers,newCodeTracker);
         }
     }
 }

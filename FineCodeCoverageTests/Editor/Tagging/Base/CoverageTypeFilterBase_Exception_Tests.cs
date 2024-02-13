@@ -1,4 +1,5 @@
-﻿using FineCodeCoverage.Editor.Tagging.Base;
+﻿using FineCodeCoverage.Editor.DynamicCoverage;
+using FineCodeCoverage.Editor.Tagging.Base;
 using FineCodeCoverage.Editor.Tagging.Classification;
 using FineCodeCoverage.Engine.Model;
 using FineCodeCoverage.Options;
@@ -17,8 +18,8 @@ namespace FineCodeCoverageTests.Editor.Tagging.Base
         {
             return true;
         }
-        public Func<Dictionary<CoverageType, bool>> ShowLookup;
-        protected override Dictionary<CoverageType, bool> GetShowLookup(IAppOptions appOptions)
+        public Func<Dictionary<DynamicCoverageType, bool>> ShowLookup;
+        protected override Dictionary<DynamicCoverageType, bool> GetShowLookup(IAppOptions appOptions)
         {
             return ShowLookup?.Invoke();
         }
@@ -41,10 +42,10 @@ namespace FineCodeCoverageTests.Editor.Tagging.Base
         public void Should_Throw_If_Incomplete_ShowLookup()
         {
             var coverageTypeFilterExceptions = new CoverageTypeFilterExceptions();
-            coverageTypeFilterExceptions.ShowLookup = () => new Dictionary<CoverageType, bool>
+            coverageTypeFilterExceptions.ShowLookup = () => new Dictionary<DynamicCoverageType, bool>
             {
-                { CoverageType.Covered, true },
-                { CoverageType.NotCovered, true }
+                { DynamicCoverageType.Covered, true },
+                { DynamicCoverageType.NotCovered, true }
             };
             var appOptions = new Mock<IAppOptions>().SetupAllProperties().Object;
             appOptions.ShowEditorCoverage = true;
@@ -57,11 +58,15 @@ namespace FineCodeCoverageTests.Editor.Tagging.Base
         public void Should_Throw_When_Comparing_Different_ICoverageTypeFilter_For_Changes()
         {
             var coverageTypeFilterExceptions = new CoverageTypeFilterExceptions();
-            coverageTypeFilterExceptions.ShowLookup = () => new Dictionary<CoverageType, bool>
+            coverageTypeFilterExceptions.ShowLookup = () => new Dictionary<DynamicCoverageType, bool>
             {
-                { CoverageType.Covered, true },
-                { CoverageType.NotCovered, true },
-                {CoverageType.Partial,true }
+                { DynamicCoverageType.Covered, true },
+                { DynamicCoverageType.NotCovered, true },
+                { DynamicCoverageType.Partial,true },
+                { DynamicCoverageType.CoveredDirty, true },
+                { DynamicCoverageType.NotCoveredDirty, true },
+                { DynamicCoverageType.PartialDirty,true },
+                { DynamicCoverageType.NewLine,true },
             };
             var appOptions = new Mock<IAppOptions>().SetupAllProperties().Object;
             appOptions.ShowEditorCoverage = true;

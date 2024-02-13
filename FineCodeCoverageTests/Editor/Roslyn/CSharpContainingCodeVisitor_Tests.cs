@@ -3,7 +3,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using NUnit.Framework;
-using System;
 
 namespace FineCodeCoverageTests.Editor.Roslyn
 {
@@ -12,7 +11,7 @@ namespace FineCodeCoverageTests.Editor.Roslyn
         protected override SyntaxNode ParseCompilation(string compilationText) => SyntaxFactory.ParseCompilationUnit(compilationText);
 
         protected override ILanguageContainingCodeVisitor GetVisitor() => new CSharpContainingCodeVisitor();
-        
+
         [Test]
         public void Should_Visit_Methods()
         {
@@ -186,6 +185,26 @@ public class MyClass
             textSpans.ForEach(textSpan => AssertTextSpan<AccessorDeclarationSyntax>(rootNode, textSpan));
         }
 
+        [Test]
+        public void Should_Visit_Expression_Bodied_Read_Only_Property()
+        {
+            var text = @"
+namespace MyNamespace
+{
+	public abstract class Abstract
+	{
+		public abstract int Property { get; }
+	}
+							
+	public class Concrete : Abstract
+	{
+        public override int Property => 1; 
+    }
+}
+";
+            AssertShouldVisit<PropertyDeclarationSyntax>(text);
+        }
+        
         [Test]
         public void Should_Not_Visit_Abstract_Properties()
         {

@@ -5,7 +5,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
 {
     interface ITrackingSpanRange
     {
-        bool IntersectsWith(ITextSnapshot currentSnapshot, List<Span> newSpanChanges);
+        List<Span> GetNonIntersecting(ITextSnapshot currentSnapshot, List<Span> newSpanChanges);
     }
 
 }

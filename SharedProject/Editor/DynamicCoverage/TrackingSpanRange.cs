@@ -13,18 +13,21 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
             this.trackingSpans = trackingSpans;
         }
 
-        public bool IntersectsWith(ITextSnapshot currentSnapshot, List<Span> newSpanChanges)
+        public List<Span> GetNonIntersecting(ITextSnapshot currentSnapshot, List<Span> newSpanChanges)
         {
+            var removals = new List<ITrackingSpan>();
             foreach (var trackingSpan in trackingSpans)
             {
-                var currentSpan = trackingSpan.GetSpan(currentSnapshot).Span;
-                var spanIntersected = newSpanChanges.Any(newSpan => newSpan.IntersectsWith(currentSpan));
-                if (spanIntersected)
+                var currentSnapshotSpan = trackingSpan.GetSpan(currentSnapshot);
+                var currentSpan = currentSnapshotSpan.Span;
+                newSpanChanges = newSpanChanges.Where(newSpanChange => !newSpanChange.IntersectsWith(currentSpan)).ToList();
+                if (currentSpan.IsEmpty)
                 {
-                    return true;
+                    removals.Add(trackingSpan);
                 }
             }
-            return false;
+            removals.ForEach(trackingSpan => trackingSpans.Remove(trackingSpan));
+            return newSpanChanges;
         }
     }
 

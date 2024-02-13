@@ -6,9 +6,12 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
     internal class TrackedLines : ITrackedLines
     {
         private readonly List<IContainingCodeTracker> containingCodeTrackers;
-        public TrackedLines(List<IContainingCodeTracker> containingCodeTrackers)
+        private readonly INewCodeTracker newCodeTracker;
+
+        public TrackedLines(List<IContainingCodeTracker> containingCodeTrackers, INewCodeTracker newCodeTracker)
         {
             this.containingCodeTrackers = containingCodeTrackers;
+            this.newCodeTracker = newCodeTracker;
         }
 
 
@@ -18,11 +21,20 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
             var changed = false;
             foreach (var containingCodeTracker in containingCodeTrackers)
             {
-                var trackerChanged = containingCodeTracker.ProcessChanges(currentSnapshot, newSpanChanges);
-                if (trackerChanged)
+                var processResult = containingCodeTracker.ProcessChanges(currentSnapshot, newSpanChanges);
+                newSpanChanges = processResult.UnprocessedSpans;
+                if (processResult.Changed)
                 {
                     changed = true;
                 }
+                if(newSpanChanges.Count == 0)
+                {
+                    break;
+                }
+            }
+            if(newSpanChanges.Count > 0)
+            {
+                changed = newCodeTracker.ProcessChanges(currentSnapshot, newSpanChanges);
             }
             return changed;
         }
@@ -47,6 +59,17 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
                 if (done)
                 {
                     break;
+                }
+            }
+            foreach (var line in newCodeTracker.Lines)
+            {
+                if (line.Number > endLineNumber)
+                {
+                    break;
+                }
+                if (line.Number >= startLineNumber)
+                {
+                    yield return line;
                 }
             }
         }

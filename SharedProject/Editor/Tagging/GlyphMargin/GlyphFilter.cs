@@ -1,5 +1,5 @@
-﻿using FineCodeCoverage.Editor.Tagging.Base;
-using FineCodeCoverage.Engine.Model;
+﻿using FineCodeCoverage.Editor.DynamicCoverage;
+using FineCodeCoverage.Editor.Tagging.Base;
 using FineCodeCoverage.Options;
 using System.Collections.Generic;
 
@@ -14,13 +14,17 @@ namespace FineCodeCoverage.Editor.Tagging.GlyphMargin
             return appOptions.ShowCoverageInGlyphMargin;
         }
 
-        protected override Dictionary<CoverageType, bool> GetShowLookup(IAppOptions appOptions)
+        protected override Dictionary<DynamicCoverageType, bool> GetShowLookup(IAppOptions appOptions)
         {
-            return new Dictionary<CoverageType, bool>()
+            return new Dictionary<DynamicCoverageType, bool>()
             {
-                { CoverageType.Covered, appOptions.ShowCoveredInGlyphMargin },
-                { CoverageType.Partial, appOptions.ShowPartiallyCoveredInGlyphMargin },
-                { CoverageType.NotCovered, appOptions.ShowUncoveredInGlyphMargin },
+                { DynamicCoverageType.Covered, appOptions.ShowCoveredInGlyphMargin },
+                { DynamicCoverageType.Partial, appOptions.ShowPartiallyCoveredInGlyphMargin },
+                { DynamicCoverageType.NotCovered, appOptions.ShowUncoveredInGlyphMargin },
+                { DynamicCoverageType.CoveredDirty, appOptions.ShowCoveredInGlyphMargin },
+                { DynamicCoverageType.PartialDirty, appOptions.ShowPartiallyCoveredInGlyphMargin },
+                { DynamicCoverageType.NotCoveredDirty, appOptions.ShowUncoveredInGlyphMargin },
+                { DynamicCoverageType.NewLine, true },
             };
         }
     }
