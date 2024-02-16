@@ -23,21 +23,37 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
             return trackingSpanRange.Process(currentSnapshot, newSpanChanges);
         }
 
-        private bool ProcessChanged(
+        private bool CreateDirtyLineIfRequired(
             List<SpanAndLineRange> newSpanChanges, 
             List<SpanAndLineRange> nonIntersecting,
             bool textChanged,
             ITextSnapshot currentSnapshot)
         {
-            var trackingSpanRangeChanged = nonIntersecting.Count < newSpanChanges.Count;
-            var changed = false;
-            if (textChanged && trackingSpanRangeChanged && trackedCoverageLines.Lines.Any() & dirtyLine == null)
+            var createdDirtyLine = false;
+            if (RequiresDirtyLine() && textChanged && Intersected(newSpanChanges,nonIntersecting))
             {
-                var firstTrackingSpan= trackingSpanRange.GetFirstTrackingSpan();
-                dirtyLine = new DirtyLine(firstTrackingSpan, currentSnapshot);
-                changed = true;
+                CreateDirtyLine(currentSnapshot);
+                createdDirtyLine = true;
             }
-            return changed;
+            return createdDirtyLine;
+        }
+
+        private void CreateDirtyLine(ITextSnapshot currentSnapshot)
+        {
+            var firstTrackingSpan = trackingSpanRange.GetFirstTrackingSpan();
+            dirtyLine = new DirtyLine(firstTrackingSpan, currentSnapshot);
+        }
+
+        private bool RequiresDirtyLine()
+        {
+            return dirtyLine == null && trackedCoverageLines.Lines.Any();
+        }
+
+        private bool Intersected(
+            List<SpanAndLineRange> newSpanChanges,
+            List<SpanAndLineRange> nonIntersecting)
+        {
+            return nonIntersecting.Count < newSpanChanges.Count;
         }
 
         public IContainingCodeTrackerProcessResult ProcessChanges(ITextSnapshot currentSnapshot, List<SpanAndLineRange> newSpanChanges)
@@ -48,30 +64,28 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
             {
                 return new ContainingCodeTrackerProcessResult(true, nonIntersectingSpans,true);
             }
-            var changed = ProcessChanged(newSpanChanges, nonIntersectingSpans,trackingSpanRangeProcessResult.TextChanged,currentSnapshot);
-            var result = new ContainingCodeTrackerProcessResult(changed, nonIntersectingSpans, false);
-            if (!changed)
+
+            var createdDirtyLine = CreateDirtyLineIfRequired(newSpanChanges, nonIntersectingSpans,trackingSpanRangeProcessResult.TextChanged,currentSnapshot);
+            var result = new ContainingCodeTrackerProcessResult(createdDirtyLine, nonIntersectingSpans, false);
+            if (!createdDirtyLine)
             {
-                if (dirtyLine != null)
-                {
-                    bool dirtyLinesChanged = dirtyLine.Update(currentSnapshot);
-                    if(dirtyLinesChanged)
-                    {
-                        result.Changed = true;
-                    }
-                }
-                else
-                {
-                    // todo - if have a solitary line......
-                    var coverageLinesChanged = trackedCoverageLines.Update(currentSnapshot);
-                    if (coverageLinesChanged)
-                    {
-                        result.Changed = true;
-                    }
-                }
+                var linesChanged = UpdateLines(currentSnapshot);
+                result.Changed = result.Changed || linesChanged;
             }
             
             return result;
+        }
+
+        private bool UpdateLines(ITextSnapshot currentSnapshot)
+        {
+            if (dirtyLine != null)
+            {
+               return dirtyLine.Update(currentSnapshot);
+            }
+            else
+            {
+                return trackedCoverageLines.Update(currentSnapshot);
+            }
         }
 
         public IEnumerable<IDynamicLine> Lines => dirtyLine != null ? new List<IDynamicLine> { dirtyLine.Line } :  trackedCoverageLines.Lines;
