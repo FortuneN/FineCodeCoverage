@@ -33,21 +33,32 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
         public TrackingSpanRangeProcessResult Process(ITextSnapshot currentSnapshot, List<SpanAndLineRange> newSpanChanges)
         {
             var (currentFirstSpan, currentEndSpan) = GetCurrentRange(currentSnapshot);
+            var (isEmpty, textChanged) = GetTextChangeInfo(currentSnapshot, currentFirstSpan, currentEndSpan);
+            var nonIntersecting = GetNonIntersecting(currentSnapshot, currentFirstSpan, currentEndSpan, newSpanChanges);
+            return new TrackingSpanRangeProcessResult(nonIntersecting, isEmpty,textChanged);
+        }
+
+        private (bool isEmpty,bool textChanged) GetTextChangeInfo(ITextSnapshot currentSnapshot, SnapshotSpan currentFirstSpan, SnapshotSpan currentEndSpan)
+        {
             var previousRangeText = lastRangeText;
             SetRangeText(currentSnapshot, currentFirstSpan, currentEndSpan);
             var textChanged = previousRangeText != lastRangeText;
             var isEmpty = string.IsNullOrWhiteSpace(lastRangeText);
+            return (isEmpty, textChanged);
 
+        }
+
+        private List<SpanAndLineRange> GetNonIntersecting(
+            ITextSnapshot currentSnapshot,SnapshotSpan currentFirstSpan, SnapshotSpan currentEndSpan,List<SpanAndLineRange> newSpanChanges)
+        {
             var currentFirstTrackedLineNumber = currentSnapshot.GetLineNumberFromPosition(currentFirstSpan.End);
             var currentEndTrackedLineNumber = currentSnapshot.GetLineNumberFromPosition(currentEndSpan.End);
-            newSpanChanges = newSpanChanges.Where(spanAndLineNumber =>
+            return newSpanChanges.Where(spanAndLineNumber =>
             {
                 return OutsideRange(currentFirstTrackedLineNumber, currentEndTrackedLineNumber, spanAndLineNumber.StartLineNumber)
                 &&
                 OutsideRange(currentFirstTrackedLineNumber, currentEndTrackedLineNumber, spanAndLineNumber.EndLineNumber);
             }).ToList();
-            
-            return new TrackingSpanRangeProcessResult(newSpanChanges, isEmpty,textChanged);
         }
 
         private bool OutsideRange(int firstLineNumber, int endLineNumber, int spanLineNumber)
