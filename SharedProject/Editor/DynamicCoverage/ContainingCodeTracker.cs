@@ -6,7 +6,6 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
 {
     internal class ContainingCodeTracker : IContainingCodeTracker
     {
-        private bool isEmpty;
         private readonly ITrackingSpanRange trackingSpanRange;
         private readonly ITrackedCoverageLines trackedCoverageLines;
         private DirtyLine dirtyLine;
@@ -24,7 +23,11 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
             return trackingSpanRange.Process(currentSnapshot, newSpanChanges);
         }
 
-        private bool ProcessChanged(List<SpanAndLineRange> newSpanChanges, List<SpanAndLineRange> nonIntersecting,bool textChanged,ITextSnapshot currentSnapshot)
+        private bool ProcessChanged(
+            List<SpanAndLineRange> newSpanChanges, 
+            List<SpanAndLineRange> nonIntersecting,
+            bool textChanged,
+            ITextSnapshot currentSnapshot)
         {
             var trackingSpanRangeChanged = nonIntersecting.Count < newSpanChanges.Count;
             var changed = false;
@@ -39,18 +42,13 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
 
         public IContainingCodeTrackerProcessResult ProcessChanges(ITextSnapshot currentSnapshot, List<SpanAndLineRange> newSpanChanges)
         {
-            if(isEmpty)
+            var trackingSpanRangeProcessResult = ProcessTrackingSpanRangeChanges(currentSnapshot, newSpanChanges);
+            var nonIntersectingSpans = trackingSpanRangeProcessResult.NonIntersectingSpans;
+            if (trackingSpanRangeProcessResult.IsEmpty)
             {
-                return new ContainingCodeTrackerProcessResult(false, newSpanChanges,true);
-            }
-            var nonIntersectingResult = ProcessTrackingSpanRangeChanges(currentSnapshot, newSpanChanges);
-            var nonIntersectingSpans = nonIntersectingResult.NonIntersectingSpans;
-            if (nonIntersectingResult.IsEmpty)
-            {
-                isEmpty = true;
                 return new ContainingCodeTrackerProcessResult(true, nonIntersectingSpans,true);
             }
-            var changed = ProcessChanged(newSpanChanges, nonIntersectingSpans,nonIntersectingResult.TextChanged,currentSnapshot);
+            var changed = ProcessChanged(newSpanChanges, nonIntersectingSpans,trackingSpanRangeProcessResult.TextChanged,currentSnapshot);
             var result = new ContainingCodeTrackerProcessResult(changed, nonIntersectingSpans, false);
             if (!changed)
             {
@@ -76,8 +74,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
             return result;
         }
 
-        public IEnumerable<IDynamicLine> Lines => isEmpty ?  Enumerable.Empty<IDynamicLine>() :  
-            dirtyLine != null ? new List<IDynamicLine> { dirtyLine.Line } :  trackedCoverageLines.Lines;
+        public IEnumerable<IDynamicLine> Lines => dirtyLine != null ? new List<IDynamicLine> { dirtyLine.Line } :  trackedCoverageLines.Lines;
     }
     
 }
