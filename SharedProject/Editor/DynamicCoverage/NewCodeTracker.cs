@@ -4,58 +4,67 @@ using System.Linq;
 
 namespace FineCodeCoverage.Editor.DynamicCoverage
 {
+    internal class SpanAndLineRange
+    {
+        public SpanAndLineRange(Span span, int startLineNumber,int endLineNumber)
+        {
+            Span = span;
+            StartLineNumber = startLineNumber;
+            EndLineNumber = endLineNumber;
+        }
+
+        public Span Span { get; }
+        public int StartLineNumber { get; }
+        public int EndLineNumber { get; }
+    }
     class NewCodeTracker : INewCodeTracker
     {
         private readonly List<TrackedNewCodeLine> trackedNewCodeLines = new List<TrackedNewCodeLine>();
-        private class SpanAndLineNumber
-        {
-            public SpanAndLineNumber(Span span, int lineNumber)
-            {
-                Span = span;
-                LineNumber = lineNumber;
-            }
+        private readonly bool isCSharp;
 
-            public Span Span { get; }
-            public int LineNumber { get; }
+        public NewCodeTracker(bool isCSharp)
+        {
+            this.isCSharp = isCSharp;
         }
 
-        public IEnumerable<IDynamicLine> Lines => trackedNewCodeLines;
+        public IEnumerable<IDynamicLine> Lines => trackedNewCodeLines.OrderBy(l => l.Number);
 
-        public bool ProcessChanges(ITextSnapshot currentSnapshot, List<Span> newSpanChanges)
+        public bool ProcessChanges(ITextSnapshot currentSnapshot, List<SpanAndLineRange> spanAndLineNumbers)
         {
             var requiresUpdate = false;
             var removals = new List<TrackedNewCodeLine>();
-
-            trackedNewCodeLines.ForEach(trackedNewCodeLine =>
+            foreach (var trackedNewCodeLine in  trackedNewCodeLines)
             {
                 var newSnapshotSpan = trackedNewCodeLine.TrackingSpan.GetSpan(currentSnapshot);
-                newSpanChanges = newSpanChanges.Where(newSpanChange => !newSpanChange.IntersectsWith(newSnapshotSpan)).ToList();
-                if (newSnapshotSpan.IsEmpty || IgnoreLine(newSnapshotSpan))
+                var line = currentSnapshot.GetLineFromPosition(newSnapshotSpan.End);
+                var lineNumber = line.LineNumber;
+
+                spanAndLineNumbers = spanAndLineNumbers.Where(spanAndLineNumber => spanAndLineNumber.StartLineNumber != lineNumber).ToList();
+                if (newSnapshotSpan.IsEmpty || CodeLineExcluder.ExcludeIfNotCode(line.Extent,isCSharp))
                 {
                     requiresUpdate = true;
                     removals.Add(trackedNewCodeLine);
                 }
                 else
                 {
-                    var newLineNumber = currentSnapshot.GetLineNumberFromPosition(newSnapshotSpan.Start);
-                    if (newLineNumber != trackedNewCodeLine.ActualLineNumber)
+                    
+                    if (lineNumber != trackedNewCodeLine.ActualLineNumber)
                     {
-                        trackedNewCodeLine.ActualLineNumber = newLineNumber;
+                        trackedNewCodeLine.ActualLineNumber = lineNumber;
                         requiresUpdate = true;
                     }
                 }
-            });
+            };
             removals.ForEach(removal => trackedNewCodeLines.Remove(removal));
 
-            var groupedByLineNumber = newSpanChanges.Select(newSpanChange => new SpanAndLineNumber(newSpanChange, currentSnapshot.GetLineNumberFromPosition(newSpanChange.Start))).GroupBy(spanAndLineNumber => spanAndLineNumber.LineNumber);
+            var groupedByLineNumber = spanAndLineNumbers.GroupBy(spanAndLineNumber => spanAndLineNumber.StartLineNumber);
             foreach (var grouping in groupedByLineNumber)
             {
                 var lineNumber = grouping.Key;
                 var lineSpan = currentSnapshot.GetLineFromLineNumber(lineNumber).Extent;
-                if (!IgnoreLine(lineSpan))
+                if (!CodeLineExcluder.ExcludeIfNotCode(lineSpan,isCSharp))
                 {
-                    // to check - consistent with other usages
-                    var trackingSpan = currentSnapshot.CreateTrackingSpan(lineSpan, SpanTrackingMode.EdgeInclusive);
+                    var trackingSpan = currentSnapshot.CreateTrackingSpan(lineSpan, SpanTrackingMode.EdgeExclusive);
                     trackedNewCodeLines.Add(new TrackedNewCodeLine(lineNumber, trackingSpan));
                     requiresUpdate = true;
                 }
@@ -63,13 +72,6 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
                 // there is definitely common code with CoverageLine
             }
             return requiresUpdate;
-        }
-
-        // todo and does not start with single comment - need language
-        private bool IgnoreLine(SnapshotSpan lineSpan)
-        {
-            var lineText = lineSpan.GetText();
-            return lineText.Trim().Length == 0;
         }
     }
 

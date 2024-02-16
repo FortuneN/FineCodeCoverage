@@ -4,21 +4,6 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
 {
     internal static class  DirtyCoverageTypeMapper
     {
-        public static DynamicCoverageType GetDirtied(CoverageType coverageType)
-        {
-            var dynamicCoverageType = DynamicCoverageType.CoveredDirty;
-            switch (coverageType)
-            {
-                case CoverageType.NotCovered:
-                    dynamicCoverageType = DynamicCoverageType.NotCoveredDirty;
-                    break;
-                case CoverageType.Partial:
-                    dynamicCoverageType = DynamicCoverageType.PartialDirty;
-                    break;
-            }
-            return dynamicCoverageType;
-        }
-
         public static DynamicCoverageType GetClean(CoverageType coverageType)
         {
             var dynamicCoverageType = DynamicCoverageType.Covered;
@@ -33,10 +18,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
             }
             return dynamicCoverageType;
         }
-        public static bool IsDirty(DynamicCoverageType dynamicCoverageType)
-        {
-            return dynamicCoverageType == DynamicCoverageType.CoveredDirty || dynamicCoverageType == DynamicCoverageType.NotCoveredDirty || dynamicCoverageType == DynamicCoverageType.PartialDirty;
-        }
+
         public static CoverageType GetClean(DynamicCoverageType dynamicCoverageType)
         {
             var coverageType = CoverageType.Covered;
@@ -45,13 +27,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
                 case DynamicCoverageType.NotCovered:
                     coverageType = CoverageType.NotCovered;
                     break;
-                case DynamicCoverageType.NotCoveredDirty:
-                    coverageType = CoverageType.NotCovered;
-                    break;
                 case DynamicCoverageType.Partial:
-                    coverageType = CoverageType.Partial;
-                    break;
-                case DynamicCoverageType.PartialDirty:
                     coverageType = CoverageType.Partial;
                     break;
                // case DynamicCoverageType.NewLine:
@@ -75,7 +51,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
 
         public void Dirty()
         {
-            CoverageType = DirtyCoverageTypeMapper.GetDirtied(lineCoverageType);
+            CoverageType = DynamicCoverageType.Dirty;
         }
     }
 }

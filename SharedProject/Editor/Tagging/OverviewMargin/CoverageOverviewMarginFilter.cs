@@ -21,10 +21,9 @@ namespace FineCodeCoverage.Editor.Tagging.OverviewMargin
                 { DynamicCoverageType.Covered, appOptions.ShowCoveredInOverviewMargin },
                 { DynamicCoverageType.NotCovered, appOptions.ShowUncoveredInOverviewMargin },
                 { DynamicCoverageType.Partial, appOptions.ShowPartiallyCoveredInOverviewMargin },
-                { DynamicCoverageType.CoveredDirty, appOptions.ShowCoveredInOverviewMargin },
-                { DynamicCoverageType.NotCoveredDirty, appOptions.ShowUncoveredInOverviewMargin },
-                { DynamicCoverageType.PartialDirty, appOptions.ShowPartiallyCoveredInOverviewMargin },
-                { DynamicCoverageType.NewLine, true}
+                { DynamicCoverageType.Dirty, true},
+                { DynamicCoverageType.NewLine, true},
+
             };
         }
     }

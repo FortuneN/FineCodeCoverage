@@ -49,7 +49,7 @@ namespace FineCodeCoverage.Editor.Tagging.GlyphMargin
             System.Windows.Media.Color colour = Colors.Pink;
             if(coverageLine.CoverageType != DynamicCoverageType.NewLine)
             {
-                if (DirtyCoverageTypeMapper.IsDirty(coverageLine.CoverageType))
+                if (coverageLine.CoverageType == DynamicCoverageType.Dirty)
                 {
                     colour = Colors.Brown;
                 }

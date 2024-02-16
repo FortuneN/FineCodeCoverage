@@ -111,7 +111,7 @@ namespace FineCodeCoverage.Editor.Roslyn
     
         private void AddNode(SyntaxNode node)
         {
-            spans.Add(node.GetLeadingNoTrailingSpan());
+            spans.Add(node.Span);
         }
     }
 

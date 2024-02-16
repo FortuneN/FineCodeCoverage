@@ -7,6 +7,6 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
     {
         IEnumerable<IDynamicLine> Lines { get; }
 
-        bool ProcessChanges(ITextSnapshot currentSnapshot, List<Span> newSpanChanges);
+        bool ProcessChanges(ITextSnapshot currentSnapshot, List<SpanAndLineRange> newSpanChanges);
     }
 }

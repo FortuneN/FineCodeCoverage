@@ -131,7 +131,7 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
 
             public IEnumerable<IDynamicLine> Lines => throw new System.NotImplementedException();
 
-            public IContainingCodeTrackerProcessResult ProcessChanges(ITextSnapshot currentSnapshot, List<Span> newSpanChanges)
+            public IContainingCodeTrackerProcessResult ProcessChanges(ITextSnapshot currentSnapshot, List<SpanAndLineRange> newSpanChanges)
             {
                 throw new System.NotImplementedException();
             }

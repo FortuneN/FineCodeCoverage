@@ -14,14 +14,6 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
             this.coverageLines = coverageLines;
         }
 
-        public void Dirty()
-        {
-            foreach(var coverageLine in coverageLines)
-            {
-                coverageLine.Dirty();
-            }
-        }
-
         public bool Update(ITextSnapshot currentSnapshot)
         {
             var changed = false;

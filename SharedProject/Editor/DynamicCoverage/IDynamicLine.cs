@@ -3,7 +3,7 @@
     internal enum DynamicCoverageType
     {
         Covered, Partial, NotCovered,
-        CoveredDirty, PartialDirty, NotCoveredDirty,
+        Dirty,
         NewLine
     }
     interface IDynamicLine

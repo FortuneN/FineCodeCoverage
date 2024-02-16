@@ -42,7 +42,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
         public ITrackedLines Create(List<ILine> lines, ITextSnapshot textSnapshot, Language language)
         {
             var containingCodeTrackers = CreateContainingCodeTrackers(lines, textSnapshot, language);
-            return trackedLinesFactory.Create(containingCodeTrackers, new NewCodeTracker());
+            return trackedLinesFactory.Create(containingCodeTrackers, new NewCodeTracker(language == Language.CSharp));
         }
 
         private List<IContainingCodeTracker> CreateContainingCodeTrackers(List<ILine> lines, ITextSnapshot textSnapshot, Language language)
@@ -51,21 +51,21 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
 
             if (language == Language.CPP)
             {
-                return lines.Select(line => containingCodeTrackerFactory.Create(textSnapshot, line)).ToList();
+                return lines.Select(line => containingCodeTrackerFactory.Create(textSnapshot, line,SpanTrackingMode.EdgeExclusive)).ToList();
             }
-
-            return CreateRoslynContainingCodeTrackers(lines, textSnapshot);
+            var isCSharp = language == Language.CSharp;
+            return CreateRoslynContainingCodeTrackers(lines, textSnapshot,isCSharp);
             
         }
 
-        private List<IContainingCodeTracker> CreateRoslynContainingCodeTrackers(List<ILine> lines, ITextSnapshot textSnapshot)
+        private List<IContainingCodeTracker> CreateRoslynContainingCodeTrackers(List<ILine> lines, ITextSnapshot textSnapshot,bool isCSharp)
         {
             List<IContainingCodeTracker> containingCodeTrackers = new List<IContainingCodeTracker>();
-
-            void AddSingleLine(ILine line)
+            var currentLine = 0;
+            void CreateSingleLineContainingCodeTracker(ILine line)
             {
                 // this should not happen - just in case missed something with Roslyn
-                containingCodeTrackers.Add(containingCodeTrackerFactory.Create(textSnapshot, line));
+                containingCodeTrackers.Add(containingCodeTrackerFactory.Create(textSnapshot, line, SpanTrackingMode.EdgeExclusive));
             }
            
             var roslynContainingCodeSpans = threadHelper.JoinableTaskFactory.Run(() => roslynService.GetContainingCodeSpansAsync(textSnapshot));
@@ -87,32 +87,51 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
                 }
             }
 
-            void CollectContainedLines()
+            void TrackOtherLines()
             {
-                if (containedLines.Count > 0)
+                var to = currentCodeSpanRange.StartLine - 1;
+                TrackOtherLinesTo(to);
+                currentLine = currentCodeSpanRange.EndLine + 1;
+            }
+
+            void TrackOtherLinesTo(int to)
+            {
+                var additionalCodeLines = Enumerable.Range(currentLine, to - currentLine).Where(lineNumber => !CodeLineExcluder.ExcludeIfNotCode(textSnapshot.GetLineFromLineNumber(lineNumber).Extent, isCSharp)).ToList();
+                if (additionalCodeLines.Any())
                 {
-                    containingCodeTrackers.Add(containingCodeTrackerFactory.Create(textSnapshot, containedLines, currentCodeSpanRange));
+                    var uncontainedCodeSpanRange = new CodeSpanRange(additionalCodeLines[0], additionalCodeLines.Last());
+                    containingCodeTrackers.Add(
+                        containingCodeTrackerFactory.Create(textSnapshot, Enumerable.Empty<ILine>().ToList(), uncontainedCodeSpanRange, SpanTrackingMode.EdgeNegative));
                 }
+            }
+
+            void CreateRangeContainingCodeTracker()
+            {
+                TrackOtherLines();
+                containingCodeTrackers.Add(
+                    containingCodeTrackerFactory.Create(textSnapshot, containedLines, currentCodeSpanRange,SpanTrackingMode.EdgeExclusive));
+                
                 containedLines = new List<ILine>();
+                SetNextCodeSpanRange();
             }
 
             void LineAction(ILine line)
             {
                 if (currentCodeSpanRange == null)
                 {
-                    AddSingleLine(line);
+                    CreateSingleLineContainingCodeTracker(line);
                 }
                 else
                 {
                     var adjustedLine = line.Number - 1;
                     if (adjustedLine < currentCodeSpanRange.StartLine)
                     {
-                        AddSingleLine(line);
+                        CreateSingleLineContainingCodeTracker(line);
                     }
                     else if (adjustedLine > currentCodeSpanRange.EndLine)
                     {
-                        CollectContainedLines();
-                        SetNextCodeSpanRange();
+                        CreateRangeContainingCodeTracker();
+                        
                         LineAction(line);
 
                     }
@@ -128,9 +147,11 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
                 LineAction(line);
             }
 
-            CollectContainedLines();
-                
-
+            while (currentCodeSpanRange != null)
+            {
+                CreateRangeContainingCodeTracker();
+            }
+            TrackOtherLinesTo(textSnapshot.LineCount);
             return containingCodeTrackers;
         }
     }

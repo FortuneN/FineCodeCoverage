@@ -2,9 +2,7 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 using NUnit.Framework;
-using System;
 using System.Collections.Generic;
-using System.Windows.Forms;
 
 namespace FineCodeCoverageTests.Editor.Roslyn
 {
@@ -31,7 +29,7 @@ namespace FineCodeCoverageTests.Editor.Roslyn
         {
             var textSpanNode = rootNode.FindNode(textSpan);
             Assert.That(textSpanNode, Is.TypeOf<T>());
-            Assert.That(textSpanNode.GetLeadingNoTrailingSpan(), Is.EqualTo(textSpan));
+            Assert.That(textSpanNode.Span, Is.EqualTo(textSpan));
         }
 
         protected void AssertShouldVisit<T>(string compilationText) where T : SyntaxNode

@@ -1,7 +1,6 @@
 ﻿using FineCodeCoverage.Editor.DynamicCoverage;
 using FineCodeCoverage.Editor.Tagging.Base;
 using FineCodeCoverage.Editor.Tagging.Classification;
-using FineCodeCoverage.Engine.Model;
 using FineCodeCoverage.Options;
 using Moq;
 using NUnit.Framework;
@@ -63,9 +62,7 @@ namespace FineCodeCoverageTests.Editor.Tagging.Base
                 { DynamicCoverageType.Covered, true },
                 { DynamicCoverageType.NotCovered, true },
                 { DynamicCoverageType.Partial,true },
-                { DynamicCoverageType.CoveredDirty, true },
-                { DynamicCoverageType.NotCoveredDirty, true },
-                { DynamicCoverageType.PartialDirty,true },
+                { DynamicCoverageType.Dirty, true },
                 { DynamicCoverageType.NewLine,true },
             };
             var appOptions = new Mock<IAppOptions>().SetupAllProperties().Object;

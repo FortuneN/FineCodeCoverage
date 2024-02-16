@@ -183,7 +183,10 @@
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\VsThreading\IThreadHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\XmlFileEscaper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\ZipFileWrapper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Editor\DynamicCoverage\CodeLineExcluder.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editor\DynamicCoverage\ContainingCodeTrackerProcessResult.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Editor\DynamicCoverage\DirtyDynamicLine.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Editor\DynamicCoverage\DirtyLine.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editor\DynamicCoverage\IDynamicLine.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editor\DynamicCoverage\BufferLineCoverage.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editor\DynamicCoverage\BufferLineCoverageFactory.cs" />
@@ -212,7 +215,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Editor\Roslyn\ITextSnapshotToSyntaxService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editor\Roslyn\LanguageContainingCodeVisitorFactory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editor\Roslyn\RootNodeAndLanguage.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Editor\Roslyn\SyntaxNodeExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editor\Roslyn\TextSnapshotToSyntaxService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editor\Tagging\Base\CoverageTaggerProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editor\Tagging\Base\CoverageTaggerProviderFactory.cs" />

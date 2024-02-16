@@ -5,7 +5,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
 {
     internal interface ITrackingSpanRangeFactory
     {
-        ITrackingSpanRange Create(List<ITrackingSpan> trackingSpans);
+        ITrackingSpanRange Create(List<ITrackingSpan> trackingSpans, ITextSnapshot currentSnapshot);
     }
 
 }

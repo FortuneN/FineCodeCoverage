@@ -29,7 +29,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
             }
             else
             {
-                var newLineNumber = currentSnapshot.GetLineNumberFromPosition(newSnapshotSpan.Start) + 1;
+                var newLineNumber = currentSnapshot.GetLineNumberFromPosition(newSnapshotSpan.End) + 1;
                 if (newLineNumber != Line.Number)
                 {
                     line.Number = newLineNumber;

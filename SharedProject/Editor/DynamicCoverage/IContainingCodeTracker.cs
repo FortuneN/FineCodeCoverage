@@ -5,12 +5,13 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
 {
     interface IContainingCodeTrackerProcessResult
     {
+        bool IsEmpty { get; }
         bool Changed { get; }
-        List<Span> UnprocessedSpans { get; }
+        List<SpanAndLineRange> UnprocessedSpans { get; }
     }
     interface IContainingCodeTracker
     {
-        IContainingCodeTrackerProcessResult ProcessChanges(ITextSnapshot currentSnapshot, List<Span> newSpanChanges);
+        IContainingCodeTrackerProcessResult ProcessChanges(ITextSnapshot currentSnapshot, List<SpanAndLineRange> newSpanChanges);
         IEnumerable<IDynamicLine> Lines { get; }
     }
 }

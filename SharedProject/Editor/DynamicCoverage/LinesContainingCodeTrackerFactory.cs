@@ -30,25 +30,25 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
             this.trackedContainingCodeTrackerFactory = trackedContainingCodeTrackerFactory;
         }
 
-        public IContainingCodeTracker Create(ITextSnapshot textSnapshot, List<ILine> lines, CodeSpanRange containingRange)
+        public IContainingCodeTracker Create(ITextSnapshot textSnapshot, List<ILine> lines, CodeSpanRange containingRange,SpanTrackingMode spanTrackingMode)
         {
             var trackingLineSpans = Enumerable.Range(containingRange.StartLine, containingRange.EndLine - containingRange.StartLine + 1)
-                .Select(lineNumber => trackingLineFactory.Create(textSnapshot, lineNumber)).ToList();
-            var trackingSpanRange = trackingSpanRangeFactory.Create(trackingLineSpans);
+                .Select(lineNumber => trackingLineFactory.Create(textSnapshot, lineNumber, spanTrackingMode)).ToList();
+            var trackingSpanRange = trackingSpanRangeFactory.Create(trackingLineSpans,textSnapshot);
 
-            var coverageLines = GetTrackedCoverageLines(textSnapshot, lines);
+            var coverageLines = GetTrackedCoverageLines(textSnapshot, lines, spanTrackingMode);
             return trackedContainingCodeTrackerFactory.Create(trackingSpanRange, coverageLines);
         }
 
-        public IContainingCodeTracker Create(ITextSnapshot textSnapshot, ILine line)
+        public IContainingCodeTracker Create(ITextSnapshot textSnapshot, ILine line, SpanTrackingMode spanTrackingMode)
         {
-            return trackedContainingCodeTrackerFactory.Create(GetTrackedCoverageLines(textSnapshot, new List<ILine> { line }));
+            return trackedContainingCodeTrackerFactory.Create(GetTrackedCoverageLines(textSnapshot, new List<ILine> { line },spanTrackingMode));
         }
 
-        private ITrackedCoverageLines GetTrackedCoverageLines(ITextSnapshot textSnapshot, List<ILine> lines)
+        private ITrackedCoverageLines GetTrackedCoverageLines(ITextSnapshot textSnapshot, List<ILine> lines, SpanTrackingMode spanTrackingMode)
         {
             var coverageLines = lines.Select(line => coverageLineFactory.Create(
-                trackingLineFactory.Create(textSnapshot, line.Number - 1), line)
+                trackingLineFactory.Create(textSnapshot, line.Number - 1,spanTrackingMode), line)
             ).ToList();
             return trackedCoverageLinesFactory.Create(coverageLines.ToList());
         }

@@ -11,14 +11,15 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
         [Test]
         public void Should_Dirty_Each_Of_The_CoverageLine()
         {
-            var mockCoverageLine = new Mock<ICoverageLine>();
-            var mockCoverageLine2 = new Mock<ICoverageLine>();
+            throw new System.NotImplementedException();
+            //var mockCoverageLine = new Mock<ICoverageLine>();
+            //var mockCoverageLine2 = new Mock<ICoverageLine>();
 
-            var trackedCoverageLines = new TrackedCoverageLines(new List<ICoverageLine> { mockCoverageLine.Object,mockCoverageLine2.Object });
+            //var trackedCoverageLines = new TrackedCoverageLines(new List<ICoverageLine> { mockCoverageLine.Object,mockCoverageLine2.Object });
             
-            trackedCoverageLines.Dirty();
-            mockCoverageLine.Verify(cl => cl.Dirty(), Times.Once);
-            mockCoverageLine2.Verify(cl => cl.Dirty(), Times.Once);
+            //trackedCoverageLines.Dirty();
+            //mockCoverageLine.Verify(cl => cl.Dirty(), Times.Once);
+            //mockCoverageLine2.Verify(cl => cl.Dirty(), Times.Once);
         }
 
         [TestCase(CoverageLineUpdateType.Removal,true)]

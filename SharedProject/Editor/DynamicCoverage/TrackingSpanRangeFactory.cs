@@ -9,9 +9,9 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
     [Export(typeof(ITrackingSpanRangeFactory))]
     internal class TrackingSpanRangeFactory : ITrackingSpanRangeFactory
     {
-        public ITrackingSpanRange Create(List<ITrackingSpan> trackingSpans)
+        public ITrackingSpanRange Create(List<ITrackingSpan> trackingSpans,ITextSnapshot currentSnapshot)
         {
-            return new TrackingSpanRange(trackingSpans);
+            return new TrackingSpanRange(trackingSpans, currentSnapshot);
         }
     }
 }

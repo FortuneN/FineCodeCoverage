@@ -3,7 +3,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.VisualBasic;
 using Microsoft.CodeAnalysis.VisualBasic.Syntax;
 using NUnit.Framework;
-using System;
 
 namespace FineCodeCoverageTests.Editor.Roslyn
 {

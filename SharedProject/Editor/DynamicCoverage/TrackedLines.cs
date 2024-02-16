@@ -1,5 +1,6 @@
 ﻿using Microsoft.VisualStudio.Text;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace FineCodeCoverage.Editor.DynamicCoverage
 {
@@ -18,29 +19,38 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
         // normalized spans
         public bool Changed(ITextSnapshot currentSnapshot, List<Span> newSpanChanges)
         {
+            var spanAndLineRanges = newSpanChanges.Select(
+                newSpanChange => new SpanAndLineRange(
+                    newSpanChange, 
+                    currentSnapshot.GetLineNumberFromPosition(newSpanChange.Start),
+                    currentSnapshot.GetLineNumberFromPosition(newSpanChange.End)
+                )).ToList();
             var changed = false;
+            var removals = new List<IContainingCodeTracker>();
             foreach (var containingCodeTracker in containingCodeTrackers)
             {
-                var processResult = containingCodeTracker.ProcessChanges(currentSnapshot, newSpanChanges);
-                newSpanChanges = processResult.UnprocessedSpans;
+                var processResult = containingCodeTracker.ProcessChanges(currentSnapshot, spanAndLineRanges);
+                if (processResult.IsEmpty)
+                {
+                    removals.Add(containingCodeTracker);
+                }
+                spanAndLineRanges = processResult.UnprocessedSpans;
                 if (processResult.Changed)
                 {
                     changed = true;
                 }
-                if(newSpanChanges.Count == 0)
-                {
-                    break;
-                }
             }
-            if(newSpanChanges.Count > 0)
-            {
-                changed = newCodeTracker.ProcessChanges(currentSnapshot, newSpanChanges);
-            }
+            removals.ForEach(removal => containingCodeTrackers.Remove(removal));
+
+            var newCodeTrackerChanged = newCodeTracker.ProcessChanges(currentSnapshot, spanAndLineRanges);
+            changed = changed || newCodeTrackerChanged;
+
             return changed;
         }
 
         public IEnumerable<IDynamicLine> GetLines(int startLineNumber, int endLineNumber)
         {
+            List<int> lineNumbers = new List<int>();
             foreach (var containingCodeTracker in containingCodeTrackers)
             {
                 var done = false;
@@ -53,6 +63,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
                     }
                     if (line.Number >= startLineNumber)
                     {
+                        lineNumbers.Add(line.Number);
                         yield return line;
                     }
                 }
@@ -69,7 +80,10 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
                 }
                 if (line.Number >= startLineNumber)
                 {
-                    yield return line;
+                    if(!lineNumbers.Contains(line.Number))
+                    {
+                        yield return line;
+                    }
                 }
             }
         }

@@ -21,9 +21,7 @@ namespace FineCodeCoverage.Editor.Tagging.GlyphMargin
                 { DynamicCoverageType.Covered, appOptions.ShowCoveredInGlyphMargin },
                 { DynamicCoverageType.Partial, appOptions.ShowPartiallyCoveredInGlyphMargin },
                 { DynamicCoverageType.NotCovered, appOptions.ShowUncoveredInGlyphMargin },
-                { DynamicCoverageType.CoveredDirty, appOptions.ShowCoveredInGlyphMargin },
-                { DynamicCoverageType.PartialDirty, appOptions.ShowPartiallyCoveredInGlyphMargin },
-                { DynamicCoverageType.NotCoveredDirty, appOptions.ShowUncoveredInGlyphMargin },
+                { DynamicCoverageType.Dirty, true },
                 { DynamicCoverageType.NewLine, true },
             };
         }
