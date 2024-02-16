@@ -1,5 +1,4 @@
 ﻿using Microsoft.VisualStudio.Text;
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
 
@@ -9,9 +8,9 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
     [Export(typeof(ITrackingSpanRangeFactory))]
     internal class TrackingSpanRangeFactory : ITrackingSpanRangeFactory
     {
-        public ITrackingSpanRange Create(List<ITrackingSpan> trackingSpans,ITextSnapshot currentSnapshot)
+        public ITrackingSpanRange Create(ITrackingSpan startTrackingSpan, ITrackingSpan endTrackingSpan, ITextSnapshot currentSnapshot)
         {
-            return new TrackingSpanRange(trackingSpans, currentSnapshot);
+            return new TrackingSpanRange(startTrackingSpan,endTrackingSpan, currentSnapshot);
         }
     }
 }

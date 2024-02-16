@@ -3,9 +3,9 @@ using System.Collections.Generic;
 
 namespace FineCodeCoverage.Editor.DynamicCoverage
 {
-    class NonIntersectingResult
+    class TrackingSpanRangeProcessResult
     {
-        public NonIntersectingResult(List<SpanAndLineRange> nonIntersectingSpans, bool isEmpty,bool textChanged)
+        public TrackingSpanRangeProcessResult(List<SpanAndLineRange> nonIntersectingSpans, bool isEmpty,bool textChanged)
         {
             NonIntersectingSpans = nonIntersectingSpans;
             IsEmpty = isEmpty;
@@ -17,7 +17,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
     }
     interface ITrackingSpanRange
     {
-        NonIntersectingResult GetNonIntersecting(ITextSnapshot currentSnapshot, List<SpanAndLineRange> newSpanChanges);
+        TrackingSpanRangeProcessResult Process(ITextSnapshot currentSnapshot, List<SpanAndLineRange> newSpanChanges);
         ITrackingSpan GetFirstTrackingSpan();
     }
 

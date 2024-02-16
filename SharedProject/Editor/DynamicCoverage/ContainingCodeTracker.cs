@@ -17,11 +17,11 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
             this.trackedCoverageLines = trackedCoverageLines;
         }
 
-        private NonIntersectingResult ProcessTrackingSpanRangeChanges(ITextSnapshot currentSnapshot, List<SpanAndLineRange> newSpanChanges)
+        private TrackingSpanRangeProcessResult ProcessTrackingSpanRangeChanges(ITextSnapshot currentSnapshot, List<SpanAndLineRange> newSpanChanges)
         {
-            if (trackingSpanRange == null) return new NonIntersectingResult(newSpanChanges,false,false);
+            if (trackingSpanRange == null) return new TrackingSpanRangeProcessResult(newSpanChanges,false,false);
 
-            return trackingSpanRange.GetNonIntersecting(currentSnapshot, newSpanChanges);
+            return trackingSpanRange.Process(currentSnapshot, newSpanChanges);
         }
 
         private bool ProcessChanged(List<SpanAndLineRange> newSpanChanges, List<SpanAndLineRange> nonIntersecting,bool textChanged,ITextSnapshot currentSnapshot)

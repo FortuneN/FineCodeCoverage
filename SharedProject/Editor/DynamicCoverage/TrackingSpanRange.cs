@@ -6,21 +6,23 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
 {
     internal class TrackingSpanRange : ITrackingSpanRange
     {
-        private readonly List<ITrackingSpan> trackingSpans;
+        private readonly ITrackingSpan startTrackingSpan;
+        private readonly ITrackingSpan endTrackingSpan;
         private string lastRangeText;
 
-        public TrackingSpanRange(List<ITrackingSpan> trackingSpans, ITextSnapshot currentSnapshot)
+        public TrackingSpanRange(ITrackingSpan startTrackingSpan, ITrackingSpan endTrackingSpan,ITextSnapshot currentSnapshot)
         {
-            this.trackingSpans = trackingSpans;
-            var (currentFirstSpan, currentEndSpan) = GetEndCurrent(currentSnapshot);
-            SetRangeText(currentSnapshot, currentFirstSpan, currentEndSpan);
+            this.startTrackingSpan = startTrackingSpan;
+            this.endTrackingSpan = endTrackingSpan;
+            var (currentStartSpan, currentEndSpan) = GetCurrentRange(currentSnapshot);
+            SetRangeText(currentSnapshot, currentStartSpan, currentEndSpan);
         }
         
-        private (SnapshotSpan, SnapshotSpan) GetEndCurrent(ITextSnapshot currentSnapshot)
+        private (SnapshotSpan, SnapshotSpan) GetCurrentRange(ITextSnapshot currentSnapshot)
         {
-            var currentFirstSpan = trackingSpans.First().GetSpan(currentSnapshot);
-            var currentEndSpan = trackingSpans.Last().GetSpan(currentSnapshot);
-            return (currentFirstSpan, currentEndSpan);
+            var currentStartSpan = startTrackingSpan.GetSpan(currentSnapshot);
+            var currentEndSpan = endTrackingSpan.GetSpan(currentSnapshot);
+            return (currentStartSpan, currentEndSpan);
         }
         
         private void SetRangeText(ITextSnapshot currentSnapshot,SnapshotSpan currentFirstSpan, SnapshotSpan currentEndSpan)
@@ -28,9 +30,9 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
             lastRangeText = currentSnapshot.GetText(new Span(currentFirstSpan.Start, currentEndSpan.End - currentFirstSpan.Start));
         }
         
-        public NonIntersectingResult GetNonIntersecting(ITextSnapshot currentSnapshot, List<SpanAndLineRange> newSpanChanges)
+        public TrackingSpanRangeProcessResult Process(ITextSnapshot currentSnapshot, List<SpanAndLineRange> newSpanChanges)
         {
-            var (currentFirstSpan, currentEndSpan) = GetEndCurrent(currentSnapshot);
+            var (currentFirstSpan, currentEndSpan) = GetCurrentRange(currentSnapshot);
             var previousRangeText = lastRangeText;
             SetRangeText(currentSnapshot, currentFirstSpan, currentEndSpan);
             var textChanged = previousRangeText != lastRangeText;
@@ -45,7 +47,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
                 OutsideRange(currentFirstTrackedLineNumber, currentEndTrackedLineNumber, spanAndLineNumber.EndLineNumber);
             }).ToList();
             
-            return new NonIntersectingResult(newSpanChanges, isEmpty,textChanged);
+            return new TrackingSpanRangeProcessResult(newSpanChanges, isEmpty,textChanged);
         }
 
         private bool OutsideRange(int firstLineNumber, int endLineNumber, int spanLineNumber)
@@ -55,7 +57,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
 
         public ITrackingSpan GetFirstTrackingSpan()
         {
-            return trackingSpans.First();
+            return startTrackingSpan;
         }
     }
 
