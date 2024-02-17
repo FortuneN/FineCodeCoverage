@@ -8,12 +8,17 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
     {
         private readonly ITrackingSpanRange trackingSpanRange;
         private readonly ITrackedCoverageLines trackedCoverageLines;
-        private DirtyLine dirtyLine;
+        private readonly IDirtyLineFactory dirtyLineFactory;
+        private IDirtyLine dirtyLine;
 
-        public ContainingCodeTracker(ITrackedCoverageLines trackedCoverageLines, ITrackingSpanRange trackingSpanRange = null)
+        public ContainingCodeTracker(
+            ITrackedCoverageLines trackedCoverageLines, 
+            IDirtyLineFactory dirtyLineFactory,
+            ITrackingSpanRange trackingSpanRange = null)
         {
             this.trackingSpanRange = trackingSpanRange;
             this.trackedCoverageLines = trackedCoverageLines;
+            this.dirtyLineFactory = dirtyLineFactory;
         }
 
         private TrackingSpanRangeProcessResult ProcessTrackingSpanRangeChanges(ITextSnapshot currentSnapshot, List<SpanAndLineRange> newSpanChanges)
@@ -41,7 +46,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
         private void CreateDirtyLine(ITextSnapshot currentSnapshot)
         {
             var firstTrackingSpan = trackingSpanRange.GetFirstTrackingSpan();
-            dirtyLine = new DirtyLine(firstTrackingSpan, currentSnapshot);
+            dirtyLine = dirtyLineFactory.Create(firstTrackingSpan, currentSnapshot);
         }
 
         private bool RequiresDirtyLine()

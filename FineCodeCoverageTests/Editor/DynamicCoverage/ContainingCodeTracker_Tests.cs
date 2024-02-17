@@ -83,16 +83,17 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
         [TestCase(false)]
         public void Should_Be_Changed_When_Updates_TrackedCoverageLines_Have_Changed(bool trackedCoverageLinesChanged)
         {
-            var autoMoqer = new AutoMoqer();
-            var currentSnapshot = new Mock<ITextSnapshot>().Object;
-            var lines = new List<IDynamicLine> { };
-            autoMoqer.Setup<ITrackedCoverageLines, bool>(x => x.Update(currentSnapshot)).Returns(trackedCoverageLinesChanged);
+            throw new System.NotImplementedException();
+            //var autoMoqer = new AutoMoqer();
+            //var currentSnapshot = new Mock<ITextSnapshot>().Object;
+            //var lines = new List<IDynamicLine> { };
+            //autoMoqer.Setup<ITrackedCoverageLines, bool>(x => x.Update(currentSnapshot)).Returns(trackedCoverageLinesChanged);
 
-            var containingCodeTracker = autoMoqer.Create<ContainingCodeTracker>();
+            //var containingCodeTracker = autoMoqer.Create<ContainingCodeTracker>();
             
-            var changed = containingCodeTracker.ProcessChanges(currentSnapshot, new List<Span> { new Span(0, 1) });
+            //var changed = containingCodeTracker.ProcessChanges(currentSnapshot, new List<Span> { new Span(0, 1) });
 
-            Assert.That(changed, Is.EqualTo(trackedCoverageLinesChanged));
+            //Assert.That(changed, Is.EqualTo(trackedCoverageLinesChanged));
         }
     }
 }

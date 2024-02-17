@@ -2,7 +2,7 @@
 
 namespace FineCodeCoverage.Editor.DynamicCoverage
 {
-    internal class DirtyLine
+    internal class DirtyLine : IDirtyLine
     {
         private ITrackingSpan startTrackingSpan;
         public IDynamicLine Line { get; private set; }
@@ -19,7 +19,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
             Line = new DirtyDynamicLine(startLineNumber + 1);
         }
 
-        internal bool Update(ITextSnapshot currentSnapshot)
+        public bool Update(ITextSnapshot currentSnapshot)
         {
             var currentFirstLineNumber = Line.Number;
             SetLine(currentSnapshot);

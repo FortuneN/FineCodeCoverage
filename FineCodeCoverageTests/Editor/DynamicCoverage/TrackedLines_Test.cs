@@ -11,10 +11,11 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
     {
         private IContainingCodeTrackerProcessResult GetProcessResult(List<Span> unprocessedSpans,bool changed)
         {
-            var mockContainingCodeTrackerProcessResult = new Mock<IContainingCodeTrackerProcessResult>();
-            mockContainingCodeTrackerProcessResult.SetupGet(containingCodeTrackerProcessResult => containingCodeTrackerProcessResult.UnprocessedSpans).Returns(unprocessedSpans);
-            mockContainingCodeTrackerProcessResult.SetupGet(containingCodeTrackerProcessResult => containingCodeTrackerProcessResult.Changed).Returns(changed);
-            return mockContainingCodeTrackerProcessResult.Object;
+            throw new System.NotImplementedException();
+            //var mockContainingCodeTrackerProcessResult = new Mock<IContainingCodeTrackerProcessResult>();
+            //mockContainingCodeTrackerProcessResult.SetupGet(containingCodeTrackerProcessResult => containingCodeTrackerProcessResult.UnprocessedSpans).Returns(unprocessedSpans);
+            //mockContainingCodeTrackerProcessResult.SetupGet(containingCodeTrackerProcessResult => containingCodeTrackerProcessResult.Changed).Returns(changed);
+            //return mockContainingCodeTrackerProcessResult.Object;
         }
 
         [TestCase(true,false,true)]

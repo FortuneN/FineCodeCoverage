@@ -187,6 +187,9 @@
     <Compile Include="$(MSBuildThisFileDirectory)Editor\DynamicCoverage\ContainingCodeTrackerProcessResult.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editor\DynamicCoverage\DirtyDynamicLine.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editor\DynamicCoverage\DirtyLine.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Editor\DynamicCoverage\DirtyLineFactory.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Editor\DynamicCoverage\IDirtyLine.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Editor\DynamicCoverage\IDirtyLineFactory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editor\DynamicCoverage\IDynamicLine.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editor\DynamicCoverage\BufferLineCoverage.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editor\DynamicCoverage\BufferLineCoverageFactory.cs" />

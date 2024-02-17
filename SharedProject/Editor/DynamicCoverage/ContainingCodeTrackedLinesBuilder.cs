@@ -96,6 +96,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
 
             void TrackOtherLinesTo(int to)
             {
+                if(to < currentLine) return;
                 var additionalCodeLines = Enumerable.Range(currentLine, to - currentLine).Where(lineNumber => !CodeLineExcluder.ExcludeIfNotCode(textSnapshot.GetLineFromLineNumber(lineNumber).Extent, isCSharp)).ToList();
                 if (additionalCodeLines.Any())
                 {
