@@ -15,7 +15,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
         private readonly ITrackedLinesFactory trackedLinesFactory;
         private readonly string filePath;
         private readonly Language language;
-        private readonly ITextBuffer textBuffer;
+        private readonly ITextBuffer2 textBuffer;
         private ITrackedLines trackedLines;
         public BufferLineCoverage(
             IFileLineCoverage fileLineCoverage,
@@ -34,11 +34,10 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
                 CreateTrackedLines(fileLineCoverage);
             }
             eventAggregator.AddListener(this);
-
-            textBuffer.Changed += TextBuffer_Changed;
+            textBuffer.ChangedOnBackground += TextBuffer_ChangedOnBackground;
             void textViewClosedHandler(object s, EventArgs e)
             {
-                textBuffer.Changed -= TextBuffer_Changed;
+                textBuffer.Changed -= TextBuffer_ChangedOnBackground;
                 textInfo.TextView.Closed -= textViewClosedHandler;
                 eventAggregator.RemoveListener(this);
             }
@@ -54,7 +53,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
             trackedLines = trackedLinesFactory.Create(lines, currentSnapshot, language);
         }
 
-        private void TextBuffer_Changed(object sender, TextContentChangedEventArgs e)
+        private void TextBuffer_ChangedOnBackground(object sender, TextContentChangedEventArgs e)
         {
             if (trackedLines != null)
             {

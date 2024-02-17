@@ -10,12 +10,12 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
         public TextInfo(ITextView textView, ITextBuffer textBuffer, string filePath)
         {
             TextView = textView;
-            TextBuffer = textBuffer;
+            TextBuffer = textBuffer as ITextBuffer2;
             FilePath = filePath;
         }
 
         public ITextView TextView { get; }
-        public ITextBuffer TextBuffer { get; }
+        public ITextBuffer2 TextBuffer { get; }
         public string FilePath { get; }
 
         [ExcludeFromCodeCoverage]

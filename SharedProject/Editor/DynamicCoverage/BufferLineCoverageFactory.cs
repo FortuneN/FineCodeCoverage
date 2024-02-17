@@ -9,7 +9,11 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
     [Export(typeof(IBufferLineCoverageFactory))]
     internal class BufferLineCoverageFactory : IBufferLineCoverageFactory
     {
-        public IBufferLineCoverage Create(IFileLineCoverage fileLineCoverage, TextInfo textInfo, IEventAggregator eventAggregator, ITrackedLinesFactory trackedLinesFactory)
+        public IBufferLineCoverage Create(
+            IFileLineCoverage fileLineCoverage, 
+            TextInfo textInfo, 
+            IEventAggregator eventAggregator, 
+            ITrackedLinesFactory trackedLinesFactory)
         {
             return new BufferLineCoverage(fileLineCoverage, textInfo, eventAggregator, trackedLinesFactory);
         }
