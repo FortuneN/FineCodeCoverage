@@ -1,4 +1,5 @@
 ﻿using FineCodeCoverage.Core.Utilities;
+using FineCodeCoverage.Editor.Roslyn;
 using FineCodeCoverage.Editor.Tagging.Base;
 using FineCodeCoverage.Engine;
 using FineCodeCoverage.Engine.Model;

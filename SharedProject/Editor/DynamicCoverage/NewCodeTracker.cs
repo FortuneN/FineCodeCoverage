@@ -29,7 +29,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
 
         public IEnumerable<IDynamicLine> Lines => trackedNewCodeLines.OrderBy(l => l.Number);
 
-        public bool ProcessChanges(ITextSnapshot currentSnapshot, List<SpanAndLineRange> spanAndLineNumbers)
+        public bool ProcessChanges(ITextSnapshot currentSnapshot, List<SpanAndLineRange> potentialNewLines)
         {
             var requiresUpdate = false;
             var removals = new List<TrackedNewCodeLine>();
@@ -39,8 +39,9 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
                 var line = currentSnapshot.GetLineFromPosition(newSnapshotSpan.End);
                 var lineNumber = line.LineNumber;
 
-                spanAndLineNumbers = spanAndLineNumbers.Where(spanAndLineNumber => spanAndLineNumber.StartLineNumber != lineNumber).ToList();
-                if (newSnapshotSpan.IsEmpty || CodeLineExcluder.ExcludeIfNotCode(line.Extent,isCSharp))
+                potentialNewLines = potentialNewLines.Where(spanAndLineRange => spanAndLineRange.StartLineNumber != lineNumber).ToList();
+                
+                if (CodeLineExcluder.ExcludeIfNotCode(line.Extent,isCSharp))
                 {
                     requiresUpdate = true;
                     removals.Add(trackedNewCodeLine);
@@ -57,7 +58,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
             };
             removals.ForEach(removal => trackedNewCodeLines.Remove(removal));
 
-            var groupedByLineNumber = spanAndLineNumbers.GroupBy(spanAndLineNumber => spanAndLineNumber.StartLineNumber);
+            var groupedByLineNumber = potentialNewLines.GroupBy(spanAndLineNumber => spanAndLineNumber.StartLineNumber);
             foreach (var grouping in groupedByLineNumber)
             {
                 var lineNumber = grouping.Key;

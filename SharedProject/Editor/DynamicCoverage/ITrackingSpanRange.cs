@@ -17,7 +17,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
     }
     interface ITrackingSpanRange
     {
-        TrackingSpanRangeProcessResult Process(ITextSnapshot currentSnapshot, List<SpanAndLineRange> newSpanChanges);
+        TrackingSpanRangeProcessResult Process(ITextSnapshot currentSnapshot, List<SpanAndLineRange> newSpanAndLIneRanges);
         ITrackingSpan GetFirstTrackingSpan();
     }
 

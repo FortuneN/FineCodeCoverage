@@ -1,4 +1,5 @@
 ﻿using FineCodeCoverage.Core.Utilities;
+using FineCodeCoverage.Editor.Roslyn;
 using FineCodeCoverage.Engine.Model;
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;

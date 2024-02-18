@@ -21,11 +21,11 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
             this.dirtyLineFactory = dirtyLineFactory;
         }
 
-        private TrackingSpanRangeProcessResult ProcessTrackingSpanRangeChanges(ITextSnapshot currentSnapshot, List<SpanAndLineRange> newSpanChanges)
+        private TrackingSpanRangeProcessResult ProcessTrackingSpanRangeChanges(ITextSnapshot currentSnapshot, List<SpanAndLineRange> newSpanAndLineRanges)
         {
-            if (trackingSpanRange == null) return new TrackingSpanRangeProcessResult(newSpanChanges,false,false);
+            if (trackingSpanRange == null) return new TrackingSpanRangeProcessResult(newSpanAndLineRanges,false,false);
 
-            return trackingSpanRange.Process(currentSnapshot, newSpanChanges);
+            return trackingSpanRange.Process(currentSnapshot, newSpanAndLineRanges);
         }
 
         private bool CreateDirtyLineIfRequired(
@@ -61,16 +61,16 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
             return nonIntersecting.Count < newSpanChanges.Count;
         }
 
-        public IContainingCodeTrackerProcessResult ProcessChanges(ITextSnapshot currentSnapshot, List<SpanAndLineRange> newSpanChanges)
+        public IContainingCodeTrackerProcessResult ProcessChanges(ITextSnapshot currentSnapshot, List<SpanAndLineRange> newSpanAndLIneRanges)
         {
-            var trackingSpanRangeProcessResult = ProcessTrackingSpanRangeChanges(currentSnapshot, newSpanChanges);
+            var trackingSpanRangeProcessResult = ProcessTrackingSpanRangeChanges(currentSnapshot, newSpanAndLIneRanges);
             var nonIntersectingSpans = trackingSpanRangeProcessResult.NonIntersectingSpans;
             if (trackingSpanRangeProcessResult.IsEmpty)
             {
                 return new ContainingCodeTrackerProcessResult(true, nonIntersectingSpans,true);
             }
 
-            var createdDirtyLine = CreateDirtyLineIfRequired(newSpanChanges, nonIntersectingSpans,trackingSpanRangeProcessResult.TextChanged,currentSnapshot);
+            var createdDirtyLine = CreateDirtyLineIfRequired(newSpanAndLIneRanges, nonIntersectingSpans,trackingSpanRangeProcessResult.TextChanged,currentSnapshot);
             var result = new ContainingCodeTrackerProcessResult(createdDirtyLine, nonIntersectingSpans, false);
             if (!createdDirtyLine)
             {

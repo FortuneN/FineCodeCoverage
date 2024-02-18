@@ -42,8 +42,11 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
             }
             removals.ForEach(removal => containingCodeTrackers.Remove(removal));
 
-            var newCodeTrackerChanged = newCodeTracker.ProcessChanges(currentSnapshot, spanAndLineRanges);
-            changed = changed || newCodeTrackerChanged;
+            if (newCodeTracker != null)
+            {
+                var newCodeTrackerChanged = newCodeTracker.ProcessChanges(currentSnapshot, spanAndLineRanges);
+                changed = changed || newCodeTrackerChanged;
+            }
 
             return changed;
         }
@@ -72,7 +75,8 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
                     break;
                 }
             }
-            foreach (var line in newCodeTracker.Lines)
+            var newLines = newCodeTracker?.Lines ?? Enumerable.Empty<IDynamicLine>();
+            foreach (var line in newLines)
             {
                 if (line.Number > endLineNumber)
                 {

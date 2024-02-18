@@ -16,6 +16,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
         private readonly IRoslynService roslynService;
         private readonly ILinesContainingCodeTrackerFactory containingCodeTrackerFactory;
         private readonly IContainingCodeTrackedLinesFactory trackedLinesFactory;
+        private readonly INewCodeTrackerFactory newCodeTrackerFactory;
         private readonly IThreadHelper threadHelper;
 
         [ImportingConstructor]
@@ -23,12 +24,14 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
             IRoslynService roslynService,
             ILinesContainingCodeTrackerFactory containingCodeTrackerFactory,
             IContainingCodeTrackedLinesFactory trackedLinesFactory,
+            INewCodeTrackerFactory newCodeTrackerFactory,
             IThreadHelper threadHelper
         )
         {
             this.roslynService = roslynService;
             this.containingCodeTrackerFactory = containingCodeTrackerFactory;
             this.trackedLinesFactory = trackedLinesFactory;
+            this.newCodeTrackerFactory = newCodeTrackerFactory;
             this.threadHelper = threadHelper;
         }
 
@@ -42,20 +45,17 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
         public ITrackedLines Create(List<ILine> lines, ITextSnapshot textSnapshot, Language language)
         {
             var containingCodeTrackers = CreateContainingCodeTrackers(lines, textSnapshot, language);
-            return trackedLinesFactory.Create(containingCodeTrackers, new NewCodeTracker(language == Language.CSharp));
+            var newCodeTracker = language == Language.CPP ? null : newCodeTrackerFactory.Create(language == Language.CSharp);
+            return trackedLinesFactory.Create(containingCodeTrackers, newCodeTracker);
         }
 
         private List<IContainingCodeTracker> CreateContainingCodeTrackers(List<ILine> lines, ITextSnapshot textSnapshot, Language language)
         {
-            if( lines.Count == 0 ) return Enumerable.Empty<IContainingCodeTracker>().ToList();
-
             if (language == Language.CPP)
             {
                 return lines.Select(line => containingCodeTrackerFactory.Create(textSnapshot, line,SpanTrackingMode.EdgeExclusive)).ToList();
             }
-            var isCSharp = language == Language.CSharp;
-            return CreateRoslynContainingCodeTrackers(lines, textSnapshot,isCSharp);
-            
+            return CreateRoslynContainingCodeTrackers(lines, textSnapshot, language == Language.CSharp);
         }
 
         private List<IContainingCodeTracker> CreateRoslynContainingCodeTrackers(List<ILine> lines, ITextSnapshot textSnapshot,bool isCSharp)
@@ -97,12 +97,15 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
             void TrackOtherLinesTo(int to)
             {
                 if(to < currentLine) return;
-                var additionalCodeLines = Enumerable.Range(currentLine, to - currentLine).Where(lineNumber => !CodeLineExcluder.ExcludeIfNotCode(textSnapshot.GetLineFromLineNumber(lineNumber).Extent, isCSharp)).ToList();
-                if (additionalCodeLines.Any())
+                var otherCodeLines = Enumerable.Range(currentLine, to - currentLine + 1).Where(lineNumber =>
                 {
-                    var uncontainedCodeSpanRange = new CodeSpanRange(additionalCodeLines[0], additionalCodeLines.Last());
+                    var lineExtent = textSnapshot.GetLineFromLineNumber(lineNumber).Extent;
+                    return !CodeLineExcluder.ExcludeIfNotCode(lineExtent, isCSharp);
+                });
+                foreach(var otherCodeLine in otherCodeLines)
+                {
                     containingCodeTrackers.Add(
-                        containingCodeTrackerFactory.Create(textSnapshot, Enumerable.Empty<ILine>().ToList(), uncontainedCodeSpanRange, SpanTrackingMode.EdgeNegative));
+                            containingCodeTrackerFactory.Create(textSnapshot, Enumerable.Empty<ILine>().ToList(),new CodeSpanRange(otherCodeLine,otherCodeLine),SpanTrackingMode.EdgeNegative));
                 }
             }
 
@@ -152,7 +155,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
             {
                 CreateRangeContainingCodeTracker();
             }
-            TrackOtherLinesTo(textSnapshot.LineCount);
+            TrackOtherLinesTo(textSnapshot.LineCount-1);
             return containingCodeTrackers;
         }
     }

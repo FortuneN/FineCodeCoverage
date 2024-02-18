@@ -30,11 +30,11 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
             lastRangeText = currentSnapshot.GetText(new Span(currentFirstSpan.Start, currentEndSpan.End - currentFirstSpan.Start));
         }
         
-        public TrackingSpanRangeProcessResult Process(ITextSnapshot currentSnapshot, List<SpanAndLineRange> newSpanChanges)
+        public TrackingSpanRangeProcessResult Process(ITextSnapshot currentSnapshot, List<SpanAndLineRange> newSpanAndLineRanges)
         {
             var (currentFirstSpan, currentEndSpan) = GetCurrentRange(currentSnapshot);
             var (isEmpty, textChanged) = GetTextChangeInfo(currentSnapshot, currentFirstSpan, currentEndSpan);
-            var nonIntersecting = GetNonIntersecting(currentSnapshot, currentFirstSpan, currentEndSpan, newSpanChanges);
+            var nonIntersecting = GetNonIntersecting(currentSnapshot, currentFirstSpan, currentEndSpan, newSpanAndLineRanges);
             return new TrackingSpanRangeProcessResult(nonIntersecting, isEmpty,textChanged);
         }
 
@@ -49,11 +49,11 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
         }
 
         private List<SpanAndLineRange> GetNonIntersecting(
-            ITextSnapshot currentSnapshot,SnapshotSpan currentFirstSpan, SnapshotSpan currentEndSpan,List<SpanAndLineRange> newSpanChanges)
+            ITextSnapshot currentSnapshot,SnapshotSpan currentFirstSpan, SnapshotSpan currentEndSpan,List<SpanAndLineRange> newSpanAndLineRanges)
         {
             var currentFirstTrackedLineNumber = currentSnapshot.GetLineNumberFromPosition(currentFirstSpan.End);
             var currentEndTrackedLineNumber = currentSnapshot.GetLineNumberFromPosition(currentEndSpan.End);
-            return newSpanChanges.Where(spanAndLineNumber =>
+            return newSpanAndLineRanges.Where(spanAndLineNumber =>
             {
                 return OutsideRange(currentFirstTrackedLineNumber, currentEndTrackedLineNumber, spanAndLineNumber.StartLineNumber)
                 &&

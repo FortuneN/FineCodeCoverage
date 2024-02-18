@@ -204,6 +204,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Editor\DynamicCoverage\ICoverageLine.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editor\DynamicCoverage\ICoverageLineFactory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editor\DynamicCoverage\INewCodeTracker.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Editor\DynamicCoverage\INewCodeTrackerFactory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editor\DynamicCoverage\ITrackedContainingCodeTrackerFactory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editor\DynamicCoverage\ITrackedCoverageLines.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editor\DynamicCoverage\ITrackedCoverageLinesFactory.cs" />
@@ -213,6 +214,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Editor\DynamicCoverage\LinesContainingCodeTrackerFactory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editor\DynamicCoverage\CoverageChangedMessage.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editor\DynamicCoverage\NewCodeTracker.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Editor\DynamicCoverage\NewCodeTrackerFactory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editor\DynamicCoverage\TrackedNewCodeLine.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editor\Roslyn\ILanguageContainingCodeVisitorFactory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editor\Roslyn\ITextSnapshotToSyntaxService.cs" />
