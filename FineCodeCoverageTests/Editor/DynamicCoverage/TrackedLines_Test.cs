@@ -9,13 +9,12 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
 {
     internal class TrackedLines_Test
     {
-        private IContainingCodeTrackerProcessResult GetProcessResult(List<Span> unprocessedSpans,bool changed)
+        private IContainingCodeTrackerProcessResult GetProcessResult(List<SpanAndLineRange> unprocessedSpans,bool changed)
         {
-            throw new System.NotImplementedException();
-            //var mockContainingCodeTrackerProcessResult = new Mock<IContainingCodeTrackerProcessResult>();
-            //mockContainingCodeTrackerProcessResult.SetupGet(containingCodeTrackerProcessResult => containingCodeTrackerProcessResult.UnprocessedSpans).Returns(unprocessedSpans);
-            //mockContainingCodeTrackerProcessResult.SetupGet(containingCodeTrackerProcessResult => containingCodeTrackerProcessResult.Changed).Returns(changed);
-            //return mockContainingCodeTrackerProcessResult.Object;
+            var mockContainingCodeTrackerProcessResult = new Mock<IContainingCodeTrackerProcessResult>();
+            mockContainingCodeTrackerProcessResult.SetupGet(containingCodeTrackerProcessResult => containingCodeTrackerProcessResult.UnprocessedSpans).Returns(unprocessedSpans);
+            mockContainingCodeTrackerProcessResult.SetupGet(containingCodeTrackerProcessResult => containingCodeTrackerProcessResult.Changed).Returns(changed);
+            return mockContainingCodeTrackerProcessResult.Object;
         }
 
         [TestCase(true,false,true)]
@@ -25,8 +24,8 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
         {
             throw new System.NotImplementedException();
             //var textSnapshot = new Mock<ITextSnapshot>().Object;
-            //var newSpanChanges = new List<Span> { new Span(10, 10) };
-            //var unprocessedSpans = new List<Span> { new Span(15, 5) };
+            //var newSpanChanges = new List<SpanAndLineRange> { new SpanAndLineRange(new Span(10, 10),0,0) };
+            //var unprocessedSpans = new List<SpanAndLineRange> { new SpanAndLineRange(new Span(15, 5),1,1) };
             //var mockContainingCodeTracker1 = new Mock<IContainingCodeTracker>();
             //mockContainingCodeTracker1.Setup(containingCodeTracker => containingCodeTracker.ProcessChanges(textSnapshot, newSpanChanges))
             //    .Returns(GetProcessResult(unprocessedSpans, firstChanged));
@@ -35,11 +34,11 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
             //    .Returns(GetProcessResult(unprocessedSpans, secondChanged));
             //var trackedLines = new TrackedLines(new List<IContainingCodeTracker> { mockContainingCodeTracker1.Object, mockContainingCodeTracker2.Object });
 
-            //Assert.That(trackedLines.Changed(textSnapshot, newSpanChanges),Is.EqualTo(expectedChanged));
+            //Assert.That(trackedLines.Changed(textSnapshot, newSpanChanges), Is.EqualTo(expectedChanged));
 
             //mockContainingCodeTracker1.VerifyAll();
             //mockContainingCodeTracker2.VerifyAll();
-           
+
         }
 
         [Test]

@@ -22,7 +22,7 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
     {
         private AutoMoqer autoMoqer;
         private Mock<ITextSnapshot> mockTextSnapshot;
-        private Mock<ITextBuffer> mockTextBuffer;
+        private Mock<ITextBuffer2> mockTextBuffer;
         private Mock<ITextView> mockTextView;
         private ITextSnapshot textSnapshot;
         private TextInfo textInfo;
@@ -30,7 +30,7 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
         {
             autoMoqer = new AutoMoqer();
             mockTextView = new Mock<ITextView>();
-            mockTextBuffer = new Mock<ITextBuffer>();
+            mockTextBuffer = new Mock<ITextBuffer2>();
             mockTextBuffer.Setup(textBuffer => textBuffer.ContentType.TypeName).Returns(contentTypeName);
             mockTextSnapshot = new Mock<ITextSnapshot>();
             textSnapshot = mockTextSnapshot.Object;
@@ -116,7 +116,7 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
         public void Should_Create_New_TextLines_When_Coverage_Changed()
         {
             var autoMoqer = new AutoMoqer();
-            var mockTextBuffer = new Mock<ITextBuffer>();
+            var mockTextBuffer = new Mock<ITextBuffer2>();
             mockTextBuffer.Setup(textBuffer => textBuffer.ContentType.TypeName).Returns("CSharp");
             var mockCurrentSnapshot = new Mock<ITextSnapshot>();
             mockCurrentSnapshot.SetupGet(snapshot => snapshot.LineCount).Returns(10);
@@ -165,7 +165,7 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
 
         [TestCase(true)]
         [TestCase(false)]
-        public void Should_Update_TrackedLines_When_Text_Buffer_Changed(bool textLinesChanged)
+        public void Should_Update_TrackedLines_When_Text_Buffer_ChangedOnBackground(bool textLinesChanged)
         {
             SimpleTextInfoSetUp();
 
@@ -180,7 +180,7 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
 
             var bufferLineCoverage = autoMoqer.Create<BufferLineCoverage>();
 
-            mockTextBuffer.Raise(textBuffer => textBuffer.Changed += null, CreateTextContentChangedEventArgs(afterSnapshot, newSpan));
+            mockTextBuffer.Raise(textBuffer => textBuffer.ChangedOnBackground += null, CreateTextContentChangedEventArgs(afterSnapshot, newSpan));
 
             autoMoqer.Verify<IEventAggregator>(
                         eventAggregator => eventAggregator.SendMessage(

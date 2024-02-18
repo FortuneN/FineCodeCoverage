@@ -67,6 +67,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
             var nonIntersectingSpans = trackingSpanRangeProcessResult.NonIntersectingSpans;
             if (trackingSpanRangeProcessResult.IsEmpty)
             {
+                // todo - determine changed parameter
                 return new ContainingCodeTrackerProcessResult(true, nonIntersectingSpans,true);
             }
 

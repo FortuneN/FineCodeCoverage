@@ -10,16 +10,6 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
     internal class CoverageLine_Tests
     {
         [Test]
-        public void Should_Have_A_Dirty_IDynamicLine_When_Dirty()
-        {
-            //var autoMoqer = new AutoMoqer();
-            //var coverageLine = autoMoqer.Create<CoverageLine>();
-            //coverageLine.Dirty();
-            //Assert.IsTrue(coverageLine.Line.IsDirty);
-            throw new System.NotImplementedException();
-        }
-
-        [Test]
         public void Should_Return_Update_Type_Removal_When_Snapshot_Span_Is_Empty()
         {
             var autoMoqer = new AutoMoqer();
@@ -34,9 +24,11 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
         private (CoverageLineUpdateType,CoverageLine) TestLineNumberUpdate(int initialLineNumber, int newLineNumber)
         {
             var autoMoqer = new AutoMoqer();
+
             var mockCurrentSnapshot = autoMoqer.GetMock<ITextSnapshot>();
             mockCurrentSnapshot.SetupGet(currentSnapshot => currentSnapshot.Length).Returns(100);
-            mockCurrentSnapshot.Setup(currentSnapshot => currentSnapshot.GetLineNumberFromPosition(10)).Returns(newLineNumber);
+            mockCurrentSnapshot.Setup(currentSnapshot => currentSnapshot.GetLineNumberFromPosition(30)).Returns(newLineNumber);
+            
             var mockTrackingSpan = autoMoqer.GetMock<ITrackingSpan>();
             mockTrackingSpan.Setup(t => t.GetSpan(mockCurrentSnapshot.Object))
                 .Returns(new SnapshotSpan(new SnapshotPoint(mockCurrentSnapshot.Object, 10), 20));
@@ -72,14 +64,14 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
             Assert.That(coverageLine.Line.Number, Is.EqualTo(1));
         }
 
-        [TestCase(CoverageType.Covered)]
-        [TestCase(CoverageType.NotCovered)]
-        [TestCase(CoverageType.Partial)]
-        public void Should_Have_Line_With_Correct_CoverageType(CoverageType coverageType)
+        [TestCase(CoverageType.Covered,DynamicCoverageType.Covered)]
+        [TestCase(CoverageType.NotCovered, DynamicCoverageType.NotCovered)]
+        [TestCase(CoverageType.Partial, DynamicCoverageType.Partial)]
+        public void Should_Have_Line_With_Correct_CoverageType(CoverageType coverageType,DynamicCoverageType expectedCoverageType)
         {
             var mockLine = new Mock<ILine>();
             mockLine.SetupGet(line => line.CoverageType).Returns(coverageType);
-            Assert.That(new CoverageLine(null, mockLine.Object).Line.CoverageType, Is.EqualTo(coverageType));
+            Assert.That(new CoverageLine(null, mockLine.Object).Line.CoverageType, Is.EqualTo(expectedCoverageType));
         }
 
     }
