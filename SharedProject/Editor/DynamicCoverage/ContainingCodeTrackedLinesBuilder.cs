@@ -96,16 +96,22 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
 
             void TrackOtherLinesTo(int to)
             {
-                if(to < currentLine) return;
+                if (to < currentLine) return;
                 var otherCodeLines = Enumerable.Range(currentLine, to - currentLine + 1).Where(lineNumber =>
                 {
                     var lineExtent = textSnapshot.GetLineFromLineNumber(lineNumber).Extent;
                     return !CodeLineExcluder.ExcludeIfNotCode(lineExtent, isCSharp);
                 });
-                foreach(var otherCodeLine in otherCodeLines)
+                foreach (var otherCodeLine in otherCodeLines)
                 {
                     containingCodeTrackers.Add(
-                            containingCodeTrackerFactory.Create(textSnapshot, Enumerable.Empty<ILine>().ToList(),new CodeSpanRange(otherCodeLine,otherCodeLine),SpanTrackingMode.EdgeNegative));
+                            containingCodeTrackerFactory.Create(
+                                textSnapshot,
+                                Enumerable.Empty<ILine>().ToList(),
+                                new CodeSpanRange(otherCodeLine, otherCodeLine),
+                                SpanTrackingMode.EdgeNegative
+                            )
+                    );
                 }
             }
 

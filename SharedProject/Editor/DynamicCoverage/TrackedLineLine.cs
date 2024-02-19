@@ -48,10 +48,5 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
 
         public int Number { get; set; }
         public DynamicCoverageType CoverageType { get; private set; }
-
-        public void Dirty()
-        {
-            CoverageType = DynamicCoverageType.Dirty;
-        }
     }
 }

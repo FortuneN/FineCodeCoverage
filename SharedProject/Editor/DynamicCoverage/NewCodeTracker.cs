@@ -4,19 +4,13 @@ using System.Linq;
 
 namespace FineCodeCoverage.Editor.DynamicCoverage
 {
-    internal class SpanAndLineRange
+    interface ITrackedNewLineFactory
     {
-        public SpanAndLineRange(Span span, int startLineNumber,int endLineNumber)
-        {
-            Span = span;
-            StartLineNumber = startLineNumber;
-            EndLineNumber = endLineNumber;
-        }
 
-        public Span Span { get; }
-        public int StartLineNumber { get; }
-        public int EndLineNumber { get; }
     }
+
+    
+
     class NewCodeTracker : INewCodeTracker
     {
         private readonly List<TrackedNewCodeLine> trackedNewCodeLines = new List<TrackedNewCodeLine>();
@@ -36,7 +30,8 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
             foreach (var trackedNewCodeLine in  trackedNewCodeLines)
             {
                 var newSnapshotSpan = trackedNewCodeLine.TrackingSpan.GetSpan(currentSnapshot);
-                var line = currentSnapshot.GetLineFromPosition(newSnapshotSpan.End);
+                var line = currentSnapshot.GetLineFromPosition(newSnapshotSpan.End); // these two lines can go on the interface
+
                 var lineNumber = line.LineNumber;
 
                 potentialNewLines = potentialNewLines.Where(spanAndLineRange => spanAndLineRange.StartLineNumber != lineNumber).ToList();
@@ -69,8 +64,6 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
                     trackedNewCodeLines.Add(new TrackedNewCodeLine(lineNumber, trackingSpan));
                     requiresUpdate = true;
                 }
-
-                // there is definitely common code with CoverageLine
             }
             return requiresUpdate;
         }

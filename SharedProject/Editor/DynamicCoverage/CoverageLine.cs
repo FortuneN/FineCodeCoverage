@@ -9,11 +9,6 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
         private readonly TrackedLineLine line;
         public IDynamicLine Line => line;
 
-        public void Dirty()
-        {
-            line.Dirty();
-        }
-
         public CoverageLine(ITrackingSpan trackingSpan, ILine line)
         {
             this.line = new TrackedLineLine(line);

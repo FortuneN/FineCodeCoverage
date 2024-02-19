@@ -71,7 +71,9 @@
     <Compile Include="Editor\DynamicCoverage\BufferLineCoverage_Tests.cs" />
     <Compile Include="Editor\DynamicCoverage\ContainingCodeTracker_Tests.cs" />
     <Compile Include="Editor\DynamicCoverage\CoverageLine_Tests.cs" />
+    <Compile Include="Editor\DynamicCoverage\DirtyLine_Tests.cs" />
     <Compile Include="Editor\DynamicCoverage\LinesContainingCodeTrackerFactory_Tests.cs" />
+    <Compile Include="Editor\DynamicCoverage\NewCodeTracker_Tests.cs" />
     <Compile Include="Editor\DynamicCoverage\TrackingLineFactory_Tests.cs" />
     <Compile Include="Editor\Management\CoverageClassificationTypeService_Tests.cs" />
     <Compile Include="Editor\Management\FontsAndColorsHelper_Tests.cs" />
