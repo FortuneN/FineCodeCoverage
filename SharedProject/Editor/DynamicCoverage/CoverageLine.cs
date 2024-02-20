@@ -6,32 +6,27 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
     class CoverageLine : ICoverageLine
     {
         private readonly ITrackingSpan trackingSpan;
+        private readonly ILineTracker lineTracker;
         private readonly TrackedLineLine line;
         public IDynamicLine Line => line;
 
-        public CoverageLine(ITrackingSpan trackingSpan, ILine line)
+        public CoverageLine(ITrackingSpan trackingSpan, ILine line, ILineTracker lineTracker)
         {
             this.line = new TrackedLineLine(line);
             this.trackingSpan = trackingSpan;
+            this.lineTracker = lineTracker;
         }
 
-        public CoverageLineUpdateType Update(ITextSnapshot currentSnapshot)
+        public bool Update(ITextSnapshot currentSnapshot)
         {
-            var newSnapshotSpan = trackingSpan.GetSpan(currentSnapshot);
-            if (newSnapshotSpan.IsEmpty)
+            var updated = false;
+            var newLineNumber = lineTracker.GetTrackedLineInfo(trackingSpan, currentSnapshot, true, false).LineNumber + 1;
+            if (newLineNumber != Line.Number)
             {
-                return CoverageLineUpdateType.Removal;
+                line.Number = newLineNumber;
+                updated = true;
             }
-            else
-            {
-                var newLineNumber = currentSnapshot.GetLineNumberFromPosition(newSnapshotSpan.End) + 1;
-                if (newLineNumber != Line.Number)
-                {
-                    line.Number = newLineNumber;
-                    return CoverageLineUpdateType.LineNumberChange;
-                }
-            }
-            return CoverageLineUpdateType.NoChange;
+            return updated;
         }
     }
 

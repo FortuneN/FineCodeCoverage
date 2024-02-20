@@ -7,7 +7,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
     internal class ContainingCodeTracker : IContainingCodeTracker
     {
         private readonly ITrackingSpanRange trackingSpanRange;
-        private readonly ITrackedCoverageLines trackedCoverageLines;
+        private ITrackedCoverageLines trackedCoverageLines;
         private readonly IDirtyLineFactory dirtyLineFactory;
         private IDirtyLine dirtyLine;
 
@@ -47,6 +47,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
         {
             var firstTrackingSpan = trackingSpanRange.GetFirstTrackingSpan();
             dirtyLine = dirtyLineFactory.Create(firstTrackingSpan, currentSnapshot);
+            trackedCoverageLines = null;
         }
 
         private bool RequiresDirtyLine()

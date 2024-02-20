@@ -6,15 +6,22 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
     {
         public TrackedLineInfo GetTrackedLineInfo(ITrackingSpan trackingSpan, ITextSnapshot currentSnapshot, bool lineFromEnd, bool getText)
         {
-            var newSnapshotSpan = trackingSpan.GetSpan(currentSnapshot);
-            var line = currentSnapshot.GetLineFromPosition(lineFromEnd ? newSnapshotSpan.End : newSnapshotSpan.Start);
+            var position = lineFromEnd ? trackingSpan.GetEndPoint(currentSnapshot) : trackingSpan.GetStartPoint(currentSnapshot);
+            
             string text = "";
+            int lineNumber;
             if (getText)
             {
+                var line = currentSnapshot.GetLineFromPosition(position);
+                lineNumber = line.LineNumber;
                 var extent = line.Extent;
                 text = currentSnapshot.GetText(extent);
             }
-            return new TrackedLineInfo(line.LineNumber, text);
+            else
+            {
+                lineNumber = currentSnapshot.GetLineNumberFromPosition(position);
+            }
+            return new TrackedLineInfo(lineNumber, text);
         }
     }
 }

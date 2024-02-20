@@ -4,7 +4,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
 {
     interface ICoverageLine
     {
-        CoverageLineUpdateType Update(ITextSnapshot currentSnapshot);
+        bool Update(ITextSnapshot currentSnapshot);
         IDynamicLine Line { get; }
     }
 }

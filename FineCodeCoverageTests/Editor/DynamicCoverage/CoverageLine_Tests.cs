@@ -9,70 +9,42 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
 {
     internal class CoverageLine_Tests
     {
-        [Test]
-        public void Should_Return_Update_Type_Removal_When_Snapshot_Span_Is_Empty()
+        [TestCase(CoverageType.Covered, DynamicCoverageType.Covered)]
+        [TestCase(CoverageType.NotCovered, DynamicCoverageType.NotCovered)]
+        [TestCase(CoverageType.Partial, DynamicCoverageType.Partial)]
+        public void Should_Have_A_DynamicLine_From_ILine_When_Constructed(CoverageType lineCoverageType, DynamicCoverageType expectedDynamicCoverageType)
         {
-            var autoMoqer = new AutoMoqer();
-            var coverageLine = autoMoqer.Create<CoverageLine>();
-            var currentSnapshot = autoMoqer.GetMock<ITextSnapshot>();
-            var trackingSpan = autoMoqer.GetMock<ITrackingSpan>();
-            trackingSpan.Setup(t => t.GetSpan(currentSnapshot.Object)).Returns(new SnapshotSpan());
-            var result = coverageLine.Update(currentSnapshot.Object);
-            Assert.AreEqual(CoverageLineUpdateType.Removal, result);
-        }
+            var mockLine = new Mock<ILine>();
+            mockLine.SetupGet(l => l.CoverageType).Returns(lineCoverageType);
+            mockLine.SetupGet(l => l.Number).Returns(1);
 
-        private (CoverageLineUpdateType,CoverageLine) TestLineNumberUpdate(int initialLineNumber, int newLineNumber)
-        {
-            var autoMoqer = new AutoMoqer();
+            var coverageLine = new CoverageLine(null, mockLine.Object, null);
 
-            var mockCurrentSnapshot = autoMoqer.GetMock<ITextSnapshot>();
-            mockCurrentSnapshot.SetupGet(currentSnapshot => currentSnapshot.Length).Returns(100);
-            mockCurrentSnapshot.Setup(currentSnapshot => currentSnapshot.GetLineNumberFromPosition(30)).Returns(newLineNumber);
-            
-            var mockTrackingSpan = autoMoqer.GetMock<ITrackingSpan>();
-            mockTrackingSpan.Setup(t => t.GetSpan(mockCurrentSnapshot.Object))
-                .Returns(new SnapshotSpan(new SnapshotPoint(mockCurrentSnapshot.Object, 10), 20));
-            var mockLine = autoMoqer.GetMock<ILine>();
-            mockLine.SetupGet(l => l.Number).Returns(initialLineNumber);
-
-
-            var coverageLine = autoMoqer.Create<CoverageLine>();
-
-            var result = coverageLine.Update(mockCurrentSnapshot.Object);
-
-            return (result, coverageLine);
-        }
-
-        [Test]
-        public void Should_Return_Update_Type_LineNumberChange_And_Change_Line_Number_When_LineNumber_Changes()
-        {
-            var newLineNumber = 1;
-            var (result, coverageLine) = TestLineNumberUpdate(1, newLineNumber);
-            
-            Assert.AreEqual(CoverageLineUpdateType.LineNumberChange, result);
-            var adjustedLineNumber = newLineNumber + 1;
-            Assert.AreEqual(adjustedLineNumber, coverageLine.Line.Number);
-        }
-
-        [Test]
-        public void Should_Return_Update_Type_NoChange_When_LineNumber_Does_Not_Change()
-        {
-            var (result, coverageLine) = TestLineNumberUpdate(1,0);
-
-            Assert.AreEqual(CoverageLineUpdateType.NoChange, result);
-
+            Assert.That(coverageLine.Line.CoverageType, Is.EqualTo(expectedDynamicCoverageType));
             Assert.That(coverageLine.Line.Number, Is.EqualTo(1));
         }
 
-        [TestCase(CoverageType.Covered,DynamicCoverageType.Covered)]
-        [TestCase(CoverageType.NotCovered, DynamicCoverageType.NotCovered)]
-        [TestCase(CoverageType.Partial, DynamicCoverageType.Partial)]
-        public void Should_Have_Line_With_Correct_CoverageType(CoverageType coverageType,DynamicCoverageType expectedCoverageType)
+        [TestCase(true)]
+        [TestCase(false)]
+        public void Should_Be_Updated_If_The_Line_Number_Changes(bool updateLineNumber)
         {
             var mockLine = new Mock<ILine>();
-            mockLine.SetupGet(line => line.CoverageType).Returns(coverageType);
-            Assert.That(new CoverageLine(null, mockLine.Object).Line.CoverageType, Is.EqualTo(expectedCoverageType));
-        }
+            mockLine.SetupGet(l => l.Number).Returns(1);
 
+            var currentTextSnapshot = new Mock<ITextSnapshot>().Object;
+            var trackingSpan = new Mock<ITrackingSpan>().Object;
+            var mockLineTracker = new Mock<ILineTracker>();
+
+            var updatedLineNumber = updateLineNumber ? 10 : 0;
+            mockLineTracker.Setup(lineTracker => lineTracker.GetTrackedLineInfo(trackingSpan, currentTextSnapshot, true, false))
+                .Returns(new TrackedLineInfo(updatedLineNumber,""));
+            var coverageLine = new CoverageLine(trackingSpan, mockLine.Object, mockLineTracker.Object);
+
+            var updated = coverageLine.Update(currentTextSnapshot);
+
+            Assert.That(updated, Is.EqualTo(updateLineNumber));
+
+            Assert.That(coverageLine.Line.Number, Is.EqualTo(updatedLineNumber + 1));
+        }
     }
 }

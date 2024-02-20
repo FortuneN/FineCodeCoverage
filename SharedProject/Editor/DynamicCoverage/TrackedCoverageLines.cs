@@ -17,21 +17,11 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
         public bool Update(ITextSnapshot currentSnapshot)
         {
             var changed = false;
-            var removals = new List<ICoverageLine>();
             foreach (var coverageLine in coverageLines)
             {
-                var updateType = coverageLine.Update(currentSnapshot);
-                if (updateType == CoverageLineUpdateType.Removal)
-                {
-                    changed = true;
-                    removals.Add(coverageLine);
-                }
-                else if (updateType == CoverageLineUpdateType.LineNumberChange)
-                {
-                    changed = true;
-                }
+                var updated = coverageLine.Update(currentSnapshot);
+                changed = changed || updated;
             }
-            removals.ForEach(r => coverageLines.Remove(r));
             return changed;
         }
     }

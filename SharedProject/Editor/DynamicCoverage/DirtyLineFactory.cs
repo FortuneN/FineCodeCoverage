@@ -10,7 +10,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
     {
         public IDirtyLine Create(ITrackingSpan trackingSpan, ITextSnapshot snapshot)
         {
-            return new DirtyLine(trackingSpan, snapshot);
+            return new DirtyLine(trackingSpan, snapshot, new LineTracker());
         }
     }
 }

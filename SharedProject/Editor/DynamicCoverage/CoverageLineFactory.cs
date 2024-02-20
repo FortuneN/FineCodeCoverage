@@ -11,7 +11,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
     {
         public ICoverageLine Create(ITrackingSpan trackingSpan, ILine line)
         {
-            return new CoverageLine(trackingSpan, line);
+            return new CoverageLine(trackingSpan, line, new LineTracker());
         }
     }
 

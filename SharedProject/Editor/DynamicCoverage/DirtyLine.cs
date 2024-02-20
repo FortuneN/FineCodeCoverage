@@ -4,17 +4,20 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
 {
     internal class DirtyLine : IDirtyLine
     {
-        private ITrackingSpan startTrackingSpan;
+        private readonly ITrackingSpan startTrackingSpan;
+        private readonly ILineTracker lineTracker;
+
         public IDynamicLine Line { get; private set; }
-        public DirtyLine(ITrackingSpan startTrackingSpan, ITextSnapshot currentSnapshot)
+        public DirtyLine(ITrackingSpan startTrackingSpan, ITextSnapshot currentSnapshot, ILineTracker lineTracker)
         {
             this.startTrackingSpan = startTrackingSpan;
+            this.lineTracker = lineTracker;
             SetLine(currentSnapshot);
         }
 
         private void SetLine(ITextSnapshot currentSnapshot)
         {
-            var startLineNumber = currentSnapshot.GetLineNumberFromPosition(startTrackingSpan.GetStartPoint(currentSnapshot));
+            var startLineNumber = lineTracker.GetTrackedLineInfo(startTrackingSpan, currentSnapshot, false, false).LineNumber;
 
             Line = new DynamicLine(startLineNumber,DynamicCoverageType.Dirty);
         }

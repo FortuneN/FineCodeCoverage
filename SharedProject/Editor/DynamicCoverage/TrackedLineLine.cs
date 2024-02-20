@@ -39,6 +39,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
     class TrackedLineLine : IDynamicLine
     {        
         private readonly CoverageType lineCoverageType;
+        
         public TrackedLineLine(ILine line)
         {
             Number = line.Number;

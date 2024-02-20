@@ -3,68 +3,63 @@ using Microsoft.VisualStudio.Text;
 using Moq;
 using NUnit.Framework;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace FineCodeCoverageTests.Editor.DynamicCoverage
 {
     internal class TrackedCoverageLines_Tests
     {
-        [TestCase(CoverageLineUpdateType.Removal,true)]
-        [TestCase(CoverageLineUpdateType.LineNumberChange, true)]
-        [TestCase(CoverageLineUpdateType.NoChange, false)]
-        public void Should_Be_Changed_When_A_Coverage_Line_Has_Changed(CoverageLineUpdateType coverageLineUpdateType, bool expectedChange)
+        [TestCase(true, true, true)]
+        [TestCase(false, true, true)]
+        [TestCase(true, false, true)]
+        [TestCase(false, false, false)]
+        public void Should_Update_All_CoverageLine(bool firstUpdated, bool secondUpdated, bool expectedUpdated)
         {
             var textSnapshot = new Mock<ITextSnapshot>().Object;
-            var mockCoverageLine = new Mock<ICoverageLine>();
-            mockCoverageLine.Setup(coverageLine => coverageLine.Update(textSnapshot)).Returns(coverageLineUpdateType);
-            var mockCoverageLine2 = new Mock<ICoverageLine>();
-            mockCoverageLine2.Setup(coverageLine => coverageLine.Update(textSnapshot)).Returns(CoverageLineUpdateType.NoChange);
+            Mock<ICoverageLine> CreateMockCoverageLine(bool coverageLineUpdated)
+            {
+                var mockCoverageLine = new Mock<ICoverageLine>();
+                mockCoverageLine.Setup(coverageLine => coverageLine.Update(textSnapshot)).Returns(coverageLineUpdated);
+                return mockCoverageLine;
+            }
 
-            var trackedCoverageLines = new TrackedCoverageLines(new List<ICoverageLine> { mockCoverageLine.Object, mockCoverageLine2.Object });
+            var mockCoverageLines = new List<Mock<ICoverageLine>>
+            {
+                CreateMockCoverageLine(firstUpdated),
+                CreateMockCoverageLine(secondUpdated)
+            };
 
-            var changed = trackedCoverageLines.Update(textSnapshot);
-            Assert.AreEqual(expectedChange, changed);
-        }
+            var trackedCoverageLines = new TrackedCoverageLines(mockCoverageLines.Select(mock => mock.Object).ToList());
+            
 
-        private static IDynamicLine CreateDynamicLIne(int lineNumber)
-        {
-            var mockDynamicLine = new Mock<IDynamicLine>();
-            mockDynamicLine.SetupGet(dl => dl.Number).Returns(lineNumber);
-            return mockDynamicLine.Object;
-        }
+            var updated = trackedCoverageLines.Update(textSnapshot);
 
-        [Test]
-        public void Should_Return_Lines_From_All_CoverageLine()
-        {
-            var textSnapshot = new Mock<ITextSnapshot>().Object;
-            var dynamicLine = CreateDynamicLIne(1);
-            var dynamicLine2 = CreateDynamicLIne(2);
-            var mockCoverageLine = new Mock<ICoverageLine>();
-            mockCoverageLine.SetupGet(coverageLine => coverageLine.Line).Returns(dynamicLine);
-            var mockCoverageLine2 = new Mock<ICoverageLine>();
-            mockCoverageLine2.SetupGet(coverageLine => coverageLine.Line).Returns(dynamicLine2);
+            mockCoverageLines.ForEach(mock => mock.VerifyAll());
 
-            var trackedCoverageLines = new TrackedCoverageLines(new List<ICoverageLine> { mockCoverageLine.Object, mockCoverageLine2.Object });
-
-            Assert.That(trackedCoverageLines.Lines, Is.EqualTo(new List<IDynamicLine> { dynamicLine, dynamicLine2 }));
+            Assert.That(updated, Is.EqualTo(expectedUpdated));
         }
 
         [Test]
-        public void Should_Remove_CoverageLine_When_It_Is_Removed()
+        public void Should_Return_Lines_From_CoverageLines()
         {
             var textSnapshot = new Mock<ITextSnapshot>().Object;
-            var dynamicLine = CreateDynamicLIne(1);
-            var dynamicLine2 = CreateDynamicLIne(2);
-            var mockCoverageLine = new Mock<ICoverageLine>();
-            mockCoverageLine.SetupGet(coverageLine => coverageLine.Line).Returns(dynamicLine);
-            var mockCoverageLine2 = new Mock<ICoverageLine>();
-            mockCoverageLine2.SetupGet(coverageLine => coverageLine.Line).Returns(dynamicLine2);
-            mockCoverageLine2.Setup(coverageLine => coverageLine.Update(textSnapshot)).Returns(CoverageLineUpdateType.Removal);
+            (ICoverageLine, IDynamicLine) SetUpCoverageLine()
+            {
+                var mockCoverageLine = new Mock<ICoverageLine>();
+                var dynamicLine = new Mock<IDynamicLine>().Object;
+                mockCoverageLine.SetupGet(coverageLine => coverageLine.Line).Returns(dynamicLine);
+                return (mockCoverageLine.Object, dynamicLine);
+            }
 
-            var trackedCoverageLines = new TrackedCoverageLines(new List<ICoverageLine> { mockCoverageLine.Object, mockCoverageLine2.Object });
+            var (firstCoverageLine, firstDynamicLine) = SetUpCoverageLine();
+            var (secondCoverageLine, secondDynamicLine) = SetUpCoverageLine();
+            var trackedCoverageLines = new TrackedCoverageLines(new List<ICoverageLine> { firstCoverageLine, secondCoverageLine});
 
-            trackedCoverageLines.Update(textSnapshot);
+            var lines = trackedCoverageLines.Lines.ToList();
 
-            Assert.That(trackedCoverageLines.Lines, Is.EqualTo(new List<IDynamicLine> { dynamicLine }));
+            Assert.That(lines.Count(), Is.EqualTo(2));
+            Assert.That(lines[0], Is.SameAs(firstDynamicLine));
+            Assert.That(lines[1], Is.SameAs(secondDynamicLine));
 
 
         }

@@ -7,34 +7,21 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
 {
     internal class DirtyLine_Tests
     {
-        private DirtyLine dirtyLine;
-        private Mock<ITrackingSpan> mockTrackingSpan;
-        private void SetUpMocks(Mock<ITextSnapshot> mockCurrentSnapshot, int lineNumber)
-        {
-            mockCurrentSnapshot.SetupGet(currentSnapshot => currentSnapshot.Length).Returns(100);
-            
-            var snapshotPoint = new SnapshotPoint(mockCurrentSnapshot.Object, lineNumber);
-            mockTrackingSpan.Setup(startTrackingSpan => startTrackingSpan.GetStartPoint(mockCurrentSnapshot.Object)).Returns(snapshotPoint);
-            mockCurrentSnapshot.Setup(currentSnapshot => currentSnapshot.GetLineNumberFromPosition(snapshotPoint)).Returns(lineNumber);
-        }
-
-        [SetUp]
-        public void Setup()
-        {
-            var mockCurrentSnapshot = new Mock<ITextSnapshot>();
-            mockTrackingSpan = new Mock<ITrackingSpan>();
-
-            SetUpMocks(mockCurrentSnapshot,10);
-            dirtyLine = new DirtyLine(mockTrackingSpan.Object, mockCurrentSnapshot.Object);
-        }
-        
         [Test]
-        public void Should_Have_An_Adjusted_Dirty_Line_From_The_Start_Point_When_Constructed_()
+        public void Should_Have_An_Adjusted_Dirty_Line_From_The_Start_Point_When_Constructed()
         {
-            AssertDirtyLine(11);
+            var currentSnapshot = new Mock<ITextSnapshot>().Object;
+            var trackingSpan = new Mock<ITrackingSpan>().Object;
+
+            var mockLineTracker = new Mock<ILineTracker>();
+            mockLineTracker.Setup(lineTracker => lineTracker.GetTrackedLineInfo(trackingSpan, currentSnapshot, false, false)).Returns(new TrackedLineInfo(10, ""));
+            
+            var dirtyLine = new DirtyLine(trackingSpan, currentSnapshot, mockLineTracker.Object);
+            
+            AssertDirtyLine(dirtyLine, 11);
         }
 
-        private void AssertDirtyLine(int expectedAdjustedLineNumber)
+        private void AssertDirtyLine(DirtyLine dirtyLine, int expectedAdjustedLineNumber)
         {
             var dynamicLine = dirtyLine.Line;
 
@@ -42,14 +29,26 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
             Assert.That(expectedAdjustedLineNumber, Is.EqualTo(dynamicLine.Number));
         }
 
-        [Test]
-        public void Should_Have_An_Updated_Dirty_Line_When_Update()
+        [TestCase(true)]
+        [TestCase(false)]
+        public void Should_Have_An_Updated_Dirty_Line_When_Update(bool changeLineNumber)
         {
-            var mockTextSnapshot = new Mock<ITextSnapshot>();
-            SetUpMocks(mockTextSnapshot, 5);
+            var initialSnapshot = new Mock<ITextSnapshot>().Object;
+            var trackingSpan = new Mock<ITrackingSpan>().Object;
 
-            dirtyLine.Update(mockTextSnapshot.Object);
-            AssertDirtyLine(6);
+            var mockLineTracker = new Mock<ILineTracker>();
+            mockLineTracker.Setup(lineTracker => lineTracker.GetTrackedLineInfo(trackingSpan, initialSnapshot, false, false)).Returns(new TrackedLineInfo(10, ""));
+
+            var dirtyLine = new DirtyLine(trackingSpan, initialSnapshot, mockLineTracker.Object);
+
+            var currentSnapshot = new Mock<ITextSnapshot>().Object;
+            var newLineNumber = changeLineNumber ? 11 : 10;
+            mockLineTracker.Setup(lineTracker => lineTracker.GetTrackedLineInfo(trackingSpan, currentSnapshot, false, false))
+                .Returns(new TrackedLineInfo(newLineNumber, ""));
+
+            var updated = dirtyLine.Update(currentSnapshot);
+            Assert.That(updated, Is.EqualTo(changeLineNumber));
+            AssertDirtyLine(dirtyLine, newLineNumber + 1);
         }
     }
 }
