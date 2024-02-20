@@ -45,15 +45,15 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
 
         private ITrackingSpanRange CreateTrackingSpanRange(ITextSnapshot textSnapshot, CodeSpanRange containingRange, SpanTrackingMode spanTrackingMode)
         {
-            var startTrackingSpan = trackingLineFactory.Create(textSnapshot, containingRange.StartLine, spanTrackingMode);
-            var endTrackingSpan = trackingLineFactory.Create(textSnapshot, containingRange.EndLine, spanTrackingMode);
+            var startTrackingSpan = trackingLineFactory.CreateTrackingSpan(textSnapshot, containingRange.StartLine, spanTrackingMode);
+            var endTrackingSpan = trackingLineFactory.CreateTrackingSpan(textSnapshot, containingRange.EndLine, spanTrackingMode);
             return trackingSpanRangeFactory.Create(startTrackingSpan, endTrackingSpan, textSnapshot);
         }
 
         private ITrackedCoverageLines CreateTrackedCoverageLines(ITextSnapshot textSnapshot, List<ILine> lines, SpanTrackingMode spanTrackingMode)
         {
             var coverageLines = lines.Select(line => coverageLineFactory.Create(
-                trackingLineFactory.Create(textSnapshot, line.Number - 1,spanTrackingMode), line)
+                trackingLineFactory.CreateTrackingSpan(textSnapshot, line.Number - 1,spanTrackingMode), line)
             ).ToList();
             return trackedCoverageLinesFactory.Create(coverageLines.ToList());
         }

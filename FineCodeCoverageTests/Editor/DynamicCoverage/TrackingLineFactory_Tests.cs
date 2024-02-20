@@ -19,7 +19,7 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
             mockTextSnapshotLine.SetupGet(l => l.Extent).Returns(lineExtent);
             mockTextSnapshot.Setup(t => t.GetLineFromLineNumber(1)).Returns(mockTextSnapshotLine.Object);
             var trackingLineFactory = autoMoqer.Create<TrackingLineFactory>();
-            var trackingSpan = trackingLineFactory.Create(mockTextSnapshot.Object, 1,spanTrackingMode);
+            var trackingSpan = trackingLineFactory.CreateTrackingSpan(mockTextSnapshot.Object, 1,spanTrackingMode);
             mockTextSnapshot.Verify(t => t.CreateTrackingSpan(new SnapshotSpan(mockTextSnapshot.Object, 10, 20), spanTrackingMode));
         }
     }

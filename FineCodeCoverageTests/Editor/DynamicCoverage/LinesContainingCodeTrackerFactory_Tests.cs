@@ -21,7 +21,7 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
 
             var autoMoqer = new AutoMoqer();
             var trackingSpan = new Mock<ITrackingSpan>().Object;
-            autoMoqer.Setup<ITrackingLineFactory, ITrackingSpan>(trackingLineFactory => trackingLineFactory.Create(textSnapshot, adjustedLine,spanTrackingMode))
+            autoMoqer.Setup<ITrackingLineFactory, ITrackingSpan>(trackingLineFactory => trackingLineFactory.CreateTrackingSpan(textSnapshot, adjustedLine,spanTrackingMode))
                 .Returns(trackingSpan);
             var coverageLine = new Mock<ICoverageLine>().Object;
             autoMoqer.Setup<ICoverageLineFactory, ICoverageLine>(coverageLineFactory => coverageLineFactory.Create(trackingSpan, mockLine.Object))
@@ -54,17 +54,17 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
             var trackingSpan = new Mock<ITrackingSpan>().Object;
             var trackingSpan2 = new Mock<ITrackingSpan>().Object;
 
-            autoMoqer.Setup<ITrackingLineFactory, ITrackingSpan>(trackingLineFactory => trackingLineFactory.Create(textSnapshot, 4, spanTrackingMode))
+            autoMoqer.Setup<ITrackingLineFactory, ITrackingSpan>(trackingLineFactory => trackingLineFactory.CreateTrackingSpan(textSnapshot, 4, spanTrackingMode))
                 .Returns(trackingSpan);
-            autoMoqer.Setup<ITrackingLineFactory, ITrackingSpan>(trackingLineFactory => trackingLineFactory.Create(textSnapshot, 5, spanTrackingMode))
+            autoMoqer.Setup<ITrackingLineFactory, ITrackingSpan>(trackingLineFactory => trackingLineFactory.CreateTrackingSpan(textSnapshot, 5, spanTrackingMode))
                 .Returns(trackingSpan2);
 
             // for the CodeSpanRange no line adjustments - CodeSpanRange in reality will contain the lines
             var codeRangeTrackingSpan20 = new Mock<ITrackingSpan>().Object;
             var codeRangeTrackingSpan22 = new Mock<ITrackingSpan>().Object;
-            autoMoqer.Setup<ITrackingLineFactory, ITrackingSpan>(trackingLineFactory => trackingLineFactory.Create(textSnapshot, 20, spanTrackingMode))
+            autoMoqer.Setup<ITrackingLineFactory, ITrackingSpan>(trackingLineFactory => trackingLineFactory.CreateTrackingSpan(textSnapshot, 20, spanTrackingMode))
                 .Returns(codeRangeTrackingSpan20);
-            autoMoqer.Setup<ITrackingLineFactory, ITrackingSpan>(trackingLineFactory => trackingLineFactory.Create(textSnapshot, 22, spanTrackingMode))
+            autoMoqer.Setup<ITrackingLineFactory, ITrackingSpan>(trackingLineFactory => trackingLineFactory.CreateTrackingSpan(textSnapshot, 22, spanTrackingMode))
                 .Returns(codeRangeTrackingSpan22);
             var trackingSpanRange = new Mock<ITrackingSpanRange>().Object;
             autoMoqer.Setup<ITrackingSpanRangeFactory, ITrackingSpanRange>(

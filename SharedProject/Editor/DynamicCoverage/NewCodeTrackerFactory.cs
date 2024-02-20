@@ -7,9 +7,18 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
     [Export(typeof(INewCodeTrackerFactory))]
     internal class NewCodeTrackerFactory : INewCodeTrackerFactory
     {
+        private readonly ITrackingLineFactory trackingLineFactory;
+
+        [ImportingConstructor]
+        public NewCodeTrackerFactory(
+            ITrackingLineFactory trackingLineFactory
+        )
+        {
+            this.trackingLineFactory = trackingLineFactory;
+        }
         public INewCodeTracker Create(bool isCSharp)
         {
-            return new NewCodeTracker(isCSharp);
+            return new NewCodeTracker(isCSharp, new TrackedNewLineFactory(trackingLineFactory), new CodeLineExcluder());
         }
     }
 }

@@ -19,8 +19,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
         [ExcludeFromCodeCoverage]
         public override bool Equals(object obj)
         {
-            var other = obj as SpanAndLineRange;
-            return other != null && other.Span.Equals(Span) && other.StartLineNumber == StartLineNumber && other.EndLineNumber == EndLineNumber;
+            return obj is SpanAndLineRange other && other.Span.Equals(Span) && other.StartLineNumber == StartLineNumber && other.EndLineNumber == EndLineNumber;
         }
 
         [ExcludeFromCodeCoverage]

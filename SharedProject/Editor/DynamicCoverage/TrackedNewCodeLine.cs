@@ -2,19 +2,33 @@
 
 namespace FineCodeCoverage.Editor.DynamicCoverage
 {
-    class TrackedNewCodeLine : IDynamicLine
+    internal class TrackedNewCodeLine : ITrackedNewCodeLine
     {
-        public int ActualLineNumber { get; set; }
-        public ITrackingSpan TrackingSpan { get; }
+        private readonly ITrackingSpan trackingSpan;
+        private readonly DynamicLine line;
+        private readonly ILineTracker lineTracker;
 
-        public int Number => ActualLineNumber + 1;
-
-        public DynamicCoverageType CoverageType => DynamicCoverageType.NewLine;
-
-        public TrackedNewCodeLine(int number, ITrackingSpan trackingSpan)
+        public TrackedNewCodeLine(ITrackingSpan trackingSpan, int lineNumber, ILineTracker lineTracker)
         {
-            ActualLineNumber = number;
-            TrackingSpan = trackingSpan;
+            line = new DynamicLine(lineNumber, DynamicCoverageType.NewLine);
+            this.lineTracker = lineTracker;
+            this.trackingSpan = trackingSpan;
+        }
+
+        public IDynamicLine Line => line;
+
+        public string GetText(ITextSnapshot currentSnapshot)
+        {
+            return lineTracker.GetTrackedLineInfo(trackingSpan, currentSnapshot, true, true).LineText;
+        }
+
+        public TrackedNewCodeLineUpdate Update(ITextSnapshot currentSnapshot)
+        {
+            var trackedLineInfo = lineTracker.GetTrackedLineInfo(trackingSpan, currentSnapshot, true, true);
+            var changed = line.ActualLineNumber != trackedLineInfo.LineNumber;
+            line.ActualLineNumber = trackedLineInfo.LineNumber;
+            return new TrackedNewCodeLineUpdate(trackedLineInfo.LineText, line.ActualLineNumber, changed);
         }
     }
+
 }

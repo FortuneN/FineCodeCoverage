@@ -6,7 +6,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
     [Export(typeof(ITrackingLineFactory))]
     public class TrackingLineFactory : ITrackingLineFactory
     {
-        public ITrackingSpan Create(ITextSnapshot textSnapshot, int lineNumber, SpanTrackingMode spanTrackingMode)
+        public ITrackingSpan CreateTrackingSpan(ITextSnapshot textSnapshot, int lineNumber, SpanTrackingMode spanTrackingMode)
         {
             var span = textSnapshot.GetLineFromLineNumber(lineNumber).Extent;
             return textSnapshot.CreateTrackingSpan(span, spanTrackingMode);

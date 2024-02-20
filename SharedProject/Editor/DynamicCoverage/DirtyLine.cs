@@ -16,7 +16,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
         {
             var startLineNumber = currentSnapshot.GetLineNumberFromPosition(startTrackingSpan.GetStartPoint(currentSnapshot));
 
-            Line = new DirtyDynamicLine(startLineNumber + 1);
+            Line = new DynamicLine(startLineNumber,DynamicCoverageType.Dirty);
         }
 
         public bool Update(ITextSnapshot currentSnapshot)

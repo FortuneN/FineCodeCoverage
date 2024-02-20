@@ -4,51 +4,40 @@ using System.Linq;
 
 namespace FineCodeCoverage.Editor.DynamicCoverage
 {
-    interface ITrackedNewLineFactory
-    {
-
-    }
-
-    
-
     class NewCodeTracker : INewCodeTracker
     {
-        private readonly List<TrackedNewCodeLine> trackedNewCodeLines = new List<TrackedNewCodeLine>();
+        private readonly List<ITrackedNewCodeLine> trackedNewCodeLines = new List<ITrackedNewCodeLine>();
         private readonly bool isCSharp;
+        private readonly ITrackedNewCodeLineFactory trackedNewCodeLineFactory;
+        private readonly ICodeLineExcluder codeLineExcluder;
 
-        public NewCodeTracker(bool isCSharp)
+        public NewCodeTracker(bool isCSharp, ITrackedNewCodeLineFactory trackedNewCodeLineFactory,ICodeLineExcluder codeLineExcluder)
         {
             this.isCSharp = isCSharp;
+            this.trackedNewCodeLineFactory = trackedNewCodeLineFactory;
+            this.codeLineExcluder = codeLineExcluder;
         }
 
-        public IEnumerable<IDynamicLine> Lines => trackedNewCodeLines.OrderBy(l => l.Number);
+        public IEnumerable<IDynamicLine> Lines => trackedNewCodeLines.OrderBy(l => l.Line.Number).Select(l=>l.Line);
 
         public bool ProcessChanges(ITextSnapshot currentSnapshot, List<SpanAndLineRange> potentialNewLines)
         {
             var requiresUpdate = false;
-            var removals = new List<TrackedNewCodeLine>();
+            var removals = new List<ITrackedNewCodeLine>();
             foreach (var trackedNewCodeLine in  trackedNewCodeLines)
             {
-                var newSnapshotSpan = trackedNewCodeLine.TrackingSpan.GetSpan(currentSnapshot);
-                var line = currentSnapshot.GetLineFromPosition(newSnapshotSpan.End); // these two lines can go on the interface
+                var trackedNewCodeLineUpdate = trackedNewCodeLine.Update(currentSnapshot);
 
-                var lineNumber = line.LineNumber;
-
-                potentialNewLines = potentialNewLines.Where(spanAndLineRange => spanAndLineRange.StartLineNumber != lineNumber).ToList();
+                potentialNewLines = potentialNewLines.Where(spanAndLineRange => spanAndLineRange.StartLineNumber != trackedNewCodeLineUpdate.LineNumber).ToList();
                 
-                if (CodeLineExcluder.ExcludeIfNotCode(line.Extent,isCSharp))
+                if (codeLineExcluder.ExcludeIfNotCode(trackedNewCodeLineUpdate.Text,isCSharp))
                 {
                     requiresUpdate = true;
                     removals.Add(trackedNewCodeLine);
                 }
                 else
                 {
-                    
-                    if (lineNumber != trackedNewCodeLine.ActualLineNumber)
-                    {
-                        trackedNewCodeLine.ActualLineNumber = lineNumber;
-                        requiresUpdate = true;
-                    }
+                    requiresUpdate = trackedNewCodeLineUpdate.LineUpdated;
                 }
             };
             removals.ForEach(removal => trackedNewCodeLines.Remove(removal));
@@ -57,11 +46,12 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
             foreach (var grouping in groupedByLineNumber)
             {
                 var lineNumber = grouping.Key;
-                var lineSpan = currentSnapshot.GetLineFromLineNumber(lineNumber).Extent;
-                if (!CodeLineExcluder.ExcludeIfNotCode(lineSpan,isCSharp))
+                // Take out the SpanTrackingMode ?
+                var trackedNewCodeLine = trackedNewCodeLineFactory.Create(currentSnapshot, SpanTrackingMode.EdgeExclusive, lineNumber);
+                var text = trackedNewCodeLine.GetText(currentSnapshot);
+                if (!codeLineExcluder.ExcludeIfNotCode(text,isCSharp))
                 {
-                    var trackingSpan = currentSnapshot.CreateTrackingSpan(lineSpan, SpanTrackingMode.EdgeExclusive);
-                    trackedNewCodeLines.Add(new TrackedNewCodeLine(lineNumber, trackingSpan));
+                    trackedNewCodeLines.Add(trackedNewCodeLine);
                     requiresUpdate = true;
                 }
             }
