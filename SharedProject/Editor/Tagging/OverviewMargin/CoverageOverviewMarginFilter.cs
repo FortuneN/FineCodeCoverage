@@ -21,8 +21,8 @@ namespace FineCodeCoverage.Editor.Tagging.OverviewMargin
                 { DynamicCoverageType.Covered, appOptions.ShowCoveredInOverviewMargin },
                 { DynamicCoverageType.NotCovered, appOptions.ShowUncoveredInOverviewMargin },
                 { DynamicCoverageType.Partial, appOptions.ShowPartiallyCoveredInOverviewMargin },
-                { DynamicCoverageType.Dirty, true},
-                { DynamicCoverageType.NewLine, true},
+                { DynamicCoverageType.Dirty, appOptions.ShowDirtyInOverviewMargin},
+                { DynamicCoverageType.NewLine, appOptions.ShowNewInOverviewMargin},
 
             };
         }

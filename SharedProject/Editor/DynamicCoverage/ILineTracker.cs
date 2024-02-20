@@ -4,6 +4,8 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
 {
     internal interface ILineTracker
     {
-        TrackedLineInfo GetTrackedLineInfo(ITrackingSpan trackingSpan, ITextSnapshot currentSnapshot, bool lineFromEnd, bool getText);
+        int GetLineNumber(ITrackingSpan trackingSpan, ITextSnapshot currentSnapshot, bool lineFromEnd);
+
+        TrackedLineInfo GetTrackedLineInfo(ITrackingSpan trackingSpan, ITextSnapshot currentSnapshot, bool lineFromEnd);
     }
 }

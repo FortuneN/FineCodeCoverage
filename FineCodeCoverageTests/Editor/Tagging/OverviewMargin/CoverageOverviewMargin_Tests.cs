@@ -15,6 +15,10 @@ namespace FineCodeCoverageTests.Editor.Tagging.OverviewMargin
         protected override Expression<Func<IAppOptions, bool>> ShowUncoveredExpression { get; } = appOptions => appOptions.ShowUncoveredInOverviewMargin;
 
         protected override Expression<Func<IAppOptions, bool>> ShowPartiallyCoveredExpression { get; } = appOptions => appOptions.ShowPartiallyCoveredInOverviewMargin;
+
+        protected override Expression<Func<IAppOptions, bool>> ShowDirtyExpression => appOptions => appOptions.ShowDirtyInOverviewMargin;
+
+        protected override Expression<Func<IAppOptions, bool>> ShowNewExpression => appOptions => appOptions.ShowNewInOverviewMargin;
     }
 
 

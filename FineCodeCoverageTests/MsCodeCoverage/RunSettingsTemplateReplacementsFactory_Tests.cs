@@ -695,6 +695,8 @@ namespace FineCodeCoverageTests.MsCodeCoverage
         public bool ShowCoveredInOverviewMargin { get; set; }
         public bool ShowUncoveredInOverviewMargin { get; set; }
         public bool ShowPartiallyCoveredInOverviewMargin { get; set; }
+        public bool ShowDirtyInOverviewMargin { get; set; }
+        public bool ShowNewInOverviewMargin { get; set; }
         public bool ShowToolWindowToolbar { get; set; }
         public bool Hide0Coverable { get; set; }
         public bool Hide0Coverage { get; set; }
@@ -709,10 +711,14 @@ namespace FineCodeCoverageTests.MsCodeCoverage
         public bool ShowCoveredInGlyphMargin { get; set; }
         public bool ShowUncoveredInGlyphMargin { get; set; }
         public bool ShowPartiallyCoveredInGlyphMargin {get; set; }
+        public bool ShowDirtyInGlyphMargin { get; set; }
+        public bool ShowNewInGlyphMargin { get; set ; }
         public bool ShowLineCoverageHighlighting { get; set; }
         public bool ShowLineCoveredHighlighting { get; set; }
         public bool ShowLineUncoveredHighlighting { get; set; }
         public bool ShowLinePartiallyCoveredHighlighting { get; set; }
+        public bool ShowLineDirtyHighlighting { get; set; }
+        public bool ShowLineNewHighlighting { get; set; }
         public bool ShowEditorCoverage { get; set; }
     }
 }

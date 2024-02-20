@@ -22,7 +22,7 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
             var textSnapshot = new Mock<ITextSnapshot>().Object;
             var trackingSpan = new Mock<ITrackingSpan>().Object;
             var mockLineTracker = new Mock<ILineTracker>();
-            mockLineTracker.Setup(lineTracker => lineTracker.GetTrackedLineInfo(trackingSpan, textSnapshot, true, true))
+            mockLineTracker.Setup(lineTracker => lineTracker.GetTrackedLineInfo(trackingSpan, textSnapshot, true))
                 .Returns(new TrackedLineInfo(10, "line text"));
 
             var trackedNewCodeLine = new TrackedNewCodeLine(trackingSpan, 10, mockLineTracker.Object);
@@ -35,7 +35,7 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
             var textSnapshot = new Mock<ITextSnapshot>().Object;
             var trackingSpan = new Mock<ITrackingSpan>().Object;
             var mockLineTracker = new Mock<ILineTracker>();
-            mockLineTracker.Setup(lineTracker => lineTracker.GetTrackedLineInfo(trackingSpan, textSnapshot, true, true))
+            mockLineTracker.Setup(lineTracker => lineTracker.GetTrackedLineInfo(trackingSpan, textSnapshot, true))
                 .Returns(new TrackedLineInfo(newLineNumber, "line text"));
 
             var trackedNewCodeLine = new TrackedNewCodeLine(trackingSpan, startLineNumber, mockLineTracker.Object);

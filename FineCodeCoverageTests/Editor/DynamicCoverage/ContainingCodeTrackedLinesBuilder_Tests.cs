@@ -15,8 +15,17 @@ using System.Linq;
 
 namespace FineCodeCoverageTests.Editor.DynamicCoverage
 {
+    [TestFixture(true)]
+    [TestFixture(false)]
     internal class ContainingCodeTrackedLinesBuilder_Tests
     {
+        private readonly bool isCSharp;
+
+        public ContainingCodeTrackedLinesBuilder_Tests(bool isCSharp)
+        {
+            this.isCSharp = isCSharp;
+        }
+
         [Test]
         public void Should_Create_ContainingCodeTracker_For_Each_Line_When_CPP()
         {
@@ -161,7 +170,7 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
             });
 
             var newCodeTracker = autoMoqer.GetMock<INewCodeTracker>().Object;
-            autoMoqer.Setup<INewCodeTrackerFactory, INewCodeTracker>(newCodeTrackerFactory => newCodeTrackerFactory.Create(true)).Returns(newCodeTracker);
+            autoMoqer.Setup<INewCodeTrackerFactory, INewCodeTracker>(newCodeTrackerFactory => newCodeTrackerFactory.Create(isCSharp)).Returns(newCodeTracker);
 
             var mockContainingCodeTrackedLinesFactory = autoMoqer.GetMock<IContainingCodeTrackedLinesFactory>();
             mockContainingCodeTrackedLinesFactory.Setup(
@@ -174,7 +183,7 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
                 });
 
             var containingCodeTrackedLinesBuilder = autoMoqer.Create<ContainingCodeTrackedLinesBuilder>();
-            containingCodeTrackedLinesBuilder.Create(lines, mockTextSnapshot.Object, Language.CSharp);
+            containingCodeTrackedLinesBuilder.Create(lines, mockTextSnapshot.Object, isCSharp ? Language.CSharp : Language.VB);
 
 
             mockContainingCodeTrackedLinesFactory.VerifyAll();

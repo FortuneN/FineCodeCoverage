@@ -300,6 +300,13 @@ namespace FineCodeCoverage.Options
         [Description("Set to false to prevent partially covered marks in the overview margin")]
         //[DisplayName("Show Overview Margin Partially Covered")]
         public bool ShowPartiallyCoveredInOverviewMargin { get; set; }
+
+        [Category(commonUiCategory)]
+        [Description("Set to false to prevent dirty marks in the overview margin")]
+        public bool ShowDirtyInOverviewMargin { get; set; }
+        [Category(commonUiCategory)]
+        [Description("Set to true to show new line marks in the overview margin")]
+        public bool ShowNewInOverviewMargin { get; set; }
         #endregion
         #region glyph margin
         [Category(commonUiCategory)]
@@ -321,6 +328,14 @@ namespace FineCodeCoverage.Options
         [Description("Set to false to prevent partially covered marks in the glyph margin")]
         //[DisplayName("Show Glyph Margin Partially Covered")]
         public bool ShowPartiallyCoveredInGlyphMargin { get; set; }
+
+        [Category(commonUiCategory)]
+        [Description("Set to false to prevent dirty marks in the glyph margin")]
+        public bool ShowDirtyInGlyphMargin { get; set; }
+
+        [Category(commonUiCategory)]
+        [Description("Set to true to show new line marks in the glyph margin")]
+        public bool ShowNewInGlyphMargin { get; set; }
         #endregion
         #region line highlighting
         [Category(commonUiCategory)]
@@ -342,6 +357,15 @@ namespace FineCodeCoverage.Options
         [Description("Set to false to prevent partially covered line highlighting")]
         //[DisplayName("Show Line Highlighting Partially Covered")]
         public bool ShowLinePartiallyCoveredHighlighting { get; set; }
+
+        [Category(commonUiCategory)]
+        [Description("Set to false to prevent dirty line highlighting")]
+        public bool ShowLineDirtyHighlighting { get; set; }
+        [Category(commonUiCategory)]
+        [Description("Set to true to show new line highlighting")]
+        public bool ShowLineNewHighlighting { get; set; }
+
+
         #endregion
         [Category(commonUiCategory)]
         [Description("Set to false to hide the toolbar on the report tool window")]

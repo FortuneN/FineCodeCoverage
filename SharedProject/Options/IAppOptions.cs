@@ -56,6 +56,8 @@
         bool ShowCoveredInOverviewMargin { get; set; }
         bool ShowUncoveredInOverviewMargin { get; set; }
         bool ShowPartiallyCoveredInOverviewMargin { get; set; }
+        bool ShowDirtyInOverviewMargin { get; set; }
+        bool ShowNewInOverviewMargin { get; set; }
     }
 
     interface IGlyphMarginOptions
@@ -64,6 +66,8 @@
         bool ShowCoveredInGlyphMargin { get; set; }
         bool ShowUncoveredInGlyphMargin { get; set; }
         bool ShowPartiallyCoveredInGlyphMargin { get; set; }
+        bool ShowDirtyInGlyphMargin { get; set; }
+        bool ShowNewInGlyphMargin { get; set; }
     }
 
     interface IEditorLineHighlightingCoverageOptions
@@ -72,6 +76,8 @@
         bool ShowLineCoveredHighlighting { get; set; }
         bool ShowLineUncoveredHighlighting { get; set; }
         bool ShowLinePartiallyCoveredHighlighting { get; set; }
+        bool ShowLineDirtyHighlighting { get; set; }
+        bool ShowLineNewHighlighting { get; set; }
     }
 
     interface IEditorCoverageColouringOptions : IOverviewMarginOptions, IGlyphMarginOptions,IEditorLineHighlightingCoverageOptions { 
@@ -104,6 +110,7 @@
         bool ShowToolWindowToolbar { get; set; }
 
         NamespaceQualification NamespaceQualification { get; set; }
+        
     }
 
     internal enum NamespaceQualification

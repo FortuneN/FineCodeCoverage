@@ -36,8 +36,8 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
             var mockLineTracker = new Mock<ILineTracker>();
 
             var updatedLineNumber = updateLineNumber ? 10 : 0;
-            mockLineTracker.Setup(lineTracker => lineTracker.GetTrackedLineInfo(trackingSpan, currentTextSnapshot, true, false))
-                .Returns(new TrackedLineInfo(updatedLineNumber,""));
+            mockLineTracker.Setup(lineTracker => lineTracker.GetLineNumber(trackingSpan, currentTextSnapshot, true))
+                .Returns(updatedLineNumber);
             var coverageLine = new CoverageLine(trackingSpan, mockLine.Object, mockLineTracker.Object);
 
             var updated = coverageLine.Update(currentTextSnapshot);

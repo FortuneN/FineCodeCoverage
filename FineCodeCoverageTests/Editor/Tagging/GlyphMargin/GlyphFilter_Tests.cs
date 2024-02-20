@@ -15,6 +15,10 @@ namespace FineCodeCoverageTests.Editor.Tagging.GlyphMargin
         protected override Expression<Func<IAppOptions, bool>> ShowUncoveredExpression { get; } = appOptions => appOptions.ShowUncoveredInGlyphMargin;
 
         protected override Expression<Func<IAppOptions, bool>> ShowPartiallyCoveredExpression { get; } = appOptions => appOptions.ShowPartiallyCoveredInGlyphMargin;
+
+        protected override Expression<Func<IAppOptions, bool>> ShowDirtyExpression => appOptions => appOptions.ShowDirtyInGlyphMargin;
+
+        protected override Expression<Func<IAppOptions, bool>> ShowNewExpression => appOptions => appOptions.ShowNewInGlyphMargin;
     }
 
 

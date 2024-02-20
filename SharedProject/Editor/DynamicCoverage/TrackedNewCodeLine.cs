@@ -19,12 +19,12 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
 
         public string GetText(ITextSnapshot currentSnapshot)
         {
-            return lineTracker.GetTrackedLineInfo(trackingSpan, currentSnapshot, true, true).LineText;
+            return lineTracker.GetTrackedLineInfo(trackingSpan, currentSnapshot, true).LineText;
         }
 
         public TrackedNewCodeLineUpdate Update(ITextSnapshot currentSnapshot)
         {
-            var trackedLineInfo = lineTracker.GetTrackedLineInfo(trackingSpan, currentSnapshot, true, true);
+            var trackedLineInfo = lineTracker.GetTrackedLineInfo(trackingSpan, currentSnapshot, true);
             var changed = line.ActualLineNumber != trackedLineInfo.LineNumber;
             line.ActualLineNumber = trackedLineInfo.LineNumber;
             return new TrackedNewCodeLineUpdate(trackedLineInfo.LineText, line.ActualLineNumber, changed);

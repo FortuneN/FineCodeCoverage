@@ -21,8 +21,8 @@ namespace FineCodeCoverage.Editor.Tagging.Classification
                 { DynamicCoverageType.Covered, appOptions.ShowLineCoveredHighlighting },
                 { DynamicCoverageType.Partial, appOptions.ShowLinePartiallyCoveredHighlighting },
                 { DynamicCoverageType.NotCovered, appOptions.ShowLineUncoveredHighlighting },
-                { DynamicCoverageType.Dirty, true },
-                { DynamicCoverageType.NewLine, true },
+                { DynamicCoverageType.Dirty, appOptions.ShowLineDirtyHighlighting },
+                { DynamicCoverageType.NewLine, appOptions.ShowLineNewHighlighting },
             };
         }
     }

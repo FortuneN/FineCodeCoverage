@@ -264,7 +264,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Editor\DynamicCoverage\TrackedLineLine.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editor\DynamicCoverage\TrackedLines.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editor\DynamicCoverage\ContainingCodeTrackedLinesBuilder.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Editor\DynamicCoverage\TrackingLineFactory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editor\DynamicCoverage\TrackingSpanRange.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editor\DynamicCoverage\TrackingSpanRangeFactory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editor\Roslyn\VBContainingCodeVisitor.cs" />
