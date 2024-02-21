@@ -1,11 +1,11 @@
-﻿using FineCodeCoverage.Engine.Model;
+﻿using FineCodeCoverage.Editor.DynamicCoverage;
 using Microsoft.VisualStudio.Text.Formatting;
 
 namespace FineCodeCoverage.Editor.Management
 {
     interface ICoverageTypeColour
     {
-        CoverageType CoverageType { get; }
+        DynamicCoverageType CoverageType { get; }
         TextFormattingRunProperties TextFormattingRunProperties { get; }
     }
 }

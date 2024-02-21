@@ -1,9 +1,9 @@
-﻿using FineCodeCoverage.Engine.Model;
+﻿using FineCodeCoverage.Editor.DynamicCoverage;
 
 namespace FineCodeCoverage.Editor.Management
 {
     internal interface ICoverageColours
     {
-        IItemCoverageColours GetColour(CoverageType coverageType);
+        IItemCoverageColours GetColour(DynamicCoverageType coverageType);
     }
 }

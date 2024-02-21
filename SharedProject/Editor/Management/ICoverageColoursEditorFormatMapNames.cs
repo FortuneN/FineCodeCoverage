@@ -1,9 +1,9 @@
-﻿using FineCodeCoverage.Engine.Model;
+﻿using FineCodeCoverage.Editor.DynamicCoverage;
 
 namespace FineCodeCoverage.Editor.Management
 {
     internal interface ICoverageColoursEditorFormatMapNames
     {
-        string GetEditorFormatDefinitionName(CoverageType coverageType);
+        string GetEditorFormatDefinitionName(DynamicCoverageType coverageType);
     }
 }

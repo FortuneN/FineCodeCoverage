@@ -10,6 +10,7 @@ namespace FineCodeCoverage.Editor.Management
     internal class CoverageTextMarkerInitializeTiming : ICoverageTextMarkerInitializeTiming
     {
         private ICoverageInitializable initializable;
+
         public ICoverageInitializable Initializable {  set {
                 initializable = value;
                 Execute();

@@ -1,11 +1,12 @@
-﻿using FineCodeCoverage.Engine.Model;
+﻿using FineCodeCoverage.Editor.DynamicCoverage;
 using System.Collections.Generic;
 
 namespace FineCodeCoverage.Editor.Management
 {
     interface IFontAndColorsInfosProvider
     {
-        Dictionary<CoverageType, IFontAndColorsInfo> GetChangedFontAndColorsInfos();
-        Dictionary<CoverageType, IFontAndColorsInfo> GetFontAndColorsInfos();
+        Dictionary<DynamicCoverageType, IFontAndColorsInfo> GetChangedFontAndColorsInfos();
+        Dictionary<DynamicCoverageType, IFontAndColorsInfo> GetFontAndColorsInfos();
+        FontAndColorsItemNames FontAndColorsItemNames { set; }
     }
 }

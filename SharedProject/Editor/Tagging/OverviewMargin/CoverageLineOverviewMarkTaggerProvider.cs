@@ -1,5 +1,4 @@
-﻿using FineCodeCoverage.Editor.DynamicCoverage;
-using FineCodeCoverage.Editor.Management;
+﻿using FineCodeCoverage.Editor.Management;
 using FineCodeCoverage.Editor.Tagging.Base;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -38,8 +37,7 @@ namespace FineCodeCoverage.Editor.Tagging.OverviewMargin
 
         public TagSpan<OverviewMarkTag> GetTagSpan(ILineSpan lineSpan)
         {
-            var coverageType = DirtyCoverageTypeMapper.GetClean(lineSpan.Line.CoverageType);
-            var editorFormatDefinitionName = coverageColoursEditorFormatMapNames.GetEditorFormatDefinitionName(coverageType);
+            var editorFormatDefinitionName = coverageColoursEditorFormatMapNames.GetEditorFormatDefinitionName(lineSpan.Line.CoverageType);
             return new TagSpan<OverviewMarkTag>(lineSpan.Span, new OverviewMarkTag(editorFormatDefinitionName));
         }
 

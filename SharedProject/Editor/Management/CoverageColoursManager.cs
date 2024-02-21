@@ -6,7 +6,9 @@ using System.Windows.Media;
 using Microsoft.VisualStudio.TextManager.Interop;
 using System.Runtime.InteropServices;
 using System.Collections.ObjectModel;
-using FineCodeCoverage.Engine.Model;
+using FineCodeCoverage.Editor.DynamicCoverage;
+using Microsoft.VisualStudio.Text.Classification;
+using Microsoft.VisualStudio.Utilities;
 
 namespace FineCodeCoverage.Editor.Management
 {
@@ -32,7 +34,21 @@ namespace FineCodeCoverage.Editor.Management
         private readonly IReadOnlyDictionary<Guid, IVsPackageDefinedTextMarkerType> markerTypes;
         private readonly bool shouldAddCoverageMarkers;
         #endregion
-        
+        #region New lines / Dirty - format definitions
+        private const string newLinesEditorFormatDefinitionName = "Coverage New Lines Area";
+        private const string dirtyEditorFormatDefinitionName = "Coverage Dirty Area";
+
+        [Export]
+        [Name(newLinesEditorFormatDefinitionName)]
+        [UserVisible(true)]
+        public EditorFormatDefinition NewLinesEditorFormatDefinition { get; } = new ColoursClassificationFormatDefinition(Colors.Black, Colors.Yellow);
+
+        [Export]
+        [Name(dirtyEditorFormatDefinitionName)]
+        [UserVisible(true)]
+        public EditorFormatDefinition DirtyEditorFormatDefinition { get; set; } = new ColoursClassificationFormatDefinition(Colors.White, Colors.Brown);
+        #endregion
+
         [ImportingConstructor]
         public CoverageColoursManager(
             IShouldAddCoverageMarkersLogic shouldAddCoverageMarkersLogic,
@@ -46,11 +62,21 @@ namespace FineCodeCoverage.Editor.Management
         {
             this.coverageClassificationColourService = coverageClassificationColourService;
             this.fontAndColorsInfosProvider = fontAndColorsInfosProvider;
+            fontAndColorsInfosProvider.FontAndColorsItemNames = new FontAndColorsItemNames(
+                markerTypeNames, 
+                new MEFItemNames(newLinesEditorFormatDefinitionName, dirtyEditorFormatDefinitionName)
+            );
             this.markerTypeNames = markerTypeNames;
             this.editorFormatMapTextSpecificListener = editorFormatMapTextSpecificListener;
             this.textFormattingRunPropertiesFactory = textFormattingRunPropertiesFactory;
             this.editorFormatMapTextSpecificListener.ListenFor(
-                new List<string> { markerTypeNames.Covered, markerTypeNames.NotCovered, markerTypeNames.PartiallyCovered },
+                new List<string> { 
+                    markerTypeNames.Covered, 
+                    markerTypeNames.NotCovered, 
+                    markerTypeNames.PartiallyCovered,
+                    newLinesEditorFormatDefinitionName,
+                    dirtyEditorFormatDefinitionName
+                },
                 () =>
                 {
                     var changedColours = fontAndColorsInfosProvider.GetChangedFontAndColorsInfos();
@@ -95,18 +121,18 @@ namespace FineCodeCoverage.Editor.Management
             return 0;
         }
 
-        private void SetClassificationTypeColoursIfChanged(Dictionary<CoverageType, IFontAndColorsInfo> changes)
+        private void SetClassificationTypeColoursIfChanged(Dictionary<DynamicCoverageType, IFontAndColorsInfo> changes)
         {
             if (changes.Any())
             {
                 editorFormatMapTextSpecificListener.PauseListeningWhenExecuting(
                     () => SetClassificationTypeColours(changes)
                 );
-                hasSetClassificationTypeColours = changes.Count == 3;
+                hasSetClassificationTypeColours = changes.Count == 5;
             }
         }
         
-        private void SetClassificationTypeColours(Dictionary<CoverageType,IFontAndColorsInfo> changes)
+        private void SetClassificationTypeColours(Dictionary<DynamicCoverageType,IFontAndColorsInfo> changes)
         {
             var coverageTypeColours = changes.Select(
                 change => new CoverageTypeColour(change.Key, textFormattingRunPropertiesFactory.Create(change.Value))

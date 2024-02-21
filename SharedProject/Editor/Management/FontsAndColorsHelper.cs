@@ -68,9 +68,17 @@ namespace FineCodeCoverage.Editor.Management
                         var fgColor = ParseColor(touchAreaInfo[0].crForeground);
                         return new FontAndColorsInfo(new ItemCoverageColours(fgColor, bgColor), touchAreaInfo[0].dwFontFlags == (uint)FONTFLAGS.FF_BOLD);
                     }
+                    else
+                    {
+                        System.Windows.Forms.MessageBox.Show("Failed to get item " + displayName);
+                    }
                     return null;
                 }
                 infos = names.Select(name => GetInfo(name)).Where(color => color != null).ToList();
+            }
+            else
+            {
+                System.Windows.Forms.MessageBox.Show("Failed to open category " + category);
             }
 
             fontAndColorStorage.CloseCategory();

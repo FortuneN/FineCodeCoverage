@@ -46,21 +46,7 @@ namespace FineCodeCoverage.Editor.Tagging.GlyphMargin
         {
             var coverageLine = lineSpan.Line;
             var coverageColours = coverageColoursProvider.GetCoverageColours();
-            System.Windows.Media.Color colour = Colors.Pink;
-            if(coverageLine.CoverageType != DynamicCoverageType.NewLine)
-            {
-                if (coverageLine.CoverageType == DynamicCoverageType.Dirty)
-                {
-                    colour = Colors.Brown;
-                }
-                else
-                {
-                    var coverageType = DirtyCoverageTypeMapper.GetClean(coverageLine.CoverageType);
-                    colour = coverageColours.GetColour(coverageType).Background;
-                }
-                
-            }
-            
+            var colour = coverageColours.GetColour(coverageLine.CoverageType).Background;
             return new TagSpan<CoverageLineGlyphTag>(lineSpan.Span, new CoverageLineGlyphTag(colour));
         }
     }

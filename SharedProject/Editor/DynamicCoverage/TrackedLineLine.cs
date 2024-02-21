@@ -2,9 +2,9 @@
 
 namespace FineCodeCoverage.Editor.DynamicCoverage
 {
-    internal static class  DirtyCoverageTypeMapper
+    internal static class  DynamicCoverageTypeConverter
     {
-        public static DynamicCoverageType GetClean(CoverageType coverageType)
+        public static DynamicCoverageType Convert(CoverageType coverageType)
         {
             var dynamicCoverageType = DynamicCoverageType.Covered;
             switch (coverageType)
@@ -18,25 +18,9 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
             }
             return dynamicCoverageType;
         }
-
-        public static CoverageType GetClean(DynamicCoverageType dynamicCoverageType)
-        {
-            var coverageType = CoverageType.Covered;
-            switch (dynamicCoverageType)
-            {
-                case DynamicCoverageType.NotCovered:
-                    coverageType = CoverageType.NotCovered;
-                    break;
-                case DynamicCoverageType.Partial:
-                    coverageType = CoverageType.Partial;
-                    break;
-               // case DynamicCoverageType.NewLine:
-                  //  throw new System.Exception("Invalid DynamicCoverageType");
-            }
-            return coverageType;
-        }
     }
-    class TrackedLineLine : IDynamicLine
+
+    internal class TrackedLineLine : IDynamicLine
     {        
         private readonly CoverageType lineCoverageType;
         
@@ -44,7 +28,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
         {
             Number = line.Number;
             lineCoverageType = line.CoverageType;
-            CoverageType = DirtyCoverageTypeMapper.GetClean(lineCoverageType);
+            CoverageType = DynamicCoverageTypeConverter.Convert(lineCoverageType);
         }
 
         public int Number { get; set; }

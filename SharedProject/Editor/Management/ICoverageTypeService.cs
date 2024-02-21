@@ -1,10 +1,10 @@
-﻿using FineCodeCoverage.Engine.Model;
+﻿using FineCodeCoverage.Editor.DynamicCoverage;
 using Microsoft.VisualStudio.Text.Classification;
 
 namespace FineCodeCoverage.Editor.Management
 {
     internal interface ICoverageTypeService
     {
-        IClassificationType GetClassificationType(CoverageType coverageType);
+        IClassificationType GetClassificationType(DynamicCoverageType coverageType);
     }
 }

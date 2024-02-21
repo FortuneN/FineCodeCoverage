@@ -37,8 +37,7 @@ namespace FineCodeCoverage.Editor.Tagging.Classification
 
         public TagSpan<IClassificationTag> GetTagSpan(ILineSpan lineSpan)
         {
-            var coverageType = DirtyCoverageTypeMapper.GetClean(lineSpan.Line.CoverageType);
-            var ct = coverageTypeService.GetClassificationType(coverageType);
+            var ct = coverageTypeService.GetClassificationType(lineSpan.Line.CoverageType);
             return new TagSpan<IClassificationTag>(lineSpan.Span, new ClassificationTag(ct));
         }
     }
