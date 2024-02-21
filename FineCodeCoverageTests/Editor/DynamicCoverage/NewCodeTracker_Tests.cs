@@ -35,7 +35,7 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
                 trackedNewCodeLineFactory => trackedNewCodeLineFactory.Create(textSnapshot,SpanTrackingMode.EdgeExclusive, 2)
             ).Returns(mockTrackedNewCodeLine.Object);
 
-            var mockCodeLineExcluder = new Mock<ICodeLineExcluder>();
+            var mockCodeLineExcluder = new Mock<ILineExcluder>();
             mockCodeLineExcluder.Setup(codeLineExcluder => codeLineExcluder.ExcludeIfNotCode("text", isCSharp)).Returns(exclude);
             var newCodeTracker = new NewCodeTracker(isCSharp, mockTrackedNewCodeLineFactory.Object,mockCodeLineExcluder.Object);
 
@@ -77,7 +77,7 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
                 trackedNewCodeLineFactory => trackedNewCodeLineFactory.Create(textSnapshot, SpanTrackingMode.EdgeExclusive, 2)
             ).Returns(mockTrackedNewCodeLine.Object);
 
-            var mockCodeLineExcluder = new Mock<ICodeLineExcluder>();
+            var mockCodeLineExcluder = new Mock<ILineExcluder>();
             mockCodeLineExcluder.Setup(codeLineExcluder => codeLineExcluder.ExcludeIfNotCode("text", isCSharp)).Returns(false);
 
             // second invocation setup
@@ -131,7 +131,7 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
                 trackedNewCodeLineFactory => trackedNewCodeLineFactory.Create(currentTextSnapshot, SpanTrackingMode.EdgeExclusive, 2)
             ).Returns(mockSecondTrackedNewCodeLine.Object);
 
-            var mockCodeLineExcluder = new Mock<ICodeLineExcluder>();
+            var mockCodeLineExcluder = new Mock<ILineExcluder>();
             mockCodeLineExcluder.Setup(codeLineExcluder => codeLineExcluder.ExcludeIfNotCode(It.IsAny<string>(), true)).Returns(false);
 
             var newCodeTracker = new NewCodeTracker(true, mockTrackedNewCodeLineFactory.Object, mockCodeLineExcluder.Object);

@@ -18,6 +18,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
         private readonly IContainingCodeTrackedLinesFactory trackedLinesFactory;
         private readonly INewCodeTrackerFactory newCodeTrackerFactory;
         private readonly IThreadHelper threadHelper;
+        private readonly ITextSnapshotLineExcluder textSnapshotLineExcluder;
 
         [ImportingConstructor]
         public ContainingCodeTrackedLinesBuilder(
@@ -25,7 +26,8 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
             ILinesContainingCodeTrackerFactory containingCodeTrackerFactory,
             IContainingCodeTrackedLinesFactory trackedLinesFactory,
             INewCodeTrackerFactory newCodeTrackerFactory,
-            IThreadHelper threadHelper
+            IThreadHelper threadHelper,
+            ITextSnapshotLineExcluder textSnapshotLineExcluder
         )
         {
             this.roslynService = roslynService;
@@ -33,6 +35,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
             this.trackedLinesFactory = trackedLinesFactory;
             this.newCodeTrackerFactory = newCodeTrackerFactory;
             this.threadHelper = threadHelper;
+            this.textSnapshotLineExcluder = textSnapshotLineExcluder;
         }
 
         private CodeSpanRange GetCodeSpanRange(TextSpan span, ITextSnapshot textSnapshot)
@@ -99,8 +102,8 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
                 if (to < currentLine) return;
                 var otherCodeLines = Enumerable.Range(currentLine, to - currentLine + 1).Where(lineNumber =>
                 {
-                    var lineExtent = textSnapshot.GetLineFromLineNumber(lineNumber).Extent;
-                    return !CodeLineExcluder.ExcludeIfNotCode(lineExtent, isCSharp);
+                    
+                    return !textSnapshotLineExcluder.ExcludeIfNotCode(textSnapshot, lineNumber, isCSharp);
                 });
                 foreach (var otherCodeLine in otherCodeLines)
                 {

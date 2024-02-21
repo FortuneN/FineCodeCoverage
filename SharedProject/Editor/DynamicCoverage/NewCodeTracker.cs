@@ -9,9 +9,9 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
         private readonly List<ITrackedNewCodeLine> trackedNewCodeLines = new List<ITrackedNewCodeLine>();
         private readonly bool isCSharp;
         private readonly ITrackedNewCodeLineFactory trackedNewCodeLineFactory;
-        private readonly ICodeLineExcluder codeLineExcluder;
+        private readonly ILineExcluder codeLineExcluder;
 
-        public NewCodeTracker(bool isCSharp, ITrackedNewCodeLineFactory trackedNewCodeLineFactory,ICodeLineExcluder codeLineExcluder)
+        public NewCodeTracker(bool isCSharp, ITrackedNewCodeLineFactory trackedNewCodeLineFactory,ILineExcluder codeLineExcluder)
         {
             this.isCSharp = isCSharp;
             this.trackedNewCodeLineFactory = trackedNewCodeLineFactory;

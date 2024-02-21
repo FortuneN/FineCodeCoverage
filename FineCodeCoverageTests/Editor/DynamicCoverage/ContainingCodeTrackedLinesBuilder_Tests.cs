@@ -138,14 +138,16 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
             List<CodeSpanRange> codeSpanRanges,
             List<ILine> lines,
             List<TrackerArgs> expected,
-            Action<Mock<ITextSnapshot>> setUpTextSnapshotForOtherLines
+            Action<Mock<ITextSnapshotLineExcluder>,bool> setUpExcluder,
+            int lineCount
         )
         {
             var autoMoqer = new AutoMoqer();
             autoMoqer.SetInstance<IThreadHelper>(new TestThreadHelper());
+            setUpExcluder(autoMoqer.GetMock<ITextSnapshotLineExcluder>(),isCSharp);
 
             var mockTextSnapshot = new Mock<ITextSnapshot>();
-            setUpTextSnapshotForOtherLines(mockTextSnapshot);
+            mockTextSnapshot.SetupGet(textSnapshot => textSnapshot.LineCount).Returns(lineCount);
             var mockRoslynService = autoMoqer.GetMock<IRoslynService>();
             var textSpans = codeSpanRanges.Select(codeSpanRange => new TextSpan(codeSpanRange.StartLine, codeSpanRange.EndLine - codeSpanRange.StartLine)).ToList();
             mockRoslynService.Setup(roslynService => roslynService.GetContainingCodeSpansAsync(mockTextSnapshot.Object)).ReturnsAsync(textSpans);
@@ -198,10 +200,11 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
                     List<CodeSpanRange> codeSpanRanges,
                     List<ILine> lines,
                     List<TrackerArgs> expected,
-                    Action<Mock<ITextSnapshot>> setUpTextSnapshotForOtherLines,
+                    Action<Mock<ITextSnapshotLineExcluder>,bool> setUpCodeExcluder,
+                    int lineCount = 100,
                     string testName = null
 
-                ) : base(codeSpanRanges, lines, expected, setUpTextSnapshotForOtherLines)
+                ) : base(codeSpanRanges, lines, expected, setUpCodeExcluder,lineCount)
                 {
                     if (testName != null)
                     {
@@ -216,53 +219,9 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
                 mockLine.Setup(line => line.Number).Returns(lineNumber);
                 return mockLine.Object;
             }
-            private static Action<Mock<ITextSnapshot>> ExcludingOtherLinesTextSnapshotSetup(int length)
+            private static void ExcludeAllLines(Mock<ITextSnapshotLineExcluder> mockCodeLineExcluder,bool isCSharp)
             {
-                return mockTextSnapshot =>
-                {
-                    mockTextSnapshot.SetupGet(textSnapshot => textSnapshot.LineCount).Returns(length);
-
-                    var textSnapshotLine = SetupSnapshotLineText(mockTextSnapshot, "", 0);
-                    mockTextSnapshot.Setup(textSnapshot => textSnapshot.GetLineFromLineNumber(It.IsAny<int>())).Returns(textSnapshotLine);
-                };
-            }
-
-            private static ITextSnapshotLine SetupSnapshotLineText(Mock<ITextSnapshot> mockTextSnapshot, string text,int identifier)
-            {
-                mockTextSnapshot.SetupGet(textSnapshot => textSnapshot.Length).Returns(1000);
-                var mockTextSnapshotLine = new Mock<ITextSnapshotLine>();
-                var textSpan = new Span(0, identifier);
-                var snapshotSpan = new SnapshotSpan(mockTextSnapshot.Object, textSpan);
-                mockTextSnapshot.Setup(textSnapshot => textSnapshot.GetText(textSpan)).Returns(text);
-                mockTextSnapshotLine.Setup(textSnapshotLine => textSnapshotLine.Extent).Returns(snapshotSpan);
-                return mockTextSnapshotLine.Object;
-            }
-
-            private struct LineAndText
-            {
-                public int LineNumber { get; }
-                public string LineText { get; }
-                public LineAndText(int lineNumber, string lineText)
-                {
-                    LineNumber = lineNumber;
-                    LineText = lineText;
-                }
-            }
-            private static Action<Mock<ITextSnapshot>> SetupOtherLines(int length, IEnumerable<LineAndText> lineAndTexts)
-            {
-                return mockTextSnapshot =>
-                {
-                    mockTextSnapshot.SetupGet(textSnapshot => textSnapshot.LineCount).Returns(length);
-                    var count = 0;
-                    foreach(var lineAndText in lineAndTexts)
-                    {
-                        var textSnapshotLine = SetupSnapshotLineText(mockTextSnapshot, lineAndText.LineText, count);
-
-                        mockTextSnapshot.Setup(textSnapshot => textSnapshot.GetLineFromLineNumber(lineAndText.LineNumber))
-                            .Returns(textSnapshotLine);
-                        count++;
-                    }
-                };
+                mockCodeLineExcluder.Setup(excluder => excluder.ExcludeIfNotCode(It.IsAny<ITextSnapshot>(), It.IsAny<int>(), isCSharp)).Returns(true);
             }
 
             public static IEnumerable<RoslynTestCase> TestCases
@@ -292,7 +251,7 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
                             TrackerArgs.ExpectedRange(new List<ILine>{ test1Lines[0], test1Lines[1] }, test1CodeSpanRanges[0], SpanTrackingMode.EdgeExclusive),
                             TrackerArgs.ExpectedRange(new List<ILine>{ test1Lines[2], test1Lines[3] }, test1CodeSpanRanges[1], SpanTrackingMode.EdgeExclusive)
                             }, 
-                            ExcludingOtherLinesTextSnapshotSetup(30)
+                            ExcludeAllLines
                             );
                     }
 
@@ -324,7 +283,7 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
                             TrackerArgs.ExpectedRange(new List<ILine>{}, test2CodeSpanRanges[1], SpanTrackingMode.EdgeExclusive),
                             TrackerArgs.ExpectedSingle(test2Lines[3], SpanTrackingMode.EdgeExclusive),
                             TrackerArgs.ExpectedRange(new List < ILine > { test2Lines[4] }, test2CodeSpanRanges[2], SpanTrackingMode.EdgeExclusive),
-                        }, ExcludingOtherLinesTextSnapshotSetup(70));
+                        },ExcludeAllLines);
                     }
 
                     {
@@ -336,7 +295,7 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
                         yield return new RoslynTestCase(test3CodeSpanRanges, test3Lines, new List<TrackerArgs>
                         {
                             TrackerArgs.ExpectedRange(test3Lines, test3CodeSpanRanges[0], SpanTrackingMode.EdgeExclusive)
-                        }, ExcludingOtherLinesTextSnapshotSetup(21));
+                        }, ExcludeAllLines);
                     }
 
                     {
@@ -349,10 +308,21 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
                         {
                             TrackerArgs.ExpectedRange(new List<ILine>(), test4CodeSpanRanges[0], SpanTrackingMode.EdgeExclusive),
                             TrackerArgs.ExpectedSingle(test4Lines[0], SpanTrackingMode.EdgeExclusive)
-                        }, ExcludingOtherLinesTextSnapshotSetup(50));
+                        }, ExcludeAllLines);
                     }
 
                     {
+                        void ExcludeOrIncludeCodeLines(Mock<ITextSnapshotLineExcluder> mockTextSnapshotLineExcluder, bool isCSharp, List<int> codeLineNumbers, bool exclude)
+                        {
+                            mockTextSnapshotLineExcluder.Setup(excluder => excluder.ExcludeIfNotCode(
+                                It.IsAny<ITextSnapshot>(), 
+                                It.Is<int>(lineNumber => codeLineNumbers.Contains(lineNumber)), isCSharp)).Returns(exclude);
+                        }
+                        void SetupExcluder(Mock<ITextSnapshotLineExcluder> mockTextSnapshotLineExcluder,bool isCSharp)
+                        {
+                            ExcludeOrIncludeCodeLines(mockTextSnapshotLineExcluder, isCSharp, new List<int> { 0, 2, 21, 23 }, false);
+                            ExcludeOrIncludeCodeLines(mockTextSnapshotLineExcluder, isCSharp, new List<int> { 1, 3, 4, 22 }, true);
+                        }
                         var test5CodeSpanRanges  = new List<CodeSpanRange>
                         {
                             new CodeSpanRange(5,20),
@@ -365,18 +335,7 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
                             TrackerArgs.ExpectedRange(test5Lines, test5CodeSpanRanges[0], SpanTrackingMode.EdgeExclusive),
                             TrackerArgs.ExpectedRange(new List<ILine>(), new CodeSpanRange(21,21), SpanTrackingMode.EdgeNegative),
                             TrackerArgs.ExpectedRange(new List<ILine>(), new CodeSpanRange(23,23), SpanTrackingMode.EdgeNegative),
-                        }, SetupOtherLines(24, new List<LineAndText>
-                        {
-                            new LineAndText(0,"text"),
-                            new LineAndText(1,""),
-                            new LineAndText(2,"text"),
-                            new LineAndText(3,""),
-                            new LineAndText(4,""),
-                            
-                            new LineAndText(21,"text"),
-                            new LineAndText(22,""),
-                            new LineAndText(23,"text"),
-                        }),"Other lines");
+                        }, SetupExcluder,24, "Other lines");
                     }
                 }
             }

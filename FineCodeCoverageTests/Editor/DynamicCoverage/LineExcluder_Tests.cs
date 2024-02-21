@@ -3,7 +3,7 @@ using NUnit.Framework;
 
 namespace FineCodeCoverageTests.Editor.DynamicCoverage
 {
-    internal class CodeLineExcluder_Tests
+    internal class LineExcluder_Tests
     {
         [TestCase(true, "   ", true)]
         [TestCase(true, "   //", true)]
@@ -17,7 +17,7 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
         [TestCase(true, "   not excluded", false)]
         public void Should_Exclude_If_Not_Code(bool isCSharp, string text, bool expectedExclude)
         {
-            var codeLineExcluder = new CodeLineExcluder();
+            var codeLineExcluder = new LineExcluder();
             var exclude = codeLineExcluder.ExcludeIfNotCode(text, isCSharp);
             Assert.That(exclude, Is.EqualTo(expectedExclude));
         }
