@@ -231,8 +231,13 @@
     <Compile Include="$(MSBuildThisFileDirectory)Editor\DynamicCoverage\TrackedNewLineFactory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editor\DynamicCoverage\TrackingSpanRangeProcessResult.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editor\Management\ColoursClassificationFormatDefinition.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Editor\Management\ItemNames\FontAndColorsItemNames.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Editor\Management\ItemNames\MEFItemNames.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Editor\Management\CoverageFontAndColorsCategoryItemNames.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Editor\Management\DelayedMainThreadInvocation.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Editor\Management\FCCEditorFormatDefinitionNames.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Editor\Management\FontAndColorsCategoryItemName.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Editor\Management\ICoverageFontAndColorsCategoryItemNames.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Editor\Management\ICoverageFontAndColorsCategoryItemNamesManager.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Editor\Management\IDelayedMainThreadInvocation.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editor\Roslyn\ILanguageContainingCodeVisitorFactory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editor\Roslyn\ITextSnapshotToSyntaxService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editor\Roslyn\LanguageContainingCodeVisitorFactory.cs" />
@@ -281,7 +286,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Editor\Management\CoverageColours.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editor\Management\CoverageColoursChangedMessage.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editor\Management\CoverageMarkerType.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Editor\Management\CoverageTextMarkerInitializeTiming.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editor\Management\CoverageTypeColour.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editor\Management\EditorFormatMapTextSpecificListener.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editor\Management\FontAndColorsInfo.cs" />
@@ -290,8 +294,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Editor\Management\ICoverageClassificationColourService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editor\Management\ICoverageColoursEditorFormatMapNames.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editor\Management\ICoverageColoursProvider.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Editor\Management\ICoverageInitializable.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Editor\Management\ICoverageTextMarkerInitializeTiming.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editor\Management\ICoverageTypeColour.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editor\Management\ICoverageTypeService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editor\Management\IEditorFormatMapTextSpecificListener.cs" />
@@ -299,12 +301,11 @@
     <Compile Include="$(MSBuildThisFileDirectory)Editor\Management\IFontAndColorsInfosProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editor\Management\IFontsAndColorsHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editor\Management\IItemCoverageColours.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Editor\Management\IShouldAddCoverageMarkersLogic.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Editor\Management\IVsHasCoverageMarkersLogic.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editor\Management\ItemCoverageColours.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editor\Management\ITextFormattingRunPropertiesFactory.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Editor\Management\ItemNames\MarkerTypeNames.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Editor\Management\ProvideTextMarkerAttribute.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Editor\Management\ShouldAddCoverageMarkersLogic.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Editor\Management\MarkerTypeNames.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Editor\Management\VsHasCoverageMarkersLogic.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editor\Tagging\Base\LineSpanLogic.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editor\Tagging\Base\CoverageTagger.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editor\Tagging\OverviewMargin\CoverageLineOverviewMarkTaggerProvider.cs" />
@@ -349,7 +350,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Options\IAppOptionsStorageProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\IJsonConvertService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\IReadOnlyConfigSettingsStoreProvider.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Options\IWritableSettingsStore.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\IWritableUserSettingsStoreProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\JsonConvertService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\ReadOnlyConfigSettingsStoreProvider.cs" />

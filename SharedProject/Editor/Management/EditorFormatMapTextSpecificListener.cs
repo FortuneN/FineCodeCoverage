@@ -21,7 +21,8 @@ namespace FineCodeCoverage.Editor.Management
 
         private void EditorFormatMap_FormatMappingChanged(object sender, FormatItemsEventArgs e)
         {
-            if (listening && e.ChangedItems.Any(changedItem => keys.Contains(changedItem)))
+            var watchedItems = e.ChangedItems.Where(changedItem => keys.Contains(changedItem)).ToList();
+            if (listening && watchedItems.Any())
             {
                 callback();
             }

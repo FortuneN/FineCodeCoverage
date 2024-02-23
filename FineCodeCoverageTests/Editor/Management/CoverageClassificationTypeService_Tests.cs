@@ -1,6 +1,6 @@
 ﻿using AutoMoq;
+using FineCodeCoverage.Editor.DynamicCoverage;
 using FineCodeCoverage.Editor.Management;
-using FineCodeCoverage.Engine.Model;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Formatting;
 using Microsoft.VisualStudio.Utilities;
@@ -65,7 +65,6 @@ namespace FineCodeCoverageTests.Editor.Management
             autoMoqer.Create<CoverageClassificationTypeService>();
 
             var classificationTypeDefinitionProperties = typeof(CoverageClassificationTypeService).GetProperties().Where(p => p.PropertyType == typeof(ClassificationTypeDefinition));
-            Assert.That(classificationTypeDefinitionProperties.Count(), Is.EqualTo(3));
             var names = new List<string>();
             foreach (var classificationTypeDefinitionProperty in classificationTypeDefinitionProperties)
             {
@@ -75,40 +74,45 @@ namespace FineCodeCoverageTests.Editor.Management
                 mockClassificationTypeRegistryService.Verify(classificationTypeRegistryService => classificationTypeRegistryService.GetClassificationType(name));
                 names.Add(name);
             }
-            Assert.That(names.Distinct(), Is.EquivalentTo(new List<string> { CoverageClassificationTypeService.FCCNotCoveredClassificationTypeName, CoverageClassificationTypeService.FCCCoveredClassificationTypeName, CoverageClassificationTypeService.FCCPartiallyCoveredClassificationTypeName }));
+            Assert.That(names.Distinct(), Is.EquivalentTo(new List<string> { 
+                CoverageClassificationTypeService.FCCNotCoveredClassificationTypeName, 
+                CoverageClassificationTypeService.FCCCoveredClassificationTypeName, 
+                CoverageClassificationTypeService.FCCPartiallyCoveredClassificationTypeName,
+                CoverageClassificationTypeService.FCCDirtyClassificationTypeName,
+                CoverageClassificationTypeService.FCCNewLineClassificationTypeName
+            }));
         }
 
         [Test]
         public void Should_Correspond()
         {
-            throw new System.NotImplementedException();
-            //var autoMoqer = new AutoMoqer();
-            //var classificationTypeRegistryService = new CapturingClassificationTypeRegistryService();
-            //autoMoqer.SetInstance<IClassificationTypeRegistryService>(classificationTypeRegistryService);
+            var autoMoqer = new AutoMoqer();
+            var classificationTypeRegistryService = new CapturingClassificationTypeRegistryService();
+            autoMoqer.SetInstance<IClassificationTypeRegistryService>(classificationTypeRegistryService);
 
-            //var mockClassificationFormatMapService = autoMoqer.GetMock<IClassificationFormatMapService>();
-            //var mockClassificationFormatMap = new Mock<IClassificationFormatMap>();
-            //mockClassificationFormatMap.SetupGet(classificationFormatMap => classificationFormatMap.CurrentPriorityOrder)
-            //    .Returns(new ReadOnlyCollection<IClassificationType>(new List<IClassificationType> { new Mock<IClassificationType>().Object }));
-            //mockClassificationFormatMapService.Setup(
-            //    classificationFormatMapService => classificationFormatMapService.GetClassificationFormatMap("text")
-            //).Returns(mockClassificationFormatMap.Object);
+            var mockClassificationFormatMapService = autoMoqer.GetMock<IClassificationFormatMapService>();
+            var mockClassificationFormatMap = new Mock<IClassificationFormatMap>();
+            mockClassificationFormatMap.SetupGet(classificationFormatMap => classificationFormatMap.CurrentPriorityOrder)
+                .Returns(new ReadOnlyCollection<IClassificationType>(new List<IClassificationType> { new Mock<IClassificationType>().Object }));
+            mockClassificationFormatMapService.Setup(
+                classificationFormatMapService => classificationFormatMapService.GetClassificationFormatMap("text")
+            ).Returns(mockClassificationFormatMap.Object);
 
-            //var coverageClassificationTypeService = autoMoqer.Create<CoverageClassificationTypeService>();
-            //foreach(var coverageType in Enum.GetValues(typeof(CoverageType)).Cast<CoverageType>())
-            //{
-            //    var editorFormatDefinition = coverageClassificationTypeService.GetEditorFormatDefinitionName(coverageType);
-            //    var classificationType = classificationTypeRegistryService.ClassificationTypes[editorFormatDefinition];
-            //    Assert.That(classificationType, Is.SameAs(coverageClassificationTypeService.GetClassificationType(coverageType)));
-            //    var mockCoverageTypeColour = new Mock<ICoverageTypeColour>();
-            //    mockCoverageTypeColour.SetupGet(coverageTypeColour => coverageTypeColour.CoverageType).Returns(coverageType);
-            //    coverageClassificationTypeService.SetCoverageColours(new List<ICoverageTypeColour>() { mockCoverageTypeColour.Object });
-            //    mockClassificationFormatMap.Verify(
-            //        classificationFormatMap => classificationFormatMap.AddExplicitTextProperties(
-            //            classificationType, 
-            //            It.IsAny<TextFormattingRunProperties>(),
-            //            It.IsAny<IClassificationType>()));
-            //}
+            var coverageClassificationTypeService = autoMoqer.Create<CoverageClassificationTypeService>();
+            foreach (var coverageType in Enum.GetValues(typeof(DynamicCoverageType)).Cast<DynamicCoverageType>())
+            {
+                var editorFormatDefinition = coverageClassificationTypeService.GetEditorFormatDefinitionName(coverageType);
+                var classificationType = classificationTypeRegistryService.ClassificationTypes[editorFormatDefinition];
+                Assert.That(classificationType, Is.SameAs(coverageClassificationTypeService.GetClassificationType(coverageType)));
+                var mockCoverageTypeColour = new Mock<ICoverageTypeColour>();
+                mockCoverageTypeColour.SetupGet(coverageTypeColour => coverageTypeColour.CoverageType).Returns(coverageType);
+                coverageClassificationTypeService.SetCoverageColours(new List<ICoverageTypeColour>() { mockCoverageTypeColour.Object });
+                mockClassificationFormatMap.Verify(
+                    classificationFormatMap => classificationFormatMap.AddExplicitTextProperties(
+                        classificationType,
+                        It.IsAny<TextFormattingRunProperties>(),
+                        It.IsAny<IClassificationType>()));
+            }
         }
 
         [TestCase(true)]
@@ -133,7 +137,7 @@ namespace FineCodeCoverageTests.Editor.Management
             var textFormattingRunProperties = TextFormattingRunProperties.CreateTextFormattingRunProperties().SetBold(true);
             List<ICoverageTypeColour> coverageTypeColours = new List<ICoverageTypeColour>
             {
-                CreateCoverageTypeColour(CoverageType.Covered, textFormattingRunProperties)
+                CreateCoverageTypeColour(DynamicCoverageType.Covered, textFormattingRunProperties)
             };
             coverageClassificationTypeService.SetCoverageColours(coverageTypeColours);
 
@@ -147,13 +151,12 @@ namespace FineCodeCoverageTests.Editor.Management
             mockClassificationFormatMap.Verify(classificationFormatMap => classificationFormatMap.BeginBatchUpdate(), Times.Exactly(isInBatchUpdate ? 0 : 1));
             mockClassificationFormatMap.Verify(classificationFormatMap => classificationFormatMap.EndBatchUpdate(), Times.Exactly(isInBatchUpdate ? 0 : 1));
         }
-        private static ICoverageTypeColour CreateCoverageTypeColour(CoverageType coverageType, TextFormattingRunProperties textFormattingRunProperties)
+        private static ICoverageTypeColour CreateCoverageTypeColour(DynamicCoverageType coverageType, TextFormattingRunProperties textFormattingRunProperties)
         {
-            throw new System.NotImplementedException();
-            //var mockCoverageTypeColour = new Mock<ICoverageTypeColour>();
-            //mockCoverageTypeColour.SetupGet(coverageTypeColour => coverageTypeColour.CoverageType).Returns(coverageType);
-            //mockCoverageTypeColour.SetupGet(coverageTypeColour => coverageTypeColour.TextFormattingRunProperties).Returns(textFormattingRunProperties);
-            //return mockCoverageTypeColour.Object;
+            var mockCoverageTypeColour = new Mock<ICoverageTypeColour>();
+            mockCoverageTypeColour.SetupGet(coverageTypeColour => coverageTypeColour.CoverageType).Returns(coverageType);
+            mockCoverageTypeColour.SetupGet(coverageTypeColour => coverageTypeColour.TextFormattingRunProperties).Returns(textFormattingRunProperties);
+            return mockCoverageTypeColour.Object;
         }
     }
 }

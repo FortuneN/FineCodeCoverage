@@ -5,23 +5,23 @@ using System.Diagnostics.CodeAnalysis;
 namespace FineCodeCoverage.Editor.Management
 {
     [ExcludeFromCodeCoverage]
-    [Export(typeof(IShouldAddCoverageMarkersLogic))]
-    class ShouldAddCoverageMarkersLogic : IShouldAddCoverageMarkersLogic
+    [Export(typeof(IVsHasCoverageMarkersLogic))]
+    class VsHasCoverageMarkersLogic : IVsHasCoverageMarkersLogic
     {
         private readonly IReadOnlyConfigSettingsStoreProvider readOnlyConfigSettingsStoreProvider;
 
         [ImportingConstructor]
-        public ShouldAddCoverageMarkersLogic(
+        public VsHasCoverageMarkersLogic(
             IReadOnlyConfigSettingsStoreProvider readOnlyConfigSettingsStoreProvider
         )
         {
             this.readOnlyConfigSettingsStoreProvider = readOnlyConfigSettingsStoreProvider;
         }
 
-        public bool ShouldAddCoverageMarkers()
+        public bool HasCoverageMarkers()
         {
             var readOnlySettingsStore = readOnlyConfigSettingsStoreProvider.Provide();
-            return  !readOnlySettingsStore.CollectionExists(@"Text Editor\External Markers\{b4ee9ead-e105-11d7-8a44-00065bbd20a4}");
+            return  readOnlySettingsStore.CollectionExists(@"Text Editor\External Markers\{b4ee9ead-e105-11d7-8a44-00065bbd20a4}");
         }
     }
 

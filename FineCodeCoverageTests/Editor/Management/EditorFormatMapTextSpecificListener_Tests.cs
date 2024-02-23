@@ -13,7 +13,7 @@ namespace FineCodeCoverageTests.Editor.Management
     {
         [TestCase(new string[] { "This" }, new string[] { "That" }, false)]
         [TestCase(new string[] { "Other", "Match" }, new string[] { "NoMatch", "Match" }, true)]
-        public void X(string[] listenFor, string[] changedItems, bool expectedInvocation)
+        public void Should_Listen_For_Specific_FormatMappingChanged_Items(string[] listenFor, string[] changedItems, bool expectedInvocation)
         {
             var autoMoqer = new AutoMoqer();
             var mockEditorFormatMap = new Mock<IEditorFormatMap>();

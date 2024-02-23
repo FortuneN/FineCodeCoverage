@@ -44,32 +44,33 @@ namespace FineCodeCoverageTests.Editor.Tagging.Classification
             Assert.That(tagger, Is.SameAs(coverageTagger));
         }
 
-        [TestCase(CoverageType.Covered)]
-        [TestCase(CoverageType.NotCovered)]
-        [TestCase(CoverageType.Partial)]
-        public void Should_Create_An_IClassificationTag_TagSpan_Classification_Type_From_ICoverageTypeService_For_The_Line_Coverage_Type(CoverageType coverageType)
+        [TestCase(DynamicCoverageType.Covered)]
+        [TestCase(DynamicCoverageType.NotCovered)]
+        [TestCase(DynamicCoverageType.Partial)]
+        [TestCase(DynamicCoverageType.NewLine)]
+        [TestCase(DynamicCoverageType.Dirty)]
+        public void Should_Create_An_IClassificationTag_TagSpan_Classification_Type_From_ICoverageTypeService_For_The_Line_Coverage_Type(DynamicCoverageType coverageType)
         {
-            //var mocker = new AutoMoqer();
-            //var classificationType = new Mock<IClassificationType>().Object;
-            //mocker.Setup<ICoverageTypeService, IClassificationType>(
-            //    coverageTypeService => coverageTypeService.GetClassificationType(coverageType)).Returns(classificationType);
+            var mocker = new AutoMoqer();
+            var classificationType = new Mock<IClassificationType>().Object;
+            mocker.Setup<ICoverageTypeService, IClassificationType>(
+                coverageTypeService => coverageTypeService.GetClassificationType(coverageType)).Returns(classificationType);
 
-            //var coverageLineClassificationTaggerProvider = mocker.Create<CoverageLineClassificationTaggerProvider>();
+            var coverageLineClassificationTaggerProvider = mocker.Create<CoverageLineClassificationTaggerProvider>();
 
-            //var mockCoverageTaggerProviderFactory = mocker.GetMock<ICoverageTaggerProviderFactory>();
-            //var classificationLineSpanTagger = mockCoverageTaggerProviderFactory.Invocations[0].Arguments[0] as ILineSpanTagger<IClassificationTag>;
+            var mockCoverageTaggerProviderFactory = mocker.GetMock<ICoverageTaggerProviderFactory>();
+            var classificationLineSpanTagger = mockCoverageTaggerProviderFactory.Invocations[0].Arguments[0] as ILineSpanTagger<IClassificationTag>;
 
-            //var snapshotSpan = SnapshotSpanFactory.Create(1);
-            //var mockLine = new Mock<IDynamicLine>();
-            //mockLine.SetupGet(line => line.CoverageType).Returns(coverageType);
-            //var tagSpan = classificationLineSpanTagger.GetTagSpan(new LineSpan { Line = mockLine.Object, Span = snapshotSpan });
+            var snapshotSpan = SnapshotSpanFactory.Create(1);
+            var mockLine = new Mock<IDynamicLine>();
+            mockLine.SetupGet(line => line.CoverageType).Returns(coverageType);
+            var tagSpan = classificationLineSpanTagger.GetTagSpan(new LineSpan { Line = mockLine.Object, Span = snapshotSpan });
 
-            //Assert.Multiple(() =>
-            //{
-            //    Assert.That(tagSpan.Span, Is.EqualTo(snapshotSpan));
-            //    Assert.That(tagSpan.Tag.ClassificationType, Is.SameAs(classificationType));
-            //});
-            throw new System.NotImplementedException();
+            Assert.Multiple(() =>
+            {
+                Assert.That(tagSpan.Span, Is.EqualTo(snapshotSpan));
+                Assert.That(tagSpan.Tag.ClassificationType, Is.SameAs(classificationType));
+            });
         }
     }
 }

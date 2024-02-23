@@ -82,6 +82,7 @@
 
     interface IEditorCoverageColouringOptions : IOverviewMarginOptions, IGlyphMarginOptions,IEditorLineHighlightingCoverageOptions { 
         bool ShowEditorCoverage { get; set; }
+        bool UseEnterpriseFontsAndColors { get; set; }
     }
 
     internal interface IAppOptions : IMsCodeCoverageOptions, IOpenCoverCoverletExcludeIncludeOptions, IFCCCommonOptions, IOpenCoverOptions, IEditorCoverageColouringOptions
@@ -110,7 +111,6 @@
         bool ShowToolWindowToolbar { get; set; }
 
         NamespaceQualification NamespaceQualification { get; set; }
-        
     }
 
     internal enum NamespaceQualification

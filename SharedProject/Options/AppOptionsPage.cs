@@ -280,6 +280,11 @@ namespace FineCodeCoverage.Options
         [Description("Set to false to disable all editor coverage indicators")]
         //[DisplayName("Show Editor Coverage")]
         public bool ShowEditorCoverage { get; set; }
+
+        [Category(commonUiCategory)]
+        [Description("Set to false to use FCC Fonts And Colors items")]
+        public bool UseEnterpriseFontsAndColors { get; set; }
+
         #region overview margin
         [Category(commonUiCategory)]
         [Description("Set to false to prevent coverage marks in the overview margin")]

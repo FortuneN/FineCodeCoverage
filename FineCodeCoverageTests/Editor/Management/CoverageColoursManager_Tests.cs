@@ -14,73 +14,7 @@ namespace FineCodeCoverageTests.Editor.Management
     internal class CoverageColoursManager_Tests
     {
         [Test]
-        public void Should_Not_GetTextMarkerType_If_Should_Not()
-        {
-            var autoMoqer = new AutoMoqer();
-            autoMoqer.Setup<IShouldAddCoverageMarkersLogic, bool>(shouldAddCoverageMarkersLogic => shouldAddCoverageMarkersLogic.ShouldAddCoverageMarkers()).Returns(false);
-
-            var coverageColoursManager = autoMoqer.Create<CoverageColoursManager>();
-
-            var guids = new List<string> { CoverageColoursManager.TouchedGuidString, CoverageColoursManager.PartiallyTouchedGuidString, CoverageColoursManager.NotTouchedGuidString };
-            guids.ForEach(guid =>
-            {
-                var markerGuid = new Guid(guid);
-                var success = coverageColoursManager.GetTextMarkerType(ref markerGuid, out var markerType);
-                Assert.That(success, Is.EqualTo(0));
-                Assert.That(markerType, Is.Null);
-            });
-
-        }
-
-        [TestCase("Coverage Touched Area", CoverageColoursManager.TouchedGuidString)]
-        [TestCase("Coverage Not Touched Area", CoverageColoursManager.NotTouchedGuidString)]
-        [TestCase("Coverage Partially Touched Area", CoverageColoursManager.PartiallyTouchedGuidString)]
-        public void Should_Get_CoverageTouchedArea_MarkerType_If_Should_Matching_Enterprise_Names(string name, string guidString)
-        {
-            var autoMoqer = new AutoMoqer();
-            autoMoqer.Setup<IShouldAddCoverageMarkersLogic, bool>(shouldAddCoverageMarkersLogic => shouldAddCoverageMarkersLogic.ShouldAddCoverageMarkers()).Returns(true);
-
-            var coverageColoursManager = autoMoqer.Create<CoverageColoursManager>();
-
-            var guid = new Guid(guidString);
-            var success = coverageColoursManager.GetTextMarkerType(ref guid, out var markerType);
-            Assert.That(success, Is.EqualTo(0));
-
-            success = markerType.GetBehaviorFlags(out var flags);
-            Assert.That(success, Is.EqualTo(0));
-
-            success = markerType.GetVisualStyle(out var visualStyle);
-            Assert.That(success, Is.EqualTo(0));
-            Assert.That(visualStyle, Is.EqualTo((uint)MARKERVISUAL.MV_GLYPH));
-
-            success = markerType.GetDefaultFontFlags(out var fontFlags);
-            Assert.That(success, Is.EqualTo(0));
-            Assert.That(fontFlags, Is.EqualTo(0U));
-
-            success = markerType.GetDefaultLineStyle(new COLORINDEX[1], new LINESTYLE[1]);
-            Assert.That(success, Is.EqualTo(-2147467263));
-
-            var vsMergeableUIItem = markerType as IVsMergeableUIItem;
-            success = vsMergeableUIItem.GetDisplayName(out var displayName);
-            Assert.That(success, Is.EqualTo(0));
-            Assert.That(displayName, Is.EqualTo(name));
-
-            success = vsMergeableUIItem.GetCanonicalName(out var canonicalName);
-            Assert.That(success, Is.EqualTo(0));
-            Assert.That(canonicalName, Is.EqualTo(name));
-
-            var vsHiColorItem = markerType as IVsHiColorItem;
-            //0 is foreground, 1 is background, 2 is line color
-            success = vsHiColorItem.GetColorData(0, out var foregroundColor);
-            Assert.That(success, Is.EqualTo(0));
-            success = vsHiColorItem.GetColorData(1, out var backgroundColor);
-            Assert.That(success, Is.EqualTo(0));
-            success = vsHiColorItem.GetColorData(2, out var lineColor);
-            Assert.That(success, Is.EqualTo(-2147467259));
-        }
-
-        [Test]
-        public void Should_Listen_For_EditorFormatMap_Text_Changes_To_Markers()
+        public void Should_Listen_For_EditorFormatMap_Text_Changes_To_Markers_And_EditorFormatDefinitions()
         {
             var autoMoqer = new AutoMoqer();
 
@@ -88,7 +22,16 @@ namespace FineCodeCoverageTests.Editor.Management
 
             autoMoqer.Verify<IEditorFormatMapTextSpecificListener>(
                 editorFormatMapTextSpecificListener => editorFormatMapTextSpecificListener.ListenFor(
-                    new List<string> { "Coverage Touched Area", "Coverage Not Touched Area", "Coverage Partially Touched Area" }, It.IsAny<Action>()
+                    new List<string> { 
+                        "Coverage Touched Area", 
+                        "Coverage Not Touched Area", 
+                        "Coverage Partially Touched Area",
+                        "Coverage Touched Area FCC",
+                        "Coverage Not Touched Area FCC",
+                         "Coverage Partially Touched Area FCC",
+                         "Coverage New Lines Area FCC",
+                         "Coverage Dirty Area FCC"
+                    }, It.IsAny<Action>()
                 ));
         }
 
@@ -202,29 +145,6 @@ namespace FineCodeCoverageTests.Editor.Management
             //);
         }
 
-        [TestCase(0, true)]
-        [TestCase(1, true)]
-        [TestCase(2, true)]
-        [TestCase(3, false)]
-        public void Should_RequireInitialization_If_Has_Not_Already_Set_All_From_Listening(int numChanges, bool requiresInitialization)
-        {
-            throw new System.NotImplementedException();
-            //var changes = new Dictionary<CoverageType, IFontAndColorsInfo>();
-            //for (var i = 0; i < numChanges; i++)
-            //{
-            //    changes.Add((CoverageType)i, new Mock<IFontAndColorsInfo>().Object);
-            //}
-            //var autoMoqer = new AutoMoqer();
-            //var coverageColoursManager = autoMoqer.Create<CoverageColoursManager>();
-            //autoMoqer.Setup<IFontAndColorsInfosProvider, Dictionary<CoverageType, IFontAndColorsInfo>>(
-            //        fontAndColorsInfosProvider => fontAndColorsInfosProvider.GetChangedFontAndColorsInfos()
-            //).Returns(changes);
-
-            //var mockEditorFormatMapTextSpecificListener = autoMoqer.GetMock<IEditorFormatMapTextSpecificListener>();
-            //var listener = mockEditorFormatMapTextSpecificListener.Invocations[0].Arguments[1] as Action;
-            //listener();
-
-            //Assert.That(coverageColoursManager.RequiresInitialization, Is.EqualTo(requiresInitialization));
-        }
+        
     }
 }

@@ -13,15 +13,35 @@ namespace FineCodeCoverage.Editor.Management
     [Export(typeof(IFontAndColorsInfosProvider))]
     internal class FontAndColorsInfosProvider : ICoverageColoursProvider, IFontAndColorsInfosProvider
     {
-        private readonly Guid EditorTextMarkerFontAndColorCategory = new Guid("FF349800-EA43-46C1-8C98-878E78F46501");
-        private readonly Guid EditorMEFCategory = new Guid("75A05685-00A8-4DED-BAE5-E7A50BFA929A");
         private readonly IEventAggregator eventAggregator;
         private readonly IFontsAndColorsHelper fontsAndColorsHelper;
-        private FontAndColorsItemNames fontAndColorsItemNames;
+        
         private readonly IThreadHelper threadHelper;
         private CoverageColours lastCoverageColours;
+        private ICoverageFontAndColorsCategoryItemNames coverageFontAndColorsCategoryItemNames;
 
-        public FontAndColorsItemNames FontAndColorsItemNames { set => fontAndColorsItemNames = value; }
+        public ICoverageFontAndColorsCategoryItemNames CoverageFontAndColorsCategoryItemNames { set => coverageFontAndColorsCategoryItemNames = value; }
+
+        private struct NameIndex
+        {
+            public NameIndex(string name, int index)
+            {
+                Name = name;
+                Index = index;
+            }
+            public string Name { get; }
+            public int Index { get; }
+        }
+
+        private class CategoryNameIndices
+        {
+            public CategoryNameIndices(Guid category)
+            {
+                Category = category;
+            }
+            public Guid Category { get; }
+            public List<NameIndex> NameIndices { get; } = new List<NameIndex>();
+        }
 
         [ImportingConstructor]
         public FontAndColorsInfosProvider(
@@ -35,6 +55,32 @@ namespace FineCodeCoverage.Editor.Management
             this.threadHelper = threadHelper;
         }
 
+
+        private List<CategoryNameIndices> GetCategoryNameIndices()
+        {
+            var lookup = new Dictionary<Guid,CategoryNameIndices>();
+            
+            var items = new List<(FontAndColorsCategoryItemName, int)>
+            {
+                (coverageFontAndColorsCategoryItemNames.Covered, 0),
+                (coverageFontAndColorsCategoryItemNames.NotCovered, 1),
+                (coverageFontAndColorsCategoryItemNames.PartiallyCovered, 2),
+                 (coverageFontAndColorsCategoryItemNames.Dirty,3),
+                 (coverageFontAndColorsCategoryItemNames.NewLines,4)
+            };
+
+            foreach(var item in items)
+            {
+               if(!lookup.TryGetValue(item.Item1.Category, out var categoryNameIndices))
+                {
+                    categoryNameIndices = new CategoryNameIndices(item.Item1.Category);
+                    lookup.Add(item.Item1.Category, categoryNameIndices);
+                }
+               categoryNameIndices.NameIndices.Add(new NameIndex(item.Item1.ItemName, item.Item2));
+            }
+            return lookup.Values.ToList();
+            
+        }
 
         public ICoverageColours GetCoverageColours()
         {
@@ -55,11 +101,11 @@ namespace FineCodeCoverage.Editor.Management
         {
             var fromFontsAndColors = GetItemCoverageInfosFromFontsAndColors();
             return new CoverageColours(
-                fromFontsAndColors[0],
-                fromFontsAndColors[1],
-                fromFontsAndColors[2],
-                fromFontsAndColors[3],
-                fromFontsAndColors[4]
+                fromFontsAndColors[0],//touched
+                fromFontsAndColors[1],//not touched
+                fromFontsAndColors[2],//partial
+                fromFontsAndColors[3],//dirty
+                fromFontsAndColors[4]//newlines
             );
         }
 
@@ -73,32 +119,22 @@ namespace FineCodeCoverage.Editor.Management
 
         private async Task<List<IFontAndColorsInfo>> GetItemCoverageInfosFromFontsAndColorsAsync()
         {
-            var markerFontAndColorsInfos = await GetTextMarkerFontAndColorsInfosAsync();
-            var mefFontAndColorsInfos = await GetMEFFontAndColorsInfosAsync();
-            return markerFontAndColorsInfos.Concat(mefFontAndColorsInfos).ToList();
+            var allCategoryNameIndices = GetCategoryNameIndices();
+            var tasks = new List<Task<List<(IFontAndColorsInfo, int)>>>();
+            foreach(var categoryNameIndices in allCategoryNameIndices)
+            {
+                tasks.Add(GetAsync(categoryNameIndices));
+            }
+            var results = await Task.WhenAll(tasks);
+            return results.SelectMany(r=> r).OrderBy(r=>r.Item2).Select(r=>r.Item1).ToList();
         }
 
-        private Task<List<IFontAndColorsInfo>> GetMEFFontAndColorsInfosAsync()
+        private async Task<List<(IFontAndColorsInfo,int)>> GetAsync(CategoryNameIndices categoryNameIndices)
         {
-            return fontsAndColorsHelper.GetInfosAsync(
-                    EditorMEFCategory,
-                    new[] {
-                        fontAndColorsItemNames.MEFItemNames.Dirty,
-                        fontAndColorsItemNames.MEFItemNames.NewLines
-                     }
-                );
-        }
-
-        private Task<List<IFontAndColorsInfo>> GetTextMarkerFontAndColorsInfosAsync()
-        {
-            return fontsAndColorsHelper.GetInfosAsync(
-                    EditorTextMarkerFontAndColorCategory,
-                    new[] {
-                        fontAndColorsItemNames.MarkerTypeNames.Covered,
-                        fontAndColorsItemNames.MarkerTypeNames.NotCovered,
-                        fontAndColorsItemNames.MarkerTypeNames.PartiallyCovered
-                     }
-                );
+            var fontAndColorsInfos = await fontsAndColorsHelper.GetInfosAsync(
+                    categoryNameIndices.Category,
+                    categoryNameIndices.NameIndices.Select(ni => ni.Name).ToArray());
+            return fontAndColorsInfos.Select((fontAndColorsInfo, i) => (fontAndColorsInfo, categoryNameIndices.NameIndices[i].Index)).ToList();
         }
 
         public Dictionary<DynamicCoverageType, IFontAndColorsInfo> GetChangedFontAndColorsInfos()

@@ -321,6 +321,8 @@ namespace FineCodeCoverageTests
                 { nameof(IAppOptions.ShowCoverageInOverviewMargin),true},
                 { nameof(IAppOptions.ShowCoveredInOverviewMargin),true},
                 { nameof(IAppOptions.ShowPartiallyCoveredInOverviewMargin),true},
+                { nameof(IAppOptions.ShowDirtyInOverviewMargin), true },
+                { nameof(IAppOptions.ShowNewInOverviewMargin), true },
                 { nameof(IAppOptions.ShowUncoveredInOverviewMargin),true},
                 { nameof(IAppOptions.ShowToolWindowToolbar),true},
                 {nameof(IAppOptions.ExcludeAssemblies),new string[]{ "Exclude"} },
@@ -334,10 +336,15 @@ namespace FineCodeCoverageTests
                 {nameof(IAppOptions.ShowCoveredInGlyphMargin),true },
                 {nameof(IAppOptions.ShowPartiallyCoveredInGlyphMargin),true },
                 {nameof(IAppOptions.ShowUncoveredInGlyphMargin),true },
+                {nameof(IAppOptions.ShowDirtyInGlyphMargin),true },
+                {nameof(IAppOptions.ShowNewInGlyphMargin),true },
                 {nameof(IAppOptions.ShowLineCoverageHighlighting),true },
                 {nameof(IAppOptions.ShowLineCoveredHighlighting),true },
                 {nameof(IAppOptions.ShowLinePartiallyCoveredHighlighting),true },
                 {nameof(IAppOptions.ShowLineUncoveredHighlighting),true },
+                {nameof(IAppOptions.ShowLineDirtyHighlighting),true },
+                {nameof(IAppOptions.ShowLineNewHighlighting),true },
+                {nameof(IAppOptions.UseEnterpriseFontsAndColors),true },
             };
             var mockJsonConvertService = autoMocker.GetMock<IJsonConvertService>();
             mockJsonConvertService.Setup(

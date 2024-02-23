@@ -7,6 +7,6 @@ namespace FineCodeCoverage.Editor.Management
     {
         Dictionary<DynamicCoverageType, IFontAndColorsInfo> GetChangedFontAndColorsInfos();
         Dictionary<DynamicCoverageType, IFontAndColorsInfo> GetFontAndColorsInfos();
-        FontAndColorsItemNames FontAndColorsItemNames { set; }
+        ICoverageFontAndColorsCategoryItemNames CoverageFontAndColorsCategoryItemNames { set; }
     }
 }

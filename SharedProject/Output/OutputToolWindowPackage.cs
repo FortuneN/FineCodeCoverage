@@ -43,10 +43,6 @@ namespace FineCodeCoverage.Output
     [ProvideProfile(typeof(AppOptionsPage), Vsix.Name, Vsix.Name, 101, 102, true)]
     [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
 	[ProvideToolWindow(typeof(OutputToolWindow), Style = VsDockStyle.Tabbed, DockedHeight = 300, Window = EnvDTE.Constants.vsWindowKindOutput)]
-	[ProvideTextMarker("FCCCovered","FCCCovered", CoverageColoursManager.TouchedGuidString, CoverageColoursManager.TextMarkerProviderString)]
-    [ProvideTextMarker("FCCUncovered", "FCCUncovered", CoverageColoursManager.NotTouchedGuidString, CoverageColoursManager.TextMarkerProviderString)]
-    [ProvideTextMarker("FCCPartiallyCovered", "FCCPartiallyCovered", CoverageColoursManager.PartiallyTouchedGuidString, CoverageColoursManager.TextMarkerProviderString)]
-	[ProvideService(typeof(CoverageColoursManager))]
     public sealed class OutputToolWindowPackage : AsyncPackage
 	{
 		private static Microsoft.VisualStudio.ComponentModelHost.IComponentModel componentModel;
@@ -104,9 +100,8 @@ namespace FineCodeCoverage.Output
 				componentModel.GetService<ILogger>(),
 				componentModel.GetService<IShownToolWindowHistory>()
 			);
+			
 			await componentModel.GetService<IInitializer>().InitializeAsync(cancellationToken);
-			var coverageColoursManager = componentModel.GetService<CoverageColoursManager>();
-			this.AddService(typeof(CoverageColoursManager), (_, __, ___) => Task.FromResult(coverageColoursManager as object), true);
         }
 
         protected override Task<object> InitializeToolWindowAsync(Type toolWindowType, int id, CancellationToken cancellationToken)

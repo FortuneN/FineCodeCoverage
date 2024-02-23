@@ -52,38 +52,38 @@ namespace FineCodeCoverageTests.Editor.Tagging.GlyphMargin
             }
         }
 
-        [TestCase(CoverageType.Covered)]
-        [TestCase(CoverageType.NotCovered)]
-        [TestCase(CoverageType.Partial)]
-        public void Should_Create_A_CoverageLineGlyphTag_TagSpan_BackgroundColor_From_ICoverageColoursProvider_For_The_Line_Coverage_Type_And_The_Line(CoverageType coverageType)
+        [TestCase(DynamicCoverageType.Covered)]
+        [TestCase(DynamicCoverageType.NotCovered)]
+        [TestCase(DynamicCoverageType.Partial)]
+        [TestCase(DynamicCoverageType.NewLine)]
+        [TestCase(DynamicCoverageType.Dirty)]
+        public void Should_Create_A_CoverageLineGlyphTag_TagSpan_BackgroundColor_From_ICoverageColoursProvider_For_The_Line_Coverage_Type_And_The_Line(DynamicCoverageType coverageType)
         {
-            //var mocker = new AutoMoqer();
-            //var mockCoverageColours = new Mock<ICoverageColours>();
-            //var mockItemCoverageColours = new Mock<IItemCoverageColours>();
-            //mockItemCoverageColours.SetupGet(itemCoverageColours => itemCoverageColours.Background).Returns(Colors.Red);
-            //mockCoverageColours.Setup(coverageColours => coverageColours.GetColour(coverageType)).Returns(mockItemCoverageColours.Object);
-            //mocker.Setup<ICoverageColoursProvider, ICoverageColours>(
-            //    coverageColoursProvider => coverageColoursProvider.GetCoverageColours()).Returns(mockCoverageColours.Object);
+            var mocker = new AutoMoqer();
+            var mockCoverageColours = new Mock<ICoverageColours>();
+            var mockItemCoverageColours = new Mock<IItemCoverageColours>();
+            mockItemCoverageColours.SetupGet(itemCoverageColours => itemCoverageColours.Background).Returns(Colors.Red);
+            mockCoverageColours.Setup(coverageColours => coverageColours.GetColour(coverageType)).Returns(mockItemCoverageColours.Object);
+            mocker.Setup<ICoverageColoursProvider, ICoverageColours>(
+                coverageColoursProvider => coverageColoursProvider.GetCoverageColours()).Returns(mockCoverageColours.Object);
 
-            //var coverageLineGlyphTaggerProvider = mocker.Create<CoverageLineGlyphTaggerProvider>();
+            var coverageLineGlyphTaggerProvider = mocker.Create<CoverageLineGlyphTaggerProvider>();
 
-            //var mockCoverageTaggerProviderFactory = mocker.GetMock<ICoverageTaggerProviderFactory>();
-            //var classificationLineSpanTagger = mockCoverageTaggerProviderFactory.Invocations[0].Arguments[0] as ILineSpanTagger<CoverageLineGlyphTag>;
+            var mockCoverageTaggerProviderFactory = mocker.GetMock<ICoverageTaggerProviderFactory>();
+            var classificationLineSpanTagger = mockCoverageTaggerProviderFactory.Invocations[0].Arguments[0] as ILineSpanTagger<CoverageLineGlyphTag>;
 
-            //var mockTextSnapshot = new Mock<ITextSnapshot>();
-            //mockTextSnapshot.SetupGet(textSnapshot => textSnapshot.Length).Returns(1);
-            //var snapshotSpan = new SnapshotSpan(mockTextSnapshot.Object, new Span(0, 1));
-            //var mockLine = new Mock<IDynamicLine>();
-            //mockLine.SetupGet(line => line.CoverageType).Returns(coverageType);
-            //var tagSpan = classificationLineSpanTagger.GetTagSpan(new LineSpan { Line = mockLine.Object, Span = snapshotSpan });
+            var mockTextSnapshot = new Mock<ITextSnapshot>();
+            mockTextSnapshot.SetupGet(textSnapshot => textSnapshot.Length).Returns(1);
+            var snapshotSpan = new SnapshotSpan(mockTextSnapshot.Object, new Span(0, 1));
+            var mockLine = new Mock<IDynamicLine>();
+            mockLine.SetupGet(line => line.CoverageType).Returns(coverageType);
+            var tagSpan = classificationLineSpanTagger.GetTagSpan(new LineSpan { Line = mockLine.Object, Span = snapshotSpan });
 
-            //Assert.Multiple(() =>
-            //{
-            //    Assert.That(tagSpan.Span, Is.EqualTo(snapshotSpan));
-            //    Assert.That(tagSpan.Tag.CoverageLine, Is.SameAs(mockLine.Object));
-            //    Assert.That(tagSpan.Tag.Colour, Is.EqualTo(Colors.Red));
-            //});
-            throw new System.NotImplementedException();
+            Assert.Multiple(() =>
+            {
+                Assert.That(tagSpan.Span, Is.EqualTo(snapshotSpan));
+                Assert.That(tagSpan.Tag.Colour, Is.EqualTo(Colors.Red));
+            });
         }
     }
 }
