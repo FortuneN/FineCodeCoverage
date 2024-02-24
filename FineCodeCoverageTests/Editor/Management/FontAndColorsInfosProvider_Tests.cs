@@ -1,6 +1,7 @@
 ﻿using AutoMoq;
 using FineCodeCoverage.Core.Utilities;
 using FineCodeCoverage.Core.Utilities.VsThreading;
+using FineCodeCoverage.Editor.DynamicCoverage;
 using FineCodeCoverage.Editor.Management;
 using FineCodeCoverage.Engine.Model;
 using FineCodeCoverageTests.TestHelpers;
@@ -14,102 +15,157 @@ namespace FineCodeCoverageTests.Editor.Management
 {
     internal class FontAndColorsInfosProvider_Tests
     {
-        [Test]
-        public void GetCoverageColours_If_Required()
+
+        class CoverageFontAndColorsCategoryItemNames : ICoverageFontAndColorsCategoryItemNames
         {
-            throw new System.NotImplementedException();
-            //var autoMoqer = new AutoMoqer();
-            //var mockFontsAndColorsHelper = autoMoqer.GetMock<IFontsAndColorsHelper>();
-            //var editorTextMarkerFontAndColorCategory = new Guid("FF349800-EA43-46C1-8C98-878E78F46501");
-            //mockFontsAndColorsHelper.Setup(
-            //    fontsAndColorsHelper => fontsAndColorsHelper.GetInfosAsync(
-            //        editorTextMarkerFontAndColorCategory,
-            //        new List<string> { "Coverage Touched Area", "Coverage Not Touched Area", "Coverage Partially Touched Area" })
-            //    ).ReturnsAsync(new List<IFontAndColorsInfo>
-            //    {
-            //        FontAndColorsInfoFactory.CreateFontAndColorsInfo(true, Colors.Green, Colors.Red),
-            //        FontAndColorsInfoFactory.CreateFontAndColorsInfo(true, Colors.Blue, Colors.Orange),
-            //        FontAndColorsInfoFactory.CreateFontAndColorsInfo(true, Colors.White, Colors.Black),
-            //    });
-            //autoMoqer.SetInstance<IThreadHelper>(new TestThreadHelper());
-            //var fontAndColorsInfosProvider = autoMoqer.Create<FontAndColorsInfosProvider>();
+            public Guid Guid1 { get; }
+            public Guid Guid2 { get; }
+            public FontAndColorsCategoryItemName Covered => new FontAndColorsCategoryItemName("Covered", Guid1);
 
-            //var colours = fontAndColorsInfosProvider.GetCoverageColours();
-            //var coveredColours = colours.GetColour(CoverageType.Covered);
-            //Assert.That(coveredColours.Foreground, Is.EqualTo(Colors.Green));
-            //Assert.That(coveredColours.Background, Is.EqualTo(Colors.Red));
-            //var unCoveredColours = colours.GetColour(CoverageType.NotCovered);
-            //Assert.That(unCoveredColours.Foreground, Is.EqualTo(Colors.Blue));
-            //Assert.That(unCoveredColours.Background, Is.EqualTo(Colors.Orange));
-            //var partiallyCoveredColours = colours.GetColour(CoverageType.Partial);
-            //Assert.That(partiallyCoveredColours.Foreground, Is.EqualTo(Colors.White));
-            //Assert.That(partiallyCoveredColours.Background, Is.EqualTo(Colors.Black));
+            public FontAndColorsCategoryItemName Dirty => new FontAndColorsCategoryItemName("Dirty", Guid2);
 
-            //var previousColors = fontAndColorsInfosProvider.GetCoverageColours();
+            public FontAndColorsCategoryItemName NewLines => new FontAndColorsCategoryItemName("NewLines", Guid2);
 
-            //Assert.That(previousColors, Is.SameAs(colours));
-            //Assert.That(mockFontsAndColorsHelper.Invocations.Count, Is.EqualTo(1));
+            public FontAndColorsCategoryItemName NotCovered => new FontAndColorsCategoryItemName("NotCovered", Guid1);
+
+            public FontAndColorsCategoryItemName PartiallyCovered => new FontAndColorsCategoryItemName("PartiallyCovered", Guid1);
+
+            public CoverageFontAndColorsCategoryItemNames(bool singleCategory)
+            {
+                if(singleCategory)
+                {
+                    Guid1 = Guid2 = Guid.NewGuid();
+                }
+                else
+                {
+                    Guid1 = Guid.NewGuid();
+                    Guid2 = Guid.NewGuid();
+                }
+            }
+        }
+
+        [Test]
+        public void Should_GetCoverageColours_Using_CoverageFontAndColorsCategoryItemNames_Only_If_Required()
+        {
+            var coverageFontAndColorsCategoryItemNames = new CoverageFontAndColorsCategoryItemNames(false);
+            var autoMoqer = new AutoMoqer();
+            var mockFontsAndColorsHelper = autoMoqer.GetMock<IFontsAndColorsHelper>();
+            mockFontsAndColorsHelper.Setup(
+                fontsAndColorsHelper => fontsAndColorsHelper.GetInfosAsync(
+                    coverageFontAndColorsCategoryItemNames.Guid1,
+                    new List<string> { "Covered", "NotCovered", "PartiallyCovered" })
+                ).ReturnsAsync(new List<IFontAndColorsInfo>
+                {
+                    FontAndColorsInfoFactory.CreateFontAndColorsInfo(true, Colors.Green, Colors.Red),
+                    FontAndColorsInfoFactory.CreateFontAndColorsInfo(true, Colors.Blue, Colors.Orange),
+                    FontAndColorsInfoFactory.CreateFontAndColorsInfo(true, Colors.White, Colors.Black),
+                });
+            mockFontsAndColorsHelper.Setup(
+                fontsAndColorsHelper => fontsAndColorsHelper.GetInfosAsync(
+                    coverageFontAndColorsCategoryItemNames.Guid2,
+                    new List<string> { "Dirty", "NewLines"})
+                ).ReturnsAsync(new List<IFontAndColorsInfo>
+                {
+                    FontAndColorsInfoFactory.CreateFontAndColorsInfo(true, Colors.Blue, Colors.Brown),
+                    FontAndColorsInfoFactory.CreateFontAndColorsInfo(false, Colors.Pink, Colors.AliceBlue),
+                });
+            autoMoqer.SetInstance<IThreadHelper>(new TestThreadHelper());
+            var fontAndColorsInfosProvider = autoMoqer.Create<FontAndColorsInfosProvider>();
+            fontAndColorsInfosProvider.CoverageFontAndColorsCategoryItemNames = coverageFontAndColorsCategoryItemNames;
+
+            var colours = fontAndColorsInfosProvider.GetCoverageColours();
+            var coveredColours = colours.GetColour(DynamicCoverageType.Covered);
+            Assert.That(coveredColours.Foreground, Is.EqualTo(Colors.Green));
+            Assert.That(coveredColours.Background, Is.EqualTo(Colors.Red));
+            var unCoveredColours = colours.GetColour(DynamicCoverageType.NotCovered);
+            Assert.That(unCoveredColours.Foreground, Is.EqualTo(Colors.Blue));
+            Assert.That(unCoveredColours.Background, Is.EqualTo(Colors.Orange));
+            var partiallyCoveredColours = colours.GetColour(DynamicCoverageType.Partial);
+            Assert.That(partiallyCoveredColours.Foreground, Is.EqualTo(Colors.White));
+            Assert.That(partiallyCoveredColours.Background, Is.EqualTo(Colors.Black));
+            var dirtyColours = colours.GetColour(DynamicCoverageType.Dirty);
+            Assert.That(dirtyColours.Foreground, Is.EqualTo(Colors.Blue));
+            Assert.That(dirtyColours.Background, Is.EqualTo(Colors.Brown));
+            var newLinesColours = colours.GetColour(DynamicCoverageType.NewLine);
+            Assert.That(newLinesColours.Foreground, Is.EqualTo(Colors.Pink));
+            Assert.That(newLinesColours.Background, Is.EqualTo(Colors.AliceBlue));
+
+            var previousColors = fontAndColorsInfosProvider.GetCoverageColours();
+
+            Assert.That(previousColors, Is.SameAs(colours));
+            Assert.That(mockFontsAndColorsHelper.Invocations.Count, Is.EqualTo(2));
         }
 
         [Test]
         public void GetChangedFontAndColorsInfos_Should_Return_Just_Changes()
         {
-            throw new System.NotImplementedException();
-            //var autoMoqer = new AutoMoqer();
-            //var mockFontsAndColorsHelper = autoMoqer.GetMock<IFontsAndColorsHelper>();
-            //var editorTextMarkerFontAndColorCategory = new Guid("FF349800-EA43-46C1-8C98-878E78F46501");
-            //var first = new List<IFontAndColorsInfo>
-            //{
-            //    FontAndColorsInfoFactory.CreateFontAndColorsInfo(true, Colors.Green, Colors.Red),
-            //    FontAndColorsInfoFactory.CreateFontAndColorsInfo(false, Colors.Blue, Colors.Orange),
-            //    FontAndColorsInfoFactory.CreateFontAndColorsInfo(true, Colors.White, Colors.Black),
-            //};
-            //var second = new List<IFontAndColorsInfo>
-            //{
-            //    FontAndColorsInfoFactory.CreateFontAndColorsInfo(true, Colors.Green, Colors.Red),
-            //    FontAndColorsInfoFactory.CreateFontAndColorsInfo(true, Colors.Blue, Colors.Orange),
-            //    FontAndColorsInfoFactory.CreateFontAndColorsInfo(false, Colors.Pink, Colors.Gray,false),
-            //};
-            //mockFontsAndColorsHelper.SetupSequence(
-            //    fontsAndColorsHelper => fontsAndColorsHelper.GetInfosAsync(
-            //        editorTextMarkerFontAndColorCategory,
-            //        new List<string> { "Coverage Touched Area", "Coverage Not Touched Area", "Coverage Partially Touched Area" })
-            //    ).ReturnsAsync(first).ReturnsAsync(second);
+            var coverageFontAndColorsCategoryItemNames = new CoverageFontAndColorsCategoryItemNames(true);
+            var autoMoqer = new AutoMoqer();
+            var mockFontsAndColorsHelper = autoMoqer.GetMock<IFontsAndColorsHelper>();
+            var first = new List<IFontAndColorsInfo>
+            {
+                FontAndColorsInfoFactory.CreateFontAndColorsInfo(true, Colors.Green, Colors.Red),
+                FontAndColorsInfoFactory.CreateFontAndColorsInfo(false, Colors.Blue, Colors.Orange),
+                FontAndColorsInfoFactory.CreateFontAndColorsInfo(true, Colors.White, Colors.Black),
+                FontAndColorsInfoFactory.CreateFontAndColorsInfo(true, Colors.Blue, Colors.AliceBlue),
+                FontAndColorsInfoFactory.CreateFontAndColorsInfo(true, Colors.Goldenrod, Colors.GreenYellow),
+            };
+            var second = new List<IFontAndColorsInfo>
+            {
+                FontAndColorsInfoFactory.CreateFontAndColorsInfo(true, Colors.Green, Colors.Red),
+                FontAndColorsInfoFactory.CreateFontAndColorsInfo(true, Colors.Blue, Colors.Orange),
+                FontAndColorsInfoFactory.CreateFontAndColorsInfo(false, Colors.Pink, Colors.Gray,false),
+                FontAndColorsInfoFactory.CreateFontAndColorsInfo(true, Colors.Blue, Colors.AliceBlue),
+                FontAndColorsInfoFactory.CreateFontAndColorsInfo(true, Colors.Goldenrod, Colors.GreenYellow),
+            };
+            mockFontsAndColorsHelper.SetupSequence(
+                fontsAndColorsHelper => fontsAndColorsHelper.GetInfosAsync(
+                    coverageFontAndColorsCategoryItemNames.Guid1,
+                    new List<string> { "Covered", "NotCovered", "PartiallyCovered", "Dirty", "NewLines" })
+                ).ReturnsAsync(first).ReturnsAsync(second);
 
-            //autoMoqer.SetInstance<IThreadHelper>(new TestThreadHelper());
-            //var fontAndColorsInfosProvider = autoMoqer.Create<FontAndColorsInfosProvider>();
+            autoMoqer.SetInstance<IThreadHelper>(new TestThreadHelper());
+            var fontAndColorsInfosProvider = autoMoqer.Create<FontAndColorsInfosProvider>();
+            fontAndColorsInfosProvider.CoverageFontAndColorsCategoryItemNames = coverageFontAndColorsCategoryItemNames;
+            var changed = fontAndColorsInfosProvider.GetChangedFontAndColorsInfos();
+            Assert.That(changed.Count, Is.EqualTo(5));
+            Assert.That(changed[DynamicCoverageType.Covered].IsBold, Is.True);
+            Assert.That(changed[DynamicCoverageType.Covered].ItemCoverageColours.Foreground, Is.EqualTo(Colors.Green));
+            Assert.That(changed[DynamicCoverageType.Covered].ItemCoverageColours.Background, Is.EqualTo(Colors.Red));
+            Assert.That(changed[DynamicCoverageType.NotCovered].IsBold, Is.False);
+            Assert.That(changed[DynamicCoverageType.NotCovered].ItemCoverageColours.Foreground, Is.EqualTo(Colors.Blue));
+            Assert.That(changed[DynamicCoverageType.NotCovered].ItemCoverageColours.Background, Is.EqualTo(Colors.Orange));
+            Assert.That(changed[DynamicCoverageType.Partial].IsBold, Is.True);
+            Assert.That(changed[DynamicCoverageType.Partial].ItemCoverageColours.Foreground, Is.EqualTo(Colors.White));
+            Assert.That(changed[DynamicCoverageType.Partial].ItemCoverageColours.Background, Is.EqualTo(Colors.Black));
+            Assert.That(changed[DynamicCoverageType.Dirty].IsBold, Is.True);
+            Assert.That(changed[DynamicCoverageType.Dirty].ItemCoverageColours.Foreground, Is.EqualTo(Colors.Blue));
+            Assert.That(changed[DynamicCoverageType.Dirty].ItemCoverageColours.Background, Is.EqualTo(Colors.AliceBlue));
+            Assert.That(changed[DynamicCoverageType.NewLine].IsBold, Is.True);
+            Assert.That(changed[DynamicCoverageType.NewLine].ItemCoverageColours.Foreground, Is.EqualTo(Colors.Goldenrod));
+            Assert.That(changed[DynamicCoverageType.NewLine].ItemCoverageColours.Background, Is.EqualTo(Colors.GreenYellow));
 
-            //var changed = fontAndColorsInfosProvider.GetChangedFontAndColorsInfos();
-            //Assert.That(changed.Count, Is.EqualTo(3));
-            //Assert.That(changed[CoverageType.Covered].IsBold, Is.True);
-            //Assert.That(changed[CoverageType.Covered].ItemCoverageColours.Foreground, Is.EqualTo(Colors.Green));
-            //Assert.That(changed[CoverageType.Covered].ItemCoverageColours.Background, Is.EqualTo(Colors.Red));
-            //Assert.That(changed[CoverageType.NotCovered].IsBold, Is.False);
-            //Assert.That(changed[CoverageType.NotCovered].ItemCoverageColours.Foreground, Is.EqualTo(Colors.Blue));
-            //Assert.That(changed[CoverageType.NotCovered].ItemCoverageColours.Background, Is.EqualTo(Colors.Orange));
-            //Assert.That(changed[CoverageType.Partial].IsBold, Is.True);
-            //Assert.That(changed[CoverageType.Partial].ItemCoverageColours.Foreground, Is.EqualTo(Colors.White));
-            //Assert.That(changed[CoverageType.Partial].ItemCoverageColours.Background, Is.EqualTo(Colors.Black));
-
-            //changed = fontAndColorsInfosProvider.GetChangedFontAndColorsInfos();
-            //Assert.That(changed.Count, Is.EqualTo(1));
-            //var partialChange = changed[CoverageType.Partial];
-            //Assert.That(partialChange.IsBold, Is.False);
-            //Assert.That(partialChange.ItemCoverageColours.Foreground, Is.EqualTo(Colors.Pink));
-            //Assert.That(partialChange.ItemCoverageColours.Background, Is.EqualTo(Colors.Gray));
+            changed = fontAndColorsInfosProvider.GetChangedFontAndColorsInfos();
+            Assert.That(changed.Count, Is.EqualTo(1));
+            var partialChange = changed[DynamicCoverageType.Partial];
+            Assert.That(partialChange.IsBold, Is.False);
+            Assert.That(partialChange.ItemCoverageColours.Foreground, Is.EqualTo(Colors.Pink));
+            Assert.That(partialChange.ItemCoverageColours.Background, Is.EqualTo(Colors.Gray));
         }
 
         [TestCase(true)]
         [TestCase(false)]
         public void GetChangedFontAndColorsInfos_Should_Raise_Event_When_Just_Changes(bool equal)
         {
+            var coverageFontAndColorsCategoryItemNames = new CoverageFontAndColorsCategoryItemNames(true);
             var autoMoqer = new AutoMoqer();
             var mockFontsAndColorsHelper = autoMoqer.GetMock<IFontsAndColorsHelper>();
-            var editorTextMarkerFontAndColorCategory = new Guid("FF349800-EA43-46C1-8C98-878E78F46501");
             var first = new List<IFontAndColorsInfo>
             {
                 FontAndColorsInfoFactory.CreateFontAndColorsInfo(true, Colors.Green, Colors.Red),
                 FontAndColorsInfoFactory.CreateFontAndColorsInfo(false, Colors.Blue, Colors.Orange),
+                FontAndColorsInfoFactory.CreateFontAndColorsInfo(true, Colors.White, Colors.Black),
+                FontAndColorsInfoFactory.CreateFontAndColorsInfo(true, Colors.White, Colors.Black),
                 FontAndColorsInfoFactory.CreateFontAndColorsInfo(true, Colors.White, Colors.Black),
             };
             var second = new List<IFontAndColorsInfo>
@@ -117,15 +173,19 @@ namespace FineCodeCoverageTests.Editor.Management
                 FontAndColorsInfoFactory.CreateFontAndColorsInfo(true, Colors.Green, Colors.Red,equal),
                 FontAndColorsInfoFactory.CreateFontAndColorsInfo(true, Colors.Blue, Colors.Orange,equal),
                 FontAndColorsInfoFactory.CreateFontAndColorsInfo(false, Colors.Pink, Colors.Gray,equal),
+                FontAndColorsInfoFactory.CreateFontAndColorsInfo(true, Colors.White, Colors.Black,equal),
+                FontAndColorsInfoFactory.CreateFontAndColorsInfo(true, Colors.White, Colors.Black,equal),
             };
+
             mockFontsAndColorsHelper.SetupSequence(
                 fontsAndColorsHelper => fontsAndColorsHelper.GetInfosAsync(
-                    editorTextMarkerFontAndColorCategory,
-                    new List<string> { "Coverage Touched Area", "Coverage Not Touched Area", "Coverage Partially Touched Area" })
+                    coverageFontAndColorsCategoryItemNames.Guid1,
+                    new List<string> { "Covered", "NotCovered", "PartiallyCovered", "Dirty", "NewLines" })
                 ).ReturnsAsync(first).ReturnsAsync(second);
 
             autoMoqer.SetInstance<IThreadHelper>(new TestThreadHelper());
             var fontAndColorsInfosProvider = autoMoqer.Create<FontAndColorsInfosProvider>();
+            fontAndColorsInfosProvider.CoverageFontAndColorsCategoryItemNames = coverageFontAndColorsCategoryItemNames;
 
             fontAndColorsInfosProvider.GetChangedFontAndColorsInfos();
             fontAndColorsInfosProvider.GetChangedFontAndColorsInfos();
@@ -136,39 +196,46 @@ namespace FineCodeCoverageTests.Editor.Management
         [Test]
         public void GetFontAndColorsInfos_Should_Return_All()
         {
-            throw new System.NotImplementedException();
-            //var autoMoqer = new AutoMoqer();
-            //var mockFontsAndColorsHelper = autoMoqer.GetMock<IFontsAndColorsHelper>();
-            //var editorTextMarkerFontAndColorCategory = new Guid("FF349800-EA43-46C1-8C98-878E78F46501");
-            //var first = new List<IFontAndColorsInfo>
-            //{
-            //    FontAndColorsInfoFactory.CreateFontAndColorsInfo(true, Colors.Green, Colors.Red),
-            //    FontAndColorsInfoFactory.CreateFontAndColorsInfo(false, Colors.Blue, Colors.Orange),
-            //    FontAndColorsInfoFactory.CreateFontAndColorsInfo(true, Colors.White, Colors.Black),
-            //};
+            var coverageFontAndColorsCategoryItemNames = new CoverageFontAndColorsCategoryItemNames(true);
+            var autoMoqer = new AutoMoqer();
+            var mockFontsAndColorsHelper = autoMoqer.GetMock<IFontsAndColorsHelper>();
+            var first = new List<IFontAndColorsInfo>
+            {
+                FontAndColorsInfoFactory.CreateFontAndColorsInfo(true, Colors.Green, Colors.Red),
+                FontAndColorsInfoFactory.CreateFontAndColorsInfo(false, Colors.Blue, Colors.Orange),
+                FontAndColorsInfoFactory.CreateFontAndColorsInfo(true, Colors.White, Colors.Black),
+                FontAndColorsInfoFactory.CreateFontAndColorsInfo(true, Colors.Blue, Colors.AliceBlue),
+                FontAndColorsInfoFactory.CreateFontAndColorsInfo(true, Colors.Goldenrod, Colors.GreenYellow),
+            };
 
-            //mockFontsAndColorsHelper.Setup(
-            //    fontsAndColorsHelper => fontsAndColorsHelper.GetInfosAsync(
-            //        editorTextMarkerFontAndColorCategory,
-            //        new List<string> { "Coverage Touched Area", "Coverage Not Touched Area", "Coverage Partially Touched Area" })
-            //    ).ReturnsAsync(first);
+            mockFontsAndColorsHelper.Setup(
+                fontsAndColorsHelper => fontsAndColorsHelper.GetInfosAsync(
+                    coverageFontAndColorsCategoryItemNames.Guid1,
+                    new List<string> { "Covered", "NotCovered", "PartiallyCovered", "Dirty", "NewLines" })
+                ).ReturnsAsync(first);
 
-            //autoMoqer.SetInstance<IThreadHelper>(new TestThreadHelper());
-            //var fontAndColorsInfosProvider = autoMoqer.Create<FontAndColorsInfosProvider>();
+            autoMoqer.SetInstance<IThreadHelper>(new TestThreadHelper());
+            var fontAndColorsInfosProvider = autoMoqer.Create<FontAndColorsInfosProvider>();
+            fontAndColorsInfosProvider.CoverageFontAndColorsCategoryItemNames = coverageFontAndColorsCategoryItemNames;
+            fontAndColorsInfosProvider.GetChangedFontAndColorsInfos();
 
-            //fontAndColorsInfosProvider.GetChangedFontAndColorsInfos();
-
-            //var fontAndColorsInfos = fontAndColorsInfosProvider.GetFontAndColorsInfos();
-            //Assert.That(fontAndColorsInfos.Count, Is.EqualTo(3));
-            //Assert.That(fontAndColorsInfos[CoverageType.Covered].IsBold, Is.True);
-            //Assert.That(fontAndColorsInfos[CoverageType.Covered].ItemCoverageColours.Foreground, Is.EqualTo(Colors.Green));
-            //Assert.That(fontAndColorsInfos[CoverageType.Covered].ItemCoverageColours.Background, Is.EqualTo(Colors.Red));
-            //Assert.That(fontAndColorsInfos[CoverageType.NotCovered].IsBold, Is.False);
-            //Assert.That(fontAndColorsInfos[CoverageType.NotCovered].ItemCoverageColours.Foreground, Is.EqualTo(Colors.Blue));
-            //Assert.That(fontAndColorsInfos[CoverageType.NotCovered].ItemCoverageColours.Background, Is.EqualTo(Colors.Orange));
-            //Assert.That(fontAndColorsInfos[CoverageType.Partial].IsBold, Is.True);
-            //Assert.That(fontAndColorsInfos[CoverageType.Partial].ItemCoverageColours.Foreground, Is.EqualTo(Colors.White));
-            //Assert.That(fontAndColorsInfos[CoverageType.Partial].ItemCoverageColours.Background, Is.EqualTo(Colors.Black));
+            var fontAndColorsInfos = fontAndColorsInfosProvider.GetFontAndColorsInfos();
+            Assert.That(fontAndColorsInfos.Count, Is.EqualTo(5));
+            Assert.That(fontAndColorsInfos[DynamicCoverageType.Covered].IsBold, Is.True);
+            Assert.That(fontAndColorsInfos[DynamicCoverageType.Covered].ItemCoverageColours.Foreground, Is.EqualTo(Colors.Green));
+            Assert.That(fontAndColorsInfos[DynamicCoverageType.Covered].ItemCoverageColours.Background, Is.EqualTo(Colors.Red));
+            Assert.That(fontAndColorsInfos[DynamicCoverageType.NotCovered].IsBold, Is.False);
+            Assert.That(fontAndColorsInfos[DynamicCoverageType.NotCovered].ItemCoverageColours.Foreground, Is.EqualTo(Colors.Blue));
+            Assert.That(fontAndColorsInfos[DynamicCoverageType.NotCovered].ItemCoverageColours.Background, Is.EqualTo(Colors.Orange));
+            Assert.That(fontAndColorsInfos[DynamicCoverageType.Partial].IsBold, Is.True);
+            Assert.That(fontAndColorsInfos[DynamicCoverageType.Partial].ItemCoverageColours.Foreground, Is.EqualTo(Colors.White));
+            Assert.That(fontAndColorsInfos[DynamicCoverageType.Partial].ItemCoverageColours.Background, Is.EqualTo(Colors.Black));
+            Assert.That(fontAndColorsInfos[DynamicCoverageType.Dirty].IsBold, Is.True);
+            Assert.That(fontAndColorsInfos[DynamicCoverageType.Dirty].ItemCoverageColours.Foreground, Is.EqualTo(Colors.Blue));
+            Assert.That(fontAndColorsInfos[DynamicCoverageType.Dirty].ItemCoverageColours.Background, Is.EqualTo(Colors.AliceBlue));
+            Assert.That(fontAndColorsInfos[DynamicCoverageType.NewLine].IsBold, Is.True);
+            Assert.That(fontAndColorsInfos[DynamicCoverageType.NewLine].ItemCoverageColours.Foreground, Is.EqualTo(Colors.Goldenrod));
+            Assert.That(fontAndColorsInfos[DynamicCoverageType.NewLine].ItemCoverageColours.Background, Is.EqualTo(Colors.GreenYellow));
         }
     }
 }

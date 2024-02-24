@@ -1,38 +1,101 @@
 ﻿using AutoMoq;
+using Castle.Core.Internal;
 using FineCodeCoverage.Editor.Management;
 using FineCodeCoverage.Engine.Model;
+using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Formatting;
 using Microsoft.VisualStudio.TextManager.Interop;
+using Microsoft.VisualStudio.Utilities;
 using Moq;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.Composition;
 using System.Linq;
+using System.Reflection;
 
 namespace FineCodeCoverageTests.Editor.Management
 {
     internal class CoverageColoursManager_Tests
     {
+        private IEnumerable<PropertyInfo> GetEditorFormatDefinitionProperties()
+        {
+            return typeof(CoverageColoursManager).GetProperties().Where(p => p.PropertyType == typeof(EditorFormatDefinition));
+        }
+
+        private IEnumerable<string> GetEditorFormatDefinitionNames()
+        {
+            return GetEditorFormatDefinitionProperties().Select(p => p.GetAttribute<NameAttribute>().Name);
+        }
+
+        [Test]
+        public void Should_Export_5_UserVisible_EditorFormatDefinitions()
+        {
+            var editorFormatDefinitionProperties = GetEditorFormatDefinitionProperties().ToList();
+            
+            Assert.That(editorFormatDefinitionProperties.Count, Is.EqualTo(5));
+            editorFormatDefinitionProperties.ForEach(p =>
+            {
+                Assert.That(p.GetAttribute<ExportAttribute>(), Is.Not.Null);
+                Assert.That(p.GetAttribute<NameAttribute>(), Is.Not.Null);
+                Assert.That(p.GetAttribute<UserVisibleAttribute>().UserVisible, Is.True);
+            });
+        }
+
         [Test]
         public void Should_Listen_For_EditorFormatMap_Text_Changes_To_Markers_And_EditorFormatDefinitions()
         {
             var autoMoqer = new AutoMoqer();
 
             var coverageColoursManager = autoMoqer.Create<CoverageColoursManager>();
-
+           
+            var expectedListenFor = new List<string>
+            {
+                "Coverage Touched Area",
+                "Coverage Not Touched Area",
+                "Coverage Partially Touched Area",
+            }.Concat(GetEditorFormatDefinitionNames()).OrderByDescending(v => v);
+            
             autoMoqer.Verify<IEditorFormatMapTextSpecificListener>(
                 editorFormatMapTextSpecificListener => editorFormatMapTextSpecificListener.ListenFor(
-                    new List<string> { 
-                        "Coverage Touched Area", 
-                        "Coverage Not Touched Area", 
-                        "Coverage Partially Touched Area",
-                        "Coverage Touched Area FCC",
-                        "Coverage Not Touched Area FCC",
-                         "Coverage Partially Touched Area FCC",
-                         "Coverage New Lines Area FCC",
-                         "Coverage Dirty Area FCC"
-                    }, It.IsAny<Action>()
+                    It.Is<List<string>>(listenedFor => expectedListenFor.SequenceEqual(listenedFor.OrderByDescending(v => v))), It.IsAny<Action>()
                 ));
+        }
+
+        [Test]
+        public void Should_Initialize_ICoverageFontAndColorsCategoryItemNamesManager_With_FCCEditorFormatDefinitionNames()
+        {
+            var autoMoqer = new AutoMoqer();
+
+            autoMoqer.Create<CoverageColoursManager>();
+
+            var fccEditorFormatDefinitionNames = (FCCEditorFormatDefinitionNames)autoMoqer.GetMock<ICoverageFontAndColorsCategoryItemNamesManager>()
+                .Invocations.Where(i => i.Method.Name == nameof(ICoverageFontAndColorsCategoryItemNamesManager.Initialize)).Single().Arguments[0];
+            var names = new List<string> {
+                fccEditorFormatDefinitionNames.NewLines,
+                fccEditorFormatDefinitionNames.Dirty,
+                fccEditorFormatDefinitionNames.PartiallyCovered,
+                fccEditorFormatDefinitionNames.Covered,
+                fccEditorFormatDefinitionNames.NotCovered
+            }.OrderByDescending(n => n).ToList();
+
+            Assert.That(names.SequenceEqual(GetEditorFormatDefinitionNames().Distinct().OrderByDescending(n => n)), Is.True);
+        }
+
+        [Test]
+        public void Should_Set_FontAndColorsInfosProvider_CoverageFontAndColorsCategoryItemNames_From_The_Manager()
+        {
+            var autoMoqer = new AutoMoqer();
+            var coverageFontAndColorsCategoryItemNames = new Mock<ICoverageFontAndColorsCategoryItemNames>().Object;
+            autoMoqer.Setup<ICoverageFontAndColorsCategoryItemNamesManager, ICoverageFontAndColorsCategoryItemNames>(
+                coverageFontAndColorsCategoryItemNamesManager => coverageFontAndColorsCategoryItemNamesManager.ItemNames)
+                .Returns(coverageFontAndColorsCategoryItemNames);
+
+            autoMoqer.Create<CoverageColoursManager>();
+
+            var mockFontAndColorsInfosProvider = autoMoqer.GetMock<IFontAndColorsInfosProvider>();
+            mockFontAndColorsInfosProvider.VerifySet(fontAndColorsInfosProvider => fontAndColorsInfosProvider.CoverageFontAndColorsCategoryItemNames = coverageFontAndColorsCategoryItemNames);
+                               
         }
 
         [TestCase(true)]

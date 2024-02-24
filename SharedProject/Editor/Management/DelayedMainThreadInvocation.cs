@@ -1,10 +1,12 @@
 ﻿using Microsoft.VisualStudio.Shell;
 using System;
 using System.ComponentModel.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 
 namespace FineCodeCoverage.Editor.Management
 {
+    [ExcludeFromCodeCoverage]
     [Export(typeof(IDelayedMainThreadInvocation))]
     internal class DelayedMainThreadInvocation : IDelayedMainThreadInvocation
     {

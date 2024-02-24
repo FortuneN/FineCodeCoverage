@@ -285,7 +285,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Editor\Management\CoverageClassificationTypeService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editor\Management\CoverageColours.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editor\Management\CoverageColoursChangedMessage.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Editor\Management\CoverageMarkerType.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editor\Management\CoverageTypeColour.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editor\Management\EditorFormatMapTextSpecificListener.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editor\Management\FontAndColorsInfo.cs" />
