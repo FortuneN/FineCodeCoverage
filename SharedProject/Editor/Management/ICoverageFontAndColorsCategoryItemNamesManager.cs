@@ -6,6 +6,6 @@ namespace FineCodeCoverage.Editor.Management
     {
         event EventHandler Changed;
         void Initialize(FCCEditorFormatDefinitionNames fCCEditorFormatDefinitionNames);
-        ICoverageFontAndColorsCategoryItemNames ItemNames { get; }
+        ICoverageFontAndColorsCategoryItemNames CategoryItemNames { get; }
     }
 }

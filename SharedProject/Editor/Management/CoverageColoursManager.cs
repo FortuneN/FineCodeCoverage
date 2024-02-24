@@ -79,7 +79,7 @@ namespace FineCodeCoverage.Editor.Management
             {
                 Changed();
             };
-            fontAndColorsInfosProvider.CoverageFontAndColorsCategoryItemNames = coverageFontAndColorsCategoryItemNamesManager.ItemNames;
+            fontAndColorsInfosProvider.CoverageFontAndColorsCategoryItemNames = coverageFontAndColorsCategoryItemNamesManager.CategoryItemNames;
            
             this.editorFormatMapTextSpecificListener.ListenFor(
                 new List<string> {

@@ -231,7 +231,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Editor\DynamicCoverage\TrackedNewLineFactory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editor\DynamicCoverage\TrackingSpanRangeProcessResult.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editor\Management\ColoursClassificationFormatDefinition.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Editor\Management\CoverageFontAndColorsCategoryItemNames.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Editor\Management\CoverageFontAndColorsCategoryItemNamesManager.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editor\Management\DelayedMainThreadInvocation.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editor\Management\FCCEditorFormatDefinitionNames.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editor\Management\FontAndColorsCategoryItemName.cs" />

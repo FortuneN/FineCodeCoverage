@@ -6,7 +6,7 @@ namespace FineCodeCoverage.Editor.Management
 {
     [Export(typeof(ICoverageFontAndColorsCategoryItemNames))]
     [Export(typeof(ICoverageFontAndColorsCategoryItemNamesManager))]
-    internal class CoverageFontAndColorsCategoryItemNames : ICoverageFontAndColorsCategoryItemNames, ICoverageFontAndColorsCategoryItemNamesManager
+    internal class CoverageFontAndColorsCategoryItemNamesManager : ICoverageFontAndColorsCategoryItemNames, ICoverageFontAndColorsCategoryItemNamesManager
     {
         private readonly Guid EditorTextMarkerFontAndColorCategory = new Guid("FF349800-EA43-46C1-8C98-878E78F46501");
         private readonly Guid EditorMEFCategory = new Guid("75A05685-00A8-4DED-BAE5-E7A50BFA929A");
@@ -19,7 +19,7 @@ namespace FineCodeCoverage.Editor.Management
         public event EventHandler Changed;
 
         [ImportingConstructor]
-        public CoverageFontAndColorsCategoryItemNames(
+        public CoverageFontAndColorsCategoryItemNamesManager(
            IVsHasCoverageMarkersLogic vsHasCoverageMarkersLogic,
             IAppOptionsProvider appOptionsProvider
         )
@@ -84,15 +84,15 @@ namespace FineCodeCoverage.Editor.Management
 
         private void SetFCCOnly()
         {
-            NewLines = CreatedMef(fCCEditorFormatDefinitionNames.NewLines);
-            Dirty = CreatedMef(fCCEditorFormatDefinitionNames.Dirty);
+            NewLines = CreateMef(fCCEditorFormatDefinitionNames.NewLines);
+            Dirty = CreateMef(fCCEditorFormatDefinitionNames.Dirty);
         }
 
         private void SetMarkersFromFCC()
         {
-            Covered = CreatedMef(fCCEditorFormatDefinitionNames.Covered);
-            NotCovered = CreatedMef(fCCEditorFormatDefinitionNames.NotCovered);
-            PartiallyCovered = CreatedMef(fCCEditorFormatDefinitionNames.PartiallyCovered);
+            Covered = CreateMef(fCCEditorFormatDefinitionNames.Covered);
+            NotCovered = CreateMef(fCCEditorFormatDefinitionNames.NotCovered);
+            PartiallyCovered = CreateMef(fCCEditorFormatDefinitionNames.PartiallyCovered);
         }
 
         private void SetMarkersFromEnterprise()
@@ -102,7 +102,7 @@ namespace FineCodeCoverage.Editor.Management
             PartiallyCovered = CreateEnterprise(MarkerTypeNames.PartiallyCovered);
         }
 
-        private FontAndColorsCategoryItemName CreatedMef(string itemName)
+        private FontAndColorsCategoryItemName CreateMef(string itemName)
         {
             return new FontAndColorsCategoryItemName(itemName, EditorMEFCategory);
         }
@@ -118,7 +118,7 @@ namespace FineCodeCoverage.Editor.Management
         public FontAndColorsCategoryItemName NewLines { get; private set; }
         public FontAndColorsCategoryItemName Dirty { get; private set; }
 
-        public ICoverageFontAndColorsCategoryItemNames ItemNames => this;
+        public ICoverageFontAndColorsCategoryItemNames CategoryItemNames => this;
     }
 
 }

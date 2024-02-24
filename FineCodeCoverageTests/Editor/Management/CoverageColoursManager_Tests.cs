@@ -1,10 +1,10 @@
 ﻿using AutoMoq;
 using Castle.Core.Internal;
+using FineCodeCoverage.Editor.DynamicCoverage;
 using FineCodeCoverage.Editor.Management;
-using FineCodeCoverage.Engine.Model;
+using FineCodeCoverageTests.Test_helpers;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Formatting;
-using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Utilities;
 using Moq;
 using NUnit.Framework;
@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
 using System.Reflection;
+using FineCodeCoverageTests.TestHelpers;
 
 namespace FineCodeCoverageTests.Editor.Management
 {
@@ -26,6 +27,12 @@ namespace FineCodeCoverageTests.Editor.Management
         private IEnumerable<string> GetEditorFormatDefinitionNames()
         {
             return GetEditorFormatDefinitionProperties().Select(p => p.GetAttribute<NameAttribute>().Name);
+        }
+
+        [Test]
+        public void Should_Export_IInitializable()
+        {
+            ExportsInitializable.Should_Export_IInitializable(typeof(CoverageColoursManager));
         }
 
         [Test]
@@ -88,7 +95,7 @@ namespace FineCodeCoverageTests.Editor.Management
             var autoMoqer = new AutoMoqer();
             var coverageFontAndColorsCategoryItemNames = new Mock<ICoverageFontAndColorsCategoryItemNames>().Object;
             autoMoqer.Setup<ICoverageFontAndColorsCategoryItemNamesManager, ICoverageFontAndColorsCategoryItemNames>(
-                coverageFontAndColorsCategoryItemNamesManager => coverageFontAndColorsCategoryItemNamesManager.ItemNames)
+                coverageFontAndColorsCategoryItemNamesManager => coverageFontAndColorsCategoryItemNamesManager.CategoryItemNames)
                 .Returns(coverageFontAndColorsCategoryItemNames);
 
             autoMoqer.Create<CoverageColoursManager>();
@@ -98,116 +105,133 @@ namespace FineCodeCoverageTests.Editor.Management
                                
         }
 
-        [TestCase(true)]
-        [TestCase(false)]
-        public void Should_Set_Classification_Type_Colors_When_Changes_Pausing_Listening_For_Changes(bool executePauseListeningWhenExecuting)
+        [Test]
+        public void Should_Delayed_Set_Classification_Type_Colors()
         {
-            throw new System.NotImplementedException();
-            //var autoMoqer = new AutoMoqer();
+            var autoMoqer = new AutoMoqer();
+            var partialFontAndColorsInfo = new Mock<IFontAndColorsInfo>().Object;
+            var partialTextFormattingRunProperties = TextFormattingRunProperties.CreateTextFormattingRunProperties().SetBold(true);
+            var mockTextFormattingRunPropertiesFactory = autoMoqer.GetMock<ITextFormattingRunPropertiesFactory>();
+            mockTextFormattingRunPropertiesFactory.Setup(textFormattingRunPropertiesFactory => textFormattingRunPropertiesFactory.Create(
+                partialFontAndColorsInfo
+                )).Returns(partialTextFormattingRunProperties);
 
-            //var coverageColoursManager = autoMoqer.Create<CoverageColoursManager>();
-            //var changedFontAndColorsInfos = new Dictionary<CoverageType, IFontAndColorsInfo>
-            //{
-            //    { CoverageType.Covered, new Mock<IFontAndColorsInfo>().Object },
-            //    { CoverageType.NotCovered, new Mock<IFontAndColorsInfo>().Object },
-            //    { CoverageType.Partial, new Mock<IFontAndColorsInfo>().Object }
-            //};
-            //var coverageTypes = changedFontAndColorsInfos.Keys.ToList();
-            //autoMoqer.Setup<IFontAndColorsInfosProvider, Dictionary<CoverageType, IFontAndColorsInfo>>(
-            //    fontAndColorsInfosProvider => fontAndColorsInfosProvider.GetChangedFontAndColorsInfos()
-            //).Returns(changedFontAndColorsInfos);
-            //var mockTextFormattingRunPropertiesFactory = autoMoqer.GetMock<ITextFormattingRunPropertiesFactory>();
-            //var changedTextFormattingRunProperties = new List<TextFormattingRunProperties>
-            //{
-            //    TextFormattingRunProperties.CreateTextFormattingRunProperties(),
-            //    TextFormattingRunProperties.CreateTextFormattingRunProperties().SetBold(true),
-            //    TextFormattingRunProperties.CreateTextFormattingRunProperties().SetItalic(true)
-            //};
-            //var count = 0;
-            //foreach (var change in changedFontAndColorsInfos)
-            //{
-            //    mockTextFormattingRunPropertiesFactory.Setup(
-            //        textFormattingRunPropertiesFactory => textFormattingRunPropertiesFactory.Create(change.Value)
-            //    )
-            //    .Returns(changedTextFormattingRunProperties[count]);
-            //    count++;
-            //}
+            var coverageColoursManager = autoMoqer.Create<CoverageColoursManager>();
+            autoMoqer.Setup<IFontAndColorsInfosProvider, Dictionary<DynamicCoverageType, IFontAndColorsInfo>>(
+                fontAndColorsInfosProvider => fontAndColorsInfosProvider.GetFontAndColorsInfos()
+            ).Returns(new Dictionary<DynamicCoverageType, IFontAndColorsInfo> { { DynamicCoverageType.Partial, partialFontAndColorsInfo } });
 
-            //var mockEditorFormatMapTextSpecificListener = autoMoqer.GetMock<IEditorFormatMapTextSpecificListener>();
-            //if (executePauseListeningWhenExecuting)
-            //{
-            //    mockEditorFormatMapTextSpecificListener.Setup(efmtsl => efmtsl.PauseListeningWhenExecuting(It.IsAny<Action>())).Callback<Action>(action => action());
-            //}
-            //var listener = mockEditorFormatMapTextSpecificListener.Invocations[0].Arguments[1] as Action;
-            //listener();
+            var mockEditorFormatMapTextSpecificListener = autoMoqer.GetMock<IEditorFormatMapTextSpecificListener>();
+            mockEditorFormatMapTextSpecificListener.Setup(efmtsl => efmtsl.PauseListeningWhenExecuting(It.IsAny<Action>())).Callback<Action>(action => action());
+            var mockCoverageTextMarkerInitializeTiming = autoMoqer.GetMock<IDelayedMainThreadInvocation>();
+            (mockCoverageTextMarkerInitializeTiming.Invocations[0].Arguments[0] as Action)();
+
+            autoMoqer.Verify<ICoverageClassificationColourService>(
+                coverageClassificationColourService => coverageClassificationColourService.SetCoverageColours(
+                    It.IsAny<IEnumerable<ICoverageTypeColour>>()
+                ),
+                Times.Once()
+            );
+            
+            var coverageTypeColours = autoMoqer.GetMock<ICoverageClassificationColourService>()
+                .Invocations.GetMethodInvocationSingleArgument<IEnumerable<ICoverageTypeColour>>(nameof(ICoverageClassificationColourService.SetCoverageColours)).First().ToList();
+            Assert.That(coverageTypeColours.Count, Is.EqualTo(1));
+            var coverageTypeColour = coverageTypeColours[0];
+            Assert.That(coverageTypeColour.CoverageType, Is.EqualTo(DynamicCoverageType.Partial));
+            Assert.That(coverageTypeColour.TextFormattingRunProperties, Is.SameAs(partialTextFormattingRunProperties));
+        }
+
+        private void Should_Set_Classification_Type_Colors_When_Changes_Pausing_Listening_For_Changes(Action<AutoMoqer> changer)
+        {
+            var autoMoqer = new AutoMoqer();
+
+            var coverageColoursManager = autoMoqer.Create<CoverageColoursManager>();
+            var changedFontAndColorsInfos = new Dictionary<DynamicCoverageType, IFontAndColorsInfo>
+            {
+                { DynamicCoverageType.Covered, new Mock<IFontAndColorsInfo>().Object },
+                { DynamicCoverageType.NotCovered, new Mock<IFontAndColorsInfo>().Object },
+                { DynamicCoverageType.Partial, new Mock<IFontAndColorsInfo>().Object }
+            };
+            var coverageTypes = changedFontAndColorsInfos.Keys.ToList();
+            autoMoqer.Setup<IFontAndColorsInfosProvider, Dictionary<DynamicCoverageType, IFontAndColorsInfo>>(
+                fontAndColorsInfosProvider => fontAndColorsInfosProvider.GetChangedFontAndColorsInfos()
+            ).Returns(changedFontAndColorsInfos);
+            var mockTextFormattingRunPropertiesFactory = autoMoqer.GetMock<ITextFormattingRunPropertiesFactory>();
+            var changedTextFormattingRunProperties = new List<TextFormattingRunProperties>
+            {
+                TextFormattingRunProperties.CreateTextFormattingRunProperties(),
+                TextFormattingRunProperties.CreateTextFormattingRunProperties().SetBold(true),
+                TextFormattingRunProperties.CreateTextFormattingRunProperties().SetItalic(true)
+            };
+            var count = 0;
+            foreach (var change in changedFontAndColorsInfos)
+            {
+                mockTextFormattingRunPropertiesFactory.Setup(
+                    textFormattingRunPropertiesFactory => textFormattingRunPropertiesFactory.Create(change.Value)
+                )
+                .Returns(changedTextFormattingRunProperties[count]);
+                count++;
+            }
+
+            var mockEditorFormatMapTextSpecificListener = autoMoqer.GetMock<IEditorFormatMapTextSpecificListener>();
+            mockEditorFormatMapTextSpecificListener.Setup(efmtsl => efmtsl.PauseListeningWhenExecuting(It.IsAny<Action>())).Callback<Action>(action => action());
+
+            changer(autoMoqer);
 
 
-            //if (executePauseListeningWhenExecuting)
-            //{
-            //    var coverageTypeColours = (autoMoqer.GetMock<ICoverageClassificationColourService>().Invocations[0].Arguments[0] as IEnumerable<ICoverageTypeColour>).ToList();
-            //    Assert.That(coverageTypeColours.Count, Is.EqualTo(3));
-            //    count = 0;
-            //    foreach (var coverageTypeColour in coverageTypeColours)
-            //    {
-            //        Assert.That(coverageTypeColour.CoverageType, Is.EqualTo(coverageTypes[count]));
-            //        Assert.That(coverageTypeColour.TextFormattingRunProperties, Is.SameAs(changedTextFormattingRunProperties[count]));
-            //        count++;
-            //    }
-            //}
-            //else
-            //{
-            //    autoMoqer.Verify<ICoverageClassificationColourService>(
-            //        coverageClassificationColourService => coverageClassificationColourService.SetCoverageColours(
-            //            It.IsAny<IEnumerable<ICoverageTypeColour>>()), Times.Never());
-            //}
+            var coverageTypeColours = (autoMoqer.GetMock<ICoverageClassificationColourService>().Invocations[0].Arguments[0] as IEnumerable<ICoverageTypeColour>).ToList();
+            Assert.That(coverageTypeColours.Count, Is.EqualTo(3));
+            count = 0;
+            foreach (var coverageTypeColour in coverageTypeColours)
+            {
+                Assert.That(coverageTypeColour.CoverageType, Is.EqualTo(coverageTypes[count]));
+                Assert.That(coverageTypeColour.TextFormattingRunProperties, Is.SameAs(changedTextFormattingRunProperties[count]));
+                count++;
+            }
+
+            mockEditorFormatMapTextSpecificListener.VerifyAll();
+        }
+
+        [Test]
+        public void Should_Set_Classification_Type_Colors_When_EditorFormatMap_Changes_Pausing_Listening_For_Changes()
+        {
+            Should_Set_Classification_Type_Colors_When_Changes_Pausing_Listening_For_Changes(autoMoqer =>
+            {
+                var mockEditorFormatMapTextSpecificListener = autoMoqer.GetMock<IEditorFormatMapTextSpecificListener>();
+                var listener = mockEditorFormatMapTextSpecificListener.Invocations[0].Arguments[1] as Action;
+                listener();
+            });
         }
 
         [Test]
         public void Should_Not_Set_Classification_Type_Colors_When_No_Changes()
         {
-            throw new System.NotImplementedException();
-            //var autoMoqer = new AutoMoqer();
+            var autoMoqer = new AutoMoqer();
 
-            //var coverageColoursManager = autoMoqer.Create<CoverageColoursManager>();
-            //autoMoqer.Setup<IFontAndColorsInfosProvider, Dictionary<CoverageType, IFontAndColorsInfo>>(
-            //    fontAndColorsInfosProvider => fontAndColorsInfosProvider.GetChangedFontAndColorsInfos()
-            //               ).Returns(new Dictionary<CoverageType, IFontAndColorsInfo>());
-            //var mockEditorFormatMapTextSpecificListener = autoMoqer.GetMock<IEditorFormatMapTextSpecificListener>();
-            //var listener = mockEditorFormatMapTextSpecificListener.Invocations[0].Arguments[1] as Action;
-            //listener();
+            var coverageColoursManager = autoMoqer.Create<CoverageColoursManager>();
+            autoMoqer.Setup<IFontAndColorsInfosProvider, Dictionary<DynamicCoverageType, IFontAndColorsInfo>>(
+                fontAndColorsInfosProvider => fontAndColorsInfosProvider.GetChangedFontAndColorsInfos()
+                           ).Returns(new Dictionary<DynamicCoverageType, IFontAndColorsInfo>());
+            var mockEditorFormatMapTextSpecificListener = autoMoqer.GetMock<IEditorFormatMapTextSpecificListener>();
+            var listener = mockEditorFormatMapTextSpecificListener.Invocations[0].Arguments[1] as Action;
+            listener();
 
-            //autoMoqer.Verify<ICoverageClassificationColourService>(
-            //    coverageClassificationColourService => coverageClassificationColourService.SetCoverageColours(
-            //        It.IsAny<IEnumerable<ICoverageTypeColour>>()
-            //    ),
-            //    Times.Never()
-            //);
+            autoMoqer.Verify<ICoverageClassificationColourService>(
+                coverageClassificationColourService => coverageClassificationColourService.SetCoverageColours(
+                    It.IsAny<IEnumerable<ICoverageTypeColour>>()
+                ),
+                Times.Never()
+            );
         }
 
         [Test]
-        public void Should_Initially_Set_Classification_Type_Colors_If_Has_Not_Already_Set()
+        public void Should_Set_Classification_Type_Colours_When_CoverageFontAndColorsCategoryItemNamesManager_Changed()
         {
-            throw new System.NotImplementedException();
-            //var autoMoqer = new AutoMoqer();
-
-            //var coverageColoursManager = autoMoqer.Create<CoverageColoursManager>();
-            //autoMoqer.Setup<IFontAndColorsInfosProvider, Dictionary<CoverageType, IFontAndColorsInfo>>(
-            //    fontAndColorsInfosProvider => fontAndColorsInfosProvider.GetFontAndColorsInfos()
-            //).Returns(new Dictionary<CoverageType, IFontAndColorsInfo> { { CoverageType.Partial, new Mock<IFontAndColorsInfo>().Object } });
-
-            //var mockEditorFormatMapTextSpecificListener = autoMoqer.GetMock<IEditorFormatMapTextSpecificListener>();
-            //mockEditorFormatMapTextSpecificListener.Setup(efmtsl => efmtsl.PauseListeningWhenExecuting(It.IsAny<Action>())).Callback<Action>(action => action());
-            //var mockCoverageTextMarkerInitializeTiming = autoMoqer.GetMock<ICoverageTextMarkerInitializeTiming>();
-            //(mockCoverageTextMarkerInitializeTiming.Invocations[0].Arguments[0] as ICoverageInitializable).Initialize();
-
-            //autoMoqer.Verify<ICoverageClassificationColourService>(
-            //    coverageClassificationColourService => coverageClassificationColourService.SetCoverageColours(
-            //        It.IsAny<IEnumerable<ICoverageTypeColour>>()
-            //    ),
-            //    Times.Once()
-            //);
+            Should_Set_Classification_Type_Colors_When_Changes_Pausing_Listening_For_Changes(autoMoqer =>
+            {
+                var mockCoverageFontAndColorsCategoryItemNamesManager = autoMoqer.GetMock<ICoverageFontAndColorsCategoryItemNamesManager>();
+                mockCoverageFontAndColorsCategoryItemNamesManager.Raise(mgr => mgr.Changed += null, EventArgs.Empty);
+            });
         }
-
-        
     }
 }

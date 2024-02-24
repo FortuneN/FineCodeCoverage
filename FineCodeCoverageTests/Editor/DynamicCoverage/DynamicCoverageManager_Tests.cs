@@ -4,6 +4,7 @@ using FineCodeCoverage.Core.Utilities;
 using FineCodeCoverage.Editor.DynamicCoverage;
 using FineCodeCoverage.Engine;
 using FineCodeCoverage.Engine.Model;
+using FineCodeCoverageTests.Test_helpers;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
@@ -19,10 +20,7 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
         [Test]
         public void Should_Export_IInitializable()
         {
-            var dynamicCoverageManagerType = typeof(DynamicCoverageManager);
-            var exportsIInitializable = dynamicCoverageManagerType.GetCustomAttributes(typeof(ExportAttribute),false).Any(ea => (ea as ExportAttribute).ContractType == typeof(IInitializable));
-            Assert.That(exportsIInitializable, Is.True);
-            Assert.That(dynamicCoverageManagerType.GetInterfaces().Any(i => i == typeof(IInitializable)), Is.True);
+            ExportsInitializable.Should_Export_IInitializable(typeof(DynamicCoverageManager));
         }
 
         [Test]

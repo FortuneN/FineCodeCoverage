@@ -79,6 +79,7 @@
     <Compile Include="Editor\DynamicCoverage\TrackedNewCodeLine_Tests.cs" />
     <Compile Include="Editor\DynamicCoverage\LineTracker_Tests.cs" />
     <Compile Include="Editor\Management\CoverageClassificationTypeService_Tests.cs" />
+    <Compile Include="Editor\Management\CoverageFontAndColorsCategoryItemNames_Tests.cs" />
     <Compile Include="Editor\Management\FontsAndColorsHelper_Tests.cs" />
     <Compile Include="Editor\Management\VsHasCoverageMarkersLogic_Tests.cs" />
     <Compile Include="Editor\Roslyn\ContainingCodeVisitor_Tests_Base.cs" />
@@ -138,9 +139,11 @@
     <Compile Include="OpenCoverUtil_Tests.cs" />
     <Compile Include="PackageLoader_Tests.cs" />
     <Compile Include="ShownToolWindowHistory_Tests.cs" />
-    <Compile Include="Test helpers\MefOrderAssertions.cs" />
-    <Compile Include="Test helpers\TestThreadHelper.cs" />
-    <Compile Include="Test helpers\XmlAssert.cs" />
+    <Compile Include="TestHelpers\ExportsInitializable.cs" />
+    <Compile Include="TestHelpers\MefOrderAssertions.cs" />
+    <Compile Include="TestHelpers\MoqExtensions.cs" />
+    <Compile Include="TestHelpers\TestThreadHelper.cs" />
+    <Compile Include="TestHelpers\XmlAssert.cs" />
     <Compile Include="ToolFolder_Tests.cs" />
     <Compile Include="ToolUnzipper_Tests.cs" />
     <Compile Include="ToolZipProvider_Tests.cs" />
