@@ -183,6 +183,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\VsThreading\IThreadHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\XmlFileEscaper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\ZipFileWrapper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Editor\DynamicCoverage\DynamicCoverageType.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editor\DynamicCoverage\ITextSnapshotText.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editor\DynamicCoverage\LineExclusion\LineExcluder.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editor\DynamicCoverage\ContainingCodeTrackerProcessResult.cs" />
