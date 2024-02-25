@@ -19,7 +19,8 @@ namespace FineCodeCoverage.Editor.Tagging.Base
         private static IEnumerable<ILineSpan> GetApplicableLineSpans(SnapshotSpan snapshotSpan, IBufferLineCoverage bufferLineCoverage)
         {
             var applicableCoverageLines = GetApplicableCoverageLines(bufferLineCoverage, snapshotSpan);
-            return applicableCoverageLines.Select(applicableCoverageLine => new LineSpan(applicableCoverageLine, GetLineSnapshotSpan(applicableCoverageLine.Number, snapshotSpan)));
+            return applicableCoverageLines.Select(
+                applicableCoverageLine => new LineSpan(applicableCoverageLine, GetLineSnapshotSpan(applicableCoverageLine.Number, snapshotSpan)));
         }
 
         private static IEnumerable<IDynamicLine> GetApplicableCoverageLines(IBufferLineCoverage bufferLineCoverage,SnapshotSpan span)
@@ -30,14 +31,14 @@ namespace FineCodeCoverage.Editor.Tagging.Base
 
         private static (int, int) GetStartEndCoverageLineNumbers(SnapshotSpan span)
         {
-            var startLineNumber = span.Start.GetContainingLine().LineNumber + 1;
-            var endLineNumber = span.End.GetContainingLine().LineNumber + 1;
+            var startLineNumber = span.Start.GetContainingLine().LineNumber;
+            var endLineNumber = span.End.GetContainingLine().LineNumber;
             return (startLineNumber, endLineNumber);
         }
 
         private static SnapshotSpan GetLineSnapshotSpan(int lineNumber, SnapshotSpan originalSpan)
         {
-            var line = originalSpan.Snapshot.GetLineFromLineNumber(lineNumber - 1);
+            var line = originalSpan.Snapshot.GetLineFromLineNumber(lineNumber);
 
             var startPoint = line.Start;
             var endPoint = line.End;

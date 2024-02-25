@@ -25,9 +25,9 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
         public TrackedNewCodeLineUpdate Update(ITextSnapshot currentSnapshot)
         {
             var trackedLineInfo = lineTracker.GetTrackedLineInfo(trackingSpan, currentSnapshot, true);
-            var changed = line.ActualLineNumber != trackedLineInfo.LineNumber;
-            line.ActualLineNumber = trackedLineInfo.LineNumber;
-            return new TrackedNewCodeLineUpdate(trackedLineInfo.LineText, line.ActualLineNumber, changed);
+            var changed = line.Number != trackedLineInfo.LineNumber;
+            line.Number = trackedLineInfo.LineNumber;
+            return new TrackedNewCodeLineUpdate(trackedLineInfo.LineText, line.Number, changed);
         }
     }
 

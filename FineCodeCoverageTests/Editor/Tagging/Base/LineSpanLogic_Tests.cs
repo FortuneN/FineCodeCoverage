@@ -41,11 +41,11 @@ namespace FineCodeCoverageTests.Editor.Tagging.Base
                     mockDynamicLine.SetupGet(dynamicLine => dynamicLine.CoverageType).Returns(coverageType);
                     return mockDynamicLine.Object;
                 }
-                mockBufferLineCoverage.Setup(fileLineCoverage => fileLineCoverage.GetLines(1, 10)).Returns(new List<IDynamicLine>
+                mockBufferLineCoverage.Setup(fileLineCoverage => fileLineCoverage.GetLines(0, 9)).Returns(new List<IDynamicLine>
                 {
                     firstLine
                 });
-                mockBufferLineCoverage.Setup(fileLineCoverage => fileLineCoverage.GetLines(15, 20)).Returns(new List<IDynamicLine>
+                mockBufferLineCoverage.Setup(fileLineCoverage => fileLineCoverage.GetLines(14, 19)).Returns(new List<IDynamicLine>
                 {
                     secondLine
                 });
@@ -62,8 +62,8 @@ namespace FineCodeCoverageTests.Editor.Tagging.Base
                 mockTextSnapshot.Setup(textSnapshot => textSnapshot.GetLineFromPosition(299)).Returns(GetMockedLine(txtSnapshot, 19));
 
 
-                mockTextSnapshot.Setup(textSnapshot => textSnapshot.GetLineFromLineNumber(4)).Returns(GetMockedLine(txtSnapshot, 4, 50, 60));
-                mockTextSnapshot.Setup(textSnapshot => textSnapshot.GetLineFromLineNumber(16)).Returns(GetMockedLine(txtSnapshot, 16, 250, 260));
+                mockTextSnapshot.Setup(textSnapshot => textSnapshot.GetLineFromLineNumber(5)).Returns(GetMockedLine(txtSnapshot, 5, 50, 60));
+                mockTextSnapshot.Setup(textSnapshot => textSnapshot.GetLineFromLineNumber(17)).Returns(GetMockedLine(txtSnapshot, 17, 250, 260));
 
                 // is a normalized span collection linked to the ITextSnapshot
                 var normalizedSpanCollection = new NormalizedSnapshotSpanCollection(mockTextSnapshot.Object, new List<Span> {

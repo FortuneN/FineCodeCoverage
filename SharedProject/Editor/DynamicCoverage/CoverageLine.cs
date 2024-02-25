@@ -20,7 +20,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
         public bool Update(ITextSnapshot currentSnapshot)
         {
             var updated = false;
-            var newLineNumber = lineTracker.GetLineNumber(trackingSpan, currentSnapshot, true) + 1;
+            var newLineNumber = lineTracker.GetLineNumber(trackingSpan, currentSnapshot, true);
             if (newLineNumber != Line.Number)
             {
                 line.Number = newLineNumber;

@@ -26,7 +26,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
         
         public TrackedLineLine(ILine line)
         {
-            Number = line.Number;
+            Number = line.Number - 1;
             lineCoverageType = line.CoverageType;
             CoverageType = DynamicCoverageTypeConverter.Convert(lineCoverageType);
         }

@@ -2,13 +2,12 @@
 {
     internal class DynamicLine : IDynamicLine
     {
-        public int ActualLineNumber { get; set; }
-        public DynamicLine(int actualLineNumber, DynamicCoverageType dynamicCoverageType)
+        public DynamicLine(int lineNumber, DynamicCoverageType dynamicCoverageType)
         {
-            ActualLineNumber = actualLineNumber;
+            Number = lineNumber;
             CoverageType = dynamicCoverageType;
         }
-        public int Number => ActualLineNumber + 1;
+        public int Number { get; set; }
 
         public DynamicCoverageType CoverageType { get; }
     }

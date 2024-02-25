@@ -8,12 +8,12 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
     internal class TrackedNewCodeLine_Tests
     {
         [Test]
-        public void Should_Have_Line_With_Coverage_Type_NewLine_And_Adjusted_Line_Number()
+        public void Should_Have_Line_With_Coverage_Type_NewLine_And_Line_Number()
         {
             var line = new TrackedNewCodeLine(new Mock<ITrackingSpan>().Object, 10, new Mock<ILineTracker>().Object).Line;
 
             Assert.That(line.CoverageType, Is.EqualTo(DynamicCoverageType.NewLine));
-            Assert.That(line.Number, Is.EqualTo(11));
+            Assert.That(line.Number, Is.EqualTo(10));
         }
 
         [Test]
@@ -48,7 +48,7 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
         {
             var (_, line) = Update(10, 20);
 
-            Assert.That(line.Number, Is.EqualTo(21));
+            Assert.That(line.Number, Is.EqualTo(20));
         }
 
         [TestCase(true)]

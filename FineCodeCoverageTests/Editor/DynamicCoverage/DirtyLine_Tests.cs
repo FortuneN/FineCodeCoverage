@@ -8,7 +8,7 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
     internal class DirtyLine_Tests
     {
         [Test]
-        public void Should_Have_An_Adjusted_Dirty_Line_From_The_Start_Point_When_Constructed()
+        public void Should_Have_A_Dirty_Line_From_The_Start_Point_When_Constructed()
         {
             var currentSnapshot = new Mock<ITextSnapshot>().Object;
             var trackingSpan = new Mock<ITrackingSpan>().Object;
@@ -18,15 +18,15 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
             
             var dirtyLine = new DirtyLine(trackingSpan, currentSnapshot, mockLineTracker.Object);
             
-            AssertDirtyLine(dirtyLine, 11);
+            AssertDirtyLine(dirtyLine, 10);
         }
 
-        private void AssertDirtyLine(DirtyLine dirtyLine, int expectedAdjustedLineNumber)
+        private void AssertDirtyLine(DirtyLine dirtyLine, int lineNumber)
         {
             var dynamicLine = dirtyLine.Line;
 
             Assert.That(DynamicCoverageType.Dirty, Is.EqualTo(dynamicLine.CoverageType));
-            Assert.That(expectedAdjustedLineNumber, Is.EqualTo(dynamicLine.Number));
+            Assert.That(lineNumber, Is.EqualTo(dynamicLine.Number));
         }
 
         [TestCase(true)]
@@ -48,7 +48,7 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
 
             var updated = dirtyLine.Update(currentSnapshot);
             Assert.That(updated, Is.EqualTo(changeLineNumber));
-            AssertDirtyLine(dirtyLine, newLineNumber + 1);
+            AssertDirtyLine(dirtyLine, newLineNumber);
         }
     }
 }

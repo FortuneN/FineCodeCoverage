@@ -1,5 +1,4 @@
-﻿using AutoMoq;
-using FineCodeCoverage.Editor.DynamicCoverage;
+﻿using FineCodeCoverage.Editor.DynamicCoverage;
 using FineCodeCoverage.Engine.Model;
 using Microsoft.VisualStudio.Text;
 using Moq;
@@ -21,7 +20,7 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
             var coverageLine = new CoverageLine(null, mockLine.Object, null);
 
             Assert.That(coverageLine.Line.CoverageType, Is.EqualTo(expectedDynamicCoverageType));
-            Assert.That(coverageLine.Line.Number, Is.EqualTo(1));
+            Assert.That(coverageLine.Line.Number, Is.EqualTo(0));
         }
 
         [TestCase(true)]
@@ -44,7 +43,7 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
 
             Assert.That(updated, Is.EqualTo(updateLineNumber));
 
-            Assert.That(coverageLine.Line.Number, Is.EqualTo(updatedLineNumber + 1));
+            Assert.That(coverageLine.Line.Number, Is.EqualTo(updatedLineNumber));
         }
     }
 }
