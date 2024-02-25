@@ -215,6 +215,7 @@ namespace FineCodeCoverageTests
                 nameof(IAppOptions.ShowLineCoveredHighlighting),
                 nameof(IAppOptions.ShowLinePartiallyCoveredHighlighting),
                 nameof(IAppOptions.ShowLineUncoveredHighlighting),
+                nameof(IAppOptions.UseEnterpriseFontsAndColors)
             };
             CollectionAssert.AreEquivalent(expectedSetters.Select(s => $"set_{s}"), invocationNames);
         }
