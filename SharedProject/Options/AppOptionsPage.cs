@@ -307,7 +307,7 @@ namespace FineCodeCoverage.Options
         public bool ShowPartiallyCoveredInOverviewMargin { get; set; }
 
         [Category(commonUiCategory)]
-        [Description("Set to false to prevent dirty marks in the overview margin")]
+        [Description("Set to true to show dirty marks in the overview margin")]
         public bool ShowDirtyInOverviewMargin { get; set; }
         [Category(commonUiCategory)]
         [Description("Set to true to show new line marks in the overview margin")]
@@ -335,7 +335,7 @@ namespace FineCodeCoverage.Options
         public bool ShowPartiallyCoveredInGlyphMargin { get; set; }
 
         [Category(commonUiCategory)]
-        [Description("Set to false to prevent dirty marks in the glyph margin")]
+        [Description("Set to true to show dirty marks in the glyph margin")]
         public bool ShowDirtyInGlyphMargin { get; set; }
 
         [Category(commonUiCategory)]
@@ -364,7 +364,7 @@ namespace FineCodeCoverage.Options
         public bool ShowLinePartiallyCoveredHighlighting { get; set; }
 
         [Category(commonUiCategory)]
-        [Description("Set to false to prevent dirty line highlighting")]
+        [Description("Set to true to show dirty line highlighting")]
         public bool ShowLineDirtyHighlighting { get; set; }
         [Category(commonUiCategory)]
         [Description("Set to true to show new line highlighting")]

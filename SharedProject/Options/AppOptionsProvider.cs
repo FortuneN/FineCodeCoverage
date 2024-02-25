@@ -67,17 +67,23 @@ namespace FineCodeCoverage.Options
             appOptions.Enabled = true;
             appOptions.DisabledNoCoverage = true;
             appOptions.ShowEditorCoverage = true;
+
             appOptions.ShowCoverageInOverviewMargin = true;
             appOptions.ShowCoveredInOverviewMargin = true;
             appOptions.ShowPartiallyCoveredInOverviewMargin = true;
             appOptions.ShowUncoveredInOverviewMargin = true;
+
             appOptions.ShowCoverageInGlyphMargin = true;
             appOptions.ShowCoveredInGlyphMargin = true;
             appOptions.ShowPartiallyCoveredInGlyphMargin = true;
             appOptions.ShowUncoveredInGlyphMargin = true;
+            
             appOptions.ShowLineCoveredHighlighting = true;
             appOptions.ShowLinePartiallyCoveredHighlighting = true;
             appOptions.ShowLineUncoveredHighlighting = true;
+
+            appOptions.UseEnterpriseFontsAndColors = true;
+            
             appOptions.Hide0Coverable = true;
         }
 

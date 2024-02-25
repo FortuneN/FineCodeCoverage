@@ -35,11 +35,34 @@ Present a single unified report in the Fine Code Coverage Tool Window.  The repo
 
 ### Editor
 
-Coloured margins to indicate the coverage status of your code.
+Coloured margins to indicate the coverage status of your code.  Instrumented ( included and analysable) lines of code are either covered, uncovered or partially covered which means that not all branches were executed.
+
+FCC also provides the concept of dirty regions where previously instrumented code will no longer show instrumented status once you have typed inside.
+
+FCC also allows you to see new lines that have been added since the last coverage run.
+
+Both dirty and new line colouring needs to be turned on in options.
 
 If desired, lines can be highlighted too by setting the available Visual Studio options.  Read on for more details.
 
 The colours can be controlled via Visual Studio / Tools / Options / Environment / Fonts and Colors / Text Editor / Display Items :
+
+For Visual Studio Community, Professional and Enterprise you can use the settings
+
+Coverage Touched Area FCC
+
+Coverage Partially Touched Area FCC
+
+Coverage Not Touched Area FCC
+
+Coverage Dirty Area FCC
+
+Coverage New Lines Area FCC
+
+
+For versions that supply the items below FCC will use these by default over the equivalent FCC items so that colours defined in themes can be used.
+If you wish to be consistent for the 5 available items you can set UseEnterpriseFontsAndColors to false.
+
 
 Coverage Not Touched Area
 
@@ -254,14 +277,21 @@ If you are using option 1) then project and global options will only be used whe
 |ShowCoveredInGlyphMargin|Set to false to prevent covered marks in the glyph margin|
 |ShowUncoveredInGlyphMargin|Set to false to prevent uncovered marks in the glyph margin|
 |ShowPartiallyCoveredInGlyphMargin|Set to false to prevent partially covered marks in the glyph margin|
+|ShowDirtyInGlyphMargin|Set to true to show dirty marks in the glyph margin|
+|ShowNewInGlyphMargin|Set to true to show new line marks in the glyph margin|
 |ShowCoverageInOverviewMargin|Set to false to prevent coverage marks in the overview margin|
 |ShowCoveredInOverviewMargin|Set to false to prevent covered marks in the overview margin|
 |ShowUncoveredInOverviewMargin|Set to false to prevent uncovered marks in the overview margin|
 |ShowPartiallyCoveredInOverviewMargin|Set to false to prevent partially covered marks in the overview margin|
+|ShowDirtyInOverviewMargin|Set to true to show dirty marks in the overview margin|
+|ShowNewInOverviewMargin|Set to true to show new line marks in the overview margin|
 |ShowLineCoverageHighlighting|Set to true to allow coverage line highlighting|
 |ShowLineCoveredHighlighting|Set to false to prevent covered line highlighting|
 |ShowLineUncoveredHighlighting|Set to false to prevent uncovered line highlighting|
 |ShowLinePartiallyCoveredHighlighting|Set to false to prevent partially covered line highlighting|
+|ShowLineDirtyHighlighting|Set to true to show dirty line highlighting|
+|ShowLineNewHighlighting|Set to true to show new line highlighting|
+|UseEnterpriseFontsAndColors|Set to false to use FCC Fonts And Colors items|
 |ShowToolWindowToolbar|Set to false to hide the toolbar on the tool window.  Requires restarting Visual Studio.  The toolbar has buttons for viewing the Cobertura xml and the risk hotspots.|
 |FCC Solution Output Directory Name|To have fcc output visible in a sub folder of your solution provide this name|
 |ToolsDirectory|Folder to which copy tools subfolder. Must alredy exist. Requires restart of VS.|
