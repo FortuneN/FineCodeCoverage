@@ -40,6 +40,15 @@ namespace FineCodeCoverage.Engine.Model
             }
             
         }
+
+        internal void UpdateRenamed(string oldFilePath, string newFilePath)
+        {
+            if(m_coverageLines.TryGetValue(oldFilePath, out var lines))
+            {
+                m_coverageLines.Add(newFilePath, lines);
+                m_coverageLines.Remove(oldFilePath);
+            }
+        }
     }
 
     

@@ -25,5 +25,10 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
         {
             return new ContainingCodeTracker(trackedCoverageLines,dirtyLineFactory, trackingSpanRange);
         }
+
+        public IContainingCodeTracker Create(ITrackingLine trackingLine, ITrackingSpanRange trackingSpanRange)
+        {
+            return new ContainingCodeTracker(trackingLine, trackingSpanRange);
+        }
     }
 }

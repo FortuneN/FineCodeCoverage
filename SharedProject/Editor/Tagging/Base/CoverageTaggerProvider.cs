@@ -60,9 +60,9 @@ namespace FineCodeCoverage.Editor.Tagging.Base
             {
                 return null;
             }
-            var lastCoverageLines = dynamicCoverageManager.Manage(textView, textBuffer, filePath);
+            var lastCoverageLines = dynamicCoverageManager.Manage(textView, textBuffer,document);
             return new CoverageTagger<TTag>(
-                new TextBufferWithFilePath(textBuffer, filePath),
+                new TextBufferWithFilePath(textBuffer, document),
                 lastCoverageLines, 
                 coverageTypeFilter, 
                 eventAggregator, 

@@ -5,15 +5,17 @@ namespace FineCodeCoverage.Editor.Tagging.Base
 {
     internal class TextBufferWithFilePath : ITextBufferWithFilePath
     {
-        public TextBufferWithFilePath(ITextBuffer textBuffer, string filePath)
+        private readonly ITextDocument textDocument;
+
+        public TextBufferWithFilePath(ITextBuffer textBuffer, ITextDocument textDocument)
         {
             ThrowIf.Null(textBuffer, nameof(textBuffer));
-            ThrowIf.Null(filePath, nameof(filePath));
+            ThrowIf.Null(textDocument, nameof(textDocument));
             TextBuffer = textBuffer;
-            FilePath = filePath;
+            this.textDocument = textDocument;
         }
         public ITextBuffer TextBuffer { get; }
-        public string FilePath { get; }
+        public string FilePath => textDocument.FilePath;
 
     }
 }

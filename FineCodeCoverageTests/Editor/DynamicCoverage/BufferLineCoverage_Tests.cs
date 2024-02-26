@@ -35,10 +35,12 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
             mockTextSnapshot = new Mock<ITextSnapshot>();
             textSnapshot = mockTextSnapshot.Object;
             mockTextBuffer.Setup(textBuffer => textBuffer.CurrentSnapshot).Returns(textSnapshot);
+            var mockTextDocument = new Mock<ITextDocument>();
+            mockTextDocument.SetupGet(textDocument => textDocument.FilePath).Returns("filepath");
             textInfo = new TextInfo(
                 mockTextView.Object,
                 mockTextBuffer.Object,
-                "filepath"
+                mockTextDocument.Object
             );
             autoMoqer.SetInstance(textInfo);
         }
@@ -64,7 +66,7 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
         public void Should_Not_Throw_If_No_Initial_Coverage()
         {
             SimpleTextInfoSetUp();
-            new BufferLineCoverage(null, textInfo, new Mock<IEventAggregator>().Object, null);
+            new BufferLineCoverage(null, textInfo, new Mock<IEventAggregator>().Object, null, null);
         }
 
         [Test]
@@ -123,10 +125,12 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
             mockTextBuffer.SetupSequence(textBuffer => textBuffer.CurrentSnapshot)
                 .Returns(new Mock<ITextSnapshot>().Object)
                 .Returns(mockCurrentSnapshot.Object);
+            var mockTextDocument = new Mock<ITextDocument>();
+            mockTextDocument.SetupGet(textDocument => textDocument.FilePath).Returns("filepath");
             var textInfo = new TextInfo(
                 new Mock<ITextView>().Object,
                 mockTextBuffer.Object,
-                "filepath"
+                mockTextDocument.Object
             );
             autoMoqer.SetInstance(textInfo);
 

@@ -33,10 +33,10 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
             lastCoverageLines = message.CoverageLines;
         }
 
-        public IBufferLineCoverage Manage(ITextView textView, ITextBuffer textBuffer, string filePath)
+        public IBufferLineCoverage Manage(ITextView textView, ITextBuffer textBuffer, ITextDocument document)
         {
             return textBuffer.Properties.GetOrCreateSingletonProperty(
-                () => bufferLineCoverageFactory.Create(lastCoverageLines, new TextInfo(textView, textBuffer, filePath), eventAggregator, trackedLinesFactory)
+                () => bufferLineCoverageFactory.Create(lastCoverageLines, new TextInfo(textView, textBuffer,document), eventAggregator, trackedLinesFactory)
             );
         }
     }

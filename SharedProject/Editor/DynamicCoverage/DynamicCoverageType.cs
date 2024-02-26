@@ -4,6 +4,7 @@
     {
         Covered, Partial, NotCovered,
         Dirty,
-        NewLine
+        NewLine,
+        NotIncluded
     }
 }

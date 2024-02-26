@@ -9,11 +9,12 @@ using System.Linq;
 
 namespace FineCodeCoverage.Editor.DynamicCoverage
 {
-    class BufferLineCoverage : IBufferLineCoverage, IListener<NewCoverageLinesMessage>
+    internal class BufferLineCoverage : IBufferLineCoverage, IListener<NewCoverageLinesMessage>
     {
+        private readonly TextInfo textInfo;
         private readonly IEventAggregator eventAggregator;
         private readonly ITrackedLinesFactory trackedLinesFactory;
-        private readonly string filePath;
+        private readonly IDynamicCoverageStore dynamicCoverageStore;
         private readonly Language language;
         private readonly ITextBuffer2 textBuffer;
         private ITrackedLines trackedLines;
@@ -21,22 +22,28 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
             IFileLineCoverage fileLineCoverage,
             TextInfo textInfo,
             IEventAggregator eventAggregator,
-            ITrackedLinesFactory trackedLinesFactory
+            ITrackedLinesFactory trackedLinesFactory,
+            IDynamicCoverageStore dynamicCoverageStore
         )
         {
-            this.filePath = textInfo.FilePath;
             language = SupportedContentTypeLanguages.GetLanguage(textInfo.TextBuffer.ContentType.TypeName);
             this.textBuffer = textInfo.TextBuffer;
+            this.textInfo = textInfo;
             this.eventAggregator = eventAggregator;
             this.trackedLinesFactory = trackedLinesFactory;
+            this.dynamicCoverageStore = dynamicCoverageStore;
             if (fileLineCoverage != null)
             {
-                CreateTrackedLines(fileLineCoverage);
+                CreateTrackedLines(fileLineCoverage, true);
             }
             eventAggregator.AddListener(this);
             textBuffer.ChangedOnBackground += TextBuffer_ChangedOnBackground;
             void textViewClosedHandler(object s, EventArgs e)
             {
+                if(trackedLines != null)
+                {
+                    dynamicCoverageStore.SaveSerializedCoverage(textInfo.FilePath, trackedLines.GetAllLines());
+                }
                 textBuffer.Changed -= TextBuffer_ChangedOnBackground;
                 textInfo.TextView.Closed -= textViewClosedHandler;
                 eventAggregator.RemoveListener(this);
@@ -45,11 +52,22 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
             textInfo.TextView.Closed += textViewClosedHandler;
         }
 
-        private void CreateTrackedLines(IFileLineCoverage fileLineCoverage)
+        private void CreateTrackedLines(IFileLineCoverage fileLineCoverage,bool initial)
         {
             var currentSnapshot = textBuffer.CurrentSnapshot;
+            if (initial)
+            {
+                var serializedCoverage = dynamicCoverageStore.GetSerializedCoverage(textInfo.FilePath);
+                //if(serializedCoverage != null)
+                //{
+                //    trackedLines = trackedLinesFactory.Create(serializedCoverage, currentSnapshot, language);
+                //    return;
+                //}
+            }
+            
+            
             var numLines = currentSnapshot.LineCount;
-            var lines = fileLineCoverage.GetLines(filePath, 1, numLines + 1).ToList();
+            var lines = fileLineCoverage.GetLines(textInfo.FilePath, 1, numLines + 1).ToList();
             trackedLines = trackedLinesFactory.Create(lines, currentSnapshot, language);
         }
 
@@ -67,7 +85,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
 
         private void SendCoverageChangedMessage()
         {
-            eventAggregator.SendMessage(new CoverageChangedMessage(this, filePath));
+            eventAggregator.SendMessage(new CoverageChangedMessage(this, textInfo.FilePath));
         }
 
         public IEnumerable<IDynamicLine> GetLines(int startLineNumber, int endLineNumber)
@@ -87,7 +105,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
             }
             else
             {
-                CreateTrackedLines(message.CoverageLines);
+                CreateTrackedLines(message.CoverageLines,false);
             }
 
             SendCoverageChangedMessage();

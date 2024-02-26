@@ -4,6 +4,7 @@
     {
         IContainingCodeTracker Create(ITrackedCoverageLines trackedCoverageLines);
         IContainingCodeTracker Create(ITrackingSpanRange trackingSpanRange, ITrackedCoverageLines trackedCoverageLines);
+        IContainingCodeTracker Create(ITrackingLine trackingLine, ITrackingSpanRange trackingSpanRange);
     }
 
 }

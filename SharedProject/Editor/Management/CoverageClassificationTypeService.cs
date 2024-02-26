@@ -21,6 +21,7 @@ namespace FineCodeCoverage.Editor.Management
         public const string FCCPartiallyCoveredClassificationTypeName = "FCCPartial";
         public const string FCCDirtyClassificationTypeName = "FCCDirty";
         public const string FCCNewLineClassificationTypeName = "FCCNewLine";
+        public const string FCCNotIncludedClassificationTypeName = "FCCNotIncluded";
 
         private readonly IClassificationFormatMap classificationFormatMap;
         private readonly ReadOnlyDictionary<DynamicCoverageType, IClassificationType> classificationTypes;
@@ -51,6 +52,11 @@ namespace FineCodeCoverage.Editor.Management
         [Name(FCCNewLineClassificationTypeName)]
         public ClassificationTypeDefinition FCCNewLineTypeDefinition { get; set; }
 
+        [ExcludeFromCodeCoverage]
+        [Export]
+        [Name(FCCNotIncludedClassificationTypeName)]
+        public ClassificationTypeDefinition FCCNotIncludedTypeDefinition { get; set; }
+
         [ImportingConstructor]
         public CoverageClassificationTypeService(
             IClassificationFormatMapService classificationFormatMapService,
@@ -65,6 +71,7 @@ namespace FineCodeCoverage.Editor.Management
             var partiallyCoveredClassificationType = classificationTypeRegistryService.GetClassificationType(FCCPartiallyCoveredClassificationTypeName);
             var dirtyClassificationType = classificationTypeRegistryService.GetClassificationType(FCCDirtyClassificationTypeName);
             var newCodeClassificationType = classificationTypeRegistryService.GetClassificationType(FCCNewLineClassificationTypeName);
+            var notIncludedClassificationType = classificationTypeRegistryService.GetClassificationType(FCCNotIncludedClassificationTypeName);
 
             classificationTypes = new ReadOnlyDictionary<DynamicCoverageType, IClassificationType>(
                 new Dictionary<DynamicCoverageType, IClassificationType>
@@ -72,8 +79,9 @@ namespace FineCodeCoverage.Editor.Management
                     { DynamicCoverageType.Covered, coveredClassificationType },
                     { DynamicCoverageType.NotCovered, notCoveredClassificationType },
                     { DynamicCoverageType.Partial, partiallyCoveredClassificationType },
-                    {DynamicCoverageType.Dirty, dirtyClassificationType },
-                    {DynamicCoverageType.NewLine, newCodeClassificationType }
+                    { DynamicCoverageType.Dirty, dirtyClassificationType },
+                    { DynamicCoverageType.NewLine, newCodeClassificationType },
+                    { DynamicCoverageType.NotIncluded, notIncludedClassificationType }
                 });
         }
 
@@ -107,6 +115,9 @@ namespace FineCodeCoverage.Editor.Management
                     break;
                 case DynamicCoverageType.NewLine:
                     editorFormatDefinitionName = FCCNewLineClassificationTypeName;
+                    break;
+                case DynamicCoverageType.NotIncluded:
+                    editorFormatDefinitionName = FCCNotIncludedClassificationTypeName;
                     break;
             }
             return editorFormatDefinitionName;

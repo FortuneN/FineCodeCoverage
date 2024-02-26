@@ -13,7 +13,8 @@ namespace FineCodeCoverage.Editor.Tagging.Base
             { DynamicCoverageType.Partial, false },
             { DynamicCoverageType.NotCovered, false },
             { DynamicCoverageType.Dirty, false },
-            { DynamicCoverageType.NewLine, false }
+            { DynamicCoverageType.NewLine, false },
+            { DynamicCoverageType.NotIncluded, false }
         };
         private Dictionary<DynamicCoverageType, bool> showLookup = doNotShowLookup;
 
@@ -22,7 +23,7 @@ namespace FineCodeCoverage.Editor.Tagging.Base
             if (appOptions.ShowEditorCoverage && EnabledPrivate(appOptions))
             {
                 showLookup = GetShowLookup(appOptions);
-                if (showLookup == null || showLookup.Count != 5)
+                if (showLookup == null || showLookup.Count != 6)
                 {
                     throw new InvalidOperationException("Invalid showLookup");
                 }

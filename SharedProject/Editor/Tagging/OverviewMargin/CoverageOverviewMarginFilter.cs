@@ -23,7 +23,7 @@ namespace FineCodeCoverage.Editor.Tagging.OverviewMargin
                 { DynamicCoverageType.Partial, appOptions.ShowPartiallyCoveredInOverviewMargin },
                 { DynamicCoverageType.Dirty, appOptions.ShowDirtyInOverviewMargin},
                 { DynamicCoverageType.NewLine, appOptions.ShowNewInOverviewMargin},
-
+                { DynamicCoverageType.NotIncluded, appOptions.ShowNotIncludedInOverviewMargin},
             };
         }
     }

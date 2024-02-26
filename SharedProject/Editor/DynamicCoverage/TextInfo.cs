@@ -7,16 +7,17 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
 {
     internal class TextInfo
     {
-        public TextInfo(ITextView textView, ITextBuffer textBuffer, string filePath)
+        private readonly ITextDocument document;
+        public TextInfo(ITextView textView, ITextBuffer textBuffer, ITextDocument document)
         {
             TextView = textView;
+            this.document = document;
             TextBuffer = textBuffer as ITextBuffer2;
-            FilePath = filePath;
         }
 
         public ITextView TextView { get; }
         public ITextBuffer2 TextBuffer { get; }
-        public string FilePath { get; }
+        public string FilePath => document.FilePath;
 
         [ExcludeFromCodeCoverage]
         public override bool Equals(object obj)

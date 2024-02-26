@@ -145,7 +145,7 @@ namespace FineCodeCoverageTests.Editor.Tagging.Base
             var autoMocker = new AutoMoqer();
             var bufferLineCoverage = new Mock<IBufferLineCoverage>().Object;
             autoMocker.GetMock<IDynamicCoverageManager>()
-                .Setup(dynamicCoverageManager => dynamicCoverageManager.Manage(textView, It.IsAny<ITextBuffer>(), "filepath")).Returns(bufferLineCoverage);
+                .Setup(dynamicCoverageManager => dynamicCoverageManager.Manage(textView, It.IsAny<ITextBuffer>(), It.IsAny<ITextDocument>())).Returns(bufferLineCoverage);
             var coverageTaggerProvider = autoMocker.Create<CoverageTaggerProvider<DummyCoverageTypeFilter, DummyTag>>();
 
             var mockAppOptionsProvider = autoMocker.GetMock<IAppOptionsProvider>();

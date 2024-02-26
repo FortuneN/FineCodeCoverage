@@ -8,5 +8,6 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
     interface ITrackedLinesFactory
     {
         ITrackedLines Create(List<ILine> lines, ITextSnapshot textSnapshot, Language language);
+        ITrackedLines Create(List<IDynamicLine> serializedCoverage, ITextSnapshot currentSnapshot, Language language);
     }
 }

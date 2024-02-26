@@ -6,6 +6,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
 {
     internal class ContainingCodeTracker : IContainingCodeTracker
     {
+        private readonly ITrackingLine trackingLine;
         private readonly ITrackingSpanRange trackingSpanRange;
         private ITrackedCoverageLines trackedCoverageLines;
         private readonly IDirtyLineFactory dirtyLineFactory;
@@ -19,6 +20,15 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
             this.trackingSpanRange = trackingSpanRange;
             this.trackedCoverageLines = trackedCoverageLines;
             this.dirtyLineFactory = dirtyLineFactory;
+        }
+
+        public ContainingCodeTracker(
+            ITrackingLine trackingLine,
+            ITrackingSpanRange trackingSpanRange
+        )
+        {
+            this.trackingLine = trackingLine;
+            this.trackingSpanRange = trackingSpanRange;
         }
 
         private TrackingSpanRangeProcessResult ProcessTrackingSpanRangeChanges(ITextSnapshot currentSnapshot, List<SpanAndLineRange> newSpanAndLineRanges)
@@ -52,7 +62,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
 
         private bool RequiresDirtyLine()
         {
-            return dirtyLine == null && trackedCoverageLines.Lines.Any();
+            return trackingLine == null && dirtyLine == null && trackedCoverageLines.Lines.Any();
         }
 
         private bool Intersected(
@@ -85,7 +95,11 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
 
         private bool UpdateLines(ITextSnapshot currentSnapshot)
         {
-            if (dirtyLine != null)
+            if(trackingLine != null)
+            {
+                return trackingLine.Update(currentSnapshot);
+            }
+            else if (dirtyLine != null)
             {
                return dirtyLine.Update(currentSnapshot);
             }
@@ -95,7 +109,9 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
             }
         }
 
-        public IEnumerable<IDynamicLine> Lines => dirtyLine != null ? new List<IDynamicLine> { dirtyLine.Line } :  trackedCoverageLines.Lines;
+        private IDynamicLine PossibleSingleLine => trackingLine != null ? trackingLine.Line : dirtyLine?.Line;
+
+        public IEnumerable<IDynamicLine> Lines => PossibleSingleLine != null ? new List<IDynamicLine> { PossibleSingleLine } :  trackedCoverageLines.Lines;
     }
     
 }

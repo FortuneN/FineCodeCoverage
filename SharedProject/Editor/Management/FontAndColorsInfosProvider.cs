@@ -66,7 +66,8 @@ namespace FineCodeCoverage.Editor.Management
                 (coverageFontAndColorsCategoryItemNames.NotCovered, 1),
                 (coverageFontAndColorsCategoryItemNames.PartiallyCovered, 2),
                 (coverageFontAndColorsCategoryItemNames.Dirty,3),
-                (coverageFontAndColorsCategoryItemNames.NewLines,4)
+                (coverageFontAndColorsCategoryItemNames.NewLines,4),
+                 (coverageFontAndColorsCategoryItemNames.NotIncluded,5)
             };
 
             foreach(var item in items)
@@ -105,7 +106,8 @@ namespace FineCodeCoverage.Editor.Management
                 fromFontsAndColors[1],//not touched
                 fromFontsAndColors[2],//partial
                 fromFontsAndColors[3],//dirty
-                fromFontsAndColors[4]//newlines
+                fromFontsAndColors[4],//newlines
+                fromFontsAndColors[5]//not included
             );
         }
 

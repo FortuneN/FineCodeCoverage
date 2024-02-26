@@ -23,6 +23,7 @@ namespace FineCodeCoverage.Editor.Tagging.GlyphMargin
                 { DynamicCoverageType.NotCovered, appOptions.ShowUncoveredInGlyphMargin },
                 { DynamicCoverageType.Dirty, appOptions.ShowDirtyInGlyphMargin },
                 { DynamicCoverageType.NewLine, appOptions.ShowNewInGlyphMargin },
+                { DynamicCoverageType.NotIncluded, appOptions.ShowNotIncludedInGlyphMargin },
             };
         }
     }

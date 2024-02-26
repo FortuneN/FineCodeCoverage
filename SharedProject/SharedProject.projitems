@@ -150,9 +150,11 @@
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\DotNet\IDotNetToolListParser.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\EventAggregator.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\FileComparer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\FileRenameListener.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\FileSystemInfoDeleteExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\FileUtil.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\IAssemblyUtil.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\IFileRenameListener.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\IFileUtil.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\IProcessResponseProcessor.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\IProcessUtil.cs" />
@@ -183,7 +185,11 @@
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\VsThreading\IThreadHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\XmlFileEscaper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\ZipFileWrapper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Editor\DynamicCoverage\DynamicCoverageStore.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editor\DynamicCoverage\DynamicCoverageType.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Editor\DynamicCoverage\IDynamicCoverageStore.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Editor\DynamicCoverage\INotIncludedLineFactory.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Editor\DynamicCoverage\ITrackingLine.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editor\DynamicCoverage\ITextSnapshotText.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editor\DynamicCoverage\LineExclusion\LineExcluder.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editor\DynamicCoverage\ContainingCodeTrackerProcessResult.cs" />
@@ -200,7 +206,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Editor\DynamicCoverage\ContainingCodeTracker.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editor\DynamicCoverage\CoverageLine.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editor\DynamicCoverage\CoverageLineFactory.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Editor\DynamicCoverage\CoverageLineUpdateType.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editor\DynamicCoverage\IBufferLineCoverageFactory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editor\DynamicCoverage\IContainingCodeTracker.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editor\DynamicCoverage\ICoverageLine.cs" />
@@ -223,6 +228,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)Editor\DynamicCoverage\LineTracker.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editor\DynamicCoverage\NewCodeTracker.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editor\DynamicCoverage\NewCodeTrackerFactory.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Editor\DynamicCoverage\NotIncludedLineFactory.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Editor\DynamicCoverage\NotIncludedTrackingLine.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editor\DynamicCoverage\SpanAndLineRange.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editor\DynamicCoverage\TextSnapshotText.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editor\DynamicCoverage\TrackedLineInfo.cs" />
@@ -230,6 +237,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Editor\DynamicCoverage\DynamicLine.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editor\DynamicCoverage\TrackedNewCodeLineUpdate.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editor\DynamicCoverage\TrackedNewLineFactory.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Editor\DynamicCoverage\TrackingLine.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editor\DynamicCoverage\TrackingSpanRangeProcessResult.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editor\Management\ColoursClassificationFormatDefinition.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editor\Management\CoverageFontAndColorsCategoryItemNamesManager.cs" />

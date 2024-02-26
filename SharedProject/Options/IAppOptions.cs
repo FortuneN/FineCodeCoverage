@@ -58,6 +58,7 @@
         bool ShowPartiallyCoveredInOverviewMargin { get; set; }
         bool ShowDirtyInOverviewMargin { get; set; }
         bool ShowNewInOverviewMargin { get; set; }
+        bool ShowNotIncludedInOverviewMargin { get; set; }
     }
 
     interface IGlyphMarginOptions
@@ -68,6 +69,7 @@
         bool ShowPartiallyCoveredInGlyphMargin { get; set; }
         bool ShowDirtyInGlyphMargin { get; set; }
         bool ShowNewInGlyphMargin { get; set; }
+        bool ShowNotIncludedInGlyphMargin { get; set; }
     }
 
     interface IEditorLineHighlightingCoverageOptions
@@ -78,6 +80,7 @@
         bool ShowLinePartiallyCoveredHighlighting { get; set; }
         bool ShowLineDirtyHighlighting { get; set; }
         bool ShowLineNewHighlighting { get; set; }
+        bool ShowLineNotIncludedHighlighting { get; set; }
     }
 
     interface IEditorCoverageColouringOptions : IOverviewMarginOptions, IGlyphMarginOptions,IEditorLineHighlightingCoverageOptions { 

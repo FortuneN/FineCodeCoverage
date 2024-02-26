@@ -10,6 +10,7 @@ namespace FineCodeCoverage.Editor.Management
         public IFontAndColorsInfo CoveragePartiallyTouchedInfo { get; }
         public IFontAndColorsInfo DirtyInfo { get; }
         public IFontAndColorsInfo NewLineInfo { get; }
+        public IFontAndColorsInfo NotIncludedInfo { get; }
 
         private readonly Dictionary<DynamicCoverageType, IFontAndColorsInfo> coverageTypeToFontAndColorsInfo;
         public CoverageColours(
@@ -17,7 +18,8 @@ namespace FineCodeCoverage.Editor.Management
             IFontAndColorsInfo coverageNotTouchedInfo,
             IFontAndColorsInfo coveragePartiallyTouchedInfo,
             IFontAndColorsInfo dirtyInfo,
-            IFontAndColorsInfo newLineInfo
+            IFontAndColorsInfo newLineInfo,
+            IFontAndColorsInfo notIncludedInfo
         )
         {
             CoverageTouchedInfo = coverageTouchedInfo;
@@ -25,13 +27,15 @@ namespace FineCodeCoverage.Editor.Management
             CoveragePartiallyTouchedInfo = coveragePartiallyTouchedInfo;
             DirtyInfo = dirtyInfo;
             NewLineInfo = newLineInfo;
+            NotIncludedInfo = notIncludedInfo;
             coverageTypeToFontAndColorsInfo = new Dictionary<DynamicCoverageType, IFontAndColorsInfo>
             {
                 { DynamicCoverageType.Covered, coverageTouchedInfo},
                 { DynamicCoverageType.NotCovered, coverageNotTouchedInfo },
                 { DynamicCoverageType.Partial, coveragePartiallyTouchedInfo},
                 { DynamicCoverageType.Dirty, dirtyInfo},
-                { DynamicCoverageType.NewLine, newLineInfo}
+                { DynamicCoverageType.NewLine, newLineInfo},
+                { DynamicCoverageType.NotIncluded, notIncludedInfo}
             };
         }
 
@@ -44,7 +48,8 @@ namespace FineCodeCoverage.Editor.Management
                 { DynamicCoverageType.NotCovered, CoverageNotTouchedInfo },
                 { DynamicCoverageType.Partial, CoveragePartiallyTouchedInfo},
                 { DynamicCoverageType.Dirty, DirtyInfo},
-                { DynamicCoverageType.NewLine, NewLineInfo}
+                { DynamicCoverageType.NewLine, NewLineInfo},
+                { DynamicCoverageType.NotIncluded, NotIncludedInfo}
             };
                 
             if (!CoverageTouchedInfo.Equals(lastCoverageColours.CoverageTouchedInfo))
@@ -66,6 +71,10 @@ namespace FineCodeCoverage.Editor.Management
             if (!NewLineInfo.Equals(lastCoverageColours.NewLineInfo))
             {
                 changes.Add(DynamicCoverageType.NewLine, NewLineInfo);
+            }
+            if (!NotIncludedInfo.Equals(lastCoverageColours.NotIncludedInfo))
+            {
+                changes.Add(DynamicCoverageType.NotIncluded, NotIncludedInfo);
             }
             return changes;
         }

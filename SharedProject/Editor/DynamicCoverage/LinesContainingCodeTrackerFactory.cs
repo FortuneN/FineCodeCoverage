@@ -14,6 +14,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
         private readonly ITrackedCoverageLinesFactory trackedCoverageLinesFactory;
         private readonly ICoverageLineFactory coverageLineFactory;
         private readonly ITrackedContainingCodeTrackerFactory trackedContainingCodeTrackerFactory;
+        private readonly INotIncludedLineFactory notIncludedLineFactory;
 
         [ImportingConstructor]
         public LinesContainingCodeTrackerFactory(
@@ -21,21 +22,41 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
             ITrackingSpanRangeFactory trackingSpanRangeFactory,
             ITrackedCoverageLinesFactory trackedCoverageLinesFactory,
             ICoverageLineFactory coverageLineFactory,
-            ITrackedContainingCodeTrackerFactory trackedContainingCodeTrackerFactory)
+            ITrackedContainingCodeTrackerFactory trackedContainingCodeTrackerFactory,
+            INotIncludedLineFactory notIncludedLineFactory
+            )
         {
             this.trackingLineFactory = trackingLineFactory;
             this.trackingSpanRangeFactory = trackingSpanRangeFactory;
             this.trackedCoverageLinesFactory = trackedCoverageLinesFactory;
             this.coverageLineFactory = coverageLineFactory;
             this.trackedContainingCodeTrackerFactory = trackedContainingCodeTrackerFactory;
+            this.notIncludedLineFactory = notIncludedLineFactory;
         }
 
-        public IContainingCodeTracker Create(ITextSnapshot textSnapshot, List<ILine> lines, CodeSpanRange containingRange,SpanTrackingMode spanTrackingMode)
+        public IContainingCodeTracker Create(
+            ITextSnapshot textSnapshot, List<ILine> lines, CodeSpanRange containingRange,SpanTrackingMode spanTrackingMode)
+        {
+            if(lines.Count > 0)
+            {
+                return CreateX(textSnapshot, lines, containingRange, spanTrackingMode);
+            }
+            var trackingSpanRange = CreateTrackingSpanRange(textSnapshot, containingRange, spanTrackingMode);
+            var notIncludedLine = notIncludedLineFactory.Create(trackingSpanRange.GetFirstTrackingSpan(), textSnapshot);
+            return trackedContainingCodeTrackerFactory.Create(notIncludedLine, trackingSpanRange);
+        }
+
+        private IContainingCodeTracker CreateX(ITextSnapshot textSnapshot, List<ILine> lines, CodeSpanRange containingRange, SpanTrackingMode spanTrackingMode)
         {
             return trackedContainingCodeTrackerFactory.Create(
-                CreateTrackingSpanRange(textSnapshot, containingRange, spanTrackingMode),
-                CreateTrackedCoverageLines(textSnapshot, lines, spanTrackingMode)
-               );
+                    CreateTrackingSpanRange(textSnapshot, containingRange, spanTrackingMode),
+                    CreateTrackedCoverageLines(textSnapshot, lines, spanTrackingMode)
+                   );
+        }
+
+        public IContainingCodeTracker Create(ITextSnapshot textSnapshot, CodeSpanRange containingRange, SpanTrackingMode spanTrackingMode)
+        {
+            return CreateX(textSnapshot, Enumerable.Empty<ILine>().ToList(), containingRange, spanTrackingMode);
         }
 
         public IContainingCodeTracker Create(ITextSnapshot textSnapshot, ILine line, SpanTrackingMode spanTrackingMode)
@@ -57,5 +78,6 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
             ).ToList();
             return trackedCoverageLinesFactory.Create(coverageLines.ToList());
         }
+
     }
 }

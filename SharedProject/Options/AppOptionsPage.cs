@@ -314,9 +314,14 @@ namespace FineCodeCoverage.Options
         [Category(overviewMarginCategory)]
         [Description("Set to true to show dirty marks in the overview margin")]
         public bool ShowDirtyInOverviewMargin { get; set; }
+        
         [Category(overviewMarginCategory)]
         [Description("Set to true to show new line marks in the overview margin")]
         public bool ShowNewInOverviewMargin { get; set; }
+
+        [Category(overviewMarginCategory)]
+        [Description("Set to true to show not included marks in the overview margin")]
+        public bool ShowNotIncludedInOverviewMargin { get; set; }
         #endregion
         #region glyph margin
         [Category(glyphMarginCategory)]
@@ -346,6 +351,10 @@ namespace FineCodeCoverage.Options
         [Category(glyphMarginCategory)]
         [Description("Set to true to show new line marks in the glyph margin")]
         public bool ShowNewInGlyphMargin { get; set; }
+
+        [Category(glyphMarginCategory)]
+        [Description("Set to true to show not included marks in the glyph margin")]
+        public bool ShowNotIncludedInGlyphMargin { get; set; }
         #endregion
         #region line highlighting
         [Category(lineHighlightingCategory)]
@@ -375,10 +384,13 @@ namespace FineCodeCoverage.Options
         [Description("Set to true to show new line highlighting")]
         public bool ShowLineNewHighlighting { get; set; }
 
+        [Category(lineHighlightingCategory)]
+        [Description("Set to true to show not included highlighting")]
+        public bool ShowLineNotIncludedHighlighting { get; set; }
 
         #endregion
-        
-        
+
+
         [Category(toolbarCategory)]
         [Description("Set to false to hide the toolbar on the report tool window")]
         //[DisplayName("Show Tool Window Toolbar")]

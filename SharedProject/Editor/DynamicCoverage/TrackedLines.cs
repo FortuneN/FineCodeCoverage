@@ -51,6 +51,12 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
             return changed;
         }
 
+        public IEnumerable<IDynamicLine> GetAllLines()
+        {
+            return containingCodeTrackers.SelectMany(containingCodeTracker => containingCodeTracker.Lines)
+                .Concat(newCodeTracker?.Lines ?? Enumerable.Empty<IDynamicLine>());
+        }
+
         public IEnumerable<IDynamicLine> GetLines(int startLineNumber, int endLineNumber)
         {
             List<int> lineNumbers = new List<int>();
@@ -91,7 +97,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
                 }
             }
         }
-
+        
     }
 
 }

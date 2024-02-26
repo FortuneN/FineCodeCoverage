@@ -4,18 +4,34 @@ using System.Xml.Serialization;
 using System.Collections.Generic;
 using FineCodeCoverage.Engine.Model;
 using System.ComponentModel.Composition;
+using FineCodeCoverage.Core.Utilities;
 
 namespace FineCodeCoverage.Engine.Cobertura
 {
-
     [Export(typeof(ICoberturaUtil))]
 	internal class CoberturaUtil:ICoberturaUtil
-	{
+    {
 		private readonly XmlSerializer SERIALIZER = new XmlSerializer(typeof(CoverageReport));
 		private readonly XmlReaderSettings READER_SETTINGS = new XmlReaderSettings { DtdProcessing = DtdProcessing.Ignore };
 		private CoverageReport coverageReport;
+        private FileLineCoverage fileLineCoverage;
 
-		private CoverageReport LoadReport(string xmlFile)
+		[ImportingConstructor]
+		public CoberturaUtil(
+            IFileRenameListener fileRenameListener
+        )
+		{
+            fileRenameListener.ListenForFileRename((oldFile, newFile) =>
+            {
+                if (fileLineCoverage != null)
+                {
+                    fileLineCoverage.UpdateRenamed(oldFile, newFile);
+                }
+            });
+
+		}
+
+        private CoverageReport LoadReport(string xmlFile)
 		{
 			using (var reader = XmlReader.Create(xmlFile, READER_SETTINGS))
 			{
@@ -26,7 +42,7 @@ namespace FineCodeCoverage.Engine.Cobertura
 
 		public IFileLineCoverage ProcessCoberturaXml(string xmlFile)
 		{
-			var fileLineCoverage = new FileLineCoverage();
+			fileLineCoverage = new FileLineCoverage();
 
 			coverageReport = LoadReport(xmlFile);
 
@@ -41,6 +57,8 @@ namespace FineCodeCoverage.Engine.Cobertura
             fileLineCoverage.Completed();
             return fileLineCoverage;
 		}
+
+
 
 		public string[] GetSourceFiles(string assemblyName, string qualifiedClassName, int file)
 		{
@@ -71,5 +89,7 @@ namespace FineCodeCoverage.Engine.Cobertura
 
 			return classFiles;
 		}
-	}
+
+        
+    }
 }

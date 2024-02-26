@@ -17,8 +17,8 @@ namespace FineCodeCoverage.Editor.Tagging.Base
         where TTag : ITag
 
     {
+        private readonly ITextBufferWithFilePath textBufferWithFilePath;
         private readonly ITextBuffer textBuffer;
-        private readonly string filePath;
         private IBufferLineCoverage coverageLines;
         private ICoverageTypeFilter coverageTypeFilter;
         private readonly IEventAggregator eventAggregator;
@@ -41,8 +41,8 @@ namespace FineCodeCoverage.Editor.Tagging.Base
             ThrowIf.Null(eventAggregator, nameof(eventAggregator));
             ThrowIf.Null(lineSpanLogic, nameof(lineSpanLogic));
             ThrowIf.Null(lineSpanTagger, nameof(lineSpanTagger));
+            this.textBufferWithFilePath = textBufferWithFilePath;
             this.textBuffer = textBufferWithFilePath.TextBuffer;
-            this.filePath = textBufferWithFilePath.FilePath;
             this.coverageLines = lastCoverageLines;
             this.coverageTypeFilter = coverageTypeFilter;
             this.eventAggregator = eventAggregator;
@@ -91,7 +91,7 @@ namespace FineCodeCoverage.Editor.Tagging.Base
         public void Handle(CoverageChangedMessage message)
         {
             coverageLines = message.CoverageLines;
-            if(message.AppliesTo == filePath)
+            if(message.AppliesTo == textBufferWithFilePath.FilePath)
             {
                 RaiseTagsChanged();
             }

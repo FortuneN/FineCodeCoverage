@@ -9,9 +9,15 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
     [Export(typeof(ICoverageLineFactory))]
     internal class CoverageLineFactory : ICoverageLineFactory
     {
+        private readonly ILineTracker lineTracker;
+
+        [ImportingConstructor]
+        public CoverageLineFactory(ILineTracker lineTracker) {
+            this.lineTracker = lineTracker;
+        }
         public ICoverageLine Create(ITrackingSpan trackingSpan, ILine line)
         {
-            return new CoverageLine(trackingSpan, line, new LineTracker());
+            return new CoverageLine(trackingSpan, line, lineTracker);
         }
     }
 

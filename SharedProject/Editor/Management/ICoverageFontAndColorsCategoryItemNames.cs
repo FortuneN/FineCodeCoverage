@@ -7,5 +7,6 @@
         FontAndColorsCategoryItemName NewLines { get; }
         FontAndColorsCategoryItemName NotCovered { get; }
         FontAndColorsCategoryItemName PartiallyCovered { get; }
+        FontAndColorsCategoryItemName NotIncluded { get; }
     }
 }

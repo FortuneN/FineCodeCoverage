@@ -4,6 +4,7 @@ using System.ComponentModel.Composition;
 namespace FineCodeCoverage.Editor.DynamicCoverage
 {
     [Export(typeof(ITrackingLineFactory))]
+    [Export(typeof(ILineTracker))]
     internal class LineTracker : ILineTracker, ITrackingLineFactory
     {
         public int GetLineNumber(ITrackingSpan trackingSpan, ITextSnapshot currentSnapshot, bool lineFromEnd)

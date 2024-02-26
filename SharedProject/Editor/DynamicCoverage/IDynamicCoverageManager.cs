@@ -5,6 +5,6 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
 {
     interface IDynamicCoverageManager
     {
-        IBufferLineCoverage Manage(ITextView textView, ITextBuffer buffer, string filePath);
+        IBufferLineCoverage Manage(ITextView textView, ITextBuffer buffer, ITextDocument document);
     }
 }

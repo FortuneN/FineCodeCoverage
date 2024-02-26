@@ -23,6 +23,12 @@ namespace FineCodeCoverage.Editor.Management
         private const string coveredEditorFormatDefinitionName = "Coverage Touched Area FCC";
         private const string newLinesEditorFormatDefinitionName = "Coverage New Lines Area FCC";
         private const string dirtyEditorFormatDefinitionName = "Coverage Dirty Area FCC";
+        private const string notIncludedEditorFormatDefintionName = "Coverage Not Included Area FCC";
+
+        [Export]
+        [Name(notIncludedEditorFormatDefintionName)]
+        [UserVisible(true)]
+        public EditorFormatDefinition NotIncludedEditorFormatDefinition { get; } = new ColoursClassificationFormatDefinition(Colors.Black, Colors.LightPink);
 
         [Export]
         [Name(newLinesEditorFormatDefinitionName)]
@@ -73,7 +79,8 @@ namespace FineCodeCoverage.Editor.Management
                     notCoveredEditorFormatDefinitionName,
                     partiallyCoveredEditorFormatDefinitionName,
                     newLinesEditorFormatDefinitionName,
-                    dirtyEditorFormatDefinitionName
+                    dirtyEditorFormatDefinitionName,
+                    notIncludedEditorFormatDefintionName
             ));
             coverageFontAndColorsCategoryItemNamesManager.Changed += (sender, args) =>
             {
@@ -91,7 +98,8 @@ namespace FineCodeCoverage.Editor.Management
                     partiallyCoveredEditorFormatDefinitionName,
 
                     newLinesEditorFormatDefinitionName,
-                    dirtyEditorFormatDefinitionName
+                    dirtyEditorFormatDefinitionName,
+                    notIncludedEditorFormatDefintionName
                 },
                 () =>
                 {
@@ -101,8 +109,6 @@ namespace FineCodeCoverage.Editor.Management
 
             delayedMainThreadInvocation.DelayedInvoke(InitializeColours);
         }
-
-
 
         private void InitializeColours()
         {

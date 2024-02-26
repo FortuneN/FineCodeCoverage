@@ -4,6 +4,7 @@ using FineCodeCoverage.Editor.Tagging.Base;
 using FineCodeCoverage.Engine.Model;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
@@ -110,7 +111,6 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
                     containingCodeTrackers.Add(
                             containingCodeTrackerFactory.Create(
                                 textSnapshot,
-                                Enumerable.Empty<ILine>().ToList(),
                                 new CodeSpanRange(otherCodeLine, otherCodeLine),
                                 SpanTrackingMode.EdgeNegative
                             )
@@ -167,5 +167,44 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
             TrackOtherLinesTo(textSnapshot.LineCount-1);
             return containingCodeTrackers;
         }
+
+        public ITrackedLines Create(List<IDynamicLine> serializedCoverage, ITextSnapshot currentSnapshot, Language language)
+        {
+            if (language == Language.CPP)
+            {
+                var containingCodeTrackers =  serializedCoverage.Select(line => containingCodeTrackerFactory.Create(currentSnapshot, new CPPLine(line), SpanTrackingMode.EdgeExclusive)).ToList();
+                return trackedLinesFactory.Create(containingCodeTrackers, null);
+            }
+            // omit new lines ?
+            throw new System.NotImplementedException();
+        }
+
+        private class CPPLine : ILine
+        {
+            public CPPLine(IDynamicLine dynamicLine)
+            {
+                Number = dynamicLine.Number + 1;
+                switch(dynamicLine.CoverageType)
+                {
+                    case DynamicCoverageType.Covered:
+                        CoverageType = CoverageType.Covered;
+                        break;
+                    case DynamicCoverageType.NotCovered:
+                        CoverageType = CoverageType.NotCovered;
+                        break;
+                    case DynamicCoverageType.Partial:
+                        CoverageType = CoverageType.Partial;
+                        break;
+                    default:
+                        throw new ArgumentException("");//todo
+                }
+            }
+
+            public int Number { get; }
+
+            public CoverageType CoverageType { get; }
+        }
     }
+
+    
 }

@@ -1,5 +1,4 @@
 ﻿using FineCodeCoverage.Core.Utilities;
-using FineCodeCoverage.Editor.Roslyn;
 using FineCodeCoverage.Engine.Model;
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
@@ -10,13 +9,22 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
     [Export(typeof(IBufferLineCoverageFactory))]
     internal class BufferLineCoverageFactory : IBufferLineCoverageFactory
     {
+        private readonly IDynamicCoverageStore dynamicCoverageStore;
+
+        [ImportingConstructor]
+        public BufferLineCoverageFactory(
+            IDynamicCoverageStore dynamicCoverageStore
+        )
+        {
+            this.dynamicCoverageStore = dynamicCoverageStore;
+        }
         public IBufferLineCoverage Create(
             IFileLineCoverage fileLineCoverage, 
             TextInfo textInfo, 
             IEventAggregator eventAggregator, 
             ITrackedLinesFactory trackedLinesFactory)
         {
-            return new BufferLineCoverage(fileLineCoverage, textInfo, eventAggregator, trackedLinesFactory);
+            return new BufferLineCoverage(fileLineCoverage, textInfo, eventAggregator, trackedLinesFactory, dynamicCoverageStore);
         }
     }
 }
