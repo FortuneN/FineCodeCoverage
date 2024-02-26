@@ -36,11 +36,11 @@ namespace FineCodeCoverageTests.Editor.Management
         }
 
         [Test]
-        public void Should_Export_5_UserVisible_EditorFormatDefinitions()
+        public void Should_Export_6_UserVisible_EditorFormatDefinitions()
         {
             var editorFormatDefinitionProperties = GetEditorFormatDefinitionProperties().ToList();
             
-            Assert.That(editorFormatDefinitionProperties.Count, Is.EqualTo(5));
+            Assert.That(editorFormatDefinitionProperties.Count, Is.EqualTo(6));
             editorFormatDefinitionProperties.ForEach(p =>
             {
                 Assert.That(p.GetAttribute<ExportAttribute>(), Is.Not.Null);
@@ -83,7 +83,8 @@ namespace FineCodeCoverageTests.Editor.Management
                 fccEditorFormatDefinitionNames.Dirty,
                 fccEditorFormatDefinitionNames.PartiallyCovered,
                 fccEditorFormatDefinitionNames.Covered,
-                fccEditorFormatDefinitionNames.NotCovered
+                fccEditorFormatDefinitionNames.NotCovered,
+                fccEditorFormatDefinitionNames.NotIncluded
             }.OrderByDescending(n => n).ToList();
 
             Assert.That(names.SequenceEqual(GetEditorFormatDefinitionNames().Distinct().OrderByDescending(n => n)), Is.True);

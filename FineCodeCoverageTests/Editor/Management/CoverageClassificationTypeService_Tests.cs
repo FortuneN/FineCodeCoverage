@@ -79,7 +79,8 @@ namespace FineCodeCoverageTests.Editor.Management
                 CoverageClassificationTypeService.FCCCoveredClassificationTypeName, 
                 CoverageClassificationTypeService.FCCPartiallyCoveredClassificationTypeName,
                 CoverageClassificationTypeService.FCCDirtyClassificationTypeName,
-                CoverageClassificationTypeService.FCCNewLineClassificationTypeName
+                CoverageClassificationTypeService.FCCNewLineClassificationTypeName,
+                CoverageClassificationTypeService.FCCNotIncludedClassificationTypeName
             }));
         }
 

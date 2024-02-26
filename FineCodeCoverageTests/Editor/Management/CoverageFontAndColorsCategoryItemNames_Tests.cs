@@ -115,7 +115,9 @@ namespace FineCodeCoverageTests.Editor.Management
                 "NotCovered",
                 "PartiallyCovered",
                 "NewLines",
-                "Dirty"));
+                "Dirty",
+                "NotIncluded"
+                ));
             return coverageFontAndColorsCategoryItemNamesManager;
         }
 
@@ -145,7 +147,7 @@ namespace FineCodeCoverageTests.Editor.Management
             string expectedCoveredName,
             string expectedNotCoveredName,
             string expectedPartiallyCoveredName
-            )
+        )
         {
             AssertCategory(new List<Guid> {
                 categoryItemNames.Covered.Category,
@@ -166,10 +168,12 @@ namespace FineCodeCoverageTests.Editor.Management
             AssertCategory(new List<Guid> {
                 categoryItemNames.NewLines.Category,
                 categoryItemNames.Dirty.Category,
+                categoryItemNames.NotIncluded.Category,
             }, true);
 
             Assert.That(categoryItemNames.NewLines.ItemName, Is.EqualTo("NewLines"));
             Assert.That(categoryItemNames.Dirty.ItemName, Is.EqualTo("Dirty"));
+            Assert.That(categoryItemNames.NotIncluded.ItemName, Is.EqualTo("NotIncluded"));
         }
 
         private void AssertCategory(List<Guid> categories, bool expectedMef)

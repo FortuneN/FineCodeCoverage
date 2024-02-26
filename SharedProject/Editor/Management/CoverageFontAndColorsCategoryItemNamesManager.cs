@@ -86,6 +86,7 @@ namespace FineCodeCoverage.Editor.Management
         {
             NewLines = CreateMef(fCCEditorFormatDefinitionNames.NewLines);
             Dirty = CreateMef(fCCEditorFormatDefinitionNames.Dirty);
+            NotIncluded = CreateMef(fCCEditorFormatDefinitionNames.NotIncluded);
         }
 
         private void SetMarkersFromFCC()
@@ -93,7 +94,6 @@ namespace FineCodeCoverage.Editor.Management
             Covered = CreateMef(fCCEditorFormatDefinitionNames.Covered);
             NotCovered = CreateMef(fCCEditorFormatDefinitionNames.NotCovered);
             PartiallyCovered = CreateMef(fCCEditorFormatDefinitionNames.PartiallyCovered);
-            NotIncluded = CreateMef(fCCEditorFormatDefinitionNames.NotIncluded);
         }
 
         private void SetMarkersFromEnterprise()

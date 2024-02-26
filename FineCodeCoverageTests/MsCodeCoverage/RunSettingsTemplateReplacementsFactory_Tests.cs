@@ -721,5 +721,8 @@ namespace FineCodeCoverageTests.MsCodeCoverage
         public bool ShowLineNewHighlighting { get; set; }
         public bool ShowEditorCoverage { get; set; }
         public bool UseEnterpriseFontsAndColors { get; set; }
+        public bool ShowNotIncludedInOverviewMargin { get; set; }
+        public bool ShowNotIncludedInGlyphMargin { get; set; }
+        public bool ShowLineNotIncludedHighlighting { get; set; }
     }
 }
