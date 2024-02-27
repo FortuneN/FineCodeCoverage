@@ -30,6 +30,7 @@ namespace FineCodeCoverageTests.Editor.Tagging.CoverageTypeFilter
         protected abstract Expression<Func<IAppOptions, bool>> ShowPartiallyCoveredExpression { get; }
         protected abstract Expression<Func<IAppOptions, bool>> ShowDirtyExpression { get; }
         protected abstract Expression<Func<IAppOptions, bool>> ShowNewExpression { get; }
+        protected abstract Expression<Func<IAppOptions, bool>> ShowNotIncludedExpression { get; }
 
         private Action<IAppOptions, bool> showCoverage;
         private Action<IAppOptions, bool> ShowCoverage
@@ -103,6 +104,19 @@ namespace FineCodeCoverageTests.Editor.Tagging.CoverageTypeFilter
                 return showNew;
             }
         }
+       
+        private Action<IAppOptions, bool> showNotIncluded;
+        private Action<IAppOptions, bool> ShowNotIncluded
+        {
+            get
+            {
+                if (showNotIncluded == null)
+                {
+                    showNotIncluded = GetSetter(ShowNotIncludedExpression);
+                }
+                return showNotIncluded;
+            }
+        }
         #endregion
 
         [Test]
@@ -135,14 +149,15 @@ namespace FineCodeCoverageTests.Editor.Tagging.CoverageTypeFilter
             return new Mock<IAppOptions>().SetupAllProperties().Object;
         }
 
-        [TestCase(true, true, true, true, false)]
-        [TestCase(false, false, false, false, true)]
+        [TestCase(true, true, true, true, false,true)]
+        [TestCase(false, false, false, false, true,false)]
         public void Should_Show_Using_AppOptions(
             bool showCovered, 
             bool showUncovered, 
             bool showPartiallyCovered,
             bool showDirty,
-            bool showNew
+            bool showNew,
+            bool showNotIncluded
             )
         {
             var coverageTypeFilter = new TCoverageTypeFilter();
@@ -155,6 +170,7 @@ namespace FineCodeCoverageTests.Editor.Tagging.CoverageTypeFilter
             ShowPartiallyCovered(appOptions, showPartiallyCovered);
             ShowDirty(appOptions, showDirty);
             ShowNew(appOptions, showNew);
+            ShowNotIncluded(appOptions, showNotIncluded);
 
             coverageTypeFilter.Initialize(appOptions);
 
@@ -163,7 +179,7 @@ namespace FineCodeCoverageTests.Editor.Tagging.CoverageTypeFilter
             Assert.That(coverageTypeFilter.Show(DynamicCoverageType.Partial), Is.EqualTo(showPartiallyCovered));
             Assert.That(coverageTypeFilter.Show(DynamicCoverageType.NewLine), Is.EqualTo(showNew));
             Assert.That(coverageTypeFilter.Show(DynamicCoverageType.Dirty), Is.EqualTo(showDirty));
-
+            Assert.That(coverageTypeFilter.Show(DynamicCoverageType.NotIncluded), Is.EqualTo(showNotIncluded));
         }
 
         [TestCaseSource(nameof(ChangedTestSource))]
@@ -187,6 +203,7 @@ namespace FineCodeCoverageTests.Editor.Tagging.CoverageTypeFilter
             ShowPartiallyCovered(appOptions, coverageAppOptions.ShowPartiallyCovered);
             ShowDirty(appOptions, coverageAppOptions.ShowDirty);
             ShowNew(appOptions, coverageAppOptions.ShowNew);
+            ShowNotIncluded(appOptions, coverageAppOptions.ShowNotIncluded);
             return appOptions;
         }
 
@@ -200,6 +217,7 @@ namespace FineCodeCoverageTests.Editor.Tagging.CoverageTypeFilter
             public bool ShowPartiallyCovered { get; set; }
             public bool ShowDirty { get; set; }
             public bool ShowNew { get; set; }
+            public bool ShowNotIncluded { get; set; }
 
             public CoverageAppOptions(
                 bool showCovered,
@@ -207,7 +225,7 @@ namespace FineCodeCoverageTests.Editor.Tagging.CoverageTypeFilter
                 bool showPartiallyCovered,
                 bool showDirty,
                 bool showNew,
-
+                bool showNotIncluded,
                 bool showEditorCoverage = true,
                 bool showCoverage = true
             )
@@ -217,6 +235,7 @@ namespace FineCodeCoverageTests.Editor.Tagging.CoverageTypeFilter
                 ShowPartiallyCovered = showPartiallyCovered;
                 ShowDirty = showDirty;
                 ShowNew = showNew;
+                ShowNotIncluded = showNotIncluded;
 
                 ShowCoverage = showCoverage;
                 ShowEditorCoverage = showEditorCoverage;
@@ -238,43 +257,48 @@ namespace FineCodeCoverageTests.Editor.Tagging.CoverageTypeFilter
 
         public static ChangedTestArguments[] ChangedTestSource = new ChangedTestArguments[]{
                 new ChangedTestArguments(
-                    new CoverageAppOptions(true,true,true, true, true), // changing covered
-                    new CoverageAppOptions(false,true,true, true, true), 
+                    new CoverageAppOptions(true,true,true, true, true, true), // changing covered
+                    new CoverageAppOptions(false,true,true, true, true, true), 
                     true
                 ),
                 new ChangedTestArguments(
-                    new CoverageAppOptions(true, true, true, true, true),// changing uncovered
-                    new CoverageAppOptions(true,false,true,true, true),
+                    new CoverageAppOptions(true, true, true, true, true, true),// changing uncovered
+                    new CoverageAppOptions(true,false,true,true, true,true),
                     true
                 ),
                 new ChangedTestArguments(
-                    new CoverageAppOptions(true,true,true, true, true), // changing partialy covered
-                    new CoverageAppOptions(true,true,false, true, true),
+                    new CoverageAppOptions(true,true,true, true, true, true), // changing partialy covered
+                    new CoverageAppOptions(true,true,false, true, true, true),
                     true
                 ),
                 new ChangedTestArguments(
-                    new CoverageAppOptions(true,true,true, false, true), // changing dirty
-                    new CoverageAppOptions(true,true,true, true, true),
+                    new CoverageAppOptions(true,true,true, false, true, true), // changing dirty
+                    new CoverageAppOptions(true,true,true, true, true, true),
                     true
                 ),
                 new ChangedTestArguments(
-                    new CoverageAppOptions(true,true,true, true, false), // changing new
-                    new CoverageAppOptions(true,true,true, true, true),
+                    new CoverageAppOptions(true,true,true, true, false,true), // changing new
+                    new CoverageAppOptions(true,true,true, true, true, true),
                     true
                 ),
                 new ChangedTestArguments(
-                    new CoverageAppOptions(true,true,true,true, true, true,true),
-                    new CoverageAppOptions(true,true,true,true, true, false,true),
+                    new CoverageAppOptions(true,true,true, true, true,false), // changing not included
+                    new CoverageAppOptions(true,true,true, true, true, true),
                     true
                 ),
                 new ChangedTestArguments(
-                    new CoverageAppOptions(true,true,true,true,true,true,true),
-                    new CoverageAppOptions(true,true,true,true,true, true,false),
+                    new CoverageAppOptions(true,true,true,true, true,true, true,true),
+                    new CoverageAppOptions(true,true,true,true, true,true, false,true),
                     true
                 ),
                 new ChangedTestArguments(
-                    new CoverageAppOptions(true,true,true, true, true),
-                    new CoverageAppOptions(true,true,true, true, true),
+                    new CoverageAppOptions(true,true,true,true,true,true,true,true),
+                    new CoverageAppOptions(true,true,true,true,true,true, true,false),
+                    true
+                ),
+                new ChangedTestArguments(
+                    new CoverageAppOptions(true,true,true, true, true, true),
+                    new CoverageAppOptions(true,true,true, true, true, true),
                     false
                 )
         };

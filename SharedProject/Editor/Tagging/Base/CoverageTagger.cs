@@ -17,7 +17,7 @@ namespace FineCodeCoverage.Editor.Tagging.Base
         where TTag : ITag
 
     {
-        private readonly ITextBufferWithFilePath textBufferWithFilePath;
+        private readonly ITextInfo textInfo;
         private readonly ITextBuffer textBuffer;
         private IBufferLineCoverage coverageLines;
         private ICoverageTypeFilter coverageTypeFilter;
@@ -28,7 +28,7 @@ namespace FineCodeCoverage.Editor.Tagging.Base
         public event EventHandler<SnapshotSpanEventArgs> TagsChanged;
 
         public CoverageTagger(
-            ITextBufferWithFilePath textBufferWithFilePath,
+            ITextInfo textInfo,
             IBufferLineCoverage lastCoverageLines,
             ICoverageTypeFilter coverageTypeFilter,
             IEventAggregator eventAggregator,
@@ -36,13 +36,13 @@ namespace FineCodeCoverage.Editor.Tagging.Base
             ILineSpanTagger<TTag> lineSpanTagger
         )
         {
-            ThrowIf.Null(textBufferWithFilePath, nameof(textBufferWithFilePath));
+            ThrowIf.Null(textInfo, nameof(textInfo));
             ThrowIf.Null(coverageTypeFilter, nameof(coverageTypeFilter));
             ThrowIf.Null(eventAggregator, nameof(eventAggregator));
             ThrowIf.Null(lineSpanLogic, nameof(lineSpanLogic));
             ThrowIf.Null(lineSpanTagger, nameof(lineSpanTagger));
-            this.textBufferWithFilePath = textBufferWithFilePath;
-            this.textBuffer = textBufferWithFilePath.TextBuffer;
+            this.textInfo = textInfo;
+            this.textBuffer = textInfo.TextBuffer;
             this.coverageLines = lastCoverageLines;
             this.coverageTypeFilter = coverageTypeFilter;
             this.eventAggregator = eventAggregator;
@@ -91,7 +91,7 @@ namespace FineCodeCoverage.Editor.Tagging.Base
         public void Handle(CoverageChangedMessage message)
         {
             coverageLines = message.CoverageLines;
-            if(message.AppliesTo == textBufferWithFilePath.FilePath)
+            if(message.AppliesTo == textInfo.FilePath)
             {
                 RaiseTagsChanged();
             }

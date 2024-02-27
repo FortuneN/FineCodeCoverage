@@ -70,14 +70,18 @@
     <Compile Include="CoverageUtilManager_Tests.cs" />
     <Compile Include="Editor\DynamicCoverage\BufferLineCoverage_Tests.cs" />
     <Compile Include="Editor\DynamicCoverage\LineExcluder_Tests.cs" />
-    <Compile Include="Editor\DynamicCoverage\ContainingCodeTracker_Tests.cs" />
+    <Compile Include="Editor\DynamicCoverage\CoverageCodeTracker_Tests.cs" />
     <Compile Include="Editor\DynamicCoverage\CoverageLine_Tests.cs" />
     <Compile Include="Editor\DynamicCoverage\DirtyLine_Tests.cs" />
     <Compile Include="Editor\DynamicCoverage\LinesContainingCodeTrackerFactory_Tests.cs" />
     <Compile Include="Editor\DynamicCoverage\NewCodeTracker_Tests.cs" />
+    <Compile Include="Editor\DynamicCoverage\NotIncludedTracker_Tests.cs" />
+    <Compile Include="Editor\DynamicCoverage\OtherLinesTracker_Tests.cs" />
+    <Compile Include="Editor\DynamicCoverage\TextInfo_Tests.cs" />
     <Compile Include="Editor\DynamicCoverage\TextSnapshotLineExcluder_Tests.cs" />
     <Compile Include="Editor\DynamicCoverage\TrackedNewCodeLine_Tests.cs" />
     <Compile Include="Editor\DynamicCoverage\LineTracker_Tests.cs" />
+    <Compile Include="Editor\DynamicCoverage\TrackingSpanRangeUpdatingTracker_Tests.cs" />
     <Compile Include="Editor\Management\CoverageClassificationTypeService_Tests.cs" />
     <Compile Include="Editor\Management\CoverageFontAndColorsCategoryItemNames_Tests.cs" />
     <Compile Include="Editor\Management\FontsAndColorsHelper_Tests.cs" />
@@ -141,6 +145,7 @@
     <Compile Include="ShownToolWindowHistory_Tests.cs" />
     <Compile Include="TestHelpers\ExportsInitializable.cs" />
     <Compile Include="TestHelpers\MefOrderAssertions.cs" />
+    <Compile Include="TestHelpers\MoqAssertionsHelper.cs" />
     <Compile Include="TestHelpers\MoqExtensions.cs" />
     <Compile Include="TestHelpers\TestThreadHelper.cs" />
     <Compile Include="TestHelpers\XmlAssert.cs" />

@@ -19,5 +19,7 @@ namespace FineCodeCoverageTests.Editor.Tagging.Classification
         protected override Expression<Func<IAppOptions, bool>> ShowDirtyExpression => appOptions => appOptions.ShowLineDirtyHighlighting;
 
         protected override Expression<Func<IAppOptions, bool>> ShowNewExpression => appOptions => appOptions.ShowLineNewHighlighting;
+
+        protected override Expression<Func<IAppOptions, bool>> ShowNotIncludedExpression => appOptions => appOptions.ShowLineNotIncludedHighlighting;
     }
 }

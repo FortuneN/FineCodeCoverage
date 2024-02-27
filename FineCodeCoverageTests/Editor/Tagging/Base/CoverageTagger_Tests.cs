@@ -41,11 +41,11 @@ namespace FineCodeCoverageTests.Editor.Tagging.Base
         public void Should_Raise_Tags_Changed_For_CurrentSnapshot_Range_When_CoverageChangedMessage_Applies(bool appliesTo)
         {
             var autoMoqer = new AutoMoqer();
-            var mockTextBufferAndFile = autoMoqer.GetMock<ITextBufferWithFilePath>();
+            var mockTextInfo = autoMoqer.GetMock<ITextInfo>();
             var mockTextSnapshot = new Mock<ITextSnapshot>();
             mockTextSnapshot.SetupGet(currentSnapshot => currentSnapshot.Length).Returns(10);
-            mockTextBufferAndFile.SetupGet(textBufferAndFile => textBufferAndFile.FilePath).Returns("filepath");
-            mockTextBufferAndFile.SetupGet(textBufferAndFile => textBufferAndFile.TextBuffer.CurrentSnapshot).Returns(mockTextSnapshot.Object);
+            mockTextInfo.SetupGet(textBufferAndFile => textBufferAndFile.FilePath).Returns("filepath");
+            mockTextInfo.SetupGet(textBufferAndFile => textBufferAndFile.TextBuffer.CurrentSnapshot).Returns(mockTextSnapshot.Object);
 
             var coverageTagger = autoMoqer.Create<CoverageTagger<DummyTag>>();
             SnapshotSpan? snapshotSpan = null;
@@ -75,7 +75,7 @@ namespace FineCodeCoverageTests.Editor.Tagging.Base
         public void Should_HasCoverage_When_Has(bool hasCoverage)
         {
             var coverageTagger = new CoverageTagger<DummyTag>(
-                new Mock<ITextBufferWithFilePath>().Object,
+                new Mock<ITextInfo>().Object,
                 hasCoverage ? new Mock<IBufferLineCoverage>().Object : null,
                 new Mock<ICoverageTypeFilter>().Object,
                 new Mock<IEventAggregator>().Object,
@@ -92,9 +92,9 @@ namespace FineCodeCoverageTests.Editor.Tagging.Base
         {
             var autoMoqer = new AutoMoqer();
             autoMoqer.SetInstance<ICoverageTypeFilter>(new DummyCoverageTypeFilter());
-            var mockTextBufferAndFile = autoMoqer.GetMock<ITextBufferWithFilePath>();
+            var mockTextInfo = autoMoqer.GetMock<ITextInfo>();
 
-            mockTextBufferAndFile.SetupGet(textBufferAndFile => textBufferAndFile.TextBuffer.CurrentSnapshot.Length).Returns(10);
+            mockTextInfo.SetupGet(textBufferAndFile => textBufferAndFile.TextBuffer.CurrentSnapshot.Length).Returns(10);
 
             var coverageTagger = autoMoqer.Create<CoverageTagger<DummyTag>>();
             var tagsChanged = false;
@@ -114,7 +114,7 @@ namespace FineCodeCoverageTests.Editor.Tagging.Base
         public void Should_Not_Raise_TagsChanged_For_CoverageTypeFilterChangedMessage_If_No_Coverage()
         {
             var coverageTagger = new CoverageTagger<DummyTag>(
-                new Mock<ITextBufferWithFilePath>().Object,
+                new Mock<ITextInfo>().Object,
                 null,
                 new DummyCoverageTypeFilter(),
                 new Mock<IEventAggregator>().Object,
@@ -138,7 +138,7 @@ namespace FineCodeCoverageTests.Editor.Tagging.Base
         public void Should_Return_No_Tags_If_No_Coverage_Lines()
         {
             var coverageTagger = new CoverageTagger<DummyTag>(
-                new Mock<ITextBufferWithFilePath>().Object,
+                new Mock<ITextInfo>().Object,
                 null,
                 new Mock<ICoverageTypeFilter>().Object,
                 new Mock<IEventAggregator>().Object,
@@ -172,11 +172,11 @@ namespace FineCodeCoverageTests.Editor.Tagging.Base
             var autoMoqer = new AutoMoqer();
             var bufferLineCoverage = autoMoqer.GetMock<IBufferLineCoverage>().Object;
 
-            var mockTextBufferAndFile = autoMoqer.GetMock<ITextBufferWithFilePath>();
+            var mockTextInfo = autoMoqer.GetMock<ITextInfo>();
             var mockTextSnapshot = new Mock<ITextSnapshot>();
             mockTextSnapshot.SetupGet(currentSnapshot => currentSnapshot.Length).Returns(10);
-            mockTextBufferAndFile.SetupGet(textBufferAndFile => textBufferAndFile.TextBuffer.CurrentSnapshot).Returns(mockTextSnapshot.Object);
-            mockTextBufferAndFile.SetupGet(textBufferWithFilePath => textBufferWithFilePath.FilePath).Returns("filepath");
+            mockTextInfo.SetupGet(textBufferAndFile => textBufferAndFile.TextBuffer.CurrentSnapshot).Returns(mockTextSnapshot.Object);
+            mockTextInfo.SetupGet(textBufferWithFilePath => textBufferWithFilePath.FilePath).Returns("filepath");
 
             var coverageTagger = autoMoqer.Create<CoverageTagger<DummyTag>>();
             var spans = new NormalizedSnapshotSpanCollection();

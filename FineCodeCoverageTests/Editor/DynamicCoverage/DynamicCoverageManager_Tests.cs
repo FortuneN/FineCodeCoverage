@@ -38,13 +38,13 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
             var autoMocker = new AutoMoqer();
             var dynamicCoverageManager = autoMocker.Create<DynamicCoverageManager>();
 
-            var mockTextBuffer = new Mock<ITextBuffer>();
+            var mockTextInfo = new Mock<ITextInfo>();
             var previousBufferLineCoverage = new Mock<IBufferLineCoverage>().Object;
             var propertyCollection = new PropertyCollection();
             propertyCollection.GetOrCreateSingletonProperty(() => previousBufferLineCoverage);
-            mockTextBuffer.Setup(textBuffer => textBuffer.Properties).Returns(propertyCollection);
-
-            var bufferLineCoverage = dynamicCoverageManager.Manage(null, mockTextBuffer.Object, new Mock<ITextDocument>().Object);
+            mockTextInfo.Setup(textInfo => textInfo.TextBuffer.Properties).Returns(propertyCollection);
+            
+            var bufferLineCoverage = dynamicCoverageManager.Manage(mockTextInfo.Object);
             
             Assert.That(bufferLineCoverage, Is.SameAs(previousBufferLineCoverage));
         }
@@ -64,22 +64,22 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
                 dynamicCoverageManager.Handle(new NewCoverageLinesMessage { CoverageLines = lastCoverage});
             }
 
-            var mockTextBuffer = new Mock<ITextBuffer>();
+            var mockTextInfo = new Mock<ITextInfo>();
             var textView = new Mock<ITextView>().Object;
             var propertyCollection = new PropertyCollection();
-            mockTextBuffer.Setup(textBuffer => textBuffer.Properties).Returns(propertyCollection);
+            mockTextInfo.Setup(textInfo => textInfo.TextBuffer.Properties).Returns(propertyCollection);
 
             var newBufferLineCoverage = new Mock<IBufferLineCoverage>().Object; 
             var mockBufferLineCoverageFactory = autoMocker.GetMock<IBufferLineCoverageFactory>();
             var mockTextDocument = new Mock<ITextDocument>();
             mockTextDocument.Setup(textDocument => textDocument.FilePath).Returns("filepath");
             mockBufferLineCoverageFactory.Setup(
-                bufferLineCoverageFactory => bufferLineCoverageFactory.Create(lastCoverage, new TextInfo(textView,mockTextBuffer.Object,mockTextDocument.Object), eventAggregator,trackedLinesFactory))
+                bufferLineCoverageFactory => bufferLineCoverageFactory.Create(lastCoverage, mockTextInfo.Object, eventAggregator,trackedLinesFactory))
                 .Returns(newBufferLineCoverage);
 
            
             
-            var bufferLineCoverage = dynamicCoverageManager.Manage(textView, mockTextBuffer.Object, mockTextDocument.Object);
+            var bufferLineCoverage = dynamicCoverageManager.Manage(mockTextInfo.Object);
 
             Assert.That(bufferLineCoverage, Is.SameAs(newBufferLineCoverage));
         }

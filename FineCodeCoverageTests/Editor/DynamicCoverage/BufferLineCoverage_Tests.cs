@@ -25,7 +25,7 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
         private Mock<ITextBuffer2> mockTextBuffer;
         private Mock<ITextView> mockTextView;
         private ITextSnapshot textSnapshot;
-        private TextInfo textInfo;
+        private ITextInfo textInfo;
         private void SimpleTextInfoSetUp(string contentTypeName = "CSharp")
         {
             autoMoqer = new AutoMoqer();
@@ -35,13 +35,11 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
             mockTextSnapshot = new Mock<ITextSnapshot>();
             textSnapshot = mockTextSnapshot.Object;
             mockTextBuffer.Setup(textBuffer => textBuffer.CurrentSnapshot).Returns(textSnapshot);
-            var mockTextDocument = new Mock<ITextDocument>();
-            mockTextDocument.SetupGet(textDocument => textDocument.FilePath).Returns("filepath");
-            textInfo = new TextInfo(
-                mockTextView.Object,
-                mockTextBuffer.Object,
-                mockTextDocument.Object
-            );
+            var mockTextInfo = new Mock<ITextInfo>();
+            mockTextInfo.SetupGet(textInfo => textInfo.TextBuffer).Returns(mockTextBuffer.Object);
+            mockTextInfo.SetupGet(textInfo => textInfo.TextView).Returns(mockTextView.Object);
+            mockTextInfo.SetupGet(textInfo => textInfo.FilePath).Returns("filepath");
+            textInfo = mockTextInfo.Object;
             autoMoqer.SetInstance(textInfo);
         }
 
@@ -127,12 +125,11 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
                 .Returns(mockCurrentSnapshot.Object);
             var mockTextDocument = new Mock<ITextDocument>();
             mockTextDocument.SetupGet(textDocument => textDocument.FilePath).Returns("filepath");
-            var textInfo = new TextInfo(
-                new Mock<ITextView>().Object,
-                mockTextBuffer.Object,
-                mockTextDocument.Object
-            );
-            autoMoqer.SetInstance(textInfo);
+            var mockTextInfo = new Mock<ITextInfo>();
+            mockTextInfo.SetupGet(textInfo => textInfo.TextBuffer).Returns(mockTextBuffer.Object);
+            mockTextInfo.SetupGet(textInfo => textInfo.FilePath).Returns("filepath");
+            mockTextInfo.SetupGet(textInfo => textInfo.TextView).Returns(new Mock<ITextView>().Object);
+            autoMoqer.SetInstance(mockTextInfo.Object);
 
             var lines = new List<ILine> { };
             var mockNewFileLineCoverage = autoMoqer.GetMock<IFileLineCoverage>();

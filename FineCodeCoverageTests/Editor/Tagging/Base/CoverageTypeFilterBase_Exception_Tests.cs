@@ -64,6 +64,7 @@ namespace FineCodeCoverageTests.Editor.Tagging.Base
                 { DynamicCoverageType.Partial,true },
                 { DynamicCoverageType.Dirty, true },
                 { DynamicCoverageType.NewLine,true },
+                { DynamicCoverageType.NotIncluded,true },
             };
             var appOptions = new Mock<IAppOptions>().SetupAllProperties().Object;
             appOptions.ShowEditorCoverage = true;

@@ -14,6 +14,7 @@ namespace FineCodeCoverage.Editor.Tagging.Base
         private readonly ILineSpanLogic lineSpanLogic;
         private readonly ILineSpanTagger<TTag> coverageTagger;
         private readonly IDynamicCoverageManager dynamicCoverageManager;
+        private readonly ITextInfoFactory textInfoFactory;
         private TCoverageTypeFilter coverageTypeFilter;
 
         public CoverageTaggerProvider(
@@ -21,9 +22,11 @@ namespace FineCodeCoverage.Editor.Tagging.Base
             IAppOptionsProvider appOptionsProvider,
             ILineSpanLogic lineSpanLogic,
             ILineSpanTagger<TTag> coverageTagger,
-            IDynamicCoverageManager dynamicCoverageManager)
+            IDynamicCoverageManager dynamicCoverageManager,
+            ITextInfoFactory textInfoFactory)
         {
             this.dynamicCoverageManager = dynamicCoverageManager;
+            this.textInfoFactory = textInfoFactory;
             var appOptions = appOptionsProvider.Get();
             coverageTypeFilter = CreateFilter(appOptions);
             appOptionsProvider.OptionsChanged += AppOptionsProvider_OptionsChanged;
@@ -51,18 +54,15 @@ namespace FineCodeCoverage.Editor.Tagging.Base
         
         public ICoverageTagger<TTag> CreateTagger(ITextView textView, ITextBuffer textBuffer)
         {
-            string filePath = null;
-            if (textBuffer.Properties.TryGetProperty(typeof(ITextDocument), out ITextDocument document))
-            {
-                filePath = document.FilePath;
-            }
+            var textInfo = textInfoFactory.Create(textView, textBuffer);
+            string filePath = textInfo.FilePath;
             if (filePath == null)
             {
                 return null;
             }
-            var lastCoverageLines = dynamicCoverageManager.Manage(textView, textBuffer,document);
+            var lastCoverageLines = dynamicCoverageManager.Manage(textInfo);
             return new CoverageTagger<TTag>(
-                new TextBufferWithFilePath(textBuffer, document),
+                textInfo,
                 lastCoverageLines, 
                 coverageTypeFilter, 
                 eventAggregator, 
