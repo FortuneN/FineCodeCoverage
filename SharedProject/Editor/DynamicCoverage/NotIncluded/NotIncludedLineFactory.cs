@@ -19,7 +19,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
         }
         public ITrackingLine Create(ITrackingSpan startTrackingSpan, ITextSnapshot currentSnapshot)
         {
-            return new NotIncludedTrackingLine(startTrackingSpan, currentSnapshot, lineTracker);
+            return new TrackingLine(startTrackingSpan, currentSnapshot, lineTracker, DynamicCoverageType.NotIncluded);
         }
     }
 }

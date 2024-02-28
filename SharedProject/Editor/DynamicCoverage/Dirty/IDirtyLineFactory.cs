@@ -4,6 +4,6 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
 {
     internal interface IDirtyLineFactory
     {
-        IDirtyLine Create(ITrackingSpan trackingSpan, ITextSnapshot snapshot);
+        ITrackingLine Create(ITrackingSpan trackingSpan, ITextSnapshot snapshot);
     }
 }

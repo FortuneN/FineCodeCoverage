@@ -9,6 +9,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
         private readonly ITrackingSpan startTrackingSpan;
         private readonly ITrackingSpan endTrackingSpan;
         private string lastRangeText;
+        private CodeSpanRange codeSpanRange;
 
         public TrackingSpanRange(ITrackingSpan startTrackingSpan, ITrackingSpan endTrackingSpan,ITextSnapshot currentSnapshot)
         {
@@ -22,6 +23,9 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
         {
             var currentStartSpan = startTrackingSpan.GetSpan(currentSnapshot);
             var currentEndSpan = endTrackingSpan.GetSpan(currentSnapshot);
+            var startLineNumber = currentSnapshot.GetLineNumberFromPosition(currentStartSpan.Start);
+            var endLineNumber = currentSnapshot.GetLineNumberFromPosition(currentEndSpan.Start);
+            codeSpanRange = new CodeSpanRange(startLineNumber, endLineNumber);
             return (currentStartSpan, currentEndSpan);
         }
         
@@ -70,6 +74,9 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
         {
             return startTrackingSpan;
         }
+
+        public CodeSpanRange ToCodeSpanRange() => codeSpanRange;
+        
     }
 
 }

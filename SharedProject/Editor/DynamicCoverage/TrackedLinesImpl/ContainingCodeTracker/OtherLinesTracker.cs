@@ -14,6 +14,8 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
 
         public IEnumerable<IDynamicLine> Lines { get; } = Enumerable.Empty<IDynamicLine>();
 
+        public ContainingCodeTrackerType Type => ContainingCodeTrackerType.OtherLines;
+
         public bool Update(TrackingSpanRangeProcessResult trackingSpanRangeProcessResult, ITextSnapshot currentSnapshot, List<SpanAndLineRange> newSpanAndLineRanges)
         {
             return false;

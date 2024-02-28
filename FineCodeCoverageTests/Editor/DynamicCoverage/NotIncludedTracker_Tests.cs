@@ -18,7 +18,6 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
             var notIncludedCodeTracker = new NotIncludedCodeTracker(mockTrackingLine.Object);
 
             Assert.That(notIncludedCodeTracker.Lines.Single(), Is.SameAs(line));
-
         }
 
         [TestCase(true)]
@@ -35,6 +34,14 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
             var updated = notIncludedCodeTracker.Update(null, textSnapshot, null);
 
             Assert.That(lineChanged, Is.EqualTo(updated));
+        }
+
+        [Test]
+        public void Should_Have_Correct_ContainingCodeTrackerType()
+        {
+            var autoMoqer = new AutoMoqer();
+            var notIncludedCodeTracker = autoMoqer.Create<NotIncludedCodeTracker>();
+            Assert.That(notIncludedCodeTracker.Type, Is.EqualTo(ContainingCodeTrackerType.NotIncluded));
         }
     }
     

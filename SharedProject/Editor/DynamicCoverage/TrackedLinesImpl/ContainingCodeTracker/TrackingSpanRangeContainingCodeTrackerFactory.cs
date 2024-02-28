@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.Composition;
+﻿using Microsoft.VisualStudio.Text;
+using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
 
 namespace FineCodeCoverage.Editor.DynamicCoverage
@@ -22,12 +23,17 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
             return Wrap(trackingSpanRange, new CoverageCodeTracker(trackedCoverageLines, dirtyLineFactory));
         }
 
+        public IContainingCodeTracker CreateDirty(ITrackingSpanRange trackingSpanRange, ITextSnapshot textSnapshot)
+        {
+            return Wrap(trackingSpanRange, new DirtyCodeTracker(dirtyLineFactory.Create(trackingSpanRange.GetFirstTrackingSpan(), textSnapshot)));
+        }
+
         public IContainingCodeTracker CreateNotIncluded(ITrackingLine trackingLine, ITrackingSpanRange trackingSpanRange)
         {
             return Wrap(trackingSpanRange, new NotIncludedCodeTracker(trackingLine));
         }
 
-        public IContainingCodeTracker CreateOtherLinesTracker(ITrackingSpanRange trackingSpanRange)
+        public IContainingCodeTracker CreateOtherLines(ITrackingSpanRange trackingSpanRange)
         {
             return Wrap(trackingSpanRange, new OtherLinesTracker());
         }

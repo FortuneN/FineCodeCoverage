@@ -19,6 +19,11 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
 
         public IEnumerable<IDynamicLine> Lines => updatableDynamicLines.Lines;
 
+        public ContainingCodeTrackerState GetState()
+        {
+            return new ContainingCodeTrackerState(updatableDynamicLines.Type, trackingSpanRange.ToCodeSpanRange(), Lines);
+        }
+
         public IContainingCodeTrackerProcessResult ProcessChanges(ITextSnapshot currentSnapshot, List<SpanAndLineRange> newSpanAndLineRanges)
         {
             var trackingSpanRangeProcessResult = trackingSpanRange.Process(currentSnapshot, newSpanAndLineRanges);

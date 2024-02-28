@@ -8,6 +8,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
     {
         private readonly List<IContainingCodeTracker> containingCodeTrackers;
         private readonly INewCodeTracker newCodeTracker;
+        public IReadOnlyList<IContainingCodeTracker> ContainingCodeTrackers => containingCodeTrackers;
 
         public TrackedLines(List<IContainingCodeTracker> containingCodeTrackers, INewCodeTracker newCodeTracker)
         {

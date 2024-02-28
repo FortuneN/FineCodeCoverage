@@ -22,7 +22,7 @@ namespace FineCodeCoverage.Editor.Management
 
         public ICoverageFontAndColorsCategoryItemNames CoverageFontAndColorsCategoryItemNames { set => coverageFontAndColorsCategoryItemNames = value; }
 
-        private struct NameIndex
+        private readonly struct NameIndex
         {
             public NameIndex(string name, int index)
             {

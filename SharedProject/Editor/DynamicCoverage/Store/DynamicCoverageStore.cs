@@ -1,15 +1,13 @@
 ﻿using FineCodeCoverage.Core.Utilities;
+using FineCodeCoverage.Engine;
 using FineCodeCoverage.Options;
 using Microsoft.VisualStudio.Settings;
-using Newtonsoft.Json;
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.Linq;
 
 namespace FineCodeCoverage.Editor.DynamicCoverage
 {
     [Export(typeof(IDynamicCoverageStore))]
-    internal class DynamicCoverageStore : IDynamicCoverageStore
+    internal class DynamicCoverageStore : IDynamicCoverageStore, IListener<NewCoverageLinesMessage>
     {
         private readonly IWritableUserSettingsStoreProvider writableUserSettingsStoreProvider;
         private const string dynamicCoverageStoreCollectionName = "FCC.DynamicCoverageStore";
@@ -32,9 +30,11 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
         [ImportingConstructor]
         public DynamicCoverageStore(
             IWritableUserSettingsStoreProvider writableUserSettingsStoreProvider,
-            IFileRenameListener fileRenameListener
+            IFileRenameListener fileRenameListener,
+            IEventAggregator eventAggregator
         )
         {
+            eventAggregator.AddListener(this);
             this.writableUserSettingsStoreProvider = writableUserSettingsStoreProvider;
             fileRenameListener.ListenForFileRename((oldFileName, newFileName) =>
             {
@@ -51,28 +51,34 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
             });
         }
 
-        public object GetSerializedCoverage(string filePath)
+        public string GetSerializedCoverage(string filePath)
         {
-            throw new System.NotImplementedException();
-            //var collectionExists = WritableUserSettingsStore.CollectionExists(dynamicCoverageStoreCollectionName);
-            //if (!collectionExists) return null;
-            //if (WritableUserSettingsStore.PropertyExists(dynamicCoverageStoreCollectionName, filePath))
-            //{
-            //    var serialized = WritableUserSettingsStore.GetString(dynamicCoverageStoreCollectionName, filePath);
-            //    return JsonConvert.DeserializeObject<List<DynamicLine>>(serialized).Cast<IDynamicLine>().ToList();
-            //}
-            //return null;
+            var collectionExists = WritableUserSettingsStore.CollectionExists(dynamicCoverageStoreCollectionName);
+            if (!collectionExists) return null;
+            if (WritableUserSettingsStore.PropertyExists(dynamicCoverageStoreCollectionName, filePath))
+            {
+                return WritableUserSettingsStore.GetString(dynamicCoverageStoreCollectionName, filePath);
+            }
+            return null;
         }
 
-        public void SaveSerializedCoverage(string filePath,object obj)
+        public void SaveSerializedCoverage(string filePath,string serializedCoverage)
         {
-            throw new System.NotImplementedException();
-            //var collectionExists = WritableUserSettingsStore.CollectionExists(dynamicCoverageStoreCollectionName);
-            //if (!collectionExists)
-            //{
-            //    WritableUserSettingsStore.CreateCollection(dynamicCoverageStoreCollectionName);
-            //}
-            //WritableUserSettingsStore.SetString(dynamicCoverageStoreCollectionName, filePath, serialized);
+            var collectionExists = WritableUserSettingsStore.CollectionExists(dynamicCoverageStoreCollectionName);
+            if (!collectionExists)
+            {
+                WritableUserSettingsStore.CreateCollection(dynamicCoverageStoreCollectionName);
+            }
+            WritableUserSettingsStore.SetString(dynamicCoverageStoreCollectionName, filePath, serializedCoverage);
+        }
+
+        public void Handle(NewCoverageLinesMessage message)
+        {
+            var collectionExists = WritableUserSettingsStore.CollectionExists(dynamicCoverageStoreCollectionName);
+            if (collectionExists)
+            {
+                WritableUserSettingsStore.DeleteCollection(dynamicCoverageStoreCollectionName);
+            }
         }
     }
 

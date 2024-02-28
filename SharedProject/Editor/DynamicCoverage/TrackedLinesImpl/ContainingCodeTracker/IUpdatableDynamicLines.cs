@@ -6,6 +6,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
     interface IUpdatableDynamicLines
     {
         IEnumerable<IDynamicLine> Lines { get; }
+        ContainingCodeTrackerType Type { get; }
 
         bool Update(
             TrackingSpanRangeProcessResult trackingSpanRangeProcessResult, 

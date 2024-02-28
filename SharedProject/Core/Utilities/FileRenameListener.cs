@@ -10,7 +10,7 @@ namespace FineCodeCoverage.Core.Utilities
     [Export(typeof(IFileRenameListener))]
     internal class FileRenameListener : IFileRenameListener, IVsTrackProjectDocumentsEvents2
     {
-        private List<Action<string, string>> callbacks = new List<Action<string, string>>();
+        private readonly List<Action<string, string>> callbacks = new List<Action<string, string>>();
         private readonly System.IServiceProvider serviceProvider;
         private bool listening;
 
@@ -27,12 +27,14 @@ namespace FineCodeCoverage.Core.Utilities
         {
             if (!listening)
             {
+#pragma warning disable VSTHRD102 // Implement internal logic asynchronously
                 ThreadHelper.JoinableTaskFactory.Run(async () =>
                 {
                     await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
                     var trackProjectDocuments = serviceProvider.GetService(typeof(SVsTrackProjectDocuments)) as IVsTrackProjectDocuments2;
                     trackProjectDocuments.AdviseTrackProjectDocumentsEvents(this, out var cookie);
                 });
+#pragma warning restore VSTHRD102 // Implement internal logic asynchronously
                 listening = true;
             }
         }

@@ -2,7 +2,7 @@
 
 namespace FineCodeCoverage.Editor.Management
 {
-    internal struct FontAndColorsCategoryItemName
+    internal readonly struct FontAndColorsCategoryItemName
     {
         public FontAndColorsCategoryItemName(string itemName, Guid category)
         {

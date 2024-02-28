@@ -12,6 +12,14 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
     internal class CoverageCodeTracker_Tests
     {
         [Test]
+        public void Should_Have_Correct_ContainingCodeTrackerType()
+        {
+            var autoMoqer = new AutoMoqer();
+            var containingCodeTracker = autoMoqer.Create<CoverageCodeTracker>();
+            Assert.That(containingCodeTracker.Type, Is.EqualTo(ContainingCodeTrackerType.CoverageLines));
+        }
+
+        [Test]
         public void Should_Return_Lines_From_TrackedCoverageLines_When_No_DirtyLine()
         {
             var autoMoqer = new AutoMoqer();
@@ -42,7 +50,7 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
             mockTrackingSpanRange.Setup(trackingSpanRange => trackingSpanRange.GetFirstTrackingSpan()).Returns(firstTrackingSpan);
 
             var mockDirtyLineFactory = autoMoqer.GetMock<IDirtyLineFactory>();
-            var mockDirtyLine = new Mock<IDirtyLine>();
+            var mockDirtyLine = new Mock<ITrackingLine>();
             var dirtyDynamicLine = new Mock<IDynamicLine>().Object;
             mockDirtyLine.SetupGet(dirtyLine => dirtyLine.Line).Returns(dirtyDynamicLine);
             mockDirtyLineFactory.Setup(
@@ -108,7 +116,7 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
             var spanAndLineRange2 = new List<SpanAndLineRange>() { new SpanAndLineRange(new Span(1, 3), 0, 0) };
             var autoMoqer = new AutoMoqer();
             var mockDirtyLineFactory = autoMoqer.GetMock<IDirtyLineFactory>();
-            var mockDirtyLine = new Mock<IDirtyLine>();
+            var mockDirtyLine = new Mock<ITrackingLine>();
             mockDirtyLine.Setup(dirtyLine => dirtyLine.Update(textSnapshot2)).Returns(dirtyLineChanged);
             mockDirtyLineFactory.Setup(dirtyLineFactory => dirtyLineFactory.Create(It.IsAny<ITrackingSpan>(), It.IsAny<ITextSnapshot>())).Returns(mockDirtyLine.Object);
 

@@ -7,7 +7,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
     {
         private ITrackedCoverageLines trackedCoverageLines;
         private readonly IDirtyLineFactory dirtyLineFactory;
-        private IDirtyLine dirtyLine;
+        private ITrackingLine dirtyLine;
 
         public CoverageCodeTracker(
             ITrackedCoverageLines trackedCoverageLines, 
@@ -80,6 +80,8 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
 
 
         public IEnumerable<IDynamicLine> Lines => dirtyLine != null ? new List<IDynamicLine> { dirtyLine.Line } :  trackedCoverageLines.Lines;
+
+        public ContainingCodeTrackerType Type => ContainingCodeTrackerType.CoverageLines;
     }
     
 }

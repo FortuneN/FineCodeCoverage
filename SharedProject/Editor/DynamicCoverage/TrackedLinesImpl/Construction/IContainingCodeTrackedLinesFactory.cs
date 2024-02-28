@@ -4,6 +4,6 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
 {
     internal interface IContainingCodeTrackedLinesFactory
     {
-        ITrackedLines Create(List<IContainingCodeTracker> containingCodeTrackers,INewCodeTracker newCodeTracker);
+        TrackedLines Create(List<IContainingCodeTracker> containingCodeTrackers,INewCodeTracker newCodeTracker);
     }
 }

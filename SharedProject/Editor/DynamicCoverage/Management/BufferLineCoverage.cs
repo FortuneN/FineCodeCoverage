@@ -42,7 +42,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
             {
                 if(trackedLines != null)
                 {
-                    //dynamicCoverageStore.SaveSerializedCoverage(textInfo.FilePath, trackedLines.GetAllLines());
+                    dynamicCoverageStore.SaveSerializedCoverage(textInfo.FilePath, trackedLinesFactory.Serialize(trackedLines));
                 }
                 textBuffer.Changed -= TextBuffer_ChangedOnBackground;
                 textInfo.TextView.Closed -= textViewClosedHandler;
@@ -57,14 +57,13 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
             var currentSnapshot = textBuffer.CurrentSnapshot;
             if (initial)
             {
-                //var serializedCoverage = dynamicCoverageStore.GetSerializedCoverage(textInfo.FilePath);
-                //if(serializedCoverage != null)
-                //{
-                //    trackedLines = trackedLinesFactory.Create(serializedCoverage, currentSnapshot, language);
-                //    return;
-                //}
+                var serializedCoverage = dynamicCoverageStore.GetSerializedCoverage(textInfo.FilePath);
+                if (serializedCoverage != null)
+                {
+                    trackedLines = trackedLinesFactory.Create(serializedCoverage, currentSnapshot, language);
+                    return;
+                }
             }
-            
             
             var numLines = currentSnapshot.LineCount;
             var lines = fileLineCoverage.GetLines(textInfo.FilePath, 1, numLines + 1).ToList();

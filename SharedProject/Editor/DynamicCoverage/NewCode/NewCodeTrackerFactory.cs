@@ -1,4 +1,6 @@
-﻿using System.ComponentModel.Composition;
+﻿using Microsoft.VisualStudio.Text;
+using System.Collections.Generic;
+using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
 
 namespace FineCodeCoverage.Editor.DynamicCoverage
@@ -22,6 +24,11 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
         public INewCodeTracker Create(bool isCSharp)
         {
             return new NewCodeTracker(isCSharp, trackedNewCodeLineFactory, codeLineExcluder);
+        }
+
+        public INewCodeTracker Create(bool isCSharp, List<CodeSpanRange> codeSpanRanges, ITextSnapshot textSnapshot)
+        {
+            return new NewCodeTracker(isCSharp, trackedNewCodeLineFactory, codeLineExcluder, codeSpanRanges, textSnapshot);
         }
     }
 }

@@ -5,33 +5,34 @@ using NUnit.Framework;
 
 namespace FineCodeCoverageTests.Editor.DynamicCoverage
 {
-    internal class DirtyLine_Tests
+    internal class TrackingLine_Tests
     {
-        [Test]
-        public void Should_Have_A_Dirty_Line_From_The_Start_Point_When_Constructed()
+        [TestCase(DynamicCoverageType.Dirty)]
+        [TestCase(DynamicCoverageType.NotIncluded)]
+        public void Should_Have_A_Line_From_The_Start_Point_When_Constructed(DynamicCoverageType coverageType)
         {
             var currentSnapshot = new Mock<ITextSnapshot>().Object;
             var trackingSpan = new Mock<ITrackingSpan>().Object;
 
             var mockLineTracker = new Mock<ILineTracker>();
             mockLineTracker.Setup(lineTracker => lineTracker.GetLineNumber(trackingSpan, currentSnapshot, false)).Returns(10);
-            
-            var dirtyLine = new DirtyLine(trackingSpan, currentSnapshot, mockLineTracker.Object);
-            
-            AssertDirtyLine(dirtyLine, 10);
+
+            var trackingLine = new TrackingLine(trackingSpan, currentSnapshot, mockLineTracker.Object, coverageType);
+
+            AssertTrackingLine(trackingLine, 10, coverageType);
         }
 
-        private void AssertDirtyLine(DirtyLine dirtyLine, int lineNumber)
+        private void AssertTrackingLine(TrackingLine trackingLine, int lineNumber, DynamicCoverageType coverageType)
         {
-            var dynamicLine = dirtyLine.Line;
+            var dynamicLine = trackingLine.Line;
 
-            Assert.That(DynamicCoverageType.Dirty, Is.EqualTo(dynamicLine.CoverageType));
+            Assert.That(coverageType, Is.EqualTo(dynamicLine.CoverageType));
             Assert.That(lineNumber, Is.EqualTo(dynamicLine.Number));
         }
 
         [TestCase(true)]
         [TestCase(false)]
-        public void Should_Have_An_Updated_Dirty_Line_When_Update(bool changeLineNumber)
+        public void Should_Have_An_Updated_Line_When_Update(bool changeLineNumber)
         {
             var initialSnapshot = new Mock<ITextSnapshot>().Object;
             var trackingSpan = new Mock<ITrackingSpan>().Object;
@@ -39,16 +40,16 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
             var mockLineTracker = new Mock<ILineTracker>();
             mockLineTracker.Setup(lineTracker => lineTracker.GetLineNumber(trackingSpan, initialSnapshot, false)).Returns(10);
 
-            var dirtyLine = new DirtyLine(trackingSpan, initialSnapshot, mockLineTracker.Object);
+            var trackingLine = new TrackingLine(trackingSpan, initialSnapshot, mockLineTracker.Object, DynamicCoverageType.Dirty);
 
             var currentSnapshot = new Mock<ITextSnapshot>().Object;
             var newLineNumber = changeLineNumber ? 11 : 10;
             mockLineTracker.Setup(lineTracker => lineTracker.GetLineNumber(trackingSpan, currentSnapshot, false))
                 .Returns(newLineNumber);
 
-            var updated = dirtyLine.Update(currentSnapshot);
+            var updated = trackingLine.Update(currentSnapshot);
             Assert.That(updated, Is.EqualTo(changeLineNumber));
-            AssertDirtyLine(dirtyLine, newLineNumber);
+            AssertTrackingLine(trackingLine, newLineNumber, DynamicCoverageType.Dirty);
         }
     }
 }

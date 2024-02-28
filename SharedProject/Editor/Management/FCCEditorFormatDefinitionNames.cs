@@ -1,6 +1,6 @@
 ﻿namespace FineCodeCoverage.Editor.Management
 {
-    internal struct FCCEditorFormatDefinitionNames
+    internal readonly struct FCCEditorFormatDefinitionNames
     {
         public FCCEditorFormatDefinitionNames(
             string covered, string notCovered, string partiallyCovered, string newLines, string dirty, string notIncluded

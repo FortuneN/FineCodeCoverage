@@ -7,6 +7,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
     {
         TrackingSpanRangeProcessResult Process(ITextSnapshot currentSnapshot, List<SpanAndLineRange> newSpanAndLIneRanges);
         ITrackingSpan GetFirstTrackingSpan();
+        CodeSpanRange ToCodeSpanRange();
     }
 
 }

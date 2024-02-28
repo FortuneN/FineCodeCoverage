@@ -23,10 +23,7 @@ namespace FineCodeCoverage.Engine.Cobertura
 		{
             fileRenameListener.ListenForFileRename((oldFile, newFile) =>
             {
-                if (fileLineCoverage != null)
-                {
-                    fileLineCoverage.UpdateRenamed(oldFile, newFile);
-                }
+                fileLineCoverage?.UpdateRenamed(oldFile, newFile);
             });
 
 		}

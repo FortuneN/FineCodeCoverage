@@ -7,8 +7,9 @@
             Number = lineNumber;
             CoverageType = dynamicCoverageType;
         }
+
         public int Number { get; set; }
 
-        public DynamicCoverageType CoverageType { get; }
+        public DynamicCoverageType CoverageType { get; set; }
     }
 }
