@@ -6,7 +6,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
 {
     class NewCodeTracker : INewCodeTracker
     {
-        private readonly List<ITrackedNewCodeLine> trackedNewCodeLines = new List<ITrackedNewCodeLine>();
+        private List<ITrackedNewCodeLine> trackedNewCodeLines = new List<ITrackedNewCodeLine>();
         private readonly bool isCSharp;
         private readonly ITrackedNewCodeLineFactory trackedNewCodeLineFactory;
         private readonly ILineExcluder codeLineExcluder;
@@ -31,14 +31,24 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
             this.codeLineExcluder = codeLineExcluder;
             foreach (var codeSpanRange in codeSpanRanges)
             {
-                for(var i = codeSpanRange.StartLine; i < codeSpanRange.EndLine + 1; i++)
-                {
-                    AddTrackedNewCodeLineIfNotExcluded(currentSnapshot, i);
-                }
+                var trackedNewCodeLine = CreateTrackedNewCodeLine(currentSnapshot, codeSpanRange.StartLine);
+                trackedNewCodeLines.Add(trackedNewCodeLine);
             }
         }
 
         public IEnumerable<IDynamicLine> Lines => trackedNewCodeLines.OrderBy(l => l.Line.Number).Select(l=>l.Line);
+
+        public bool ApplyNewCodeCodeRanges(IEnumerable<CodeSpanRange> newCodeCodeRanges)
+        {
+            var numBeforeFilter = trackedNewCodeLines.Count;
+            ReduceLinesToCodeRangeStart(newCodeCodeRanges);
+            return numBeforeFilter != trackedNewCodeLines.Count;
+        }
+
+        private void ReduceLinesToCodeRangeStart(IEnumerable<CodeSpanRange> newCodeCodeRanges)
+        {
+            trackedNewCodeLines = trackedNewCodeLines.Where(l => newCodeCodeRanges.Any(r => r.StartLine == l.Line.Number)).ToList();
+        }
 
         public bool ProcessChanges(ITextSnapshot currentSnapshot, List<SpanAndLineRange> potentialNewLines)
         {
@@ -74,7 +84,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
         private bool AddTrackedNewCodeLineIfNotExcluded(ITextSnapshot currentSnapshot, int lineNumber)
         {
             var added = false;
-            var trackedNewCodeLine = trackedNewCodeLineFactory.Create(currentSnapshot, SpanTrackingMode.EdgeExclusive, lineNumber);
+            var trackedNewCodeLine = CreateTrackedNewCodeLine(currentSnapshot, lineNumber);
             var text = trackedNewCodeLine.GetText(currentSnapshot);
             if (!codeLineExcluder.ExcludeIfNotCode(text, isCSharp))
             {
@@ -82,6 +92,12 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
                 added = true;
             }
             return added;
+        }
+
+        private ITrackedNewCodeLine CreateTrackedNewCodeLine(ITextSnapshot currentSnapshot, int lineNumber)
+        {
+            return trackedNewCodeLineFactory.Create(currentSnapshot, SpanTrackingMode.EdgeExclusive, lineNumber);
+            
         }
     }
 

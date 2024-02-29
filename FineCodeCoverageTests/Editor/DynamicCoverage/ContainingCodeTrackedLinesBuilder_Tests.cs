@@ -62,7 +62,7 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
                containingCodeTrackerFactory.CreateCoverageLines(textSnapshot, new List<ILine> { secondLine }, secondCodeSpanRange, SpanTrackingMode.EdgeExclusive)
            ).Returns(containingCodeTrackers[1]);
 
-            var expectedTrackedLines = new TrackedLines(null, null);
+            var expectedTrackedLines = new TrackedLines(null, null,null);
             var mockContainingCodeTrackedLinesFactory = autoMoqer.GetMock<IContainingCodeTrackedLinesFactory>();
             mockContainingCodeTrackedLinesFactory.Setup(containingCodeTrackedLinesFactory => containingCodeTrackedLinesFactory.Create(containingCodeTrackers, null)
                        ).Returns(expectedTrackedLines);
@@ -210,7 +210,7 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
             var newCodeTracker = autoMoqer.GetMock<INewCodeTracker>().Object;
             autoMoqer.Setup<INewCodeTrackerFactory, INewCodeTracker>(newCodeTrackerFactory => newCodeTrackerFactory.Create(isCSharp)).Returns(newCodeTracker);
 
-            var expectedTrackedLines = new TrackedLines(null, null);
+            var expectedTrackedLines = new TrackedLines(null, null, null);
             var mockContainingCodeTrackedLinesFactory = autoMoqer.GetMock<IContainingCodeTrackedLinesFactory>();
             mockContainingCodeTrackedLinesFactory.Setup(
                 containingCodeTrackedLinesFactory => containingCodeTrackedLinesFactory.Create(It.IsAny<List<IContainingCodeTracker>>(), newCodeTracker)
@@ -401,7 +401,7 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
 
             var containingCodeTrackedLinesBuilder = autoMoqer.Create<ContainingCodeTrackedLinesBuilder>();
             var serialized = containingCodeTrackedLinesBuilder.Serialize(
-                new TrackedLines(containingCodeTrackers, null));
+                new TrackedLines(containingCodeTrackers, null, null));
             
             Assert.That("SerializedState", Is.EqualTo(serialized));
 
@@ -452,7 +452,7 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
                 codeSpanRange,
                 mockTextSnapshot.Object);
 
-            var expectedTrackedLines = new TrackedLines(null, null);
+            var expectedTrackedLines = new TrackedLines(null, null, null);
             autoMoqer.Setup<IContainingCodeTrackedLinesFactory, TrackedLines>(
                 containingCodeTrackedLinesFactory => containingCodeTrackedLinesFactory.Create(
                     new List<IContainingCodeTracker> { containingCodeTracker },
@@ -593,7 +593,7 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
                     new List<CodeSpanRange> { new CodeSpanRange(10, 20) },
                     mockTextSnapshot.Object)).Returns(newCodeTracker);
             
-            var expectedTrackedLines = new TrackedLines(null, null);
+            var expectedTrackedLines = new TrackedLines(null, null, null);
             autoMoqer.Setup<IContainingCodeTrackedLinesFactory, TrackedLines>(
                 containingCodeTrackedLinesFactory => containingCodeTrackedLinesFactory.Create(
                     new List<IContainingCodeTracker> {  },
@@ -643,7 +643,7 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
             mockJsonConvertService.Setup(jsonConvertService => jsonConvertService.DeserializeObject<List<SerializedState>>("serializedState"))
                 .Returns(new List<SerializedState> { serializedState, serializedState2, serializedState3 });
 
-            var expectedTrackedLines = new TrackedLines(null, null);
+            var expectedTrackedLines = new TrackedLines(null, null, null);
             autoMoqer.Setup<IContainingCodeTrackedLinesFactory, TrackedLines>(
                 containingCodeTrackedLinesFactory => containingCodeTrackedLinesFactory.Create(
                     new List<IContainingCodeTracker> { coverageLineTracker, dirtyLineTracker},
