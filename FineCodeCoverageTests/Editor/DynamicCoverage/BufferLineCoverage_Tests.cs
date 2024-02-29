@@ -236,5 +236,71 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
             mockTextView.VerifyRemove(textView => textView.Closed -= It.IsAny<EventHandler>(), Times.Once);
             mockTextBuffer.VerifyRemove(textBuffer => textBuffer.Changed -= It.IsAny<EventHandler<TextContentChangedEventArgs>>(), Times.Once);
         }
+
+        [Test]
+        public void Should_SaveSerializedCoverage_When_TextView_Closed_And_There_Has_Been_Coverage()
+        {
+            var autoMoqer = new AutoMoqer();
+            var mockTextInfo = autoMoqer.GetMock<ITextInfo>();
+            mockTextInfo.SetupGet(textInfo => textInfo.FilePath).Returns("filepath");
+            mockTextInfo.SetupGet(textInfo => textInfo.TextBuffer.ContentType.TypeName).Returns("contenttypename");
+            mockTextInfo.SetupGet(textInfo => textInfo.TextBuffer.CurrentSnapshot).Returns(new Mock<ITextSnapshot>().Object);
+            var mockTextView = new Mock<ITextView>();
+            mockTextInfo.SetupGet(textInfo => textInfo.TextView).Returns(mockTextView.Object);
+            autoMoqer.Setup<IFileLineCoverage,IEnumerable<ILine>>(
+                fileLineCoverage => fileLineCoverage.GetLines(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<int>())
+            ).Returns(new List<ILine> { });
+            var trackedLines = new Mock<ITrackedLines>().Object;
+            autoMoqer.Setup<ITrackedLinesFactory, ITrackedLines>(
+                trackedLinesFactory => trackedLinesFactory.Create(It.IsAny<List<ILine>>(), It.IsAny<ITextSnapshot>(), It.IsAny<Language>())
+            ).Returns(trackedLines);
+            autoMoqer.Setup<ITrackedLinesFactory, string>(
+                trackedLinesFactory => trackedLinesFactory.Serialize(trackedLines)
+            ).Returns("serialized");
+
+
+            autoMoqer.Create<BufferLineCoverage>();
+            
+            mockTextView.Raise(textView => textView.Closed += null, EventArgs.Empty);
+
+            autoMoqer.Verify<IDynamicCoverageStore>(dynamicCoverageStore => dynamicCoverageStore.SaveSerializedCoverage("filepath", "serialized"));
+            
+
+        }
+
+        [TestCase(true, "CSharp", Language.CSharp)]
+        [TestCase(true, "Basic", Language.VB)]
+        [TestCase(true, "C/C++", Language.CPP)]
+        [TestCase(false,"",Language.CPP)]
+        public void Should_Create_From_Serialized_Coverage_If_Present(bool hasSerialized,string contentTypeLanguage, Language expectedLanguage)
+        {
+            var autoMoqer = new AutoMoqer();
+            var mockTextInfo = autoMoqer.GetMock<ITextInfo>();
+            mockTextInfo.SetupGet(textInfo => textInfo.TextBuffer.ContentType.TypeName).Returns(contentTypeLanguage);
+            mockTextInfo.SetupGet(textInfo => textInfo.TextView).Returns(new Mock<ITextView>().Object);
+            var currentTextSnaphot = new Mock<ITextSnapshot>().Object;
+            mockTextInfo.SetupGet(textInfo => textInfo.TextBuffer.CurrentSnapshot).Returns(currentTextSnaphot);
+            mockTextInfo.SetupGet(textInfo => textInfo.FilePath).Returns("filepath");
+            autoMoqer.Setup<IDynamicCoverageStore,string>(dynamicCoverageStore => dynamicCoverageStore.GetSerializedCoverage("filepath"))
+                .Returns(hasSerialized ? "serialized" : null);
+
+            var mockTrackedLinesNoSerialized = new Mock<ITrackedLines>();
+            autoMoqer.Setup<ITrackedLinesFactory, ITrackedLines>(
+                trackedLinesFactory => trackedLinesFactory.Create(It.IsAny<List<ILine>>(), It.IsAny<ITextSnapshot>(), It.IsAny<Language>())
+            ).Returns(mockTrackedLinesNoSerialized.Object);
+
+            var mockTrackedLinesFromSerialized = new Mock<ITrackedLines>();
+            autoMoqer.Setup<ITrackedLinesFactory, ITrackedLines>(
+                trackedLinesFactory => trackedLinesFactory.Create("serialized", currentTextSnaphot, expectedLanguage)
+            ).Returns(mockTrackedLinesFromSerialized.Object);
+
+
+            var bufferLineCoverage = autoMoqer.Create<BufferLineCoverage>();
+
+            bufferLineCoverage.GetLines(2, 5);
+
+            var expectedMockTrackedLines = hasSerialized ? mockTrackedLinesFromSerialized : mockTrackedLinesNoSerialized;
+            expectedMockTrackedLines.Verify(trackedLines => trackedLines.GetLines(2, 5), Times.Once);
+        }
     }
 }

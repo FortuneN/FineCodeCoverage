@@ -1,4 +1,5 @@
 ﻿using AutoMoq;
+using FineCodeCoverage.Core.Utilities;
 using FineCodeCoverage.Core.Utilities.VsThreading;
 using FineCodeCoverage.Editor.DynamicCoverage;
 using FineCodeCoverage.Editor.Roslyn;
@@ -11,7 +12,9 @@ using Moq;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Windows.Forms;
 
 namespace FineCodeCoverageTests.Editor.DynamicCoverage
 {
@@ -71,12 +74,7 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
 
         }
 
-        internal enum ContainingCodeTrackerType
-        {
-            CoverageLines,
-            NotIncluded,
-            OtherLines
-        }
+
 #pragma warning disable CS0659 // Type overrides Object.Equals(object o) but does not override Object.GetHashCode()
         internal class TrackerArgs : IContainingCodeTracker
 #pragma warning restore CS0659 // Type overrides Object.Equals(object o) but does not override Object.GetHashCode()
@@ -379,6 +377,285 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
 
                 }
             }
+        }
+
+        [TestCase(ContainingCodeTrackerType.CoverageLines, 1, DynamicCoverageType.Covered)]
+        [TestCase(ContainingCodeTrackerType.NotIncluded, 1, DynamicCoverageType.NotIncluded)]
+        public void Should_Serialize_State_From_TrackedLines_ContainingCodeTrackers(
+            ContainingCodeTrackerType containingCodeTrackerType, int lineNumber, DynamicCoverageType coverageType
+        )
+        {
+            var autoMoqer = new AutoMoqer();
+            var mockJsonConvertService = autoMoqer.GetMock<IJsonConvertService>();
+            mockJsonConvertService.Setup(jsonConvertService => jsonConvertService.SerializeObject(It.IsAny<object>())).Returns("SerializedState");
+            var mockContainingCodeTracker = new Mock<IContainingCodeTracker>();
+            var mockDynamicLine = new Mock<IDynamicLine>();
+            mockDynamicLine.SetupGet(dynamicLine => dynamicLine.Number).Returns(lineNumber);
+            mockDynamicLine.SetupGet(dynamicLine => dynamicLine.CoverageType).Returns(coverageType);
+            var codeSpanRange = new CodeSpanRange(1, 2);
+            var containingCodeTrackerState = new ContainingCodeTrackerState(containingCodeTrackerType, codeSpanRange, new List<IDynamicLine> { mockDynamicLine.Object });
+            mockContainingCodeTracker.Setup(containingCodeTracker => containingCodeTracker.GetState()).Returns(containingCodeTrackerState);
+            var containingCodeTrackers = new List<IContainingCodeTracker> { 
+                mockContainingCodeTracker.Object,
+            };
+
+            var containingCodeTrackedLinesBuilder = autoMoqer.Create<ContainingCodeTrackedLinesBuilder>();
+            var serialized = containingCodeTrackedLinesBuilder.Serialize(
+                new TrackedLines(containingCodeTrackers, null));
+            
+            Assert.That("SerializedState", Is.EqualTo(serialized));
+
+            var serializedStates = mockJsonConvertService.Invocations.GetMethodInvocationSingleArgument<List<SerializedState>>(nameof(IJsonConvertService.SerializeObject)).Single();
+            var serializedState = serializedStates.Single();
+
+            Assert.That(serializedState.Type, Is.EqualTo(containingCodeTrackerType));
+            Assert.That(serializedState.CodeSpanRange, Is.SameAs(codeSpanRange));
+            var serializedLine = serializedState.Lines.Single();
+            Assert.That(serializedLine.Number, Is.EqualTo(lineNumber));
+            Assert.That(serializedLine.CoverageType, Is.EqualTo(coverageType));
+        }
+
+        private void Should_Use_Deserialized_IContainingCodeTracker_If_CodeSpanRange_Has_Not_Changed(
+            ContainingCodeTrackerType containingCodeTrackerType,
+            List<DynamicLine> dynamicLines,
+            Action<
+                Mock<ICodeSpanRangeContainingCodeTrackerFactory>, 
+                IContainingCodeTracker,
+                CodeSpanRange,
+                ITextSnapshot> setupContainingCodeTrackerFactory
+            )
+        {
+            var mockTextSnapshot = new Mock<ITextSnapshot>();
+            mockTextSnapshot.Setup(textSnapshot => textSnapshot.GetLineNumberFromPosition(1)).Returns(10);
+            mockTextSnapshot.Setup(textSnapshot => textSnapshot.GetLineNumberFromPosition(3)).Returns(20);
+            var roslynLanguage = isCSharp ? Language.CSharp : Language.VB;
+            var autoMoqer = new AutoMoqer();
+            autoMoqer.SetInstance<IThreadHelper>(new TestThreadHelper());
+            var mockJsonConvertService = autoMoqer.GetMock<IJsonConvertService>();
+            var codeSpanRange = new CodeSpanRange(10, 20);
+            var serializedState = new SerializedState(codeSpanRange, containingCodeTrackerType, dynamicLines);
+            mockJsonConvertService.Setup(jsonConvertService => jsonConvertService.DeserializeObject<List<SerializedState>>("serializedState"))
+                .Returns(new List<SerializedState> { serializedState });
+            var mockRoslynService = autoMoqer.GetMock<IRoslynService>();
+            mockRoslynService.Setup(roslynService => roslynService.GetContainingCodeSpansAsync(mockTextSnapshot.Object))
+                .ReturnsAsync(new List<TextSpan> { new TextSpan(1, 2) });
+            var newCodeTracker = new Mock<INewCodeTracker>().Object;
+            autoMoqer.Setup<INewCodeTrackerFactory, INewCodeTracker>(
+                newCodeTrackerFactory => newCodeTrackerFactory.Create(
+                    isCSharp,
+                    new List<CodeSpanRange> {},
+                    mockTextSnapshot.Object)).Returns(newCodeTracker);
+            var containingCodeTracker = new Mock<IContainingCodeTracker>().Object;
+            setupContainingCodeTrackerFactory(
+                autoMoqer.GetMock<ICodeSpanRangeContainingCodeTrackerFactory>(), 
+                containingCodeTracker,
+                codeSpanRange,
+                mockTextSnapshot.Object);
+
+            var expectedTrackedLines = new TrackedLines(null, null);
+            autoMoqer.Setup<IContainingCodeTrackedLinesFactory, TrackedLines>(
+                containingCodeTrackedLinesFactory => containingCodeTrackedLinesFactory.Create(
+                    new List<IContainingCodeTracker> { containingCodeTracker },
+                   newCodeTracker
+                )).Returns(expectedTrackedLines);
+
+            var containingCodeTrackedLinesBuilder = autoMoqer.Create<ContainingCodeTrackedLinesBuilder>();
+
+            var trackedLines = containingCodeTrackedLinesBuilder.Create("serializedState", mockTextSnapshot.Object, roslynLanguage);
+            Assert.That(expectedTrackedLines, Is.SameAs(trackedLines));
+        }
+
+        [Test]
+        public void Should_Use_Deserialized_OtherLinesTracker_If_CodeSpanRange_Has_Not_Changed()
+        {
+            Should_Use_Deserialized_IContainingCodeTracker_If_CodeSpanRange_Has_Not_Changed(
+                ContainingCodeTrackerType.OtherLines,
+                new List<DynamicLine> { },
+                (mockContainingCodeTrackerFactory, containingCodeTracker, codeSpanRange, textSnapshot) =>
+                {
+                    mockContainingCodeTrackerFactory.Setup(
+                        codeSpanRangeContainingCodeTrackerFactory => codeSpanRangeContainingCodeTrackerFactory.CreateOtherLines(
+                            textSnapshot,
+                            codeSpanRange,
+                            SpanTrackingMode.EdgeNegative
+                        )).Returns(containingCodeTracker);
+                }
+            );
+        }
+
+        [Test]
+        public void Should_Use_Deserialized_NotIncludedTracker_If_CodeSpanRange_Has_Not_Changed()
+        {
+            Should_Use_Deserialized_IContainingCodeTracker_If_CodeSpanRange_Has_Not_Changed(
+                ContainingCodeTrackerType.NotIncluded,
+                new List<DynamicLine> { },
+                (mockContainingCodeTrackerFactory, containingCodeTracker, codeSpanRange, textSnapshot) =>
+                {
+                    mockContainingCodeTrackerFactory.Setup(
+                        codeSpanRangeContainingCodeTrackerFactory => codeSpanRangeContainingCodeTrackerFactory.CreateNotIncluded(
+                            textSnapshot,
+                            codeSpanRange,
+                            SpanTrackingMode.EdgeExclusive
+                        )).Returns(containingCodeTracker);
+                }
+            );
+        }
+
+        class Line : ILine
+        {
+            public Line(int number, CoverageType coverageType)
+            {
+                Number = number;
+                CoverageType = coverageType;
+            }
+            public override bool Equals(object obj)
+            {
+                var other = obj as ILine;
+                return other.Number == Number && other.CoverageType == CoverageType;
+            }
+
+            [ExcludeFromCodeCoverage]
+            public override int GetHashCode()
+            {
+                int hashCode = 1698846147;
+                hashCode = hashCode * -1521134295 + Number.GetHashCode();
+                hashCode = hashCode * -1521134295 + CoverageType.GetHashCode();
+                return hashCode;
+            }
+
+            public int Number { get; }
+
+            public CoverageType CoverageType { get; }
+        }
+
+        [TestCase(DynamicCoverageType.Covered, CoverageType.Covered)]
+        [TestCase(DynamicCoverageType.NotCovered, CoverageType.NotCovered)]
+        [TestCase(DynamicCoverageType.Partial, CoverageType.Partial)]
+        public void Should_Use_Deserialized_CoverageLinesTracker_If_CodeSpanRange_Has_Not_Changed(
+            DynamicCoverageType dynamicCoverageType,
+            CoverageType expectedCoverageType)
+        {
+            Should_Use_Deserialized_IContainingCodeTracker_If_CodeSpanRange_Has_Not_Changed(
+                ContainingCodeTrackerType.CoverageLines,
+                new List<DynamicLine> { new DynamicLine(1, dynamicCoverageType), new DynamicLine(2, dynamicCoverageType)},
+                (mockContainingCodeTrackerFactory, containingCodeTracker, codeSpanRange, textSnapshot) =>
+                {
+                    mockContainingCodeTrackerFactory.Setup(
+                        codeSpanRangeContainingCodeTrackerFactory => codeSpanRangeContainingCodeTrackerFactory.CreateCoverageLines(
+                            textSnapshot,
+                            new List<ILine> { new Line(2, expectedCoverageType), new Line(3, expectedCoverageType) },
+                            codeSpanRange,
+                            SpanTrackingMode.EdgeExclusive
+                        )).Returns(containingCodeTracker);
+                }
+            );
+        }
+
+        [Test]
+        public void Should_Use_Deserialized_CoverageLinesTracker_For_Dirty_When_DirtyIf_CodeSpanRange_Has_Not_Changed()
+        {
+            Should_Use_Deserialized_IContainingCodeTracker_If_CodeSpanRange_Has_Not_Changed(
+                ContainingCodeTrackerType.CoverageLines,
+                new List<DynamicLine> { new DynamicLine(1, DynamicCoverageType.Dirty) },
+                (mockContainingCodeTrackerFactory, containingCodeTracker, codeSpanRange, textSnapshot) =>
+                {
+                    mockContainingCodeTrackerFactory.Setup(
+                        codeSpanRangeContainingCodeTrackerFactory => codeSpanRangeContainingCodeTrackerFactory.CreateDirty(
+                            textSnapshot,
+                            codeSpanRange,
+                            SpanTrackingMode.EdgeExclusive
+                        )).Returns(containingCodeTracker);
+                }
+            );
+        }
+
+        [Test]
+        public void Should_Not_Use_Deserialized_If_CodeSpanRange_Has_Changed()
+        {
+            var mockTextSnapshot = new Mock<ITextSnapshot>();
+            mockTextSnapshot.Setup(textSnapshot => textSnapshot.GetLineNumberFromPosition(1)).Returns(10);
+            mockTextSnapshot.Setup(textSnapshot => textSnapshot.GetLineNumberFromPosition(3)).Returns(20);
+            var roslynLanguage = isCSharp ? Language.CSharp : Language.VB;
+            var autoMoqer = new AutoMoqer();
+            autoMoqer.SetInstance<IThreadHelper>(new TestThreadHelper());
+            var mockJsonConvertService = autoMoqer.GetMock<IJsonConvertService>();
+            var codeSpanRange = new CodeSpanRange(100, 200);
+            var serializedState = new SerializedState(codeSpanRange, ContainingCodeTrackerType.OtherLines, new List<DynamicLine>());
+            mockJsonConvertService.Setup(jsonConvertService => jsonConvertService.DeserializeObject<List<SerializedState>>("serializedState"))
+                .Returns(new List<SerializedState> { serializedState });
+            var mockRoslynService = autoMoqer.GetMock<IRoslynService>();
+            mockRoslynService.Setup(roslynService => roslynService.GetContainingCodeSpansAsync(mockTextSnapshot.Object))
+                .ReturnsAsync(new List<TextSpan> { new TextSpan(1, 2) });
+            var newCodeTracker = new Mock<INewCodeTracker>().Object;
+            autoMoqer.Setup<INewCodeTrackerFactory, INewCodeTracker>(
+                newCodeTrackerFactory => newCodeTrackerFactory.Create(
+                    isCSharp,
+                    new List<CodeSpanRange> { new CodeSpanRange(10, 20) },
+                    mockTextSnapshot.Object)).Returns(newCodeTracker);
+            
+            var expectedTrackedLines = new TrackedLines(null, null);
+            autoMoqer.Setup<IContainingCodeTrackedLinesFactory, TrackedLines>(
+                containingCodeTrackedLinesFactory => containingCodeTrackedLinesFactory.Create(
+                    new List<IContainingCodeTracker> {  },
+                    newCodeTracker
+                )).Returns(expectedTrackedLines);
+
+            var containingCodeTrackedLinesBuilder = autoMoqer.Create<ContainingCodeTrackedLinesBuilder>();
+
+            var trackedLines = containingCodeTrackedLinesBuilder.Create("serializedState", mockTextSnapshot.Object, roslynLanguage);
+            Assert.That(expectedTrackedLines, Is.SameAs(trackedLines));
+        }
+
+        [Test]
+        public void Should_Use_CPP_Deserialized_When_CodeSpanRange_Within_Total_Lines()
+        {
+            var mockTextSnapshot = new Mock<ITextSnapshot>();
+            mockTextSnapshot.SetupGet(textSnapshot => textSnapshot.LineCount).Returns(40);
+            var autoMoqer = new AutoMoqer();
+            var mockCodeSpanRangeContainingCodeTrackerFactory = autoMoqer.GetMock<ICodeSpanRangeContainingCodeTrackerFactory>();
+            var coverageLineTracker = new Mock<IContainingCodeTracker>().Object;
+            mockCodeSpanRangeContainingCodeTrackerFactory.Setup(
+                codeSpanRangeContainingCodeTrackerFactory => codeSpanRangeContainingCodeTrackerFactory.CreateCoverageLines(
+                    mockTextSnapshot.Object,
+                    new List<ILine> { new Line(1, CoverageType.Covered) },
+                    new CodeSpanRange(10, 20),
+                    SpanTrackingMode.EdgeExclusive
+                    )
+            ).Returns(coverageLineTracker);
+            var dirtyLineTracker = new Mock<IContainingCodeTracker>().Object;
+            mockCodeSpanRangeContainingCodeTrackerFactory.Setup(
+                codeSpanRangeContainingCodeTrackerFactory => codeSpanRangeContainingCodeTrackerFactory.CreateDirty(
+                    mockTextSnapshot.Object,
+                    new CodeSpanRange(25, 30),
+                    SpanTrackingMode.EdgeExclusive
+                    )
+            ).Returns(dirtyLineTracker);
+            var mockJsonConvertService = autoMoqer.GetMock<IJsonConvertService>();
+            var serializedState = new SerializedState(new CodeSpanRange(10, 20), ContainingCodeTrackerType.CoverageLines, new List<DynamicLine>
+            {
+                new DynamicLine(0, DynamicCoverageType.Covered)
+            });
+            var serializedState2 = new SerializedState(new CodeSpanRange(25, 30), ContainingCodeTrackerType.CoverageLines, new List<DynamicLine>
+            {
+                new DynamicLine(3, DynamicCoverageType.Dirty)
+            });
+            var serializedState3 = new SerializedState(new CodeSpanRange(50, 60), ContainingCodeTrackerType.CoverageLines, new List<DynamicLine>());
+            mockJsonConvertService.Setup(jsonConvertService => jsonConvertService.DeserializeObject<List<SerializedState>>("serializedState"))
+                .Returns(new List<SerializedState> { serializedState, serializedState2, serializedState3 });
+
+            var expectedTrackedLines = new TrackedLines(null, null);
+            autoMoqer.Setup<IContainingCodeTrackedLinesFactory, TrackedLines>(
+                containingCodeTrackedLinesFactory => containingCodeTrackedLinesFactory.Create(
+                    new List<IContainingCodeTracker> { coverageLineTracker, dirtyLineTracker},
+                    null
+                )).Returns(expectedTrackedLines);
+
+
+            var containingCodeTrackedLinesBuilder = autoMoqer.Create<ContainingCodeTrackedLinesBuilder>();
+
+            var trackedLines = containingCodeTrackedLinesBuilder.Create("serializedState", mockTextSnapshot.Object, Language.CPP);
+
+            Assert.That(expectedTrackedLines, Is.SameAs(trackedLines));
         }
     }
 }

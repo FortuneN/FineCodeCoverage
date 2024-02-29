@@ -1,5 +1,4 @@
 ﻿using Microsoft.VisualStudio.Text.Classification;
-using System.Windows;
 using System.Windows.Media;
 
 namespace FineCodeCoverage.Editor.Management

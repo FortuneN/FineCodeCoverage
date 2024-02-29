@@ -5,10 +5,10 @@ using System.Collections.Generic;
 
 namespace FineCodeCoverageTests.Editor.DynamicCoverage
 {
-    internal class SerializedStateTests
+    internal class SerializedState_Tests
     {
         [Test]
-        public void Works()
+        public void Is_Serializable()
         {
             var states = new List<SerializedState>
             {

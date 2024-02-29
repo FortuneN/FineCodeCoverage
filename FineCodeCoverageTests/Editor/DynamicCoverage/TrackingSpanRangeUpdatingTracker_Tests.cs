@@ -1,4 +1,5 @@
-﻿using FineCodeCoverage.Editor.DynamicCoverage;
+﻿using AutoMoq;
+using FineCodeCoverage.Editor.DynamicCoverage;
 using Microsoft.VisualStudio.Text;
 using Moq;
 using NUnit.Framework;
@@ -65,6 +66,27 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
             Assert.That(result.UnprocessedSpans, Is.SameAs(nonIntersectingSpans));
             Assert.That(result.Changed, Is.EqualTo(updatableChanged));
             Assert.That(result.IsEmpty, Is.False);
+        }
+
+        [TestCase(ContainingCodeTrackerType.NotIncluded)]
+        [TestCase(ContainingCodeTrackerType.OtherLines)]
+        public void Should_GetState(ContainingCodeTrackerType containingCodeTrackerType)
+        {
+            var autoMoqer = new AutoMoqer();
+            var mockUpdatableDynamicLines = autoMoqer.GetMock<IUpdatableDynamicLines>();
+            mockUpdatableDynamicLines.SetupGet(updatableDynamicLines => updatableDynamicLines.Type).Returns(containingCodeTrackerType);
+            var lines = Enumerable.Empty<IDynamicLine>();
+            mockUpdatableDynamicLines.SetupGet(updatableDynamicLines => updatableDynamicLines.Lines).Returns(lines);
+            var codeSpanRange = new CodeSpanRange(1, 2);
+            autoMoqer.Setup<ITrackingSpanRange, CodeSpanRange>(trackingSpanRange => trackingSpanRange.ToCodeSpanRange()).Returns(codeSpanRange);
+            var trackingSpanRangeUpdatingTracker = autoMoqer.Create<TrackingSpanRangeUpdatingTracker>();
+
+            var state = trackingSpanRangeUpdatingTracker.GetState();
+
+            Assert.That(containingCodeTrackerType, Is.EqualTo(state.Type));
+            Assert.That(lines, Is.SameAs(state.Lines));
+            Assert.That(codeSpanRange, Is.SameAs(state.CodeSpanRange));
+
         }
     }
     

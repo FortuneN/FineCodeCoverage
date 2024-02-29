@@ -70,6 +70,7 @@
     <Compile Include="CoverageUtilManager_Tests.cs" />
     <Compile Include="Editor\DynamicCoverage\BufferLineCoverage_Tests.cs" />
     <Compile Include="Editor\DynamicCoverage\DirtyCodeTracker_Tests.cs" />
+    <Compile Include="Editor\DynamicCoverage\DynamicCoverageStore_Tests.cs" />
     <Compile Include="Editor\DynamicCoverage\LineExcluder_Tests.cs" />
     <Compile Include="Editor\DynamicCoverage\CoverageCodeTracker_Tests.cs" />
     <Compile Include="Editor\DynamicCoverage\CoverageLine_Tests.cs" />
@@ -78,7 +79,7 @@
     <Compile Include="Editor\DynamicCoverage\NewCodeTracker_Tests.cs" />
     <Compile Include="Editor\DynamicCoverage\NotIncludedTracker_Tests.cs" />
     <Compile Include="Editor\DynamicCoverage\OtherLinesTracker_Tests.cs" />
-    <Compile Include="Editor\DynamicCoverage\SerializedStateTests.cs" />
+    <Compile Include="Editor\DynamicCoverage\SerializedState_Tests.cs" />
     <Compile Include="Editor\DynamicCoverage\TextInfo_Tests.cs" />
     <Compile Include="Editor\DynamicCoverage\TextSnapshotLineExcluder_Tests.cs" />
     <Compile Include="Editor\DynamicCoverage\TrackedNewCodeLine_Tests.cs" />

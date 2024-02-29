@@ -84,12 +84,14 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
                 .Returns(GetProcessResult(new List<SpanAndLineRange>(), false, isEmpty));
 
             var trackedLines = new TrackedLines(new List<IContainingCodeTracker> { mockContainingCodeTracker1.Object}, null);
+            Assert.That(trackedLines.ContainingCodeTrackers, Is.EquivalentTo(new List<IContainingCodeTracker> { mockContainingCodeTracker1.Object }));
             trackedLines.Changed(mockTextSnapshot.Object, new List<Span>());
             trackedLines.Changed(mockTextSnapshot.Object, new List<Span>());
 
             var times = isEmpty ? Times.Once() : Times.Exactly(2);
             mockContainingCodeTracker1.Verify(
                 containingCodeTracker => containingCodeTracker.ProcessChanges(mockTextSnapshot.Object, It.IsAny<List<SpanAndLineRange>>()), times);
+            Assert.That(trackedLines.ContainingCodeTrackers, Has.Count.EqualTo(isEmpty ? 0 : 1));
         }
 
         [TestCase(true)]

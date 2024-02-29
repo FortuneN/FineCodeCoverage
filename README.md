@@ -37,9 +37,11 @@ Present a single unified report in the Fine Code Coverage Tool Window.  The repo
 
 Coloured margins to indicate the coverage status of your code.  Instrumented ( included and analysable) lines of code are either covered, uncovered or partially covered which means that not all branches were executed.
 
-FCC also provides the concept of dirty regions where previously instrumented code will no longer show instrumented status once you have typed inside.
+FCC provides the concept of dirty regions where previously instrumented code will no longer show instrumented status once you have change the code.
 
-FCC also allows you to see new lines that have been added since the last coverage run.
+For C# and Visual Basic provides further coverage information :
+
+FCC also allows you to see code that was not included in coverage and new lines that have been added since the last coverage run.
 
 Both dirty and new line colouring needs to be turned on in options.
 
@@ -58,6 +60,8 @@ Coverage Not Touched Area FCC
 Coverage Dirty Area FCC
 
 Coverage New Lines Area FCC
+
+Coverage Not Included Area FCC
 
 
 For versions that supply the items below FCC will use these by default over the equivalent FCC items so that colours defined in themes can be used.

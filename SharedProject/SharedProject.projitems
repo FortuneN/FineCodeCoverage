@@ -190,12 +190,15 @@
     <Compile Include="$(MSBuildThisFileDirectory)Editor\DynamicCoverage\Management\DynamicCoverageType.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editor\DynamicCoverage\Store\IDynamicCoverageStore.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editor\DynamicCoverage\NotIncluded\INotIncludedLineFactory.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Editor\DynamicCoverage\TrackedLinesImpl\Construction\SerializedState.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editor\DynamicCoverage\TrackedLinesImpl\ContainingCodeTracker\DirtyCodeTracker.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editor\DynamicCoverage\TrackedLinesImpl\ContainingCodeTracker\IUpdatableDynamicLines.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editor\DynamicCoverage\TrackedLinesImpl\ContainingCodeTracker\NotIncludedCodeTracker.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editor\DynamicCoverage\TrackedLinesImpl\ContainingCodeTracker\OtherLinesTracker.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editor\DynamicCoverage\TrackedLinesImpl\ContainingCodeTracker\TrackingLineTracker.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editor\DynamicCoverage\TrackedLinesImpl\ContainingCodeTracker\TrackingSpanRangeUpdatingTracker.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Editor\DynamicCoverage\TrackedLines\ContainingCodeTrackerState.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Editor\DynamicCoverage\TrackedLines\ContainingCodeTrackerType.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editor\DynamicCoverage\TrackedLines\IContainingCodeTrackerProcessResult.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editor\DynamicCoverage\Utilities\ITextInfo.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editor\DynamicCoverage\Utilities\ITextInfoFactory.cs" />
@@ -413,7 +416,6 @@
     <Folder Include="$(MSBuildThisFileDirectory)Editor\DynamicCoverage\Dirty\" />
     <Folder Include="$(MSBuildThisFileDirectory)Editor\DynamicCoverage\Management\" />
     <Folder Include="$(MSBuildThisFileDirectory)Editor\DynamicCoverage\Coverage\" />
-    <Folder Include="$(MSBuildThisFileDirectory)Editor\DynamicCoverage\TrackedLinesImpl\Construction\" />
     <Folder Include="$(MSBuildThisFileDirectory)Editor\DynamicCoverage\Utilities\" />
     <Folder Include="$(MSBuildThisFileDirectory)Editor\DynamicCoverage\Store\" />
     <Folder Include="$(MSBuildThisFileDirectory)Editor\DynamicCoverage\NotIncluded\" />

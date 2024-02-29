@@ -36,16 +36,21 @@ namespace FineCodeCoverageTests.Editor.Management
         }
 
         [Test]
-        public void Should_Export_6_UserVisible_EditorFormatDefinitions()
+        public void Should_Export_6_UserVisible_ClassificationFormatDefinitions()
         {
+            var autoMoqer = new AutoMoqer();
+
+            var coverageColoursManager = autoMoqer.Create<CoverageColoursManager>();
+
             var editorFormatDefinitionProperties = GetEditorFormatDefinitionProperties().ToList();
-            
+           
             Assert.That(editorFormatDefinitionProperties.Count, Is.EqualTo(6));
             editorFormatDefinitionProperties.ForEach(p =>
             {
                 Assert.That(p.GetAttribute<ExportAttribute>(), Is.Not.Null);
                 Assert.That(p.GetAttribute<NameAttribute>(), Is.Not.Null);
                 Assert.That(p.GetAttribute<UserVisibleAttribute>().UserVisible, Is.True);
+                Assert.That(p.GetValue(coverageColoursManager), Is.InstanceOf<ClassificationFormatDefinition>());
             });
         }
 

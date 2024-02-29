@@ -1,5 +1,4 @@
 ﻿using AutoMoq;
-using FineCodeCoverage.Core.Initialization;
 using FineCodeCoverage.Core.Utilities;
 using FineCodeCoverage.Editor.DynamicCoverage;
 using FineCodeCoverage.Engine;
@@ -10,8 +9,6 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
 using Moq;
 using NUnit.Framework;
-using System.ComponentModel.Composition;
-using System.Linq;
 
 namespace FineCodeCoverageTests.Editor.DynamicCoverage
 {

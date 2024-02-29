@@ -8,18 +8,34 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
 {
     internal class TrackingSpanRange_Tests
     {
-        private (TrackingSpanRange,Mock<ITrackingSpan>, Mock<ITrackingSpan>) CreateTrackingSpanRange(string firstText = "")
+        private (Mock<ITextSnapshot>, Mock<ITrackingSpan>, Mock<ITrackingSpan>) SetupTrackingSpans()
         {
             var mockFirstSnapshot = new Mock<ITextSnapshot>();
-            mockFirstSnapshot.Setup(firstSnapshot => firstSnapshot.GetText(It.IsAny<Span>())).Returns(firstText);
-                
+
             var mockStartTrackingSpan = new Mock<ITrackingSpan>();
             mockStartTrackingSpan.Setup(startTrackingspan => startTrackingspan.GetSpan(It.IsAny<ITextSnapshot>()))
                 .Returns(new SnapshotSpan(mockFirstSnapshot.Object, new Span()));
             var mockEndTrackingSpan = new Mock<ITrackingSpan>();
             mockEndTrackingSpan.Setup(startTrackingspan => startTrackingspan.GetSpan(It.IsAny<ITextSnapshot>()))
                 .Returns(new SnapshotSpan(mockFirstSnapshot.Object, new Span()));
-            return (new TrackingSpanRange(mockStartTrackingSpan.Object, mockEndTrackingSpan.Object, mockFirstSnapshot.Object), mockStartTrackingSpan, mockEndTrackingSpan);
+
+            return (mockFirstSnapshot, mockStartTrackingSpan, mockEndTrackingSpan);
+        }
+        private (TrackingSpanRange,Mock<ITrackingSpan>, Mock<ITrackingSpan>) CreateTrackingSpanRange(string firstText = "")
+        {
+            var (mockFirstSnapshot, mockStartTrackingSpan, mockEndTrackingSpan) = SetupTrackingSpans();
+            mockFirstSnapshot.Setup(firstSnapshot => firstSnapshot.GetText(It.IsAny<Span>())).Returns(firstText);
+            
+            return (
+                new TrackingSpanRange(
+                    mockStartTrackingSpan.Object, 
+                    mockEndTrackingSpan.Object, 
+                    mockFirstSnapshot.Object,
+                    new Mock<ILineTracker>().Object
+                ), 
+                mockStartTrackingSpan, 
+                mockEndTrackingSpan
+            );
         }
 
         [Test]
@@ -108,6 +124,25 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
             var (trackingSpanRange,mockFirstTrackingSpan, _) = CreateTrackingSpanRange();
 
             Assert.That(mockFirstTrackingSpan.Object, Is.SameAs(trackingSpanRange.GetFirstTrackingSpan()));
+        }
+
+        [Test]
+        public void Should_Have_Correct_CodeSpanRange_When_Initialized()
+        {
+            var (mockTextSnapshot, mockStartTrackingSpan, mockEndTrackingSpan) = SetupTrackingSpans();
+            var mockLineTracker = new Mock<ILineTracker>();
+            mockLineTracker.Setup(lineTracker => lineTracker.GetLineNumber(mockStartTrackingSpan.Object, mockTextSnapshot.Object, false))
+                .Returns(0);
+            mockLineTracker.Setup(lineTracker => lineTracker.GetLineNumber(mockEndTrackingSpan.Object, mockTextSnapshot.Object, true))
+                .Returns(5);
+            var trackingSpanRange = new TrackingSpanRange(
+                mockStartTrackingSpan.Object, mockEndTrackingSpan.Object, mockTextSnapshot.Object, mockLineTracker.Object);
+            
+            var codeSpanRange = trackingSpanRange.ToCodeSpanRange();
+
+            Assert.That(codeSpanRange.StartLine, Is.EqualTo(0));
+            Assert.That(codeSpanRange.EndLine, Is.EqualTo(5));
+
         }
     }
 }
