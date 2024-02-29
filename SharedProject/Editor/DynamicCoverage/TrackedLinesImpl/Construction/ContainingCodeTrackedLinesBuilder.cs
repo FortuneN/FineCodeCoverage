@@ -207,39 +207,47 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
             return containingCodeTrackers;
         }
 
-        private ITrackedLines CreateCPPFromStates(List<SerializedState> states, ITextSnapshot currentSnapshot)
+        private ITrackedLines RecreateTrackedLinesFromCPPStates(List<SerializedState> states, ITextSnapshot currentSnapshot)
         {
-            var numLines = currentSnapshot.LineCount;
-            var cppContainingCodeTrackers = new List<IContainingCodeTracker>();
-            foreach (var state in states)
-            {
-                var codeSpanRange = state.CodeSpanRange;
-                if (codeSpanRange.EndLine < numLines)
-                {
-                    IContainingCodeTracker containingCodeTracker = null;
-                    if (state.Lines.Count == 1 && state.Lines[0].CoverageType == DynamicCoverageType.Dirty)
-                    {
-                        containingCodeTracker = containingCodeTrackerFactory.CreateDirty(currentSnapshot, codeSpanRange, SpanTrackingMode.EdgeExclusive);
-                    }
-                    else
-                    {
-                        containingCodeTracker = CreateCoverageLines(currentSnapshot, state.Lines.Select(line => new AdjustedLine(line)).Cast<ILine>().ToList(), codeSpanRange);
-                    }
-                    cppContainingCodeTrackers.Add(containingCodeTracker);
-                }
-            }
-            return containingCodeTrackedLinesFactory.Create(cppContainingCodeTrackers, null);
+            var containingCodeTrackers = StatesWithinSnapshot(states, currentSnapshot)
+                .Select(state => RecreateCoverageLines(state, currentSnapshot)).ToList();
+            return containingCodeTrackedLinesFactory.Create(containingCodeTrackers, null);
         }
 
-        public ITrackedLines Create(string serializedCoverage, ITextSnapshot currentSnapshot, Language language)
+        private IEnumerable<SerializedState> StatesWithinSnapshot(IEnumerable<SerializedState> states, ITextSnapshot currentSnapshot)
         {
-            var states = jsonConvertService.DeserializeObject<List<SerializedState>>(serializedCoverage);
-            if(language == Language.CPP)
+            var numLines = currentSnapshot.LineCount;
+            return states.Where(state => state.CodeSpanRange.EndLine < numLines);
+        }
+
+        private IContainingCodeTracker RecreateCoverageLines(SerializedState state, ITextSnapshot currentSnapshot)
+        {
+            var codeSpanRange = state.CodeSpanRange;
+            if (state.Lines[0].CoverageType == DynamicCoverageType.Dirty)
             {
-               return CreateCPPFromStates(states, currentSnapshot);
+                return containingCodeTrackerFactory.CreateDirty(currentSnapshot, codeSpanRange, SpanTrackingMode.EdgeExclusive);
             }
+
+            return CreateCoverageLines(currentSnapshot, AdjustCoverageLines(state.Lines), codeSpanRange);
+        }
+
+        private List<ILine> AdjustCoverageLines(List<DynamicLine> dynamicLines)
+        {
+            return dynamicLines.Select(dynamicLine => new AdjustedLine(dynamicLine)).Cast<ILine>().ToList();
+        }
+
+        private List<CodeSpanRange> GetRoslynCodeSpanRanges(ITextSnapshot currentSnapshot)
+        {
             var roslynContainingCodeSpans = threadHelper.JoinableTaskFactory.Run(() => roslynService.GetContainingCodeSpansAsync(currentSnapshot));
-            var codeSpanRanges = roslynContainingCodeSpans.Select(roslynCodeSpan => GetCodeSpanRange(roslynCodeSpan, currentSnapshot)).ToList();
+            return roslynContainingCodeSpans.Select(roslynCodeSpan => GetCodeSpanRange(roslynCodeSpan, currentSnapshot)).ToList();
+        }
+
+        private List<IContainingCodeTracker> RecreateContainingCodeTrackersWithUnchangedCodeSpanRange(
+            List<CodeSpanRange> codeSpanRanges, 
+            List<SerializedState> states, 
+            ITextSnapshot currentSnapshot
+        )
+        {
             List<IContainingCodeTracker> containingCodeTrackers = new List<IContainingCodeTracker>();
             foreach (var state in states)
             {
@@ -257,28 +265,44 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
                             containingCodeTracker = CreateNotIncluded(currentSnapshot, codeSpanRange);
                             break;
                         case ContainingCodeTrackerType.CoverageLines:
-                            if(state.Lines.Count == 1 && state.Lines[0].CoverageType == DynamicCoverageType.Dirty)
-                            {
-                                containingCodeTracker = containingCodeTrackerFactory.CreateDirty(currentSnapshot, codeSpanRange, SpanTrackingMode.EdgeExclusive);
-                            }
-                            else
-                            {
-                                containingCodeTracker = CreateCoverageLines(currentSnapshot, state.Lines.Select(line => new AdjustedLine(line)).Cast<ILine>().ToList(), codeSpanRange);
-                            }
+                            containingCodeTracker = RecreateCoverageLines(state, currentSnapshot);
                             break;
                     }
                     containingCodeTrackers.Add(containingCodeTracker);
                 }
             }
-            var newCodeTracker = newCodeTrackerFactory.Create(language == Language.CSharp,codeSpanRanges, currentSnapshot);
+            return containingCodeTrackers;
+        }
+
+        private ITrackedLines RecreateTrackedLinesFromRoslynState(List<SerializedState> states, ITextSnapshot currentSnapshot, bool isCharp)
+        {
+            var codeSpanRanges = GetRoslynCodeSpanRanges(currentSnapshot);
+            var containingCodeTrackers = RecreateContainingCodeTrackersWithUnchangedCodeSpanRange(codeSpanRanges, states, currentSnapshot);
+            var newCodeTracker = newCodeTrackerFactory.Create(isCharp, codeSpanRanges, currentSnapshot);
             return containingCodeTrackedLinesFactory.Create(containingCodeTrackers, newCodeTracker);
+        }
+
+        public ITrackedLines Create(string serializedCoverage, ITextSnapshot currentSnapshot, Language language)
+        {
+            var states = jsonConvertService.DeserializeObject<List<SerializedState>>(serializedCoverage);
+            if(language == Language.CPP)
+            {
+               return RecreateTrackedLinesFromCPPStates(states, currentSnapshot);
+            }
+            return RecreateTrackedLinesFromRoslynState(states, currentSnapshot, language == Language.CSharp);
         }
 
         public string Serialize(ITrackedLines trackedLines)
         {
             var trackedLinesImpl = trackedLines as TrackedLines;
-            var states = trackedLinesImpl.ContainingCodeTrackers.Select(containingCodeTracker => SerializedState.From( containingCodeTracker.GetState())).ToList();
+            var states = GetSerializedStates(trackedLinesImpl);
             return jsonConvertService.SerializeObject(states);
+        }
+
+        private List<SerializedState> GetSerializedStates(TrackedLines trackedLines)
+        {
+            return trackedLines.ContainingCodeTrackers.Select(
+                containingCodeTracker => SerializedState.From(containingCodeTracker.GetState())).ToList();
         }
 
         private class AdjustedLine : ILine
