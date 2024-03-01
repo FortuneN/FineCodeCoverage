@@ -26,8 +26,18 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
         private Mock<ITextView> mockTextView;
         private ITextSnapshot textSnapshot;
         private ITextInfo textInfo;
+
+        private ILine CreateLine()
+        {
+            var mockLine = new Mock<ILine>();
+            mockLine.SetupGet(line => line.Number).Returns(1);
+            mockLine.SetupGet(line => line.CoverageType).Returns(CoverageType.Partial);
+            return mockLine.Object;
+        }
+
         private void SimpleTextInfoSetUp(string contentTypeName = "CSharp")
         {
+           
             autoMoqer = new AutoMoqer();
             mockTextView = new Mock<ITextView>();
             mockTextBuffer = new Mock<ITextBuffer2>();
@@ -49,11 +59,10 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
         public void Should_Create_Tracked_Lines_From_Existing_Coverage_Based_Upon_The_Content_Type_Language(string contentTypeName, Language expectedLanguage)
         {
             SimpleTextInfoSetUp(contentTypeName);
-            mockTextSnapshot.Setup(snapshot => snapshot.LineCount).Returns(5);
 
-            var lines = new List<ILine> { };
+            var lines = new List<ILine> { CreateLine()};
             var mockFileLineCoverage = autoMoqer.GetMock<IFileLineCoverage>();
-            mockFileLineCoverage.Setup(fileLineCoverage => fileLineCoverage.GetLines("filepath", 1, 6)).Returns(lines);
+            mockFileLineCoverage.Setup(fileLineCoverage => fileLineCoverage.GetLines("filepath")).Returns(lines);
 
             var bufferLineCoverage = autoMoqer.Create<BufferLineCoverage>();
 
@@ -131,9 +140,9 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
             mockTextInfo.SetupGet(textInfo => textInfo.TextView).Returns(new Mock<ITextView>().Object);
             autoMoqer.SetInstance(mockTextInfo.Object);
 
-            var lines = new List<ILine> { };
+            var lines = new List<ILine> { CreateLine()};
             var mockNewFileLineCoverage = autoMoqer.GetMock<IFileLineCoverage>();
-            mockNewFileLineCoverage.Setup(fileLineCoverage => fileLineCoverage.GetLines("filepath", 1, 11)).Returns(lines);
+            mockNewFileLineCoverage.Setup(fileLineCoverage => fileLineCoverage.GetLines("filepath")).Returns(lines);
 
             var mockTrackedLines = new Mock<ITrackedLines>();
             var dynamicLines = new List<IDynamicLine>();

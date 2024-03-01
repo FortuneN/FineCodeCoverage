@@ -2,6 +2,7 @@
 using FineCodeCoverage.Impl;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace FineCodeCoverage.Engine.Model
 {
@@ -27,6 +28,15 @@ namespace FineCodeCoverage.Engine.Model
                 lines.Sort((a, b) => a.Number - b.Number);
         }
 
+        public IEnumerable<ILine> GetLines(string filePath)
+        {
+            if (!m_coverageLines.TryGetValue(filePath, out var lines))
+            {
+                lines = Enumerable.Empty<ILine>().ToList();
+            }
+            return lines;
+                
+        }
         public IEnumerable<ILine> GetLines(string filePath, int startLineNumber, int endLineNumber)
         {
             if (!m_coverageLines.TryGetValue(filePath, out var lines))

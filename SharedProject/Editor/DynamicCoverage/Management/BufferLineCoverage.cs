@@ -65,8 +65,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
                 }
             }
             
-            var numLines = currentSnapshot.LineCount;
-            var lines = fileLineCoverage.GetLines(textInfo.FilePath, 1, numLines + 1).ToList();
+            var lines = fileLineCoverage.GetLines(textInfo.FilePath).ToList();
             trackedLines = trackedLinesFactory.Create(lines, currentSnapshot, language);
         }
 

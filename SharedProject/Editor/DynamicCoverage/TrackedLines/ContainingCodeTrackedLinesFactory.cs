@@ -8,18 +8,13 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
     [Export(typeof(IContainingCodeTrackedLinesFactory))]
     internal class ContainingCodeTrackedLinesFactory : IContainingCodeTrackedLinesFactory
     {
-        private readonly IRolsynCodeSpanRangeService roslynCodeSpanRangeService;
-
-        [ImportingConstructor]
-        public ContainingCodeTrackedLinesFactory(
-            IRolsynCodeSpanRangeService roslynCodeSpanRangeService
+        public TrackedLines Create(
+            List<IContainingCodeTracker> containingCodeTrackers,
+            INewCodeTracker newCodeTracker, 
+            IFileCodeSpanRangeService fileCodeSpanRangeService
         )
         {
-            this.roslynCodeSpanRangeService = roslynCodeSpanRangeService;
-        }
-        public TrackedLines Create(List<IContainingCodeTracker> containingCodeTrackers,INewCodeTracker newCodeTracker)
-        {
-            return new TrackedLines(containingCodeTrackers,newCodeTracker, newCodeTracker == null ? null : roslynCodeSpanRangeService);
+            return new TrackedLines(containingCodeTrackers,newCodeTracker, fileCodeSpanRangeService);
         }
     }
 }

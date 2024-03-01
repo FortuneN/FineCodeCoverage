@@ -1,82 +1,44 @@
-﻿using FineCodeCoverage.Core.Utilities.VsThreading;
-using FineCodeCoverage.Editor.Roslyn;
-using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.Text;
+﻿using Microsoft.VisualStudio.Text;
 using System.Collections.Generic;
-using System.ComponentModel.Composition;
 using System.Linq;
 
 namespace FineCodeCoverage.Editor.DynamicCoverage
 {
-    internal interface IRolsynCodeSpanRangeService
-    {
-        List<CodeSpanRange> Get(ITextSnapshot snapshot);
-    }
-
-    [Export(typeof(IRolsynCodeSpanRangeService))]
-    internal class RolsynCodeSpanRangeService : IRolsynCodeSpanRangeService
-    {
-        private readonly IThreadHelper threadHelper;
-        private readonly IRoslynService roslynService;
-
-        [ImportingConstructor]
-        public RolsynCodeSpanRangeService(
-            IThreadHelper threadHelper, 
-            IRoslynService roslynService
-        )
-        {
-            this.threadHelper = threadHelper;
-            this.roslynService = roslynService;
-        }
-        private CodeSpanRange GetCodeSpanRange(TextSpan span, ITextSnapshot textSnapshot)
-        {
-            var startLine = textSnapshot.GetLineNumberFromPosition(span.Start);
-            var endLine = textSnapshot.GetLineNumberFromPosition(span.End);
-            return new CodeSpanRange(startLine, endLine);
-        }
-
-        public List<CodeSpanRange> Get(ITextSnapshot currentSnapshot)
-        {
-            var roslynContainingCodeSpans = threadHelper.JoinableTaskFactory.Run(() => roslynService.GetContainingCodeSpansAsync(currentSnapshot));
-            return roslynContainingCodeSpans.Select(roslynCodeSpan => GetCodeSpanRange(roslynCodeSpan, currentSnapshot)).ToList();
-        }
-    }
-
-
     internal class TrackedLines : ITrackedLines
     {
         private readonly List<IContainingCodeTracker> containingCodeTrackers;
         private readonly INewCodeTracker newCodeTracker;
-        private readonly IRolsynCodeSpanRangeService roslynCodeSpanRangeService;
+        private readonly IFileCodeSpanRangeService fileCodeSpanRangeService;
 
         public IReadOnlyList<IContainingCodeTracker> ContainingCodeTrackers => containingCodeTrackers;
+        private readonly bool useFileCodeSpanRangeService;
 
         public TrackedLines(
             List<IContainingCodeTracker> containingCodeTrackers, 
             INewCodeTracker newCodeTracker, 
-            IRolsynCodeSpanRangeService roslynService)
+            IFileCodeSpanRangeService roslynService)
         {
             this.containingCodeTrackers = containingCodeTrackers;
             this.newCodeTracker = newCodeTracker;
-            this.roslynCodeSpanRangeService = roslynService;
+            this.fileCodeSpanRangeService = roslynService;
+            useFileCodeSpanRangeService = fileCodeSpanRangeService != null && newCodeTracker != null;
         }
 
-
-        // normalized spans
-        public bool Changed(ITextSnapshot currentSnapshot, List<Span> newSpanChanges)
+        private List<SpanAndLineRange> GetSpanAndLineRanges(ITextSnapshot currentSnapshot, List<Span> newSpanChanges)
         {
-            List<CodeSpanRange> containingCodeTrackersCodeSpanRanges = new List<CodeSpanRange>();
-            List<CodeSpanRange> roslynCodeSpanRanges = null;
-            if(roslynCodeSpanRangeService != null)
-            {
-                roslynCodeSpanRanges = roslynCodeSpanRangeService.Get(currentSnapshot);
-            }
-            var spanAndLineRanges = newSpanChanges.Select(
-                newSpanChange => new SpanAndLineRange(
-                    newSpanChange, 
-                    currentSnapshot.GetLineNumberFromPosition(newSpanChange.Start),
-                    currentSnapshot.GetLineNumberFromPosition(newSpanChange.End)
-                )).ToList();
+            return newSpanChanges.Select(
+                 newSpanChange => new SpanAndLineRange(
+                     newSpanChange,
+                     currentSnapshot.GetLineNumberFromPosition(newSpanChange.Start),
+                     currentSnapshot.GetLineNumberFromPosition(newSpanChange.End)
+                 )).ToList();
+        }
+
+        private (bool, List<SpanAndLineRange>) ProcessContainingCodeTrackers(
+            ITextSnapshot currentSnapshot, 
+            List<SpanAndLineRange> spanAndLineRanges
+            )
+        {
             var changed = false;
             var removals = new List<IContainingCodeTracker>();
             foreach (var containingCodeTracker in containingCodeTrackers)
@@ -86,13 +48,6 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
                 {
                     removals.Add(containingCodeTracker);
                 }
-                else
-                {
-                    if(roslynCodeSpanRangeService != null)
-                    {
-                        containingCodeTrackersCodeSpanRanges.Add(containingCodeTracker.GetState().CodeSpanRange);
-                    }
-                }
                 spanAndLineRanges = processResult.UnprocessedSpans;
                 if (processResult.Changed)
                 {
@@ -100,43 +55,56 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
                 }
             }
             removals.ForEach(removal => containingCodeTrackers.Remove(removal));
+            return (changed, spanAndLineRanges);
+        }
 
+        // normalized spans
+        public bool Changed(ITextSnapshot currentSnapshot, List<Span> newSpanChanges)
+        {
+            var spanAndLineRanges = GetSpanAndLineRanges(currentSnapshot, newSpanChanges);
+            var (changed,unprocessedSpans) = ProcessContainingCodeTrackers(currentSnapshot, spanAndLineRanges);
+            var newCodeTrackerChanged = ProcessNewCodeTracker(currentSnapshot, unprocessedSpans);
+            return changed || newCodeTrackerChanged;
+        }
+
+        private bool ProcessNewCodeTracker(ITextSnapshot currentSnapshot, List<SpanAndLineRange> spanAndLineRanges)
+        {
+            var newCodeTrackerChanged = false;
             if (newCodeTracker != null)
             {
-                var newCodeTrackerChanged = newCodeTracker.ProcessChanges(currentSnapshot, spanAndLineRanges);
-                if (roslynCodeSpanRangeService != null)
+                newCodeTrackerChanged = newCodeTracker.ProcessChanges(currentSnapshot, spanAndLineRanges);
+                if (useFileCodeSpanRangeService)
                 {
-                    var newCodeCodeRanges = GetNewCodeCodeRanges(roslynCodeSpanRanges,containingCodeTrackersCodeSpanRanges);
+                    var newCodeCodeRanges = GetNewCodeCodeRanges(currentSnapshot, containingCodeTrackers.Select(ct => ct.GetState().CodeSpanRange).ToList());
                     var requiresChange = newCodeTracker.ApplyNewCodeCodeRanges(newCodeCodeRanges);
-                    newCodeTrackerChanged = newCodeTrackerChanged || requiresChange;
+                    newCodeTrackerChanged = newCodeTrackerChanged || requiresChange; //todo further consideration
                 }
-                changed = changed || newCodeTrackerChanged;
             }
-
-            return changed;
+            return newCodeTrackerChanged;
         }
 
         private List<CodeSpanRange> GetNewCodeCodeRanges(
-    List<CodeSpanRange> roslynCodeSpanRanges,
-    List<CodeSpanRange> containingCodeTrackersCodeSpanRanges)
+            ITextSnapshot currentSnapshot,
+            List<CodeSpanRange> containingCodeTrackersCodeSpanRanges)
         {
+            var fileCodeSpanRanges = fileCodeSpanRangeService.GetFileCodeSpanRanges(currentSnapshot);
             var newCodeCodeRanges = new List<CodeSpanRange>();
             int i = 0, j = 0;
 
-            while (i < roslynCodeSpanRanges.Count && j < containingCodeTrackersCodeSpanRanges.Count)
+            while (i < fileCodeSpanRanges.Count && j < containingCodeTrackersCodeSpanRanges.Count)
             {
-                var roslynRange = roslynCodeSpanRanges[i];
+                var fileRange = fileCodeSpanRanges[i];
                 var trackerRange = containingCodeTrackersCodeSpanRanges[j];
 
-                if (roslynRange.EndLine < trackerRange.StartLine)
+                if (fileRange.EndLine < trackerRange.StartLine)
                 {
-                    // roslynRange does not intersect with trackerRange, add it to the result
-                    newCodeCodeRanges.Add(roslynRange);
+                    // fileRange does not intersect with trackerRange, add it to the result
+                    newCodeCodeRanges.Add(fileRange);
                     i++;
                 }
-                else if (roslynRange.StartLine > trackerRange.EndLine)
+                else if (fileRange.StartLine > trackerRange.EndLine)
                 {
-                    // roslynRange is after trackerRange, move to the next trackerRange
+                    // fileRange is after trackerRange, move to the next trackerRange
                     j++;
                 }
                 else
@@ -146,17 +114,15 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
                 }
             }
 
-            // Add remaining roslynCodeSpanRanges that come after the last trackerRange
-            while (i < roslynCodeSpanRanges.Count)
+            // Add remaining fileCodeSpanRanges that come after the last trackerRange
+            while (i < fileCodeSpanRanges.Count)
             {
-                newCodeCodeRanges.Add(roslynCodeSpanRanges[i]);
+                newCodeCodeRanges.Add(fileCodeSpanRanges[i]);
                 i++;
             }
 
             return newCodeCodeRanges;
         }
-
-
 
         public IEnumerable<IDynamicLine> GetLines(int startLineNumber, int endLineNumber)
         {
