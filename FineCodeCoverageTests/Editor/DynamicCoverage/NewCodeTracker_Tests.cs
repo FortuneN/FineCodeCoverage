@@ -146,5 +146,64 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
             Assert.That(newCodeTracker.Lines, Is.EqualTo(new List<IDynamicLine> { secondDynamicLine, firstDynamicLine }));
             
         }
+
+        [Test]
+        public void Should_Track_Line_Numbers_Passed_To_Ctor()
+        {
+            var textSnapshot = new Mock<ITextSnapshot>().Object;
+            var mockTrackedNewCodeLineFactory = new Mock<ITrackedNewCodeLineFactory>();
+            var mockTrackedNewCodeLine1 = new Mock<ITrackedNewCodeLine>();
+            mockTrackedNewCodeLine1.Setup(trackedNewCodeLine => trackedNewCodeLine.GetText(textSnapshot)).Returns("exclude");
+            mockTrackedNewCodeLineFactory.Setup(trackedNewCodeLineFactory => 
+                trackedNewCodeLineFactory.Create(textSnapshot, SpanTrackingMode.EdgeExclusive, 1)
+            ).Returns(mockTrackedNewCodeLine1.Object);
+            var mockTrackedNewCodeLine2 = new Mock<ITrackedNewCodeLine>();
+            mockTrackedNewCodeLine2.Setup(trackedNewCodeLine => trackedNewCodeLine.GetText(textSnapshot)).Returns("notexclude");
+            var expectedLine = new Mock<IDynamicLine>().Object;
+            mockTrackedNewCodeLine2.SetupGet(trackedNewCodeLine => trackedNewCodeLine.Line).Returns(expectedLine);
+            mockTrackedNewCodeLineFactory.Setup(trackedNewCodeLineFactory =>
+                trackedNewCodeLineFactory.Create(textSnapshot, SpanTrackingMode.EdgeExclusive, 2)
+            ).Returns(mockTrackedNewCodeLine2.Object);
+            var mockLineExcluder = new Mock<ILineExcluder>();
+            mockLineExcluder.Setup(lineExcluder => lineExcluder.ExcludeIfNotCode("exclude", true)).Returns(true);
+            mockLineExcluder.Setup(lineExcluder => lineExcluder.ExcludeIfNotCode("notexclude", true)).Returns(false);
+
+            var newCodeTracker = new NewCodeTracker(true, mockTrackedNewCodeLineFactory.Object, mockLineExcluder.Object, new List<int> { 1, 2 }, textSnapshot);
+
+            var line = newCodeTracker.Lines.Single();
+            Assert.That(line, Is.SameAs(expectedLine));
+        }
+
+        [TestCase(true)]
+        [TestCase(false)]
+        public void Should_ApplyNewCodeCodeRanges_By_Reducing_To_Lines_Tha_Are_Start_Of_A_CodeRange(bool startOfCodeRange)
+        {
+            var textSnapshot = new Mock<ITextSnapshot>().Object;
+            var mockTrackedNewCodeLineFactory = new Mock<ITrackedNewCodeLineFactory>();
+            var mockLineMayReduce = new Mock<IDynamicLine>();
+            mockLineMayReduce.SetupGet(line => line.Number).Returns(1);
+            var mockTrackedNewCodeLine1 = new Mock<ITrackedNewCodeLine>();
+            mockTrackedNewCodeLine1.SetupGet(trackedNewCodeLine => trackedNewCodeLine.Line).Returns(mockLineMayReduce.Object);
+            mockTrackedNewCodeLineFactory.Setup(trackedNewCodeLineFactory =>
+                trackedNewCodeLineFactory.Create(textSnapshot, SpanTrackingMode.EdgeExclusive, It.IsAny<int>())
+            ).Returns(mockTrackedNewCodeLine1.Object);
+            
+            var newCodeTracker = new NewCodeTracker(
+                true, 
+                mockTrackedNewCodeLineFactory.Object, 
+                new Mock<ILineExcluder>().Object, 
+                new List<int> { 1, }, 
+                textSnapshot
+            );
+
+            Assert.That(newCodeTracker.Lines.Count(), Is.EqualTo(1));
+
+            var codeSpanRange = new CodeSpanRange(startOfCodeRange ? 1:2, 5);
+            var changed = newCodeTracker.ApplyNewCodeCodeRanges(new List<CodeSpanRange> { codeSpanRange });
+
+            Assert.That(changed, Is.EqualTo(!startOfCodeRange));
+
+            Assert.That(newCodeTracker.Lines.Count(), Is.EqualTo(startOfCodeRange ? 1 : 0));
+        }
     }
 }

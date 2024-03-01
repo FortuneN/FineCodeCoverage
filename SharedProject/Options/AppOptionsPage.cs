@@ -288,6 +288,10 @@ namespace FineCodeCoverage.Options
         [Category(editorColouringControlCategory)]
         [Description("Set to false to use FCC Fonts And Colors items")]
         public bool UseEnterpriseFontsAndColors { get; set; }
+
+        [Category(editorColouringControlCategory)]
+        [Description("Set to Off, or Set to DoNotUseRoslynWhenTextChanges if there is a performance issue")]
+        public EditorCoverageColouringMode EditorCoverageColouringMode { get; set; }
         #endregion
         
         #region overview margin

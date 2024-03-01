@@ -5,6 +5,7 @@ using FineCodeCoverage.Editor.DynamicCoverage;
 using FineCodeCoverage.Editor.Roslyn;
 using FineCodeCoverage.Editor.Tagging.Base;
 using FineCodeCoverage.Engine.Model;
+using FineCodeCoverage.Options;
 using FineCodeCoverageTests.TestHelpers;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
@@ -32,6 +33,7 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
         {
             return CodeSpanRange.SingleLine(line.Number -1);
         }
+
         [Test]
         public void Should_Create_ContainingCodeTracker_For_Each_Line_When_CPP()
         {
@@ -190,41 +192,54 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
             int lineCount
         )
         {
-            var autoMoqer = new AutoMoqer();
-            autoMoqer.SetInstance<ICodeSpanRangeContainingCodeTrackerFactory>(new DummyCodeSpanRangeContainingCodeTrackerFactory());
-            autoMoqer.SetInstance<IThreadHelper>(new TestThreadHelper());
-            var containingCodeTrackedLinesBuilder = autoMoqer.Create<ContainingCodeTrackedLinesBuilder>();
-            setUpExcluder(autoMoqer.GetMock<ITextSnapshotLineExcluder>(), isCSharp);
-
-            var mockTextSnapshot = new Mock<ITextSnapshot>();
-            mockTextSnapshot.SetupGet(textSnapshot => textSnapshot.LineCount).Returns(lineCount);
-            var mockRoslynService = autoMoqer.GetMock<IRoslynService>();
-            var textSpans = codeSpanRanges.Select(codeSpanRange => new TextSpan(codeSpanRange.StartLine, codeSpanRange.EndLine - codeSpanRange.StartLine)).ToList();
-            mockRoslynService.Setup(roslynService => roslynService.GetContainingCodeSpansAsync(mockTextSnapshot.Object)).ReturnsAsync(textSpans);
-            textSpans.ForEach(textSpan =>
+            new List<bool> { true, false }.ForEach(UseRoslynWhenTextChanges =>
             {
-                mockTextSnapshot.Setup(textSnapshot => textSnapshot.GetLineNumberFromPosition(textSpan.Start)).Returns(textSpan.Start);
-                mockTextSnapshot.Setup(textSnapshot => textSnapshot.GetLineNumberFromPosition(textSpan.End)).Returns(textSpan.End);
-            });
+                var autoMoqer = new AutoMoqer();
+                var mockAppOptions = new Mock<IAppOptions>();
+                mockAppOptions.SetupGet(appOptions => appOptions.EditorCoverageColouringMode)
+                    .Returns(UseRoslynWhenTextChanges ? EditorCoverageColouringMode.UseRoslynWhenTextChanges : EditorCoverageColouringMode.DoNotUseRoslynWhenTextChanges);
+                autoMoqer.Setup<IAppOptionsProvider, IAppOptions>(appOptionsProvider => appOptionsProvider.Get())
+                    .Returns(mockAppOptions.Object);
+                autoMoqer.SetInstance<ICodeSpanRangeContainingCodeTrackerFactory>(new DummyCodeSpanRangeContainingCodeTrackerFactory());
+                autoMoqer.SetInstance<IThreadHelper>(new TestThreadHelper());
+                var containingCodeTrackedLinesBuilder = autoMoqer.Create<ContainingCodeTrackedLinesBuilder>();
+                setUpExcluder(autoMoqer.GetMock<ITextSnapshotLineExcluder>(), isCSharp);
 
-            var newCodeTracker = autoMoqer.GetMock<INewCodeTracker>().Object;
-            autoMoqer.Setup<INewCodeTrackerFactory, INewCodeTracker>(newCodeTrackerFactory => newCodeTrackerFactory.Create(isCSharp)).Returns(newCodeTracker);
+                var mockTextSnapshot = new Mock<ITextSnapshot>();
+                mockTextSnapshot.SetupGet(textSnapshot => textSnapshot.LineCount).Returns(lineCount);
+                var mockRoslynService = autoMoqer.GetMock<IRoslynService>();
+                var textSpans = codeSpanRanges.Select(codeSpanRange => new TextSpan(codeSpanRange.StartLine, codeSpanRange.EndLine - codeSpanRange.StartLine)).ToList();
+                mockRoslynService.Setup(roslynService => roslynService.GetContainingCodeSpansAsync(mockTextSnapshot.Object)).ReturnsAsync(textSpans);
+                textSpans.ForEach(textSpan =>
+                {
+                    mockTextSnapshot.Setup(textSnapshot => textSnapshot.GetLineNumberFromPosition(textSpan.Start)).Returns(textSpan.Start);
+                    mockTextSnapshot.Setup(textSnapshot => textSnapshot.GetLineNumberFromPosition(textSpan.End)).Returns(textSpan.End);
+                });
 
-            var expectedTrackedLines = new TrackedLines(null, null, null);
-            var mockContainingCodeTrackedLinesFactory = autoMoqer.GetMock<IContainingCodeTrackedLinesFactory>();
-            mockContainingCodeTrackedLinesFactory.Setup(
-                containingCodeTrackedLinesFactory => containingCodeTrackedLinesFactory.Create(It.IsAny<List<IContainingCodeTracker>>(), newCodeTracker, containingCodeTrackedLinesBuilder)
-            ).Callback<List<IContainingCodeTracker>, INewCodeTracker, IFileCodeSpanRangeService>((containingCodeTrackers, _,__) =>
+                var newCodeTracker = autoMoqer.GetMock<INewCodeTracker>().Object;
+                autoMoqer.Setup<INewCodeTrackerFactory, INewCodeTracker>(newCodeTrackerFactory => newCodeTrackerFactory.Create(isCSharp))
+                    .Returns(newCodeTracker);
+
+                var expectedTrackedLines = new TrackedLines(null, null, null);
+                var mockContainingCodeTrackedLinesFactory = autoMoqer.GetMock<IContainingCodeTrackedLinesFactory>();
+                mockContainingCodeTrackedLinesFactory.Setup(
+                    containingCodeTrackedLinesFactory => containingCodeTrackedLinesFactory.Create(
+                        It.IsAny<List<IContainingCodeTracker>>(), 
+                        newCodeTracker, 
+                        UseRoslynWhenTextChanges ? containingCodeTrackedLinesBuilder : null)
+                ).Callback<List<IContainingCodeTracker>, INewCodeTracker, IFileCodeSpanRangeService>((containingCodeTrackers, _, __) =>
                 {
                     var invocationArgs = containingCodeTrackers.Select(t => t as TrackerArgs).ToList();
                     Assert.True(invocationArgs.Select(args => args.Snapshot).All(snapshot => snapshot == mockTextSnapshot.Object));
                     Assert.That(invocationArgs, Is.EqualTo(expected));
                 }).Returns(expectedTrackedLines);
 
-            
-            var trackedLines = containingCodeTrackedLinesBuilder.Create(lines, mockTextSnapshot.Object, isCSharp ? Language.CSharp : Language.VB);
 
-            Assert.That(trackedLines, Is.SameAs(expectedTrackedLines));
+                var trackedLines = containingCodeTrackedLinesBuilder.Create(lines, mockTextSnapshot.Object, isCSharp ? Language.CSharp : Language.VB);
+
+                Assert.That(trackedLines, Is.SameAs(expectedTrackedLines));
+            });
+            
 
         }
 
@@ -431,6 +446,8 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
             var roslynLanguage = isCSharp ? Language.CSharp : Language.VB;
             var autoMoqer = new AutoMoqer();
             autoMoqer.SetInstance<IThreadHelper>(new TestThreadHelper());
+            autoMoqer.Setup<IAppOptionsProvider, IAppOptions>(
+                appOptionsProvider => appOptionsProvider.Get()).Returns(new Mock<IAppOptions>().Object);
             var containingCodeTrackedLinesBuilder = autoMoqer.Create<ContainingCodeTrackedLinesBuilder>();
             var mockJsonConvertService = autoMoqer.GetMock<IJsonConvertService>();
             var codeSpanRange = new CodeSpanRange(10, 20);
@@ -444,11 +461,11 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
             autoMoqer.Setup<INewCodeTrackerFactory, INewCodeTracker>(
                 newCodeTrackerFactory => newCodeTrackerFactory.Create(
                     isCSharp,
-                    new List<CodeSpanRange> {},
+                    new List<int> { },
                     mockTextSnapshot.Object)).Returns(newCodeTracker);
             var containingCodeTracker = new Mock<IContainingCodeTracker>().Object;
             setupContainingCodeTrackerFactory(
-                autoMoqer.GetMock<ICodeSpanRangeContainingCodeTrackerFactory>(), 
+                autoMoqer.GetMock<ICodeSpanRangeContainingCodeTrackerFactory>(),
                 containingCodeTracker,
                 codeSpanRange,
                 mockTextSnapshot.Object);
@@ -461,7 +478,7 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
                    containingCodeTrackedLinesBuilder
                 )).Returns(expectedTrackedLines);
 
-            
+
 
             var trackedLines = containingCodeTrackedLinesBuilder.Create("serializedState", mockTextSnapshot.Object, roslynLanguage);
             Assert.That(expectedTrackedLines, Is.SameAs(trackedLines));
@@ -571,14 +588,20 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
             );
         }
 
-        [Test]
-        public void Should_Not_Use_Deserialized_If_CodeSpanRange_Has_Changed()
+        [TestCase(true)]
+        [TestCase(false)]
+        public void Should_Not_Use_Deserialized_If_CodeSpanRange_Has_Changed(bool useRoslynWhenTextChanges)
         {
             var mockTextSnapshot = new Mock<ITextSnapshot>();
             mockTextSnapshot.Setup(textSnapshot => textSnapshot.GetLineNumberFromPosition(1)).Returns(10);
             mockTextSnapshot.Setup(textSnapshot => textSnapshot.GetLineNumberFromPosition(3)).Returns(20);
             var roslynLanguage = isCSharp ? Language.CSharp : Language.VB;
             var autoMoqer = new AutoMoqer();
+            var mockAppOptions = new Mock<IAppOptions>();
+            mockAppOptions.SetupGet(appOptions => appOptions.EditorCoverageColouringMode)
+                .Returns(useRoslynWhenTextChanges ? EditorCoverageColouringMode.UseRoslynWhenTextChanges : EditorCoverageColouringMode.DoNotUseRoslynWhenTextChanges);
+            autoMoqer.Setup<IAppOptionsProvider, IAppOptions>(appOptionsProvider => appOptionsProvider.Get())
+                .Returns(mockAppOptions.Object);
             autoMoqer.SetInstance<IThreadHelper>(new TestThreadHelper());
             var containingCodeTrackedLinesBuilder = autoMoqer.Create<ContainingCodeTrackedLinesBuilder>();
             var mockJsonConvertService = autoMoqer.GetMock<IJsonConvertService>();
@@ -590,21 +613,23 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
             mockRoslynService.Setup(roslynService => roslynService.GetContainingCodeSpansAsync(mockTextSnapshot.Object))
                 .ReturnsAsync(new List<TextSpan> { new TextSpan(1, 2) });
             var newCodeTracker = new Mock<INewCodeTracker>().Object;
+
+            var expectedLines = useRoslynWhenTextChanges ? new List<int> { 10 } : new List<int> { 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20 };
             autoMoqer.Setup<INewCodeTrackerFactory, INewCodeTracker>(
                 newCodeTrackerFactory => newCodeTrackerFactory.Create(
                     isCSharp,
-                    new List<CodeSpanRange> { new CodeSpanRange(10, 20) },
+                    expectedLines,
                     mockTextSnapshot.Object)).Returns(newCodeTracker);
-            
+
             var expectedTrackedLines = new TrackedLines(null, null, null);
             autoMoqer.Setup<IContainingCodeTrackedLinesFactory, TrackedLines>(
                 containingCodeTrackedLinesFactory => containingCodeTrackedLinesFactory.Create(
-                    new List<IContainingCodeTracker> {  },
+                    new List<IContainingCodeTracker> { },
                     newCodeTracker,
-                    containingCodeTrackedLinesBuilder
+                    useRoslynWhenTextChanges ? containingCodeTrackedLinesBuilder : null
                 )).Returns(expectedTrackedLines);
 
-            
+
 
             var trackedLines = containingCodeTrackedLinesBuilder.Create("serializedState", mockTextSnapshot.Object, roslynLanguage);
             Assert.That(expectedTrackedLines, Is.SameAs(trackedLines));
@@ -661,6 +686,27 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
             var trackedLines = containingCodeTrackedLinesBuilder.Create("serializedState", mockTextSnapshot.Object, Language.CPP);
 
             Assert.That(expectedTrackedLines, Is.SameAs(trackedLines));
+        }
+
+        [Test]
+        public void Should_IFileCodeSpanRangeService_Using_Roslyn()
+        {
+            var mockTextSnapshot = new Mock<ITextSnapshot>();
+            mockTextSnapshot.Setup(textSnaphot => textSnaphot.GetLineNumberFromPosition(1)).Returns(1);
+            mockTextSnapshot.Setup(textSnaphot => textSnaphot.GetLineNumberFromPosition(11)).Returns(5);
+            
+            var autoMoqer = new AutoMoqer();
+            var mockRoslynService = autoMoqer.GetMock<IRoslynService>();
+            mockRoslynService.Setup(roslynService => roslynService.GetContainingCodeSpansAsync(mockTextSnapshot.Object))
+                    .ReturnsAsync(new List<TextSpan> { new TextSpan(1, 10) });
+
+            autoMoqer.SetInstance<IThreadHelper>(new TestThreadHelper());
+
+            var containingCodeTrackedLinesBuilder = autoMoqer.Create<ContainingCodeTrackedLinesBuilder>();
+
+            var fileCodeSpanRanges = containingCodeTrackedLinesBuilder.GetFileCodeSpanRanges(mockTextSnapshot.Object);
+
+            Assert.That(fileCodeSpanRanges.Single().Equals(new CodeSpanRange(1, 5)));
         }
     }
 }

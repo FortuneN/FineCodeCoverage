@@ -80,6 +80,11 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
                 WritableUserSettingsStore.DeleteCollection(dynamicCoverageStoreCollectionName);
             }
         }
+
+        public void RemoveSerializedCoverage(string filePath)
+        {
+            WritableUserSettingsStore.DeleteProperty(dynamicCoverageStoreCollectionName, filePath);
+        }
     }
 
 }

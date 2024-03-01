@@ -75,6 +75,8 @@ Coverage Partially Touched Area
 Coverage Touched Area
 
 
+You can turn off editor colouring by setting the visual studio option EditorCoverageColouringMode to Off.
+You can also set the option to DoNotUseRoslynWhenTextChanges if there is a performance issue.  By doing so new lines colouring will not be as good.
 
 ## Why use MS Code Coverage ?
 
@@ -276,6 +278,7 @@ If you are using option 1) then project and global options will only be used whe
 |Option |Description|
 |--|---|
 |**Common**||
+|EditorCoverageColouringMode|Set to Off, or Set to DoNotUseRoslynWhenTextChanges if there is a performance issue|
 |ShowEditorCoverage|Set to false to disable all editor coverage indicators|
 |ShowCoverageInGlyphMargin|Set to false to prevent coverage marks in the glyph margin|
 |ShowCoveredInGlyphMargin|Set to false to prevent covered marks in the glyph margin|

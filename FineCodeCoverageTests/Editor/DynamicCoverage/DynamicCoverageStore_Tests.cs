@@ -142,5 +142,20 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
                 mockWritableSettingsStore.Verify(writableSettingsStore => writableSettingsStore.DeleteProperty("FCC.DynamicCoverageStore", "oldFileName"));
             });
         }
+
+        [Test]
+        public void Should_Remove_SerializedCoverage_From_Store()
+        {
+            var autoMoqer = new AutoMoqer();
+            var mockWritableSettingsStore = new Mock<WritableSettingsStore>();
+            autoMoqer.Setup<IWritableUserSettingsStoreProvider, WritableSettingsStore>(
+                writableUserSettingsStoreProvider => writableUserSettingsStoreProvider.Provide()).Returns(mockWritableSettingsStore.Object);
+
+            var dynamicCoverageStore = autoMoqer.Create<DynamicCoverageStore>();
+
+            dynamicCoverageStore.RemoveSerializedCoverage("filePath");
+
+            mockWritableSettingsStore.Verify(writableSettingsStore => writableSettingsStore.DeleteProperty("FCC.DynamicCoverageStore", "filePath"));
+        }
     }
 }

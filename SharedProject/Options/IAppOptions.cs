@@ -83,9 +83,17 @@
         bool ShowLineNotIncludedHighlighting { get; set; }
     }
 
+    internal enum EditorCoverageColouringMode
+    {
+        UseRoslynWhenTextChanges,
+        DoNotUseRoslynWhenTextChanges,
+        Off
+    }
+
     interface IEditorCoverageColouringOptions : IOverviewMarginOptions, IGlyphMarginOptions,IEditorLineHighlightingCoverageOptions { 
         bool ShowEditorCoverage { get; set; }
         bool UseEnterpriseFontsAndColors { get; set; }
+        EditorCoverageColouringMode EditorCoverageColouringMode { get; set; }
     }
 
     internal interface IAppOptions : IMsCodeCoverageOptions, IOpenCoverCoverletExcludeIncludeOptions, IFCCCommonOptions, IOpenCoverOptions, IEditorCoverageColouringOptions

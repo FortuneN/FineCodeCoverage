@@ -22,17 +22,16 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
             bool isCSharp, 
             ITrackedNewCodeLineFactory trackedNewCodeLineFactory,
             ILineExcluder codeLineExcluder, 
-            List<CodeSpanRange> codeSpanRanges,
+            List<int> lineNumbers,
             ITextSnapshot currentSnapshot
             )
         {
             this.isCSharp = isCSharp;
             this.trackedNewCodeLineFactory = trackedNewCodeLineFactory;
             this.codeLineExcluder = codeLineExcluder;
-            foreach (var codeSpanRange in codeSpanRanges)
+            foreach (var lineNumber in lineNumbers)
             {
-                var trackedNewCodeLine = CreateTrackedNewCodeLine(currentSnapshot, codeSpanRange.StartLine);
-                trackedNewCodeLines.Add(trackedNewCodeLine);
+                AddTrackedNewCodeLineIfNotExcluded(currentSnapshot, lineNumber);
             }
         }
 
@@ -97,7 +96,6 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
         private ITrackedNewCodeLine CreateTrackedNewCodeLine(ITextSnapshot currentSnapshot, int lineNumber)
         {
             return trackedNewCodeLineFactory.Create(currentSnapshot, SpanTrackingMode.EdgeExclusive, lineNumber);
-            
         }
     }
 

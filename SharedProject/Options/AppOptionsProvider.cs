@@ -67,7 +67,6 @@ namespace FineCodeCoverage.Options
             appOptions.Enabled = true;
             appOptions.DisabledNoCoverage = true;
             appOptions.ShowEditorCoverage = true;
-
             appOptions.ShowCoverageInOverviewMargin = true;
             appOptions.ShowCoveredInOverviewMargin = true;
             appOptions.ShowPartiallyCoveredInOverviewMargin = true;
@@ -247,7 +246,7 @@ namespace FineCodeCoverage.Options
         public bool ShowLineNotIncludedHighlighting { get; set; }
         public bool ShowEditorCoverage { get; set; }
         public bool UseEnterpriseFontsAndColors { get; set; }
-        
+        public EditorCoverageColouringMode EditorCoverageColouringMode { get; set; }
         
         
     }
