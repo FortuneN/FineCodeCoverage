@@ -77,6 +77,7 @@ Coverage Touched Area
 
 You can turn off editor colouring by setting the visual studio option EditorCoverageColouringMode to Off.
 You can also set the option to DoNotUseRoslynWhenTextChanges if there is a performance issue.  By doing so new lines colouring will not be as good.
+If you switch to one of the EditorCoverageColouringMode options then you will need to re-run coverage.
 
 ## Why use MS Code Coverage ?
 
