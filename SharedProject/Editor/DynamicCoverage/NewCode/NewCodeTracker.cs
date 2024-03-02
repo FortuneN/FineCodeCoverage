@@ -6,7 +6,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
 {
     class NewCodeTracker : INewCodeTracker
     {
-        private List<ITrackedNewCodeLine> trackedNewCodeLines = new List<ITrackedNewCodeLine>();
+        private readonly List<ITrackedNewCodeLine> trackedNewCodeLines = new List<ITrackedNewCodeLine>();
         private readonly bool isCSharp;
         private readonly ITrackedNewCodeLineFactory trackedNewCodeLineFactory;
         private readonly ILineExcluder codeLineExcluder;
