@@ -72,16 +72,13 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
             var newCodeTrackerChanged = false;
             if (newCodeTracker != null)
             {
-                newCodeTrackerChanged = newCodeTracker.ProcessChanges(currentSnapshot, spanAndLineRanges);
-                if (useFileCodeSpanRangeService)
-                {
-                    var newCodeCodeRanges = GetNewCodeCodeRanges(currentSnapshot, containingCodeTrackers.Select(ct => ct.GetState().CodeSpanRange).ToList());
-                    var requiresChange = newCodeTracker.ApplyNewCodeCodeRanges(newCodeCodeRanges);
-                    newCodeTrackerChanged = newCodeTrackerChanged || requiresChange; //todo further consideration
-                }
+                var newCodeCodeRanges = useFileCodeSpanRangeService ? GetNewCodeCodeRanges(currentSnapshot, containingCodeTrackers.Select(ct => ct.GetState().CodeSpanRange).ToList()) : null;
+                newCodeTrackerChanged = newCodeTracker.ProcessChanges(currentSnapshot, spanAndLineRanges, newCodeCodeRanges);
             }
             return newCodeTrackerChanged;
         }
+
+
 
         private List<CodeSpanRange> GetNewCodeCodeRanges(
             ITextSnapshot currentSnapshot,

@@ -4,7 +4,6 @@ using Moq;
 using NUnit.Framework;
 using System.Collections.Generic;
 using System.Linq;
-using static FineCodeCoverageTests.Editor.DynamicCoverage.ContainingCodeTrackedLinesBuilder_Tests.RoslynDataClass;
 
 namespace FineCodeCoverageTests.Editor.DynamicCoverage
 {
@@ -112,7 +111,7 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
                 .Returns(GetProcessResult(unprocessedSpans, false));
 
             var mockNewCodeTracker = new Mock<INewCodeTracker>();
-            mockNewCodeTracker.Setup(newCodeTracker => newCodeTracker.ProcessChanges(mockTextSnapshot.Object, unprocessedSpans))
+            mockNewCodeTracker.Setup(newCodeTracker => newCodeTracker.ProcessChanges(mockTextSnapshot.Object, unprocessedSpans, null))
                 .Returns(newCodeChanged);
 
             var trackedLines = new TrackedLines(
@@ -166,7 +165,6 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
             List<CodeSpanRange> expectedApplyNewCodeCodeRanges,
             bool containingCodeTrackersChanged,
             bool newCodeTrackerProcessChangesResult,
-            bool applyNewCodeCodeRangesResult,
             bool expectedChanged
         )
         {
@@ -189,13 +187,11 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
 
             var mockNewCodeTracker = new Mock<INewCodeTracker>();
             mockNewCodeTracker.Setup(newCodeTracker => newCodeTracker.ProcessChanges(
-                mockTextSnapshot.Object, It.IsAny<List<SpanAndLineRange>>())
+                mockTextSnapshot.Object, It.IsAny<List<SpanAndLineRange>>(), expectedApplyNewCodeCodeRanges)
             ).Returns(newCodeTrackerProcessChangesResult);
-            mockNewCodeTracker.Setup(newCodeTracker => newCodeTracker.ApplyNewCodeCodeRanges(expectedApplyNewCodeCodeRanges))
-                .Returns(applyNewCodeCodeRangesResult);
 
             var trackedLines = new TrackedLines(containingCodeTrackers, mockNewCodeTracker.Object, mockFileCodeSpanRangeService.Object);
-            
+
             var changed = trackedLines.Changed(mockTextSnapshot.Object, new List<Span>());
 
             Assert.That(expectedChanged, Is.EqualTo(changed));
@@ -213,7 +209,6 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
                     List<CodeSpanRange> expectedApplyNewCodeCodeRanges,
                     bool containingCodeTrackersChanged = true,
                     bool newCodeTrackerProcessChangesResult = true,
-                    bool applyNewCodeCodeRangesResult = true,
                     bool expectedChanged = true,
                     string testName = null
                     ) : base(
@@ -222,7 +217,6 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
                         expectedApplyNewCodeCodeRanges,
                         containingCodeTrackersChanged,
                         newCodeTrackerProcessChangesResult,
-                        applyNewCodeCodeRangesResult,
                         expectedChanged
                         )
                 {
@@ -264,38 +258,25 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
                         new List<CodeSpanRange> { }
                      );
 
-                    // false results do not affect changed
+
                     yield return new ApplyNewCodeCodeRangesTestCase(
                         new List<CodeSpanRange> { CodeSpanRange.SingleLine(1) },
                         new List<CodeSpanRange> { CodeSpanRange.SingleLine(1),},
                         new List<CodeSpanRange> { },
                         true,
                         false,
-                        false,
                         true
                      );
 
-                    // true process changes result unaffected by false apply new code code ranges result
                     yield return new ApplyNewCodeCodeRangesTestCase(
                         new List<CodeSpanRange> { CodeSpanRange.SingleLine(1) },
                         new List<CodeSpanRange> { CodeSpanRange.SingleLine(1), },
                         new List<CodeSpanRange> { },
                         false,
                         true,
-                        false,
                         true
                      );
 
-                    // true apply new code code ranges result is changed
-                    yield return new ApplyNewCodeCodeRangesTestCase(
-                        new List<CodeSpanRange> { CodeSpanRange.SingleLine(1) },
-                        new List<CodeSpanRange> { CodeSpanRange.SingleLine(1), },
-                        new List<CodeSpanRange> { },
-                        false,
-                        false,
-                        true,
-                        true
-                     );
                 }
             }
         }

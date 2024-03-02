@@ -37,29 +37,58 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
 
         public IEnumerable<IDynamicLine> Lines => trackedNewCodeLines.OrderBy(l => l.Line.Number).Select(l=>l.Line);
 
-        public bool ApplyNewCodeCodeRanges(IEnumerable<CodeSpanRange> newCodeCodeRanges)
+        private bool ProcessNewCodeCodeRanges(IEnumerable<CodeSpanRange> newCodeCodeRanges, ITextSnapshot textSnapshot)
         {
-            var numBeforeFilter = trackedNewCodeLines.Count;
-            ReduceLinesToCodeRangeStart(newCodeCodeRanges);
-            return numBeforeFilter != trackedNewCodeLines.Count;
+            var requiresChange = false;
+            var startLineNumbers = newCodeCodeRanges.Select(newCodeCodeRange => newCodeCodeRange.StartLine).ToList();
+            var removals = new List<ITrackedNewCodeLine>();
+            foreach (var trackedNewCodeLine in trackedNewCodeLines)
+            {
+                var trackedLineNumber = trackedNewCodeLine.Line.Number;
+                var removed = startLineNumbers.Remove(trackedLineNumber);
+                if (!removed)
+                {
+                    requiresChange = true;
+                    removals.Add(trackedNewCodeLine);
+                }
+            }
+            removals.ForEach(removal => trackedNewCodeLines.Remove(removal));
+
+            foreach (var startLineNumber in startLineNumbers)
+            {
+                var trackedNewCodeLine = CreateTrackedNewCodeLine(textSnapshot, startLineNumber);
+                trackedNewCodeLines.Add(trackedNewCodeLine);
+                requiresChange = true;
+            }
+
+            
+            return requiresChange;
+
         }
 
-        private void ReduceLinesToCodeRangeStart(IEnumerable<CodeSpanRange> newCodeCodeRanges)
+        public bool ProcessChanges(
+            ITextSnapshot currentSnapshot, 
+            List<SpanAndLineRange> potentialNewLines, 
+            IEnumerable<CodeSpanRange> newCodeCodeRanges)
         {
-            trackedNewCodeLines = trackedNewCodeLines.Where(l => newCodeCodeRanges.Any(r => r.StartLine == l.Line.Number)).ToList();
+            if(newCodeCodeRanges != null)
+            {
+                return ProcessNewCodeCodeRanges(newCodeCodeRanges, currentSnapshot);
+            }
+            return ProcessSpanAndLineRanges(potentialNewLines, currentSnapshot);
         }
 
-        public bool ProcessChanges(ITextSnapshot currentSnapshot, List<SpanAndLineRange> potentialNewLines)
+        private bool ProcessSpanAndLineRanges( List<SpanAndLineRange> potentialNewLines, ITextSnapshot currentSnapshot)
         {
             var requiresUpdate = false;
             var removals = new List<ITrackedNewCodeLine>();
-            foreach (var trackedNewCodeLine in  trackedNewCodeLines)
+            foreach (var trackedNewCodeLine in trackedNewCodeLines)
             {
                 var trackedNewCodeLineUpdate = trackedNewCodeLine.Update(currentSnapshot);
 
                 potentialNewLines = potentialNewLines.Where(spanAndLineRange => spanAndLineRange.StartLineNumber != trackedNewCodeLineUpdate.LineNumber).ToList();
-                
-                if (codeLineExcluder.ExcludeIfNotCode(trackedNewCodeLineUpdate.Text,isCSharp))
+
+                if (codeLineExcluder.ExcludeIfNotCode(trackedNewCodeLineUpdate.Text, isCSharp))
                 {
                     requiresUpdate = true;
                     removals.Add(trackedNewCodeLine);
@@ -71,13 +100,17 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
             };
             removals.ForEach(removal => trackedNewCodeLines.Remove(removal));
 
-            var groupedByLineNumber = potentialNewLines.GroupBy(spanAndLineNumber => spanAndLineNumber.StartLineNumber);
-            foreach (var grouping in groupedByLineNumber)
+            var lineNumbers = GetLineNumbers(potentialNewLines);
+            foreach (var lineNumber in lineNumbers)
             {
-                var lineNumber = grouping.Key;
                 requiresUpdate = AddTrackedNewCodeLineIfNotExcluded(currentSnapshot, lineNumber) || requiresUpdate;
             }
             return requiresUpdate;
+        }
+
+        private IEnumerable<int> GetLineNumbers(List<SpanAndLineRange> potentialNewLines)
+        {
+            return potentialNewLines.Select(spanAndLineNumber => spanAndLineNumber.StartLineNumber).Distinct();
         }
 
         private bool AddTrackedNewCodeLineIfNotExcluded(ITextSnapshot currentSnapshot, int lineNumber)
