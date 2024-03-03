@@ -22,13 +22,13 @@ namespace FineCodeCoverage.Editor.Management
             IFontAndColorsInfo notIncludedInfo
         )
         {
-            CoverageTouchedInfo = coverageTouchedInfo;
-            CoverageNotTouchedInfo = coverageNotTouchedInfo;
-            CoveragePartiallyTouchedInfo = coveragePartiallyTouchedInfo;
-            DirtyInfo = dirtyInfo;
-            NewLineInfo = newLineInfo;
-            NotIncludedInfo = notIncludedInfo;
-            coverageTypeToFontAndColorsInfo = new Dictionary<DynamicCoverageType, IFontAndColorsInfo>
+            this.CoverageTouchedInfo = coverageTouchedInfo;
+            this.CoverageNotTouchedInfo = coverageNotTouchedInfo;
+            this.CoveragePartiallyTouchedInfo = coveragePartiallyTouchedInfo;
+            this.DirtyInfo = dirtyInfo;
+            this.NewLineInfo = newLineInfo;
+            this.NotIncludedInfo = notIncludedInfo;
+            this.coverageTypeToFontAndColorsInfo = new Dictionary<DynamicCoverageType, IFontAndColorsInfo>
             {
                 { DynamicCoverageType.Covered, coverageTouchedInfo},
                 { DynamicCoverageType.NotCovered, coverageNotTouchedInfo },
@@ -42,47 +42,53 @@ namespace FineCodeCoverage.Editor.Management
         internal Dictionary<DynamicCoverageType, IFontAndColorsInfo> GetChanges(CoverageColours lastCoverageColours)
         {
             var changes = new Dictionary<DynamicCoverageType, IFontAndColorsInfo>();
-            if (lastCoverageColours == null) return new Dictionary<DynamicCoverageType, IFontAndColorsInfo>
+            if (lastCoverageColours == null)
             {
-                { DynamicCoverageType.Covered, CoverageTouchedInfo},
-                { DynamicCoverageType.NotCovered, CoverageNotTouchedInfo },
-                { DynamicCoverageType.Partial, CoveragePartiallyTouchedInfo},
-                { DynamicCoverageType.Dirty, DirtyInfo},
-                { DynamicCoverageType.NewLine, NewLineInfo},
-                { DynamicCoverageType.NotIncluded, NotIncludedInfo}
-            };
-                
-            if (!CoverageTouchedInfo.Equals(lastCoverageColours.CoverageTouchedInfo))
-            {
-                changes.Add(DynamicCoverageType.Covered, CoverageTouchedInfo);
+                return new Dictionary<DynamicCoverageType, IFontAndColorsInfo>
+                {
+                    { DynamicCoverageType.Covered, this.CoverageTouchedInfo},
+                    { DynamicCoverageType.NotCovered, this.CoverageNotTouchedInfo },
+                    { DynamicCoverageType.Partial, this.CoveragePartiallyTouchedInfo},
+                    { DynamicCoverageType.Dirty, this.DirtyInfo},
+                    { DynamicCoverageType.NewLine, this.NewLineInfo},
+                    { DynamicCoverageType.NotIncluded, this.NotIncludedInfo}
+                };
             }
-            if (!CoverageNotTouchedInfo.Equals(lastCoverageColours.CoverageNotTouchedInfo))
+
+            if (!this.CoverageTouchedInfo.Equals(lastCoverageColours.CoverageTouchedInfo))
             {
-                changes.Add(DynamicCoverageType.NotCovered, CoverageNotTouchedInfo);
+                changes.Add(DynamicCoverageType.Covered, this.CoverageTouchedInfo);
             }
-            if (!CoveragePartiallyTouchedInfo.Equals(lastCoverageColours.CoveragePartiallyTouchedInfo))
+
+            if (!this.CoverageNotTouchedInfo.Equals(lastCoverageColours.CoverageNotTouchedInfo))
             {
-                changes.Add(DynamicCoverageType.Partial, CoveragePartiallyTouchedInfo);
+                changes.Add(DynamicCoverageType.NotCovered, this.CoverageNotTouchedInfo);
             }
-            if (!DirtyInfo.Equals(lastCoverageColours.DirtyInfo))
+
+            if (!this.CoveragePartiallyTouchedInfo.Equals(lastCoverageColours.CoveragePartiallyTouchedInfo))
             {
-                changes.Add(DynamicCoverageType.Dirty, DirtyInfo);
+                changes.Add(DynamicCoverageType.Partial, this.CoveragePartiallyTouchedInfo);
             }
-            if (!NewLineInfo.Equals(lastCoverageColours.NewLineInfo))
+
+            if (!this.DirtyInfo.Equals(lastCoverageColours.DirtyInfo))
             {
-                changes.Add(DynamicCoverageType.NewLine, NewLineInfo);
+                changes.Add(DynamicCoverageType.Dirty, this.DirtyInfo);
             }
-            if (!NotIncludedInfo.Equals(lastCoverageColours.NotIncludedInfo))
+
+            if (!this.NewLineInfo.Equals(lastCoverageColours.NewLineInfo))
             {
-                changes.Add(DynamicCoverageType.NotIncluded, NotIncludedInfo);
+                changes.Add(DynamicCoverageType.NewLine, this.NewLineInfo);
             }
+
+            if (!this.NotIncludedInfo.Equals(lastCoverageColours.NotIncludedInfo))
+            {
+                changes.Add(DynamicCoverageType.NotIncluded, this.NotIncludedInfo);
+            }
+
             return changes;
         }
 
-        public IItemCoverageColours GetColour(DynamicCoverageType coverageType)
-        {
-            return coverageTypeToFontAndColorsInfo[coverageType].ItemCoverageColours;
-        }
+        public IItemCoverageColours GetColour(DynamicCoverageType coverageType) 
+            => this.coverageTypeToFontAndColorsInfo[coverageType].ItemCoverageColours;
     }
-
 }

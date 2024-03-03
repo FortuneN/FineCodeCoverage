@@ -7,5 +7,4 @@ namespace FineCodeCoverage.Editor.Management
     {
         System.Threading.Tasks.Task<List<IFontAndColorsInfo>> GetInfosAsync(Guid category, IEnumerable<string> names);
     }
-
 }

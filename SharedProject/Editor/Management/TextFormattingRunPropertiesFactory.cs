@@ -10,7 +10,7 @@ namespace FineCodeCoverage.Editor.Management
     {
         public TextFormattingRunProperties Create(IFontAndColorsInfo fontAndColorsInfo)
         {
-            var coverageColours = fontAndColorsInfo.ItemCoverageColours;
+            IItemCoverageColours coverageColours = fontAndColorsInfo.ItemCoverageColours;
             return TextFormattingRunProperties.CreateTextFormattingRunProperties(
                 new SolidColorBrush(coverageColours.Foreground), new SolidColorBrush(coverageColours.Background),
                 null, // Typeface

@@ -13,10 +13,6 @@ namespace FineCodeCoverage.Editor.Management
         public Color Foreground { get; }
         public Color Background { get; }
 
-        public bool Equals(IItemCoverageColours other)
-        {
-            return Foreground == other.Foreground && Background == other.Background;
-        }
+        public bool Equals(IItemCoverageColours other) => this.Foreground == other.Foreground && this.Background == other.Background;
     }
-
 }

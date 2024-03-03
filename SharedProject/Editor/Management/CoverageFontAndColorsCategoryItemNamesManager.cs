@@ -24,18 +24,18 @@ namespace FineCodeCoverage.Editor.Management
             IAppOptionsProvider appOptionsProvider
         )
         {
-            appOptionsProvider.OptionsChanged += AppOptionsProvider_OptionsChanged;
+            appOptionsProvider.OptionsChanged += this.AppOptionsProvider_OptionsChanged;
             this.hasCoverageMarkers = vsHasCoverageMarkersLogic.HasCoverageMarkers();
             this.appOptionsProvider = appOptionsProvider;
         }
 
         private void AppOptionsProvider_OptionsChanged(IAppOptions appOptions)
         {
-            if (initialized)
+            if (this.initialized)
             {
-                var preUsingEnterprise = usingEnterprise;
-                Set(() => appOptions.UseEnterpriseFontsAndColors);
-                if(usingEnterprise != preUsingEnterprise)
+                bool preUsingEnterprise = this.usingEnterprise;
+                this.Set(() => appOptions.UseEnterpriseFontsAndColors);
+                if(this.usingEnterprise != preUsingEnterprise)
                 {
                     Changed?.Invoke(this, new EventArgs());
                 }
@@ -45,73 +45,66 @@ namespace FineCodeCoverage.Editor.Management
         public void Initialize(FCCEditorFormatDefinitionNames fCCEditorFormatDefinitionNames)
         {
             this.fCCEditorFormatDefinitionNames = fCCEditorFormatDefinitionNames;
-            Set();
-            initialized = true;
+            this.Set();
+            this.initialized = true;
         }
 
-        private void Set()
-        {
-            Set(() => appOptionsProvider.Get().UseEnterpriseFontsAndColors);
-        }
+        private void Set() => this.Set(() => this.appOptionsProvider.Get().UseEnterpriseFontsAndColors);
 
         private void Set(Func<bool> getUseEnterprise)
         {
-            if (!hasCoverageMarkers)
+            if (!this.hasCoverageMarkers)
             {
-                SetMarkersFromFCC();
+                this.SetMarkersFromFCC();
             }
             else
             {
 
-                SetPossiblyEnterprise(getUseEnterprise());
+                this.SetPossiblyEnterprise(getUseEnterprise());
             }
 
-            SetFCCOnly();
+            this.SetFCCOnly();
         }
 
         private void SetPossiblyEnterprise(bool useEnterprise)
         {
-            usingEnterprise = useEnterprise;
+            this.usingEnterprise = useEnterprise;
             if (useEnterprise)
             {
-                SetMarkersFromEnterprise();
+                this.SetMarkersFromEnterprise();
             }
             else
             {
-                SetMarkersFromFCC();
+                this.SetMarkersFromFCC();
             }
         }
 
         private void SetFCCOnly()
         {
-            NewLines = CreateMef(fCCEditorFormatDefinitionNames.NewLines);
-            Dirty = CreateMef(fCCEditorFormatDefinitionNames.Dirty);
-            NotIncluded = CreateMef(fCCEditorFormatDefinitionNames.NotIncluded);
+            this.NewLines = this.CreateMef(this.fCCEditorFormatDefinitionNames.NewLines);
+            this.Dirty = this.CreateMef(this.fCCEditorFormatDefinitionNames.Dirty);
+            this.NotIncluded = this.CreateMef(this.fCCEditorFormatDefinitionNames.NotIncluded);
         }
 
         private void SetMarkersFromFCC()
         {
-            Covered = CreateMef(fCCEditorFormatDefinitionNames.Covered);
-            NotCovered = CreateMef(fCCEditorFormatDefinitionNames.NotCovered);
-            PartiallyCovered = CreateMef(fCCEditorFormatDefinitionNames.PartiallyCovered);
+            this.Covered = this.CreateMef(this.fCCEditorFormatDefinitionNames.Covered);
+            this.NotCovered = this.CreateMef(this.fCCEditorFormatDefinitionNames.NotCovered);
+            this.PartiallyCovered = this.CreateMef(this.fCCEditorFormatDefinitionNames.PartiallyCovered);
         }
 
         private void SetMarkersFromEnterprise()
         {
-            Covered = CreateEnterprise(MarkerTypeNames.Covered);
-            NotCovered = CreateEnterprise(MarkerTypeNames.NotCovered);
-            PartiallyCovered = CreateEnterprise(MarkerTypeNames.PartiallyCovered);
+            this.Covered = this.CreateEnterprise(MarkerTypeNames.Covered);
+            this.NotCovered = this.CreateEnterprise(MarkerTypeNames.NotCovered);
+            this.PartiallyCovered = this.CreateEnterprise(MarkerTypeNames.PartiallyCovered);
         }
 
-        private FontAndColorsCategoryItemName CreateMef(string itemName)
-        {
-            return new FontAndColorsCategoryItemName(itemName, EditorMEFCategory);
-        }
+        private FontAndColorsCategoryItemName CreateMef(string itemName) 
+            => new FontAndColorsCategoryItemName(itemName, this.EditorMEFCategory);
 
-        private FontAndColorsCategoryItemName CreateEnterprise(string itemName)
-        {
-            return new FontAndColorsCategoryItemName(itemName, EditorTextMarkerFontAndColorCategory);
-        }
+        private FontAndColorsCategoryItemName CreateEnterprise(string itemName) 
+            => new FontAndColorsCategoryItemName(itemName, this.EditorTextMarkerFontAndColorCategory);
 
         public FontAndColorsCategoryItemName Covered { get; private set; }
         public FontAndColorsCategoryItemName NotCovered { get; private set; }
@@ -122,5 +115,4 @@ namespace FineCodeCoverage.Editor.Management
         public FontAndColorsCategoryItemName NotIncluded { get; private set; }
         public ICoverageFontAndColorsCategoryItemNames CategoryItemNames => this;
     }
-
 }

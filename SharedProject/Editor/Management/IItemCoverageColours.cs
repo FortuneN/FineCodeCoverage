@@ -7,6 +7,5 @@ namespace FineCodeCoverage.Editor.Management
     {
         Color Foreground { get; }
         Color Background { get; }
-
     }
 }

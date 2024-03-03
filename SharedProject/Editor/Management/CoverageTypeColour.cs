@@ -7,8 +7,8 @@ namespace FineCodeCoverage.Editor.Management
     {
         public CoverageTypeColour(DynamicCoverageType coverageType, TextFormattingRunProperties textFormattingRunProperties)
         {
-            CoverageType = coverageType;
-            TextFormattingRunProperties = textFormattingRunProperties;
+            this.CoverageType = coverageType;
+            this.TextFormattingRunProperties = textFormattingRunProperties;
         }
 
         public DynamicCoverageType CoverageType { get; }

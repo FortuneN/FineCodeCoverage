@@ -32,48 +32,51 @@ namespace FineCodeCoverage.Editor.Management
 
         private System.Windows.Media.Color ParseColor(uint color)
         {
-            var dcolor = System.Drawing.ColorTranslator.FromOle(Convert.ToInt32(color));
+            System.Drawing.Color dcolor = System.Drawing.ColorTranslator.FromOle(Convert.ToInt32(color));
             return System.Windows.Media.Color.FromArgb(dcolor.A, dcolor.R, dcolor.G, dcolor.B);
         }
 
         private IVsFontAndColorStorage vsFontAndColorStorage;
         private async Task<IVsFontAndColorStorage> GetVsFontAndColorStorageAsync()
         {
-            if (vsFontAndColorStorage == null)
+            if (this.vsFontAndColorStorage == null)
             {
-                await threadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-                vsFontAndColorStorage = serviceProvider.GetService<IVsFontAndColorStorage>();
+                await this.threadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                this.vsFontAndColorStorage = this.serviceProvider.GetService<IVsFontAndColorStorage>();
             }
-            return vsFontAndColorStorage;
+
+            return this.vsFontAndColorStorage;
         }
 
         public async System.Threading.Tasks.Task<List<IFontAndColorsInfo>> GetInfosAsync(Guid category, IEnumerable<string> names)
         {
             var infos = new List<IFontAndColorsInfo>();
-            var fontAndColorStorage = await GetVsFontAndColorStorageAsync();
-            await threadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+            IVsFontAndColorStorage fontAndColorStorage = await this.GetVsFontAndColorStorageAsync();
+            await this.threadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 #pragma warning disable VSTHRD010 // Invoke single-threaded types on Main thread
-            var success = fontAndColorStorage.OpenCategory(ref category, storeFlags);
+            int success = fontAndColorStorage.OpenCategory(ref category, this.storeFlags);
             if (success == VSConstants.S_OK)
             {
                 // https://github.com/microsoft/vs-threading/issues/993
                 IFontAndColorsInfo GetInfo(string displayName)
                 {
                     var touchAreaInfo = new ColorableItemInfo[1];
-                    var getItemSuccess = fontAndColorStorage.GetItem(displayName, touchAreaInfo);
+                    int getItemSuccess = fontAndColorStorage.GetItem(displayName, touchAreaInfo);
 
                     if (getItemSuccess == VSConstants.S_OK)
                     {
-                        var bgColor = ParseColor(touchAreaInfo[0].crBackground);
-                        var fgColor = ParseColor(touchAreaInfo[0].crForeground);
+                        System.Windows.Media.Color bgColor = this.ParseColor(touchAreaInfo[0].crBackground);
+                        System.Windows.Media.Color fgColor = this.ParseColor(touchAreaInfo[0].crForeground);
                         return new FontAndColorsInfo(new ItemCoverageColours(fgColor, bgColor), touchAreaInfo[0].dwFontFlags == (uint)FONTFLAGS.FF_BOLD);
                     }
+
                     return null;
                 }
+
                 infos = names.Select(name => GetInfo(name)).Where(color => color != null).ToList();
             }
 
-            fontAndColorStorage.CloseCategory();
+            _ = fontAndColorStorage.CloseCategory();
 #pragma warning restore VSTHRD010 // Invoke single-threaded types on Main thread
             return infos;
         }

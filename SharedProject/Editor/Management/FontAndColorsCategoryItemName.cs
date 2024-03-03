@@ -6,11 +6,10 @@ namespace FineCodeCoverage.Editor.Management
     {
         public FontAndColorsCategoryItemName(string itemName, Guid category)
         {
-            Category = category;
-            ItemName = itemName;
+            this.Category = category;
+            this.ItemName = itemName;
         }
         public Guid Category { get; }
         public string ItemName { get; }
-
     }
 }
