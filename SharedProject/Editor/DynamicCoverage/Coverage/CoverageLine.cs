@@ -19,15 +19,15 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
 
         public bool Update(ITextSnapshot currentSnapshot)
         {
-            var updated = false;
-            var newLineNumber = lineTracker.GetLineNumber(trackingSpan, currentSnapshot, true);
-            if (newLineNumber != Line.Number)
+            bool updated = false;
+            int newLineNumber = lineTracker.GetLineNumber(trackingSpan, currentSnapshot, true);
+            if (newLineNumber != this.Line.Number)
             {
                 line.Number = newLineNumber;
                 updated = true;
             }
+
             return updated;
         }
     }
-
 }

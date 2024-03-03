@@ -22,14 +22,18 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
             this.appOptionsProvider = appOptionsProvider;
             this.dynamicCoverageStore = dynamicCoverageStore;
         }
-        
+
         public IBufferLineCoverage Create(
-            IFileLineCoverage fileLineCoverage, 
-            ITextInfo textInfo, 
-            IEventAggregator eventAggregator, 
-            ITrackedLinesFactory trackedLinesFactory)
-        {
-            return new BufferLineCoverage(fileLineCoverage, textInfo, eventAggregator, trackedLinesFactory, dynamicCoverageStore,appOptionsProvider);
-        }
+            IFileLineCoverage fileLineCoverage,
+            ITextInfo textInfo,
+            IEventAggregator eventAggregator,
+            ITrackedLinesFactory trackedLinesFactory
+        )  => new BufferLineCoverage(
+                fileLineCoverage,
+                textInfo,
+                eventAggregator,
+                trackedLinesFactory,
+                this.dynamicCoverageStore,
+                this.appOptionsProvider);
     }
 }

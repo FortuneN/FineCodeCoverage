@@ -4,13 +4,10 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
 {
     internal class TrackedLineLine : IDynamicLine
     {        
-        private readonly CoverageType lineCoverageType;
-        
         public TrackedLineLine(ILine line)
         {
-            Number = line.Number - 1;
-            lineCoverageType = line.CoverageType;
-            CoverageType = DynamicCoverageTypeConverter.Convert(lineCoverageType);
+            this.Number = line.Number - 1;
+            this.CoverageType = DynamicCoverageTypeConverter.Convert(line.CoverageType);
         }
 
         public int Number { get; set; }

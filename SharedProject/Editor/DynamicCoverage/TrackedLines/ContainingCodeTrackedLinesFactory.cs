@@ -10,11 +10,8 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
     {
         public TrackedLines Create(
             List<IContainingCodeTracker> containingCodeTrackers,
-            INewCodeTracker newCodeTracker, 
+            INewCodeTracker newCodeTracker,
             IFileCodeSpanRangeService fileCodeSpanRangeService
-        )
-        {
-            return new TrackedLines(containingCodeTrackers,newCodeTracker, fileCodeSpanRangeService);
-        }
+        ) => new TrackedLines(containingCodeTrackers, newCodeTracker, fileCodeSpanRangeService);
     }
 }

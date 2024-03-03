@@ -11,12 +11,8 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
         private readonly ILineTracker lineTracker;
 
         [ImportingConstructor]
-        public DirtyLineFactory(ILineTracker lineTracker) {
-            this.lineTracker = lineTracker;
-        }
-        public ITrackingLine Create(ITrackingSpan trackingSpan, ITextSnapshot snapshot)
-        {
-            return new TrackingLine(trackingSpan, snapshot, lineTracker, DynamicCoverageType.Dirty);
-        }
+        public DirtyLineFactory(ILineTracker lineTracker) => this.lineTracker = lineTracker;
+        public ITrackingLine Create(ITrackingSpan trackingSpan, ITextSnapshot snapshot) 
+            => new TrackingLine(trackingSpan, snapshot, this.lineTracker, DynamicCoverageType.Dirty);
     }
 }

@@ -7,5 +7,4 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
     {
         ICoverageLine Create(ITrackingSpan trackingSpan, ILine line);
     }
-
 }

@@ -4,9 +4,9 @@
     {
         public TrackedNewCodeLineUpdate(string text, int lineNumber, bool lineUpdated)
         {
-            Text = text;
-            LineNumber = lineNumber;
-            LineUpdated = lineUpdated;
+            this.Text = text;
+            this.LineNumber = lineNumber;
+            this.LineUpdated = lineUpdated;
         }
         public string Text { get; }
         public int LineNumber { get; }

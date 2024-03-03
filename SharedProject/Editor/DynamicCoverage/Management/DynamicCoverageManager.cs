@@ -22,20 +22,15 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
             IBufferLineCoverageFactory bufferLineCoverageFactory)
         {
             this.bufferLineCoverageFactory = bufferLineCoverageFactory;
-            eventAggregator.AddListener(this);
+            _ = eventAggregator.AddListener(this);
             this.eventAggregator = eventAggregator;
             this.trackedLinesFactory = trackedLinesFactory;
         }
-        public void Handle(NewCoverageLinesMessage message)
-        {
-            lastCoverageLines = message.CoverageLines;
-        }
+        public void Handle(NewCoverageLinesMessage message) => this.lastCoverageLines = message.CoverageLines;
 
-        public IBufferLineCoverage Manage(ITextInfo textInfo)
-        {
-            return textInfo.TextBuffer.Properties.GetOrCreateSingletonProperty(
-                () => bufferLineCoverageFactory.Create(lastCoverageLines, textInfo, eventAggregator, trackedLinesFactory)
+        public IBufferLineCoverage Manage(ITextInfo textInfo) 
+            => textInfo.TextBuffer.Properties.GetOrCreateSingletonProperty(
+                () => this.bufferLineCoverageFactory.Create(this.lastCoverageLines, textInfo, this.eventAggregator, this.trackedLinesFactory)
             );
-        }
     }
 }

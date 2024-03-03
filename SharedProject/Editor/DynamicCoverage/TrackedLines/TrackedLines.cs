@@ -10,7 +10,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
         private readonly INewCodeTracker newCodeTracker;
         private readonly IFileCodeSpanRangeService fileCodeSpanRangeService;
 
-        public IReadOnlyList<IContainingCodeTracker> ContainingCodeTrackers => containingCodeTrackers;
+        public IReadOnlyList<IContainingCodeTracker> ContainingCodeTrackers => this.containingCodeTrackers;
         private readonly bool useFileCodeSpanRangeService;
 
         public TrackedLines(
@@ -21,77 +21,77 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
             this.containingCodeTrackers = containingCodeTrackers;
             this.newCodeTracker = newCodeTracker;
             this.fileCodeSpanRangeService = roslynService;
-            useFileCodeSpanRangeService = fileCodeSpanRangeService != null && newCodeTracker != null;
+            this.useFileCodeSpanRangeService = this.fileCodeSpanRangeService != null && newCodeTracker != null;
         }
 
-        private List<SpanAndLineRange> GetSpanAndLineRanges(ITextSnapshot currentSnapshot, List<Span> newSpanChanges)
-        {
-            return newSpanChanges.Select(
+        private List<SpanAndLineRange> GetSpanAndLineRanges(ITextSnapshot currentSnapshot, List<Span> newSpanChanges) 
+            => newSpanChanges.Select(
                  newSpanChange => new SpanAndLineRange(
                      newSpanChange,
                      currentSnapshot.GetLineNumberFromPosition(newSpanChange.Start),
                      currentSnapshot.GetLineNumberFromPosition(newSpanChange.End)
                  )).ToList();
-        }
 
         private (bool, List<SpanAndLineRange>) ProcessContainingCodeTrackers(
             ITextSnapshot currentSnapshot, 
             List<SpanAndLineRange> spanAndLineRanges
             )
         {
-            var changed = false;
+            bool changed = false;
             var removals = new List<IContainingCodeTracker>();
-            foreach (var containingCodeTracker in containingCodeTrackers)
+            foreach (IContainingCodeTracker containingCodeTracker in this.containingCodeTrackers)
             {
-                var processResult = containingCodeTracker.ProcessChanges(currentSnapshot, spanAndLineRanges);
+                IContainingCodeTrackerProcessResult processResult = containingCodeTracker.ProcessChanges(currentSnapshot, spanAndLineRanges);
                 if (processResult.IsEmpty)
                 {
                     removals.Add(containingCodeTracker);
                 }
+
                 spanAndLineRanges = processResult.UnprocessedSpans;
                 if (processResult.Changed)
                 {
                     changed = true;
                 }
             }
-            removals.ForEach(removal => containingCodeTrackers.Remove(removal));
+
+            removals.ForEach(removal => this.containingCodeTrackers.Remove(removal));
+
             return (changed, spanAndLineRanges);
         }
 
         // normalized spans
         public bool Changed(ITextSnapshot currentSnapshot, List<Span> newSpanChanges)
         {
-            var spanAndLineRanges = GetSpanAndLineRanges(currentSnapshot, newSpanChanges);
-            var (changed,unprocessedSpans) = ProcessContainingCodeTrackers(currentSnapshot, spanAndLineRanges);
-            var newCodeTrackerChanged = ProcessNewCodeTracker(currentSnapshot, unprocessedSpans);
+            List<SpanAndLineRange> spanAndLineRanges = this.GetSpanAndLineRanges(currentSnapshot, newSpanChanges);
+            (bool changed, List<SpanAndLineRange> unprocessedSpans) = this.ProcessContainingCodeTrackers(currentSnapshot, spanAndLineRanges);
+            bool newCodeTrackerChanged = this.ProcessNewCodeTracker(currentSnapshot, unprocessedSpans);
             return changed || newCodeTrackerChanged;
         }
 
         private bool ProcessNewCodeTracker(ITextSnapshot currentSnapshot, List<SpanAndLineRange> spanAndLineRanges)
         {
-            var newCodeTrackerChanged = false;
-            if (newCodeTracker != null)
+            bool newCodeTrackerChanged = false;
+            if (this.newCodeTracker != null)
             {
-                var newCodeCodeRanges = useFileCodeSpanRangeService ? GetNewCodeCodeRanges(currentSnapshot, containingCodeTrackers.Select(ct => ct.GetState().CodeSpanRange).ToList()) : null;
-                newCodeTrackerChanged = newCodeTracker.ProcessChanges(currentSnapshot, spanAndLineRanges, newCodeCodeRanges);
+                List<CodeSpanRange> newCodeCodeRanges = this.useFileCodeSpanRangeService ? this.GetNewCodeCodeRanges(currentSnapshot, this.containingCodeTrackers.Select(ct => ct.GetState().CodeSpanRange).ToList()) : null;
+                newCodeTrackerChanged = this.newCodeTracker.ProcessChanges(currentSnapshot, spanAndLineRanges, newCodeCodeRanges);
             }
+
             return newCodeTrackerChanged;
         }
-
-
 
         private List<CodeSpanRange> GetNewCodeCodeRanges(
             ITextSnapshot currentSnapshot,
             List<CodeSpanRange> containingCodeTrackersCodeSpanRanges)
         {
-            var fileCodeSpanRanges = fileCodeSpanRangeService.GetFileCodeSpanRanges(currentSnapshot);
+            List<CodeSpanRange> fileCodeSpanRanges = this.fileCodeSpanRangeService.GetFileCodeSpanRanges(currentSnapshot);
             var newCodeCodeRanges = new List<CodeSpanRange>();
             int i = 0, j = 0;
 
             while (i < fileCodeSpanRanges.Count && j < containingCodeTrackersCodeSpanRanges.Count)
             {
-                var fileRange = fileCodeSpanRanges[i];
-                var trackerRange = containingCodeTrackersCodeSpanRanges[j];
+                CodeSpanRange fileRange = fileCodeSpanRanges[i];
+                CodeSpanRange trackerRange = containingCodeTrackersCodeSpanRanges[j];
 
                 if (fileRange.EndLine < trackerRange.StartLine)
                 {
@@ -123,35 +123,39 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
 
         public IEnumerable<IDynamicLine> GetLines(int startLineNumber, int endLineNumber)
         {
-            List<int> lineNumbers = new List<int>();
-            foreach (var containingCodeTracker in containingCodeTrackers)
+            var lineNumbers = new List<int>();
+            foreach (IContainingCodeTracker containingCodeTracker in this.containingCodeTrackers)
             {
-                var done = false;
-                foreach (var line in containingCodeTracker.Lines)
+                bool done = false;
+                foreach (IDynamicLine line in containingCodeTracker.Lines)
                 {
                     if(line.Number > endLineNumber)
                     {
                         done = true;
                         break;
                     }
+
                     if (line.Number >= startLineNumber)
                     {
                         lineNumbers.Add(line.Number);
                         yield return line;
                     }
                 }
+
                 if (done)
                 {
                     break;
                 }
             }
-            var newLines = newCodeTracker?.Lines ?? Enumerable.Empty<IDynamicLine>();
-            foreach (var line in newLines)
+
+            IEnumerable<IDynamicLine> newLines = this.newCodeTracker?.Lines ?? Enumerable.Empty<IDynamicLine>();
+            foreach (IDynamicLine line in newLines)
             {
                 if (line.Number > endLineNumber)
                 {
                     break;
                 }
+
                 if (line.Number >= startLineNumber)
                 {
                     if(!lineNumbers.Contains(line.Number))
@@ -161,7 +165,5 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
                 }
             }
         }
-        
     }
-
 }

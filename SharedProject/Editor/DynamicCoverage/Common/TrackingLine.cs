@@ -10,28 +10,29 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
 
         public IDynamicLine Line { get; private set; }
         public TrackingLine(
-            ITrackingSpan startTrackingSpan, ITextSnapshot currentSnapshot, ILineTracker lineTracker, DynamicCoverageType dynamicCoverageType)
+            ITrackingSpan startTrackingSpan,
+            ITextSnapshot currentSnapshot,
+            ILineTracker lineTracker,
+            DynamicCoverageType dynamicCoverageType)
         {
             this.startTrackingSpan = startTrackingSpan;
             this.lineTracker = lineTracker;
             this.dynamicCoverageType = dynamicCoverageType;
-            SetLine(currentSnapshot);
+            this.SetLine(currentSnapshot);
         }
 
         private void SetLine(ITextSnapshot currentSnapshot)
         {
-            var startLineNumber = lineTracker.GetLineNumber(startTrackingSpan, currentSnapshot, false);
+            int startLineNumber = lineTracker.GetLineNumber(startTrackingSpan, currentSnapshot, false);
 
-            Line = new DynamicLine(startLineNumber, dynamicCoverageType);
+            this.Line = new DynamicLine(startLineNumber, dynamicCoverageType);
         }
 
         public bool Update(ITextSnapshot currentSnapshot)
         {
-            var currentFirstLineNumber = Line.Number;
-            SetLine(currentSnapshot);
-            return currentFirstLineNumber != Line.Number;
+            int currentFirstLineNumber = this.Line.Number;
+            this.SetLine(currentSnapshot);
+            return currentFirstLineNumber != this.Line.Number;
         }
-
     }
-
 }

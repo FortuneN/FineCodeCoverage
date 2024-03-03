@@ -7,9 +7,9 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
     {
         public SpanAndLineRange(Span span, int startLineNumber, int endLineNumber)
         {
-            Span = span;
-            StartLineNumber = startLineNumber;
-            EndLineNumber = endLineNumber;
+            this.Span = span;
+            this.StartLineNumber = startLineNumber;
+            this.EndLineNumber = endLineNumber;
         }
 
         public Span Span { get; }
@@ -17,18 +17,17 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
         public int EndLineNumber { get; }
 
         [ExcludeFromCodeCoverage]
-        public override bool Equals(object obj)
-        {
-            return obj is SpanAndLineRange other && other.Span.Equals(Span) && other.StartLineNumber == StartLineNumber && other.EndLineNumber == EndLineNumber;
-        }
+        public override bool Equals(object obj) 
+            => obj is SpanAndLineRange other && 
+            other.Span.Equals(this.Span) && other.StartLineNumber == this.StartLineNumber && other.EndLineNumber == this.EndLineNumber;
 
         [ExcludeFromCodeCoverage]
         public override int GetHashCode()
         {
             int hashCode = -414942;
-            hashCode = hashCode * -1521134295 + Span.GetHashCode();
-            hashCode = hashCode * -1521134295 + StartLineNumber.GetHashCode();
-            hashCode = hashCode * -1521134295 + EndLineNumber.GetHashCode();
+            hashCode = (hashCode * -1521134295) + this.Span.GetHashCode();
+            hashCode = (hashCode * -1521134295) + this.StartLineNumber.GetHashCode();
+            hashCode = (hashCode * -1521134295) + this.EndLineNumber.GetHashCode();
             return hashCode;
         }
     }

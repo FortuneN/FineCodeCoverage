@@ -8,9 +8,6 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
     [Export(typeof(ITrackedCoverageLinesFactory))]
     internal class TrackedCoverageLinesFactory : ITrackedCoverageLinesFactory
     {
-        public ITrackedCoverageLines Create(List<ICoverageLine> coverageLines)
-        {
-            return new TrackedCoverageLines(coverageLines);
-        }
+        public ITrackedCoverageLines Create(List<ICoverageLine> coverageLines) => new TrackedCoverageLines(coverageLines);
     }
 }

@@ -22,39 +22,37 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
             this.startTrackingSpan = startTrackingSpan;
             this.endTrackingSpan = endTrackingSpan;
             this.lineTracker = lineTracker;
-            var (currentStartSpan, currentEndSpan) = GetCurrentRange(currentSnapshot);
-            SetRangeText(currentSnapshot, currentStartSpan, currentEndSpan);
+            (SnapshotSpan currentStartSpan, SnapshotSpan currentEndSpan) = this.GetCurrentRange(currentSnapshot);
+            this.SetRangeText(currentSnapshot, currentStartSpan, currentEndSpan);
         }
         
         private (SnapshotSpan, SnapshotSpan) GetCurrentRange(ITextSnapshot currentSnapshot)
         {
-            var currentStartSpan = startTrackingSpan.GetSpan(currentSnapshot);
-            var currentEndSpan = endTrackingSpan.GetSpan(currentSnapshot);
-            var startLineNumber = lineTracker.GetLineNumber(startTrackingSpan, currentSnapshot,false);
-            var endLineNumber = lineTracker.GetLineNumber(endTrackingSpan, currentSnapshot, true);
-            codeSpanRange = new CodeSpanRange(startLineNumber, endLineNumber);
+            SnapshotSpan currentStartSpan = this.startTrackingSpan.GetSpan(currentSnapshot);
+            SnapshotSpan currentEndSpan = this.endTrackingSpan.GetSpan(currentSnapshot);
+            int startLineNumber = this.lineTracker.GetLineNumber(this.startTrackingSpan, currentSnapshot,false);
+            int endLineNumber = this.lineTracker.GetLineNumber(this.endTrackingSpan, currentSnapshot, true);
+            this.codeSpanRange = new CodeSpanRange(startLineNumber, endLineNumber);
             return (currentStartSpan, currentEndSpan);
         }
-        
-        private void SetRangeText(ITextSnapshot currentSnapshot,SnapshotSpan currentFirstSpan, SnapshotSpan currentEndSpan)
-        {
-            lastRangeText = currentSnapshot.GetText(new Span(currentFirstSpan.Start, currentEndSpan.End - currentFirstSpan.Start));
-        }
-        
+
+        private void SetRangeText(ITextSnapshot currentSnapshot, SnapshotSpan currentFirstSpan, SnapshotSpan currentEndSpan) 
+            => this.lastRangeText = currentSnapshot.GetText(new Span(currentFirstSpan.Start, currentEndSpan.End - currentFirstSpan.Start));
+
         public TrackingSpanRangeProcessResult Process(ITextSnapshot currentSnapshot, List<SpanAndLineRange> newSpanAndLineRanges)
         {
-            var (currentFirstSpan, currentEndSpan) = GetCurrentRange(currentSnapshot);
-            var (isEmpty, textChanged) = GetTextChangeInfo(currentSnapshot, currentFirstSpan, currentEndSpan);
-            var nonIntersecting = GetNonIntersecting(currentSnapshot, currentFirstSpan, currentEndSpan, newSpanAndLineRanges);
+            (SnapshotSpan currentFirstSpan, SnapshotSpan currentEndSpan) = this.GetCurrentRange(currentSnapshot);
+            (bool isEmpty, bool textChanged) = this.GetTextChangeInfo(currentSnapshot, currentFirstSpan, currentEndSpan);
+            List<SpanAndLineRange> nonIntersecting = this.GetNonIntersecting(currentSnapshot, currentFirstSpan, currentEndSpan, newSpanAndLineRanges);
             return new TrackingSpanRangeProcessResult(this,nonIntersecting, isEmpty,textChanged);
         }
 
         private (bool isEmpty,bool textChanged) GetTextChangeInfo(ITextSnapshot currentSnapshot, SnapshotSpan currentFirstSpan, SnapshotSpan currentEndSpan)
         {
-            var previousRangeText = lastRangeText;
-            SetRangeText(currentSnapshot, currentFirstSpan, currentEndSpan);
-            var textChanged = previousRangeText != lastRangeText;
-            var isEmpty = string.IsNullOrWhiteSpace(lastRangeText);
+            string previousRangeText = this.lastRangeText;
+            this.SetRangeText(currentSnapshot, currentFirstSpan, currentEndSpan);
+            bool textChanged = previousRangeText != this.lastRangeText;
+            bool isEmpty = string.IsNullOrWhiteSpace(this.lastRangeText);
             return (isEmpty, textChanged);
 
         }
@@ -62,28 +60,23 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
         private List<SpanAndLineRange> GetNonIntersecting(
             ITextSnapshot currentSnapshot,SnapshotSpan currentFirstSpan, SnapshotSpan currentEndSpan,List<SpanAndLineRange> newSpanAndLineRanges)
         {
-            var currentFirstTrackedLineNumber = currentSnapshot.GetLineNumberFromPosition(currentFirstSpan.End);
-            var currentEndTrackedLineNumber = currentSnapshot.GetLineNumberFromPosition(currentEndSpan.End);
-            return newSpanAndLineRanges.Where(spanAndLineNumber =>
-            {
-                return OutsideRange(currentFirstTrackedLineNumber, currentEndTrackedLineNumber, spanAndLineNumber.StartLineNumber)
+            int currentFirstTrackedLineNumber = currentSnapshot.GetLineNumberFromPosition(currentFirstSpan.End);
+            int currentEndTrackedLineNumber = currentSnapshot.GetLineNumberFromPosition(currentEndSpan.End);
+            return newSpanAndLineRanges.Where(
+                spanAndLineNumber => this.OutsideRange(
+                    currentFirstTrackedLineNumber,
+                    currentEndTrackedLineNumber,
+                    spanAndLineNumber.StartLineNumber)
                 &&
-                OutsideRange(currentFirstTrackedLineNumber, currentEndTrackedLineNumber, spanAndLineNumber.EndLineNumber);
-            }).ToList();
+                this.OutsideRange(currentFirstTrackedLineNumber, currentEndTrackedLineNumber, spanAndLineNumber.EndLineNumber)).ToList();
         }
 
-        private bool OutsideRange(int firstLineNumber, int endLineNumber, int spanLineNumber)
-        {
-            return spanLineNumber < firstLineNumber || spanLineNumber > endLineNumber;
-        }
+        private bool OutsideRange(int firstLineNumber, int endLineNumber, int spanLineNumber) 
+            => spanLineNumber < firstLineNumber || spanLineNumber > endLineNumber;
 
-        public ITrackingSpan GetFirstTrackingSpan()
-        {
-            return startTrackingSpan;
-        }
+        public ITrackingSpan GetFirstTrackingSpan() => this.startTrackingSpan;
 
-        public CodeSpanRange ToCodeSpanRange() => codeSpanRange;
+        public CodeSpanRange ToCodeSpanRange() => this.codeSpanRange;
         
     }
-
 }

@@ -22,8 +22,8 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
         }
         public ITrackedNewCodeLine Create(ITextSnapshot textSnapshot, SpanTrackingMode spanTrackingMode, int lineNumber)
         {
-            var trackingSpan = trackingLineFactory.CreateTrackingSpan(textSnapshot, lineNumber, spanTrackingMode);
-            return new TrackedNewCodeLine(trackingSpan, lineNumber, lineTracker);
+            ITrackingSpan trackingSpan = this.trackingLineFactory.CreateTrackingSpan(textSnapshot, lineNumber, spanTrackingMode);
+            return new TrackedNewCodeLine(trackingSpan, lineNumber, this.lineTracker);
         }
     }
 }

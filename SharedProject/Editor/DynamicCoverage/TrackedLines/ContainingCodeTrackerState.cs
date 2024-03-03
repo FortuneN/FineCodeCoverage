@@ -10,9 +10,9 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
             IEnumerable<IDynamicLine> lines
         )
         {
-            Type = type;
-            CodeSpanRange = codeSpanRange;
-            Lines = lines;
+            this.Type = type;
+            this.CodeSpanRange = codeSpanRange;
+            this.Lines = lines;
         }
 
         public ContainingCodeTrackerType Type { get; }

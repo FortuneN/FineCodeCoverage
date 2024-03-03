@@ -9,21 +9,18 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
         private readonly List<ICoverageLine> coverageLines;
 
         public IEnumerable<IDynamicLine> Lines => coverageLines.Select(coverageLine => coverageLine.Line);
-        public TrackedCoverageLines(List<ICoverageLine> coverageLines)
-        {
-            this.coverageLines = coverageLines;
-        }
+        public TrackedCoverageLines(List<ICoverageLine> coverageLines) => this.coverageLines = coverageLines;
 
         public bool Update(ITextSnapshot currentSnapshot)
         {
-            var changed = false;
-            foreach (var coverageLine in coverageLines)
+            bool changed = false;
+            foreach (ICoverageLine coverageLine in coverageLines)
             {
-                var updated = coverageLine.Update(currentSnapshot);
+                bool updated = coverageLine.Update(currentSnapshot);
                 changed = changed || updated;
             }
+
             return changed;
         }
     }
-
 }

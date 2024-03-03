@@ -12,13 +12,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
         private readonly ILineTracker lineTracker;
 
         [ImportingConstructor]
-        public CoverageLineFactory(ILineTracker lineTracker) {
-            this.lineTracker = lineTracker;
-        }
-        public ICoverageLine Create(ITrackingSpan trackingSpan, ILine line)
-        {
-            return new CoverageLine(trackingSpan, line, lineTracker);
-        }
+        public CoverageLineFactory(ILineTracker lineTracker) => this.lineTracker = lineTracker;
+        public ICoverageLine Create(ITrackingSpan trackingSpan, ILine line) => new CoverageLine(trackingSpan, line, lineTracker);
     }
-
 }

@@ -4,8 +4,8 @@
     {
         public DynamicLine(int lineNumber, DynamicCoverageType dynamicCoverageType)
         {
-            Number = lineNumber;
-            CoverageType = dynamicCoverageType;
+            this.Number = lineNumber;
+            this.CoverageType = dynamicCoverageType;
         }
 
         public int Number { get; set; }

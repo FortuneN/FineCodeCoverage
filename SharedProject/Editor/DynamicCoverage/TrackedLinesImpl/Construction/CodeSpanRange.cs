@@ -6,27 +6,22 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
     {
         public CodeSpanRange(int startLine, int endLine)
         {
-            StartLine = startLine;
-            EndLine = endLine;
+            this.StartLine = startLine;
+            this.EndLine = endLine;
         }
-        public static CodeSpanRange SingleLine(int lineNumber)
-        {
-            return new CodeSpanRange(lineNumber, lineNumber);
-        }
+        public static CodeSpanRange SingleLine(int lineNumber) => new CodeSpanRange(lineNumber, lineNumber);
         public int StartLine { get; set; }
         public int EndLine { get; set; }
 
-        public override bool Equals(object obj)
-        {
-            return obj is CodeSpanRange codeSpanRange && codeSpanRange.StartLine == StartLine && codeSpanRange.EndLine == EndLine;
-        }
+        public override bool Equals(object obj) 
+            => obj is CodeSpanRange codeSpanRange && codeSpanRange.StartLine == this.StartLine && codeSpanRange.EndLine == this.EndLine;
 
         [ExcludeFromCodeCoverage]
         public override int GetHashCode()
         {
             int hashCode = -1763436595;
-            hashCode = hashCode * -1521134295 + StartLine.GetHashCode();
-            hashCode = hashCode * -1521134295 + EndLine.GetHashCode();
+            hashCode = (hashCode * -1521134295) + this.StartLine.GetHashCode();
+            hashCode = (hashCode * -1521134295) + this.EndLine.GetHashCode();
             return hashCode;
         }
     }

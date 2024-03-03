@@ -7,8 +7,8 @@
 
         public CoverageChangedMessage(IBufferLineCoverage coverageLines, string appliesTo)
         {
-            CoverageLines = coverageLines;
-            AppliesTo = appliesTo;
+            this.CoverageLines = coverageLines;
+            this.AppliesTo = appliesTo;
         }
     }
 }

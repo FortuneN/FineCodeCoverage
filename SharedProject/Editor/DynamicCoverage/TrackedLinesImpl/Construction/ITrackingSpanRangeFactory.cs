@@ -6,5 +6,4 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
     {
         ITrackingSpanRange Create(ITrackingSpan startTrackingSpan, ITrackingSpan endTrackingSpan, ITextSnapshot currentSnapshot);
     }
-
 }
