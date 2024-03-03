@@ -10,19 +10,12 @@ namespace FineCodeCoverage.Editor.Management
     [Export(typeof(IDelayedMainThreadInvocation))]
     internal class DelayedMainThreadInvocation : IDelayedMainThreadInvocation
     {
-        public void DelayedInvoke(Action action)
-        {
-            _ = System.Threading.Tasks.Task.Delay(0).ContinueWith(_ =>
-            {
-#pragma warning disable VSTHRD110 // Observe result of async calls
+        public void DelayedInvoke(Action action) 
+            => _ = System.Threading.Tasks.Task.Delay(0).ContinueWith(_ =>
                 ThreadHelper.JoinableTaskFactory.RunAsync(async () =>
                 {
                     await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
                     action();
-                });
-#pragma warning restore VSTHRD110 // Observe result of async calls
-
-            }, TaskScheduler.Default);
-        }
+                }), TaskScheduler.Default);
     }
 }
