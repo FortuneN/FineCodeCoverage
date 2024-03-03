@@ -30,26 +30,23 @@ namespace FineCodeCoverage.Editor.Tagging.GlyphMargin
             ICoverageTaggerProviderFactory coverageTaggerProviderFactory
         )
         {
-            coverageTaggerProvider = coverageTaggerProviderFactory.Create<CoverageLineGlyphTag,GlyphFilter>(this);
+            this.coverageTaggerProvider = coverageTaggerProviderFactory.Create<CoverageLineGlyphTag,GlyphFilter>(this);
             this.eventAggregator = eventAggregator;
             this.coverageColoursProvider = coverageColoursProvider;
         }
 
         public ITagger<T> CreateTagger<T>(ITextView textView,ITextBuffer buffer) where T : ITag
         {
-            var coverageTagger =  coverageTaggerProvider.CreateTagger(textView,buffer);
-            if (coverageTagger == null) return null;
-            return new CoverageLineGlyphTagger(eventAggregator, coverageTagger) as ITagger<T>;
+            ICoverageTagger<CoverageLineGlyphTag> coverageTagger = this.coverageTaggerProvider.CreateTagger(textView,buffer);
+            return coverageTagger == null ? null : new CoverageLineGlyphTagger(this.eventAggregator, coverageTagger) as ITagger<T>;
         }
 
         public TagSpan<CoverageLineGlyphTag> GetTagSpan(ILineSpan lineSpan)
         {
-            var coverageLine = lineSpan.Line;
-            var coverageColours = coverageColoursProvider.GetCoverageColours();
-            var colour = coverageColours.GetColour(coverageLine.CoverageType).Background;
+            IDynamicLine coverageLine = lineSpan.Line;
+            ICoverageColours coverageColours = this.coverageColoursProvider.GetCoverageColours();
+            Color colour = coverageColours.GetColour(coverageLine.CoverageType).Background;
             return new TagSpan<CoverageLineGlyphTag>(lineSpan.Span, new CoverageLineGlyphTag(colour));
         }
     }
-
-    
 }

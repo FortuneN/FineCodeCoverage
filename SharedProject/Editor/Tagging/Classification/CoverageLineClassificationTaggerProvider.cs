@@ -1,7 +1,7 @@
-﻿using FineCodeCoverage.Editor.DynamicCoverage;
-using FineCodeCoverage.Editor.Management;
+﻿using FineCodeCoverage.Editor.Management;
 using FineCodeCoverage.Editor.Tagging.Base;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
@@ -30,14 +30,12 @@ namespace FineCodeCoverage.Editor.Tagging.Classification
             this.coverageTaggerProvider =  coverageTaggerProviderFactory.Create<IClassificationTag, CoverageClassificationFilter>(this);
         }
 
-        public ITagger<T> CreateTagger<T>(ITextView textView, ITextBuffer buffer) where T : ITag
-        {
-            return coverageTaggerProvider.CreateTagger(textView,buffer) as ITagger<T>;
-        }
+        public ITagger<T> CreateTagger<T>(ITextView textView, ITextBuffer buffer) where T : ITag 
+            => this.coverageTaggerProvider.CreateTagger(textView, buffer) as ITagger<T>;
 
         public TagSpan<IClassificationTag> GetTagSpan(ILineSpan lineSpan)
         {
-            var ct = coverageTypeService.GetClassificationType(lineSpan.Line.CoverageType);
+            IClassificationType ct = this.coverageTypeService.GetClassificationType(lineSpan.Line.CoverageType);
             return new TagSpan<IClassificationTag>(lineSpan.Span, new ClassificationTag(ct));
         }
     }

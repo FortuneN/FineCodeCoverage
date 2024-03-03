@@ -8,19 +8,14 @@ namespace FineCodeCoverage.Editor.Tagging.GlyphMargin
 {
     internal class CoverageLineGlyphFactory : IGlyphFactory
 	{
-        public UIElement GenerateGlyph(IWpfTextViewLine textViewLine, IGlyphTag glyphTag)
-		{
-			if (!(glyphTag is CoverageLineGlyphTag tag))
-			{
-				return null;
-			}
-
-            return new Rectangle
-            {
-                Fill = new SolidColorBrush(tag.Colour),
-                Width = 3,
-                Height = 16
-            };
-        }
-	}
+        public UIElement GenerateGlyph(IWpfTextViewLine textViewLine, IGlyphTag glyphTag) 
+            => glyphTag is CoverageLineGlyphTag tag
+                ? new Rectangle
+                {
+                    Fill = new SolidColorBrush(tag.Colour),
+                    Width = 3,
+                    Height = 16
+                }
+                : (UIElement)null;
+    }
 }

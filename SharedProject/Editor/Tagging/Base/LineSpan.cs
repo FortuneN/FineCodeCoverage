@@ -7,8 +7,8 @@ namespace FineCodeCoverage.Editor.Tagging.Base
     {
         public LineSpan(IDynamicLine line, SnapshotSpan span)
         {
-            Line = line;
-            Span = span;
+            this.Line = line;
+            this.Span = span;
         }
         public IDynamicLine Line { get; }
 

@@ -27,13 +27,14 @@ namespace FineCodeCoverage.Editor.Tagging.Base
         {
             this.dynamicCoverageManager = dynamicCoverageManager;
             this.textInfoFactory = textInfoFactory;
-            var appOptions = appOptionsProvider.Get();
-            coverageTypeFilter = CreateFilter(appOptions);
-            appOptionsProvider.OptionsChanged += AppOptionsProvider_OptionsChanged;
+            IAppOptions appOptions = appOptionsProvider.Get();
+            this.coverageTypeFilter = this.CreateFilter(appOptions);
+            appOptionsProvider.OptionsChanged += this.AppOptionsProvider_OptionsChanged;
             this.eventAggregator = eventAggregator;
             this.lineSpanLogic = lineSpanLogic;
             this.coverageTagger = coverageTagger;
         }
+
         private TCoverageTypeFilter CreateFilter(IAppOptions appOptions)
         {
             var newCoverageTypeFilter = new TCoverageTypeFilter();
@@ -43,32 +44,32 @@ namespace FineCodeCoverage.Editor.Tagging.Base
 
         private void AppOptionsProvider_OptionsChanged(IAppOptions appOptions)
         {
-            var newCoverageTypeFilter = CreateFilter(appOptions);
-            if (newCoverageTypeFilter.Changed(coverageTypeFilter))
+            TCoverageTypeFilter newCoverageTypeFilter = this.CreateFilter(appOptions);
+            if (newCoverageTypeFilter.Changed(this.coverageTypeFilter))
             {
-                coverageTypeFilter = newCoverageTypeFilter;
+                this.coverageTypeFilter = newCoverageTypeFilter;
                 var message = new CoverageTypeFilterChangedMessage(newCoverageTypeFilter);
-                eventAggregator.SendMessage(message);
+                this.eventAggregator.SendMessage(message);
             }
         }
         
         public ICoverageTagger<TTag> CreateTagger(ITextView textView, ITextBuffer textBuffer)
         {
-            var textInfo = textInfoFactory.Create(textView, textBuffer);
+            ITextInfo textInfo = this.textInfoFactory.Create(textView, textBuffer);
             string filePath = textInfo.FilePath;
             if (filePath == null)
             {
                 return null;
             }
-            var lastCoverageLines = dynamicCoverageManager.Manage(textInfo);
+
+            IBufferLineCoverage lastCoverageLines = this.dynamicCoverageManager.Manage(textInfo);
             return new CoverageTagger<TTag>(
                 textInfo,
-                lastCoverageLines, 
-                coverageTypeFilter, 
-                eventAggregator, 
-                lineSpanLogic, 
-                coverageTagger);
+                lastCoverageLines,
+                this.coverageTypeFilter,
+                this.eventAggregator,
+                this.lineSpanLogic,
+                this.coverageTagger);
         }
     }
-
 }

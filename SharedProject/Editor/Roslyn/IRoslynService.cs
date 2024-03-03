@@ -9,5 +9,4 @@ namespace FineCodeCoverage.Editor.Roslyn
     {
         Task<List<TextSpan>> GetContainingCodeSpansAsync(ITextSnapshot textSnapshot);
     }
-
 }

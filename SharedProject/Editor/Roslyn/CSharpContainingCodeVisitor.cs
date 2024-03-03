@@ -12,8 +12,8 @@ namespace FineCodeCoverage.Editor.Roslyn
         private readonly List<TextSpan> spans = new List<TextSpan>();
         public List<TextSpan> GetSpans(SyntaxNode rootNode)
         {
-            Visit(rootNode);
-            return spans;
+            this.Visit(rootNode);
+            return this.spans;
         }
 
 #if VS2022
@@ -22,134 +22,81 @@ namespace FineCodeCoverage.Editor.Roslyn
             VisitMembers(node.Members);
         }
 #endif
-        public override void VisitCompilationUnit(CompilationUnitSyntax node)
-        {
-            VisitMembers(node.Members);
-        }
+        public override void VisitCompilationUnit(CompilationUnitSyntax node) => this.VisitMembers(node.Members);
 
-        public override void VisitNamespaceDeclaration(NamespaceDeclarationSyntax node)
-        {
-            VisitMembers(node.Members);
-        }
+        public override void VisitNamespaceDeclaration(NamespaceDeclarationSyntax node) => this.VisitMembers(node.Members);
 
-        public override void VisitClassDeclaration(ClassDeclarationSyntax node)
-        {
-            VisitMembers(node.Members);
-        }
+        public override void VisitClassDeclaration(ClassDeclarationSyntax node) => this.VisitMembers(node.Members);
 
-        public override void VisitStructDeclaration(StructDeclarationSyntax node)
-        {
-            VisitMembers(node.Members);
-        }
+        public override void VisitStructDeclaration(StructDeclarationSyntax node) => this.VisitMembers(node.Members);
 
-        public override void VisitRecordDeclaration(RecordDeclarationSyntax node)
-        {
-            VisitMembers(node.Members);
-        }
+        public override void VisitRecordDeclaration(RecordDeclarationSyntax node) => this.VisitMembers(node.Members);
 
-        public override void VisitInterfaceDeclaration(InterfaceDeclarationSyntax node)
-        {
-            VisitMembers(node.Members);
-        }
+        public override void VisitInterfaceDeclaration(InterfaceDeclarationSyntax node) => this.VisitMembers(node.Members);
 
-        public override void VisitConstructorDeclaration(ConstructorDeclarationSyntax node)
-        {
-            AddIfHasBody(node);
-        }
+        public override void VisitConstructorDeclaration(ConstructorDeclarationSyntax node) => this.AddIfHasBody(node);
 
-        public override void VisitConversionOperatorDeclaration(ConversionOperatorDeclarationSyntax node)
-        {
-            AddIfHasBody(node);
-        }
+        public override void VisitConversionOperatorDeclaration(ConversionOperatorDeclarationSyntax node) => this.AddIfHasBody(node);
 
-        public override void VisitDestructorDeclaration(DestructorDeclarationSyntax node)
-        {
-            AddIfHasBody(node);
-        }
+        public override void VisitDestructorDeclaration(DestructorDeclarationSyntax node) => this.AddIfHasBody(node);
 
-        public override void VisitMethodDeclaration(MethodDeclarationSyntax node)
-        {
-            AddIfHasBody(node);
-        }
+        public override void VisitMethodDeclaration(MethodDeclarationSyntax node) => this.AddIfHasBody(node);
 
-        public override void VisitOperatorDeclaration(OperatorDeclarationSyntax node)
-        {
-            AddIfHasBody(node);
-        }
+        public override void VisitOperatorDeclaration(OperatorDeclarationSyntax node) => this.AddIfHasBody(node);
 
         private void AddIfHasBody(BaseMethodDeclarationSyntax node)
         {
-            var hasBody = node.Body != null || node.ExpressionBody != null;
+            bool hasBody = node.Body != null || node.ExpressionBody != null;
             if (hasBody)
             {
-                AddNode(node);
+                this.AddNode(node);
             }
         }
 
-        public override void VisitPropertyDeclaration(PropertyDeclarationSyntax node)
-        {
-            VisitBasePropertyDeclaration(node);
-        }
+        public override void VisitPropertyDeclaration(PropertyDeclarationSyntax node) => this.VisitBasePropertyDeclaration(node);
 
-        public override void VisitEventDeclaration(EventDeclarationSyntax node)
-        {
-            VisitBasePropertyDeclaration(node);
-        }
+        public override void VisitEventDeclaration(EventDeclarationSyntax node) => this.VisitBasePropertyDeclaration(node);
 
-        public override void VisitIndexerDeclaration(IndexerDeclarationSyntax node)
-        {
-            VisitBasePropertyDeclaration(node);
-        }
+        public override void VisitIndexerDeclaration(IndexerDeclarationSyntax node) => this.VisitBasePropertyDeclaration(node);
 
         private void VisitBasePropertyDeclaration(BasePropertyDeclarationSyntax node)
         {
-            if (!IsAbstract(node.Modifiers))
+            if (!this.IsAbstract(node.Modifiers))
             {
                 if(node.AccessorList == null)
                 {
                     if(node is PropertyDeclarationSyntax propertyDeclarationSyntax)
                     {
-                        AddNode(propertyDeclarationSyntax);
+                        this.AddNode(propertyDeclarationSyntax);
                     }
                 }
                 else
                 {
-                    var isInterfaceProperty = node.Parent is InterfaceDeclarationSyntax;
-                    foreach (var accessor in node.AccessorList.Accessors)
+                    bool isInterfaceProperty = node.Parent is InterfaceDeclarationSyntax;
+                    foreach (AccessorDeclarationSyntax accessor in node.AccessorList.Accessors)
                     {
-                        var addAccessor = !isInterfaceProperty || AccessorHasBody(accessor);
+                        bool addAccessor = !isInterfaceProperty || this.AccessorHasBody(accessor);
                         if (addAccessor)
                         {
-                            AddNode(accessor);
+                            this.AddNode(accessor);
                         }
                     }
                 }
-                
             }
         }
 
-        private bool AccessorHasBody(AccessorDeclarationSyntax accessor)
-        {
-            return accessor.Body != null || accessor.ExpressionBody != null;
-        }
+        private bool AccessorHasBody(AccessorDeclarationSyntax accessor) => accessor.Body != null || accessor.ExpressionBody != null;
 
         private void VisitMembers(SyntaxList<MemberDeclarationSyntax> members)
         {
-            foreach (var member in members)
+            foreach (MemberDeclarationSyntax member in members)
             {
-                Visit(member);
+                this.Visit(member);
             }
         }
 
-        private bool IsAbstract(SyntaxTokenList modifiers)
-        {
-            return modifiers.Any(modifier => modifier.IsKind(SyntaxKind.AbstractKeyword));
-        }
+        private bool IsAbstract(SyntaxTokenList modifiers) => modifiers.Any(modifier => modifier.IsKind(SyntaxKind.AbstractKeyword));
 
-        private void AddNode(SyntaxNode node)
-        {
-            spans.Add(node.Span);
-        }
+        private void AddNode(SyntaxNode node) => this.spans.Add(node.Span);
     }
-
 }

@@ -9,14 +9,10 @@ namespace FineCodeCoverage.Editor.Tagging.GlyphMargin
     {
         public override string TypeIdentifier => "Glyph";
 
-        protected override bool Enabled(IAppOptions appOptions)
-        {
-            return appOptions.ShowCoverageInGlyphMargin;
-        }
+        protected override bool Enabled(IAppOptions appOptions) => appOptions.ShowCoverageInGlyphMargin;
 
-        protected override Dictionary<DynamicCoverageType, bool> GetShowLookup(IAppOptions appOptions)
-        {
-            return new Dictionary<DynamicCoverageType, bool>()
+        protected override Dictionary<DynamicCoverageType, bool> GetShowLookup(IAppOptions appOptions) 
+            => new Dictionary<DynamicCoverageType, bool>
             {
                 { DynamicCoverageType.Covered, appOptions.ShowCoveredInGlyphMargin },
                 { DynamicCoverageType.Partial, appOptions.ShowPartiallyCoveredInGlyphMargin },
@@ -25,6 +21,5 @@ namespace FineCodeCoverage.Editor.Tagging.GlyphMargin
                 { DynamicCoverageType.NewLine, appOptions.ShowNewInGlyphMargin },
                 { DynamicCoverageType.NotIncluded, appOptions.ShowNotIncludedInGlyphMargin },
             };
-        }
     }
 }

@@ -34,13 +34,9 @@ namespace FineCodeCoverage.Editor.Tagging.Base
         }
         public ICoverageTaggerProvider<TTag> Create<TTag, TCoverageTypeFilter>(ILineSpanTagger<TTag> tagger)
             where TTag : ITag
-            where TCoverageTypeFilter : ICoverageTypeFilter, new()
-        {
-            return new CoverageTaggerProvider<TCoverageTypeFilter, TTag>(
-                eventAggregator, appOptionsProvider, lineSpanLogic, tagger, dynamicCoverageManager, textInfoFactory
-            );
-        }
-
+            where TCoverageTypeFilter : ICoverageTypeFilter, new() 
+                => new CoverageTaggerProvider<TCoverageTypeFilter, TTag>(
+                    this.eventAggregator, this.appOptionsProvider, this.lineSpanLogic, tagger, this.dynamicCoverageManager, this.textInfoFactory
+                );
     }
-
 }

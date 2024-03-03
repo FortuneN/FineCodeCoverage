@@ -48,66 +48,63 @@ namespace FineCodeCoverage.Editor.Tagging.Base
             this.eventAggregator = eventAggregator;
             this.lineSpanLogic = lineSpanLogic;
             this.lineSpanTagger = lineSpanTagger;
-            eventAggregator.AddListener(this);
+            _ = eventAggregator.AddListener(this);
         }
 
-        public bool HasCoverage => coverageLines != null;
+        public bool HasCoverage => this.coverageLines != null;
 
         public void RaiseTagsChanged()
         {
-            var span = new SnapshotSpan(textBuffer.CurrentSnapshot, 0, textBuffer.CurrentSnapshot.Length);
+            var span = new SnapshotSpan(this.textBuffer.CurrentSnapshot, 0, this.textBuffer.CurrentSnapshot.Length);
             var spanEventArgs = new SnapshotSpanEventArgs(span);
             TagsChanged?.Invoke(this, spanEventArgs);
         }
-
         
         public IEnumerable<ITagSpan<TTag>> GetTags(NormalizedSnapshotSpanCollection spans)
         {
-            if (coverageLines == null || coverageTypeFilter.Disabled)
+            if (this.coverageLines == null || this.coverageTypeFilter.Disabled)
             {
                 return Enumerable.Empty<ITagSpan<TTag>>();
             }
-            var lineSpans = lineSpanLogic.GetLineSpans(coverageLines, spans);
-            return GetTags(lineSpans);
+
+            IEnumerable<ILineSpan> lineSpans = this.lineSpanLogic.GetLineSpans(this.coverageLines, spans);
+            return this.GetTags(lineSpans);
         }
 
         private IEnumerable<ITagSpan<TTag>> GetTags(IEnumerable<ILineSpan> lineSpans)
         {
-            foreach (var lineSpan in lineSpans)
+            foreach (ILineSpan lineSpan in lineSpans)
             {
-                if (!coverageTypeFilter.Show(lineSpan.Line.CoverageType))
+                if (!this.coverageTypeFilter.Show(lineSpan.Line.CoverageType))
                 {
                     continue;
                 }
-                yield return lineSpanTagger.GetTagSpan(lineSpan);
+
+                yield return this.lineSpanTagger.GetTagSpan(lineSpan);
             }
         }
 
-        public void Dispose()
-        {
-            eventAggregator.RemoveListener(this);
-        }
+        public void Dispose() => _ = this.eventAggregator.RemoveListener(this);
 
         public void Handle(CoverageChangedMessage message)
         {
-            coverageLines = message.CoverageLines;
-            if(message.AppliesTo == textInfo.FilePath)
+            this.coverageLines = message.CoverageLines;
+            if(message.AppliesTo == this.textInfo.FilePath)
             {
-                RaiseTagsChanged();
+                this.RaiseTagsChanged();
             }
         }
 
         public void Handle(CoverageTypeFilterChangedMessage message)
         {
-            if (message.Filter.TypeIdentifier == coverageTypeFilter.TypeIdentifier)
+            if (message.Filter.TypeIdentifier == this.coverageTypeFilter.TypeIdentifier)
             {
-                coverageTypeFilter = message.Filter;
-                if (HasCoverage)
+                this.coverageTypeFilter = message.Filter;
+                if (this.HasCoverage)
                 {
-                    RaiseTagsChanged();
+                    this.RaiseTagsChanged();
                 }
             }
         }
     }
-
 }

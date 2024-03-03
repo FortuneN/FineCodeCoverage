@@ -2,10 +2,7 @@
 {
     internal class CoverageTypeFilterChangedMessage
     {
-        public CoverageTypeFilterChangedMessage(ICoverageTypeFilter filter)
-        {
-            Filter = filter;
-        }
+        public CoverageTypeFilterChangedMessage(ICoverageTypeFilter filter) => this.Filter = filter;
 
         public ICoverageTypeFilter Filter { get; }
     }

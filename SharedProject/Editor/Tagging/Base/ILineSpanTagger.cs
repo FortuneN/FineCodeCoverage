@@ -6,5 +6,4 @@ namespace FineCodeCoverage.Editor.Tagging.Base
     {
         TagSpan<TTag> GetTagSpan(ILineSpan lineSpan);
     }
-
 }

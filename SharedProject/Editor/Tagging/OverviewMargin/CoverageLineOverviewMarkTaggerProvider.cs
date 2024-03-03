@@ -26,20 +26,18 @@ namespace FineCodeCoverage.Editor.Tagging.OverviewMargin
             ILineSpanLogic lineSpanLogic
         )
         {
-            coverageTaggerProvider = coverageTaggerProviderFactory.Create<OverviewMarkTag, CoverageOverviewMarginFilter>(this);
+            this.coverageTaggerProvider = coverageTaggerProviderFactory.Create<OverviewMarkTag, CoverageOverviewMarginFilter>(this);
             this.coverageColoursEditorFormatMapNames = coverageColoursEditorFormatMapNames;
         }
 
-        public ITagger<T> CreateTagger<T>(ITextView textView,ITextBuffer buffer) where T : ITag
-        {
-            return coverageTaggerProvider.CreateTagger(textView, buffer) as ITagger<T>;
-        }
+        public ITagger<T> CreateTagger<T>(ITextView textView, ITextBuffer buffer) where T : ITag 
+            => this.coverageTaggerProvider.CreateTagger(textView, buffer) as ITagger<T>;
 
         public TagSpan<OverviewMarkTag> GetTagSpan(ILineSpan lineSpan)
         {
-            var editorFormatDefinitionName = coverageColoursEditorFormatMapNames.GetEditorFormatDefinitionName(lineSpan.Line.CoverageType);
+            string editorFormatDefinitionName = this.coverageColoursEditorFormatMapNames.GetEditorFormatDefinitionName(
+                lineSpan.Line.CoverageType);
             return new TagSpan<OverviewMarkTag>(lineSpan.Span, new OverviewMarkTag(editorFormatDefinitionName));
         }
-
     }
 }

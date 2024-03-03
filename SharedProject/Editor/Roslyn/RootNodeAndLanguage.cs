@@ -9,8 +9,8 @@ namespace FineCodeCoverage.Editor.Roslyn
 
         public RootNodeAndLanguage(SyntaxNode root, string language)
         {
-            Root = root;
-            Language = language;
+            this.Root = root;
+            this.Language = language;
         }
     }
 }

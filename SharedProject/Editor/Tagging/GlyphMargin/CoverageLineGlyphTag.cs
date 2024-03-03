@@ -1,5 +1,4 @@
-﻿using FineCodeCoverage.Engine.Model;
-using Microsoft.VisualStudio.Text.Editor;
+﻿using Microsoft.VisualStudio.Text.Editor;
 using System.Windows.Media;
 
 namespace FineCodeCoverage.Editor.Tagging.GlyphMargin
@@ -8,9 +7,6 @@ namespace FineCodeCoverage.Editor.Tagging.GlyphMargin
 	{
 		public Color Colour { get; }
 
-        public CoverageLineGlyphTag(Color colour)
-		{
-			Colour = colour;
-		}
-	}
+        public CoverageLineGlyphTag(Color colour) => this.Colour = colour;
+    }
 }

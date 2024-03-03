@@ -20,10 +20,10 @@ namespace FineCodeCoverage.Editor.Tagging.Base
 
         public void Initialize(IAppOptions appOptions)
         {
-            if (appOptions.ShowEditorCoverage && EnabledPrivate(appOptions))
+            if (appOptions.ShowEditorCoverage && this.EnabledPrivate(appOptions))
             {
-                showLookup = GetShowLookup(appOptions);
-                if (showLookup == null || showLookup.Count != 6)
+                this.showLookup = this.GetShowLookup(appOptions);
+                if (this.showLookup == null || this.showLookup.Count != 6)
                 {
                     throw new InvalidOperationException("Invalid showLookup");
                 }
@@ -32,8 +32,8 @@ namespace FineCodeCoverage.Editor.Tagging.Base
 
         private bool EnabledPrivate(IAppOptions appOptions)
         {
-            var enabled = Enabled(appOptions);
-            Disabled = !enabled;
+            bool enabled = this.Enabled(appOptions);
+            this.Disabled = !enabled;
             return enabled;
         }
 
@@ -44,28 +44,26 @@ namespace FineCodeCoverage.Editor.Tagging.Base
 
         public bool Disabled { get; set; } = true;
 
-        public bool Show(DynamicCoverageType coverageType)
-        {
-            return showLookup[coverageType];
-        }
+        public bool Show(DynamicCoverageType coverageType) => this.showLookup[coverageType];
 
         public bool Changed(ICoverageTypeFilter other)
         {
-            if (other.TypeIdentifier != TypeIdentifier)
+            if (other.TypeIdentifier != this.TypeIdentifier)
             {
                 throw new ArgumentException("Argument of incorrect type", nameof(other));
             }
-            var otherShowLookup = (other as CoverageTypeFilterBase).showLookup;
-            foreach (var kvp in doNotShowLookup)
+
+            Dictionary<DynamicCoverageType, bool> otherShowLookup = (other as CoverageTypeFilterBase).showLookup;
+            foreach (KeyValuePair<DynamicCoverageType, bool> kvp in doNotShowLookup)
             {
-                var coverageType = kvp.Key;
-                if (showLookup[coverageType] != otherShowLookup[coverageType])
+                DynamicCoverageType coverageType = kvp.Key;
+                if (this.showLookup[coverageType] != otherShowLookup[coverageType])
                 {
                     return true;
                 }
             }
+
             return false;
         }
     }
-
 }

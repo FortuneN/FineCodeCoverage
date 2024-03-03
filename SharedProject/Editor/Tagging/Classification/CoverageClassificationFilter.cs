@@ -9,14 +9,10 @@ namespace FineCodeCoverage.Editor.Tagging.Classification
     {
         public override string TypeIdentifier => "Classification";
 
-        protected override bool Enabled(IAppOptions appOptions)
-        {
-            return appOptions.ShowLineCoverageHighlighting;
-        }
+        protected override bool Enabled(IAppOptions appOptions) => appOptions.ShowLineCoverageHighlighting;
 
-        protected override Dictionary<DynamicCoverageType, bool> GetShowLookup(IAppOptions appOptions)
-        {
-            return new Dictionary<DynamicCoverageType, bool>()
+        protected override Dictionary<DynamicCoverageType, bool> GetShowLookup(IAppOptions appOptions) 
+            => new Dictionary<DynamicCoverageType, bool>()
             {
                 { DynamicCoverageType.Covered, appOptions.ShowLineCoveredHighlighting },
                 { DynamicCoverageType.Partial, appOptions.ShowLinePartiallyCoveredHighlighting },
@@ -25,8 +21,5 @@ namespace FineCodeCoverage.Editor.Tagging.Classification
                 { DynamicCoverageType.NewLine, appOptions.ShowLineNewHighlighting },
                 { DynamicCoverageType.NotIncluded, appOptions.ShowLineNotIncludedHighlighting },
             };
-        }
     }
-
-
 }
