@@ -1,6 +1,6 @@
-﻿using Microsoft.VisualStudio.Text;
-using System.ComponentModel.Composition;
+﻿using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
+using Microsoft.VisualStudio.Text;
 
 namespace FineCodeCoverage.Editor.DynamicCoverage
 {
@@ -12,7 +12,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
 
         [ImportingConstructor]
         public DirtyLineFactory(ILineTracker lineTracker) => this.lineTracker = lineTracker;
-        public ITrackingLine Create(ITrackingSpan trackingSpan, ITextSnapshot snapshot) 
+        public ITrackingLine Create(ITrackingSpan trackingSpan, ITextSnapshot snapshot)
             => new TrackingLine(trackingSpan, snapshot, this.lineTracker, DynamicCoverageType.Dirty);
     }
 }

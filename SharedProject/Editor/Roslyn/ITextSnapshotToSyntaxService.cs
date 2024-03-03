@@ -1,5 +1,5 @@
-﻿using Microsoft.VisualStudio.Text;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
+using Microsoft.VisualStudio.Text;
 
 namespace FineCodeCoverage.Editor.Roslyn
 {

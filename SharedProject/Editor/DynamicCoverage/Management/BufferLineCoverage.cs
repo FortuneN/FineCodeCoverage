@@ -1,12 +1,12 @@
-﻿using FineCodeCoverage.Core.Utilities;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using FineCodeCoverage.Core.Utilities;
 using FineCodeCoverage.Editor.Tagging.Base;
 using FineCodeCoverage.Engine;
 using FineCodeCoverage.Engine.Model;
 using FineCodeCoverage.Options;
 using Microsoft.VisualStudio.Text;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace FineCodeCoverage.Editor.DynamicCoverage
 {
@@ -143,7 +143,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
 
         private void SendCoverageChangedMessage() => this.eventAggregator.SendMessage(new CoverageChangedMessage(this, this.textInfo.FilePath));
 
-        public IEnumerable<IDynamicLine> GetLines(int startLineNumber, int endLineNumber) 
+        public IEnumerable<IDynamicLine> GetLines(int startLineNumber, int endLineNumber)
             => this.trackedLines == null ? Enumerable.Empty<IDynamicLine>() : this.trackedLines.GetLines(startLineNumber, endLineNumber);
 
         public void Handle(NewCoverageLinesMessage message)

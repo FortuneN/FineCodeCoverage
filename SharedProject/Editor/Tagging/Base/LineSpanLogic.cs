@@ -1,8 +1,8 @@
-﻿using FineCodeCoverage.Editor.DynamicCoverage;
-using Microsoft.VisualStudio.Text;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
+using FineCodeCoverage.Editor.DynamicCoverage;
+using Microsoft.VisualStudio.Text;
 
 namespace FineCodeCoverage.Editor.Tagging.Base
 {
@@ -21,7 +21,7 @@ namespace FineCodeCoverage.Editor.Tagging.Base
                 applicableCoverageLine => new LineSpan(applicableCoverageLine, GetLineSnapshotSpan(applicableCoverageLine.Number, snapshotSpan)));
         }
 
-        private static IEnumerable<IDynamicLine> GetApplicableCoverageLines(IBufferLineCoverage bufferLineCoverage,SnapshotSpan span)
+        private static IEnumerable<IDynamicLine> GetApplicableCoverageLines(IBufferLineCoverage bufferLineCoverage, SnapshotSpan span)
         {
             (int coverageStartLineNumber, int coverageEndLineNumber) = GetStartEndCoverageLineNumbers(span);
             return bufferLineCoverage.GetLines(coverageStartLineNumber, coverageEndLineNumber);

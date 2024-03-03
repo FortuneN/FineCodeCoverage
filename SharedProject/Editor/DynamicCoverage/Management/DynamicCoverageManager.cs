@@ -1,8 +1,8 @@
-﻿using FineCodeCoverage.Core.Initialization;
+﻿using System.ComponentModel.Composition;
+using FineCodeCoverage.Core.Initialization;
 using FineCodeCoverage.Core.Utilities;
 using FineCodeCoverage.Engine;
 using FineCodeCoverage.Engine.Model;
-using System.ComponentModel.Composition;
 
 namespace FineCodeCoverage.Editor.DynamicCoverage
 {
@@ -28,7 +28,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
         }
         public void Handle(NewCoverageLinesMessage message) => this.lastCoverageLines = message.CoverageLines;
 
-        public IBufferLineCoverage Manage(ITextInfo textInfo) 
+        public IBufferLineCoverage Manage(ITextInfo textInfo)
             => textInfo.TextBuffer.Properties.GetOrCreateSingletonProperty(
                 () => this.bufferLineCoverageFactory.Create(this.lastCoverageLines, textInfo, this.eventAggregator, this.trackedLinesFactory)
             );

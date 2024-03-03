@@ -3,7 +3,7 @@
 namespace FineCodeCoverage.Editor.DynamicCoverage
 {
     internal class TrackedLineLine : IDynamicLine
-    {        
+    {
         public TrackedLineLine(ILine line)
         {
             this.Number = line.Number - 1;

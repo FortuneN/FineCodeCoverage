@@ -12,7 +12,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
             this.Lines = dynamicLines;
         }
 
-        public static SerializedState From(ContainingCodeTrackerState containingCodeTrackerState) 
+        public static SerializedState From(ContainingCodeTrackerState containingCodeTrackerState)
             => new SerializedState(
                 containingCodeTrackerState.CodeSpanRange,
                 containingCodeTrackerState.Type,

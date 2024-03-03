@@ -1,5 +1,5 @@
-﻿using FineCodeCoverage.Editor.DynamicCoverage;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using FineCodeCoverage.Editor.DynamicCoverage;
 
 namespace FineCodeCoverage.Editor.Management
 {
@@ -88,7 +88,7 @@ namespace FineCodeCoverage.Editor.Management
             return changes;
         }
 
-        public IItemCoverageColours GetColour(DynamicCoverageType coverageType) 
+        public IItemCoverageColours GetColour(DynamicCoverageType coverageType)
             => this.coverageTypeToFontAndColorsInfo[coverageType].ItemCoverageColours;
     }
 }

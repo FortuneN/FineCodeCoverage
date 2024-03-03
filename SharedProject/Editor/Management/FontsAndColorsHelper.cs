@@ -1,15 +1,14 @@
-﻿using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Threading;
-using Microsoft.VisualStudio;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.ComponentModel.Composition;
-using Microsoft.VisualStudio.TextManager.Interop;
-using FineCodeCoverage.Core.Utilities.VsThreading;
+using System.Linq;
 using System.Threading.Tasks;
 using FineCodeCoverage.Core.Utilities;
+using FineCodeCoverage.Core.Utilities.VsThreading;
+using Microsoft.VisualStudio;
+using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.TextManager.Interop;
 
 namespace FineCodeCoverage.Editor.Management
 {

@@ -1,5 +1,5 @@
-﻿using Microsoft.VisualStudio.Text;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using Microsoft.VisualStudio.Text;
 
 namespace FineCodeCoverage.Editor.DynamicCoverage
 {
@@ -9,7 +9,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
         ContainingCodeTrackerType Type { get; }
 
         bool Update(
-            TrackingSpanRangeProcessResult trackingSpanRangeProcessResult, 
+            TrackingSpanRangeProcessResult trackingSpanRangeProcessResult,
             ITextSnapshot currentSnapshot,
             List<SpanAndLineRange> newSpanAndLineRanges);
     }

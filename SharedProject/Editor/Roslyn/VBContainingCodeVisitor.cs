@@ -1,9 +1,9 @@
-﻿using Microsoft.CodeAnalysis.VisualBasic;
-using Microsoft.CodeAnalysis;
-using System.Collections.Generic;
-using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.VisualBasic.Syntax;
+﻿using System.Collections.Generic;
 using System.Linq;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.VisualBasic;
+using Microsoft.CodeAnalysis.VisualBasic.Syntax;
 
 namespace FineCodeCoverage.Editor.Roslyn
 {

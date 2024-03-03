@@ -1,6 +1,6 @@
-﻿using FineCodeCoverage.Options;
-using System.ComponentModel.Composition;
+﻿using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
+using FineCodeCoverage.Options;
 
 namespace FineCodeCoverage.Editor.Management
 {
@@ -18,7 +18,7 @@ namespace FineCodeCoverage.Editor.Management
         public bool HasCoverageMarkers()
         {
             Microsoft.VisualStudio.Settings.SettingsStore readOnlySettingsStore = this.readOnlyConfigSettingsStoreProvider.Provide();
-            return  readOnlySettingsStore.CollectionExists(@"Text Editor\External Markers\{b4ee9ead-e105-11d7-8a44-00065bbd20a4}");
+            return readOnlySettingsStore.CollectionExists(@"Text Editor\External Markers\{b4ee9ead-e105-11d7-8a44-00065bbd20a4}");
         }
     }
 }

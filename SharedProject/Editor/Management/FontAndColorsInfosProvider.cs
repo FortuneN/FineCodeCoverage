@@ -1,11 +1,11 @@
-﻿using FineCodeCoverage.Core.Utilities;
-using FineCodeCoverage.Core.Utilities.VsThreading;
-using FineCodeCoverage.Editor.DynamicCoverage;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading.Tasks;
+using FineCodeCoverage.Core.Utilities;
+using FineCodeCoverage.Core.Utilities.VsThreading;
+using FineCodeCoverage.Editor.DynamicCoverage;
 
 namespace FineCodeCoverage.Editor.Management
 {
@@ -15,7 +15,7 @@ namespace FineCodeCoverage.Editor.Management
     {
         private readonly IEventAggregator eventAggregator;
         private readonly IFontsAndColorsHelper fontsAndColorsHelper;
-        
+
         private readonly IThreadHelper threadHelper;
         private CoverageColours lastCoverageColours;
         private ICoverageFontAndColorsCategoryItemNames coverageFontAndColorsCategoryItemNames;
@@ -51,11 +51,11 @@ namespace FineCodeCoverage.Editor.Management
             this.fontsAndColorsHelper = fontsAndColorsHelper;
             this.threadHelper = threadHelper;
         }
-        
+
         private List<CategoryNameIndices> GetCategoryNameIndices()
         {
-            var lookup = new Dictionary<Guid,CategoryNameIndices>();
-            
+            var lookup = new Dictionary<Guid, CategoryNameIndices>();
+
             var items = new List<(FontAndColorsCategoryItemName, int)>
             {
                 (this.coverageFontAndColorsCategoryItemNames.Covered, 0),
@@ -66,9 +66,9 @@ namespace FineCodeCoverage.Editor.Management
                 (this.coverageFontAndColorsCategoryItemNames.NotIncluded,5)
             };
 
-            foreach((FontAndColorsCategoryItemName, int) item in items)
+            foreach ((FontAndColorsCategoryItemName, int) item in items)
             {
-                if(!lookup.TryGetValue(item.Item1.Category, out CategoryNameIndices categoryNameIndices))
+                if (!lookup.TryGetValue(item.Item1.Category, out CategoryNameIndices categoryNameIndices))
                 {
                     categoryNameIndices = new CategoryNameIndices(item.Item1.Category);
                     lookup.Add(item.Item1.Category, categoryNameIndices);
@@ -88,7 +88,7 @@ namespace FineCodeCoverage.Editor.Management
             {
                 this.lastCoverageColours = this.GetCoverageColoursFromFontsAndColors();
             }
-           
+
             return this.lastCoverageColours;
         }
 
@@ -105,23 +105,23 @@ namespace FineCodeCoverage.Editor.Management
             );
         }
 
-        private List<IFontAndColorsInfo> GetItemCoverageInfosFromFontsAndColors() 
+        private List<IFontAndColorsInfo> GetItemCoverageInfosFromFontsAndColors()
             => this.threadHelper.JoinableTaskFactory.Run(() => this.GetItemCoverageInfosFromFontsAndColorsAsync());
 
         private async Task<List<IFontAndColorsInfo>> GetItemCoverageInfosFromFontsAndColorsAsync()
         {
             List<CategoryNameIndices> allCategoryNameIndices = this.GetCategoryNameIndices();
             var tasks = new List<Task<List<(IFontAndColorsInfo, int)>>>();
-            foreach(CategoryNameIndices categoryNameIndices in allCategoryNameIndices)
+            foreach (CategoryNameIndices categoryNameIndices in allCategoryNameIndices)
             {
                 tasks.Add(this.GetAsync(categoryNameIndices));
             }
 
             List<(IFontAndColorsInfo, int)>[] results = await Task.WhenAll(tasks);
-            return results.SelectMany(r=> r).OrderBy(r=>r.Item2).Select(r=>r.Item1).ToList();
+            return results.SelectMany(r => r).OrderBy(r => r.Item2).Select(r => r.Item1).ToList();
         }
 
-        private async Task<List<(IFontAndColorsInfo,int)>> GetAsync(CategoryNameIndices categoryNameIndices)
+        private async Task<List<(IFontAndColorsInfo, int)>> GetAsync(CategoryNameIndices categoryNameIndices)
         {
             List<IFontAndColorsInfo> fontAndColorsInfos = await this.fontsAndColorsHelper.GetInfosAsync(
                     categoryNameIndices.Category,
@@ -142,7 +142,7 @@ namespace FineCodeCoverage.Editor.Management
             return changes;
         }
 
-        public Dictionary<DynamicCoverageType, IFontAndColorsInfo> GetFontAndColorsInfos() 
+        public Dictionary<DynamicCoverageType, IFontAndColorsInfo> GetFontAndColorsInfos()
             => this.GetCoverageColoursIfRequired().GetChanges(null);
     }
 }

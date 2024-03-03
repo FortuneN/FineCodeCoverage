@@ -1,4 +1,7 @@
-﻿using FineCodeCoverage.Core.Utilities;
+﻿using System.Collections.Generic;
+using System.ComponentModel.Composition;
+using System.Linq;
+using FineCodeCoverage.Core.Utilities;
 using FineCodeCoverage.Core.Utilities.VsThreading;
 using FineCodeCoverage.Editor.Roslyn;
 using FineCodeCoverage.Editor.Tagging.Base;
@@ -6,9 +9,6 @@ using FineCodeCoverage.Engine.Model;
 using FineCodeCoverage.Options;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
-using System.Collections.Generic;
-using System.ComponentModel.Composition;
-using System.Linq;
 
 namespace FineCodeCoverage.Editor.DynamicCoverage
 {

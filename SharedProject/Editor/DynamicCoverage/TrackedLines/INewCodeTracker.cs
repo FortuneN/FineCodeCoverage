@@ -1,5 +1,5 @@
-﻿using Microsoft.VisualStudio.Text;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using Microsoft.VisualStudio.Text;
 
 namespace FineCodeCoverage.Editor.DynamicCoverage
 {
@@ -9,7 +9,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
 
         bool ProcessChanges(
             ITextSnapshot currentSnapshot,
-            List<SpanAndLineRange> newSpanChanges, 
+            List<SpanAndLineRange> newSpanChanges,
             IEnumerable<CodeSpanRange> newCodeCodeRanges);
     }
 }

@@ -1,6 +1,6 @@
-﻿using Microsoft.VisualStudio.Text;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
+using Microsoft.VisualStudio.Text;
 
 namespace FineCodeCoverage.Editor.DynamicCoverage
 {
@@ -13,7 +13,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
         private CodeSpanRange codeSpanRange;
 
         public TrackingSpanRange(
-            ITrackingSpan startTrackingSpan, 
+            ITrackingSpan startTrackingSpan,
             ITrackingSpan endTrackingSpan,
             ITextSnapshot currentSnapshot,
             ILineTracker lineTracker
@@ -25,18 +25,18 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
             (SnapshotSpan currentStartSpan, SnapshotSpan currentEndSpan) = this.GetCurrentRange(currentSnapshot);
             this.SetRangeText(currentSnapshot, currentStartSpan, currentEndSpan);
         }
-        
+
         private (SnapshotSpan, SnapshotSpan) GetCurrentRange(ITextSnapshot currentSnapshot)
         {
             SnapshotSpan currentStartSpan = this.startTrackingSpan.GetSpan(currentSnapshot);
             SnapshotSpan currentEndSpan = this.endTrackingSpan.GetSpan(currentSnapshot);
-            int startLineNumber = this.lineTracker.GetLineNumber(this.startTrackingSpan, currentSnapshot,false);
+            int startLineNumber = this.lineTracker.GetLineNumber(this.startTrackingSpan, currentSnapshot, false);
             int endLineNumber = this.lineTracker.GetLineNumber(this.endTrackingSpan, currentSnapshot, true);
             this.codeSpanRange = new CodeSpanRange(startLineNumber, endLineNumber);
             return (currentStartSpan, currentEndSpan);
         }
 
-        private void SetRangeText(ITextSnapshot currentSnapshot, SnapshotSpan currentFirstSpan, SnapshotSpan currentEndSpan) 
+        private void SetRangeText(ITextSnapshot currentSnapshot, SnapshotSpan currentFirstSpan, SnapshotSpan currentEndSpan)
             => this.lastRangeText = currentSnapshot.GetText(new Span(currentFirstSpan.Start, currentEndSpan.End - currentFirstSpan.Start));
 
         public TrackingSpanRangeProcessResult Process(ITextSnapshot currentSnapshot, List<SpanAndLineRange> newSpanAndLineRanges)
@@ -44,10 +44,10 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
             (SnapshotSpan currentFirstSpan, SnapshotSpan currentEndSpan) = this.GetCurrentRange(currentSnapshot);
             (bool isEmpty, bool textChanged) = this.GetTextChangeInfo(currentSnapshot, currentFirstSpan, currentEndSpan);
             List<SpanAndLineRange> nonIntersecting = this.GetNonIntersecting(currentSnapshot, currentFirstSpan, currentEndSpan, newSpanAndLineRanges);
-            return new TrackingSpanRangeProcessResult(this,nonIntersecting, isEmpty,textChanged);
+            return new TrackingSpanRangeProcessResult(this, nonIntersecting, isEmpty, textChanged);
         }
 
-        private (bool isEmpty,bool textChanged) GetTextChangeInfo(ITextSnapshot currentSnapshot, SnapshotSpan currentFirstSpan, SnapshotSpan currentEndSpan)
+        private (bool isEmpty, bool textChanged) GetTextChangeInfo(ITextSnapshot currentSnapshot, SnapshotSpan currentFirstSpan, SnapshotSpan currentEndSpan)
         {
             string previousRangeText = this.lastRangeText;
             this.SetRangeText(currentSnapshot, currentFirstSpan, currentEndSpan);
@@ -58,7 +58,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
         }
 
         private List<SpanAndLineRange> GetNonIntersecting(
-            ITextSnapshot currentSnapshot,SnapshotSpan currentFirstSpan, SnapshotSpan currentEndSpan,List<SpanAndLineRange> newSpanAndLineRanges)
+            ITextSnapshot currentSnapshot, SnapshotSpan currentFirstSpan, SnapshotSpan currentEndSpan, List<SpanAndLineRange> newSpanAndLineRanges)
         {
             int currentFirstTrackedLineNumber = currentSnapshot.GetLineNumberFromPosition(currentFirstSpan.End);
             int currentEndTrackedLineNumber = currentSnapshot.GetLineNumberFromPosition(currentEndSpan.End);
@@ -71,12 +71,12 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
                 this.OutsideRange(currentFirstTrackedLineNumber, currentEndTrackedLineNumber, spanAndLineNumber.EndLineNumber)).ToList();
         }
 
-        private bool OutsideRange(int firstLineNumber, int endLineNumber, int spanLineNumber) 
+        private bool OutsideRange(int firstLineNumber, int endLineNumber, int spanLineNumber)
             => spanLineNumber < firstLineNumber || spanLineNumber > endLineNumber;
 
         public ITrackingSpan GetFirstTrackingSpan() => this.startTrackingSpan;
 
         public CodeSpanRange ToCodeSpanRange() => this.codeSpanRange;
-        
+
     }
 }

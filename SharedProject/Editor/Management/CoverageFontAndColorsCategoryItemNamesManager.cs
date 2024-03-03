@@ -1,6 +1,6 @@
-﻿using FineCodeCoverage.Options;
-using System;
+﻿using System;
 using System.ComponentModel.Composition;
+using FineCodeCoverage.Options;
 
 namespace FineCodeCoverage.Editor.Management
 {
@@ -35,7 +35,7 @@ namespace FineCodeCoverage.Editor.Management
             {
                 bool preUsingEnterprise = this.usingEnterprise;
                 this.Set(() => appOptions.UseEnterpriseFontsAndColors);
-                if(this.usingEnterprise != preUsingEnterprise)
+                if (this.usingEnterprise != preUsingEnterprise)
                 {
                     Changed?.Invoke(this, new EventArgs());
                 }
@@ -100,10 +100,10 @@ namespace FineCodeCoverage.Editor.Management
             this.PartiallyCovered = this.CreateEnterprise(MarkerTypeNames.PartiallyCovered);
         }
 
-        private FontAndColorsCategoryItemName CreateMef(string itemName) 
+        private FontAndColorsCategoryItemName CreateMef(string itemName)
             => new FontAndColorsCategoryItemName(itemName, this.EditorMEFCategory);
 
-        private FontAndColorsCategoryItemName CreateEnterprise(string itemName) 
+        private FontAndColorsCategoryItemName CreateEnterprise(string itemName)
             => new FontAndColorsCategoryItemName(itemName, this.EditorTextMarkerFontAndColorCategory);
 
         public FontAndColorsCategoryItemName Covered { get; private set; }

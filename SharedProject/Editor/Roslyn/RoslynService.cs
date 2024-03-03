@@ -1,10 +1,10 @@
-﻿using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.Text;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Text;
 
 namespace FineCodeCoverage.Editor.Roslyn
 {
@@ -25,11 +25,11 @@ namespace FineCodeCoverage.Editor.Roslyn
         public async Task<List<TextSpan>> GetContainingCodeSpansAsync(ITextSnapshot textSnapshot)
         {
             RootNodeAndLanguage rootNodeAndLanguage = await this.textSnapshotToSyntaxService.GetRootAndLanguageAsync(textSnapshot);
-            if(rootNodeAndLanguage == null)
+            if (rootNodeAndLanguage == null)
             {
                 return Enumerable.Empty<TextSpan>().ToList();
             }
-            
+
             bool isCSharp = rootNodeAndLanguage.Language == LanguageNames.CSharp;
             ILanguageContainingCodeVisitor languageContainingCodeVisitor = this.languageContainingCodeVisitorFactory.Create(isCSharp);
             return languageContainingCodeVisitor.GetSpans(rootNodeAndLanguage.Root);

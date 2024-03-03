@@ -1,9 +1,9 @@
-﻿using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis;
-using System.Collections.Generic;
-using Microsoft.CodeAnalysis.Text;
+﻿using System.Collections.Generic;
 using System.Linq;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Text;
 
 namespace FineCodeCoverage.Editor.Roslyn
 {
@@ -17,7 +17,7 @@ namespace FineCodeCoverage.Editor.Roslyn
         }
 
 #if VS2022
-        public override void VisitFileScopedNamespaceDeclaration(FileScopedNamespaceDeclarationSyntax node) 
+        public override void VisitFileScopedNamespaceDeclaration(FileScopedNamespaceDeclarationSyntax node)
             => this.VisitMembers(node.Members);
 #endif
         public override void VisitCompilationUnit(CompilationUnitSyntax node) => this.VisitMembers(node.Members);
@@ -61,9 +61,9 @@ namespace FineCodeCoverage.Editor.Roslyn
         {
             if (!this.IsAbstract(node.Modifiers))
             {
-                if(node.AccessorList == null)
+                if (node.AccessorList == null)
                 {
-                    if(node is PropertyDeclarationSyntax propertyDeclarationSyntax)
+                    if (node is PropertyDeclarationSyntax propertyDeclarationSyntax)
                     {
                         this.AddNode(propertyDeclarationSyntax);
                     }

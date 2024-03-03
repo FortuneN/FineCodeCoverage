@@ -1,8 +1,8 @@
-﻿using Microsoft.VisualStudio.Text.Classification;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
+using Microsoft.VisualStudio.Text.Classification;
 
 namespace FineCodeCoverage.Editor.Management
 {

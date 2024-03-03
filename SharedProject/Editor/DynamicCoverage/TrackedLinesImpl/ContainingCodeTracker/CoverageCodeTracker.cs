@@ -1,5 +1,5 @@
-﻿using Microsoft.VisualStudio.Text;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using Microsoft.VisualStudio.Text;
 
 namespace FineCodeCoverage.Editor.DynamicCoverage
 {
@@ -10,7 +10,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
         private ITrackingLine dirtyLine;
 
         public CoverageCodeTracker(
-            ITrackedCoverageLines trackedCoverageLines, 
+            ITrackedCoverageLines trackedCoverageLines,
             IDirtyLineFactory dirtyLineFactory
         )
         {
@@ -19,7 +19,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
         }
 
         private bool CreateDirtyLineIfRequired(
-            List<SpanAndLineRange> newSpanChanges, 
+            List<SpanAndLineRange> newSpanChanges,
             List<SpanAndLineRange> nonIntersecting,
             bool textChanged,
             ITextSnapshot currentSnapshot,
@@ -65,7 +65,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
             return changed;
         }
 
-        private bool UpdateLines(ITextSnapshot currentSnapshot) 
+        private bool UpdateLines(ITextSnapshot currentSnapshot)
             => this.dirtyLine != null ? this.dirtyLine.Update(currentSnapshot) : this.trackedCoverageLines.Update(currentSnapshot);
 
         public IEnumerable<IDynamicLine> Lines => this.dirtyLine != null ? new List<IDynamicLine> { this.dirtyLine.Line } : this.trackedCoverageLines.Lines;

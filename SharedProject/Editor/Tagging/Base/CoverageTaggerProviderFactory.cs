@@ -1,9 +1,9 @@
-﻿using FineCodeCoverage.Core.Utilities;
+﻿using System.ComponentModel.Composition;
+using System.Diagnostics.CodeAnalysis;
+using FineCodeCoverage.Core.Utilities;
 using FineCodeCoverage.Editor.DynamicCoverage;
 using FineCodeCoverage.Options;
 using Microsoft.VisualStudio.Text.Tagging;
-using System.ComponentModel.Composition;
-using System.Diagnostics.CodeAnalysis;
 
 namespace FineCodeCoverage.Editor.Tagging.Base
 {
@@ -34,7 +34,7 @@ namespace FineCodeCoverage.Editor.Tagging.Base
         }
         public ICoverageTaggerProvider<TTag> Create<TTag, TCoverageTypeFilter>(ILineSpanTagger<TTag> tagger)
             where TTag : ITag
-            where TCoverageTypeFilter : ICoverageTypeFilter, new() 
+            where TCoverageTypeFilter : ICoverageTypeFilter, new()
                 => new CoverageTaggerProvider<TCoverageTypeFilter, TTag>(
                     this.eventAggregator, this.appOptionsProvider, this.lineSpanLogic, tagger, this.dynamicCoverageManager, this.textInfoFactory
                 );

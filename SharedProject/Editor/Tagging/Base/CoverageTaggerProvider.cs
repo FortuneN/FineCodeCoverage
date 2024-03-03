@@ -1,9 +1,9 @@
-﻿using FineCodeCoverage.Options;
-using Microsoft.VisualStudio.Text.Tagging;
-using Microsoft.VisualStudio.Text;
-using FineCodeCoverage.Core.Utilities;
-using Microsoft.VisualStudio.Text.Editor;
+﻿using FineCodeCoverage.Core.Utilities;
 using FineCodeCoverage.Editor.DynamicCoverage;
+using FineCodeCoverage.Options;
+using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.Tagging;
 
 namespace FineCodeCoverage.Editor.Tagging.Base
 {
@@ -52,7 +52,7 @@ namespace FineCodeCoverage.Editor.Tagging.Base
                 this.eventAggregator.SendMessage(message);
             }
         }
-        
+
         public ICoverageTagger<TTag> CreateTagger(ITextView textView, ITextBuffer textBuffer)
         {
             ITextInfo textInfo = this.textInfoFactory.Create(textView, textBuffer);

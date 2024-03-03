@@ -4,7 +4,7 @@
     {
         public NotIncludedCodeTracker(
             ITrackingLine notIncludedTrackingLine
-            ):base(notIncludedTrackingLine, ContainingCodeTrackerType.NotIncluded)
+            ) : base(notIncludedTrackingLine, ContainingCodeTrackerType.NotIncluded)
         {
         }
     }

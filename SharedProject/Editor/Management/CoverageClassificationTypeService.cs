@@ -1,19 +1,19 @@
-﻿using FineCodeCoverage.Editor.DynamicCoverage;
-using Microsoft.VisualStudio.Text.Classification;
-using Microsoft.VisualStudio.Utilities;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using FineCodeCoverage.Editor.DynamicCoverage;
+using Microsoft.VisualStudio.Text.Classification;
+using Microsoft.VisualStudio.Utilities;
 
 namespace FineCodeCoverage.Editor.Management
 {
     [Export(typeof(ICoverageTypeService))]
     [Export(typeof(ICoverageColoursEditorFormatMapNames))]
     [Export(typeof(ICoverageClassificationColourService))]
-    internal class CoverageClassificationTypeService : 
+    internal class CoverageClassificationTypeService :
         ICoverageClassificationColourService, ICoverageColoursEditorFormatMapNames, ICoverageTypeService
     {
         public const string FCCCoveredClassificationTypeName = "FCCCovered";
@@ -126,7 +126,7 @@ namespace FineCodeCoverage.Editor.Management
 
         public IClassificationType GetClassificationType(DynamicCoverageType coverageType) => this.classificationTypes[coverageType];
 
-        public void SetCoverageColours(IEnumerable<ICoverageTypeColour> coverageTypeColours) 
+        public void SetCoverageColours(IEnumerable<ICoverageTypeColour> coverageTypeColours)
             => this.BatchUpdateIfRequired(() =>
             {
                 foreach (ICoverageTypeColour coverageTypeColour in coverageTypeColours)

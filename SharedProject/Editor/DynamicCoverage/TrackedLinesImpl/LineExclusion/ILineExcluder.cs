@@ -1,6 +1,4 @@
-﻿using Microsoft.VisualStudio.Text;
-
-namespace FineCodeCoverage.Editor.DynamicCoverage
+﻿namespace FineCodeCoverage.Editor.DynamicCoverage
 {
     internal interface ILineExcluder
     {

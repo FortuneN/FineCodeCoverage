@@ -1,8 +1,8 @@
-﻿using FineCodeCoverage.Core.Utilities;
+﻿using System.ComponentModel.Composition;
+using FineCodeCoverage.Core.Utilities;
 using FineCodeCoverage.Engine;
 using FineCodeCoverage.Options;
 using Microsoft.VisualStudio.Settings;
-using System.ComponentModel.Composition;
 
 namespace FineCodeCoverage.Editor.DynamicCoverage
 {
@@ -62,7 +62,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
                 : null;
         }
 
-        public void SaveSerializedCoverage(string filePath,string serializedCoverage)
+        public void SaveSerializedCoverage(string filePath, string serializedCoverage)
         {
             bool collectionExists = this.WritableUserSettingsStore.CollectionExists(dynamicCoverageStoreCollectionName);
             if (!collectionExists)
@@ -82,7 +82,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
             }
         }
 
-        public void RemoveSerializedCoverage(string filePath) 
+        public void RemoveSerializedCoverage(string filePath)
             => _ = this.WritableUserSettingsStore.DeleteProperty(dynamicCoverageStoreCollectionName, filePath);
     }
 }

@@ -1,6 +1,6 @@
-﻿using Microsoft.VisualStudio.Text;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
+using Microsoft.VisualStudio.Text;
 
 namespace FineCodeCoverage.Editor.DynamicCoverage
 {
@@ -19,9 +19,9 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
         }
 
         public NewCodeTracker(
-            bool isCSharp, 
+            bool isCSharp,
             ITrackedNewCodeLineFactory trackedNewCodeLineFactory,
-            ILineExcluder codeLineExcluder, 
+            ILineExcluder codeLineExcluder,
             List<int> lineNumbers,
             ITextSnapshot currentSnapshot
             )
@@ -69,11 +69,11 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
             ITextSnapshot currentSnapshot,
             List<SpanAndLineRange> potentialNewLines,
             IEnumerable<CodeSpanRange> newCodeCodeRanges
-        )  => newCodeCodeRanges != null
+        ) => newCodeCodeRanges != null
                 ? this.ProcessNewCodeCodeRanges(newCodeCodeRanges, currentSnapshot)
                 : this.ProcessSpanAndLineRanges(potentialNewLines, currentSnapshot);
 
-        private bool ProcessSpanAndLineRanges( List<SpanAndLineRange> potentialNewLines, ITextSnapshot currentSnapshot)
+        private bool ProcessSpanAndLineRanges(List<SpanAndLineRange> potentialNewLines, ITextSnapshot currentSnapshot)
         {
             bool requiresUpdate = false;
             var removals = new List<ITrackedNewCodeLine>();
@@ -104,7 +104,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
             return requiresUpdate;
         }
 
-        private IEnumerable<int> GetLineNumbers(List<SpanAndLineRange> potentialNewLines) 
+        private IEnumerable<int> GetLineNumbers(List<SpanAndLineRange> potentialNewLines)
             => potentialNewLines.Select(spanAndLineNumber => spanAndLineNumber.StartLineNumber).Distinct();
 
         private bool AddTrackedNewCodeLineIfNotExcluded(ITextSnapshot currentSnapshot, int lineNumber)
@@ -121,7 +121,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
             return added;
         }
 
-        private ITrackedNewCodeLine CreateTrackedNewCodeLine(ITextSnapshot currentSnapshot, int lineNumber) 
+        private ITrackedNewCodeLine CreateTrackedNewCodeLine(ITextSnapshot currentSnapshot, int lineNumber)
             => this.trackedNewCodeLineFactory.Create(currentSnapshot, SpanTrackingMode.EdgeExclusive, lineNumber);
     }
 }

@@ -1,7 +1,7 @@
-﻿using FineCodeCoverage.Editor.Tagging.Base;
+﻿using System.Collections.Generic;
+using FineCodeCoverage.Editor.Tagging.Base;
 using FineCodeCoverage.Engine.Model;
 using Microsoft.VisualStudio.Text;
-using System.Collections.Generic;
 
 namespace FineCodeCoverage.Editor.DynamicCoverage
 {

@@ -8,7 +8,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
         private readonly ITrackingSpan trackingSpan;
         private readonly ILineTracker lineTracker;
         private readonly TrackedLineLine line;
-        public IDynamicLine Line => line;
+        public IDynamicLine Line => this.line;
 
         public CoverageLine(ITrackingSpan trackingSpan, ILine line, ILineTracker lineTracker)
         {
@@ -20,10 +20,10 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
         public bool Update(ITextSnapshot currentSnapshot)
         {
             bool updated = false;
-            int newLineNumber = lineTracker.GetLineNumber(trackingSpan, currentSnapshot, true);
+            int newLineNumber = this.lineTracker.GetLineNumber(this.trackingSpan, currentSnapshot, true);
             if (newLineNumber != this.Line.Number)
             {
-                line.Number = newLineNumber;
+                this.line.Number = newLineNumber;
                 updated = true;
             }
 

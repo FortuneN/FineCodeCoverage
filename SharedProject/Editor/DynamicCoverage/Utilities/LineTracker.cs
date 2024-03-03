@@ -1,5 +1,5 @@
-﻿using Microsoft.VisualStudio.Text;
-using System.ComponentModel.Composition;
+﻿using System.ComponentModel.Composition;
+using Microsoft.VisualStudio.Text;
 
 namespace FineCodeCoverage.Editor.DynamicCoverage
 {
@@ -13,7 +13,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
             return currentSnapshot.GetLineNumberFromPosition(position);
         }
 
-        private SnapshotPoint GetPoint(ITrackingSpan trackingSpan, ITextSnapshot currentSnapshot, bool lineFromEnd) 
+        private SnapshotPoint GetPoint(ITrackingSpan trackingSpan, ITextSnapshot currentSnapshot, bool lineFromEnd)
             => lineFromEnd ? trackingSpan.GetEndPoint(currentSnapshot) : trackingSpan.GetStartPoint(currentSnapshot);
 
         public TrackedLineInfo GetTrackedLineInfo(ITrackingSpan trackingSpan, ITextSnapshot currentSnapshot, bool lineFromEnd)
@@ -23,7 +23,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
             ITextSnapshotLine line = currentSnapshot.GetLineFromPosition(position);
             int lineNumber = line.LineNumber;
             string text = currentSnapshot.GetText(line.Extent);
-            
+
             return new TrackedLineInfo(lineNumber, text);
         }
 

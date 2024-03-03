@@ -1,5 +1,5 @@
-﻿using Microsoft.VisualStudio.Text;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using Microsoft.VisualStudio.Text;
 
 namespace FineCodeCoverage.Editor.DynamicCoverage
 {
@@ -19,7 +19,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
 
         public IEnumerable<IDynamicLine> Lines => this.updatableDynamicLines.Lines;
 
-        public ContainingCodeTrackerState GetState() 
+        public ContainingCodeTrackerState GetState()
             => new ContainingCodeTrackerState(this.updatableDynamicLines.Type, this.trackingSpanRange.ToCodeSpanRange(), this.Lines);
 
         public IContainingCodeTrackerProcessResult ProcessChanges(ITextSnapshot currentSnapshot, List<SpanAndLineRange> newSpanAndLineRanges)

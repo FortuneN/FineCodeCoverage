@@ -1,10 +1,10 @@
-﻿using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Tagging;
-using FineCodeCoverage.Core.Utilities;
+﻿using System;
 using System.Collections.Generic;
-using System;
-using FineCodeCoverage.Editor.Tagging.Base;
+using FineCodeCoverage.Core.Utilities;
 using FineCodeCoverage.Editor.Management;
+using FineCodeCoverage.Editor.Tagging.Base;
+using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Tagging;
 
 namespace FineCodeCoverage.Editor.Tagging.GlyphMargin
 {
@@ -33,7 +33,7 @@ namespace FineCodeCoverage.Editor.Tagging.GlyphMargin
             _ = this.eventAggregator.RemoveListener(this);
         }
 
-        public IEnumerable<ITagSpan<CoverageLineGlyphTag>> GetTags(NormalizedSnapshotSpanCollection spans) 
+        public IEnumerable<ITagSpan<CoverageLineGlyphTag>> GetTags(NormalizedSnapshotSpanCollection spans)
             => this.coverageTagger.GetTags(spans);
 
         public void Handle(CoverageColoursChangedMessage message)

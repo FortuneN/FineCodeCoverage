@@ -1,8 +1,8 @@
-﻿using FineCodeCoverage.Core.Utilities;
+﻿using System.ComponentModel.Composition;
+using System.Diagnostics.CodeAnalysis;
+using FineCodeCoverage.Core.Utilities;
 using FineCodeCoverage.Engine.Model;
 using FineCodeCoverage.Options;
-using System.ComponentModel.Composition;
-using System.Diagnostics.CodeAnalysis;
 
 namespace FineCodeCoverage.Editor.DynamicCoverage
 {
@@ -28,7 +28,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
             ITextInfo textInfo,
             IEventAggregator eventAggregator,
             ITrackedLinesFactory trackedLinesFactory
-        )  => new BufferLineCoverage(
+        ) => new BufferLineCoverage(
                 fileLineCoverage,
                 textInfo,
                 eventAggregator,

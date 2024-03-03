@@ -1,8 +1,8 @@
-﻿using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.Text;
-using System.ComponentModel.Composition;
+﻿using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Text;
 
 namespace FineCodeCoverage.Editor.Roslyn
 {

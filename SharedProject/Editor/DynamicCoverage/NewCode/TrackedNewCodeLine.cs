@@ -17,7 +17,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
 
         public IDynamicLine Line => this.line;
 
-        public string GetText(ITextSnapshot currentSnapshot) 
+        public string GetText(ITextSnapshot currentSnapshot)
             => this.lineTracker.GetTrackedLineInfo(this.trackingSpan, currentSnapshot, true).LineText;
 
         public TrackedNewCodeLineUpdate Update(ITextSnapshot currentSnapshot)

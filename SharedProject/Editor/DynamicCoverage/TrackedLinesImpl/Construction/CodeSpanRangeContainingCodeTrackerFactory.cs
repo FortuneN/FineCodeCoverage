@@ -1,8 +1,8 @@
-﻿using FineCodeCoverage.Engine.Model;
-using Microsoft.VisualStudio.Text;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
+using FineCodeCoverage.Engine.Model;
+using Microsoft.VisualStudio.Text;
 
 namespace FineCodeCoverage.Editor.DynamicCoverage
 {
@@ -67,7 +67,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
         private ITrackedCoverageLines CreateTrackedCoverageLines(ITextSnapshot textSnapshot, List<ILine> lines, SpanTrackingMode spanTrackingMode)
         {
             var coverageLines = lines.Select(line => this.coverageLineFactory.Create(
-                this.trackingLineFactory.CreateTrackingSpan(textSnapshot, line.Number - 1,spanTrackingMode), line)
+                this.trackingLineFactory.CreateTrackingSpan(textSnapshot, line.Number - 1, spanTrackingMode), line)
             ).ToList();
             return this.trackedCoverageLinesFactory.Create(coverageLines.ToList());
         }
@@ -77,7 +77,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
             CodeSpanRange containingRange,
             SpanTrackingMode spanTrackingMode
         ) => this.trackedContainingCodeTrackerFactory.CreateDirty(
-            this.CreateTrackingSpanRange(currentSnapshot, containingRange, spanTrackingMode), 
+            this.CreateTrackingSpanRange(currentSnapshot, containingRange, spanTrackingMode),
             currentSnapshot);
     }
 }

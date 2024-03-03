@@ -1,6 +1,6 @@
-﻿using Microsoft.VisualStudio.Text;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
+using Microsoft.VisualStudio.Text;
 
 namespace FineCodeCoverage.Editor.DynamicCoverage
 {
@@ -14,8 +14,8 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
         private readonly bool useFileCodeSpanRangeService;
 
         public TrackedLines(
-            List<IContainingCodeTracker> containingCodeTrackers, 
-            INewCodeTracker newCodeTracker, 
+            List<IContainingCodeTracker> containingCodeTrackers,
+            INewCodeTracker newCodeTracker,
             IFileCodeSpanRangeService roslynService)
         {
             this.containingCodeTrackers = containingCodeTrackers;
@@ -24,7 +24,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
             this.useFileCodeSpanRangeService = this.fileCodeSpanRangeService != null && newCodeTracker != null;
         }
 
-        private List<SpanAndLineRange> GetSpanAndLineRanges(ITextSnapshot currentSnapshot, List<Span> newSpanChanges) 
+        private List<SpanAndLineRange> GetSpanAndLineRanges(ITextSnapshot currentSnapshot, List<Span> newSpanChanges)
             => newSpanChanges.Select(
                  newSpanChange => new SpanAndLineRange(
                      newSpanChange,
@@ -33,7 +33,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
                  )).ToList();
 
         private (bool, List<SpanAndLineRange>) ProcessContainingCodeTrackers(
-            ITextSnapshot currentSnapshot, 
+            ITextSnapshot currentSnapshot,
             List<SpanAndLineRange> spanAndLineRanges
             )
         {
@@ -129,7 +129,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
                 bool done = false;
                 foreach (IDynamicLine line in containingCodeTracker.Lines)
                 {
-                    if(line.Number > endLineNumber)
+                    if (line.Number > endLineNumber)
                     {
                         done = true;
                         break;
@@ -158,7 +158,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
 
                 if (line.Number >= startLineNumber)
                 {
-                    if(!lineNumbers.Contains(line.Number))
+                    if (!lineNumbers.Contains(line.Number))
                     {
                         yield return line;
                     }

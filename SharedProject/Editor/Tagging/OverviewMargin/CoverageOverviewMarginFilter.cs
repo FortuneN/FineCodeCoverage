@@ -1,7 +1,7 @@
-﻿using FineCodeCoverage.Editor.DynamicCoverage;
+﻿using System.Collections.Generic;
+using FineCodeCoverage.Editor.DynamicCoverage;
 using FineCodeCoverage.Editor.Tagging.Base;
 using FineCodeCoverage.Options;
-using System.Collections.Generic;
 
 namespace FineCodeCoverage.Editor.Tagging.OverviewMargin
 {
@@ -11,7 +11,7 @@ namespace FineCodeCoverage.Editor.Tagging.OverviewMargin
 
         protected override bool Enabled(IAppOptions appOptions) => appOptions.ShowCoverageInOverviewMargin;
 
-        protected override Dictionary<DynamicCoverageType, bool> GetShowLookup(IAppOptions appOptions) 
+        protected override Dictionary<DynamicCoverageType, bool> GetShowLookup(IAppOptions appOptions)
             => new Dictionary<DynamicCoverageType, bool>
             {
                 { DynamicCoverageType.Covered, appOptions.ShowCoveredInOverviewMargin },

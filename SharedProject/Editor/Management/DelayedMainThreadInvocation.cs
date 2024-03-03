@@ -1,8 +1,8 @@
-﻿using Microsoft.VisualStudio.Shell;
-using System;
+﻿using System;
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
+using Microsoft.VisualStudio.Shell;
 
 namespace FineCodeCoverage.Editor.Management
 {
@@ -10,7 +10,7 @@ namespace FineCodeCoverage.Editor.Management
     [Export(typeof(IDelayedMainThreadInvocation))]
     internal class DelayedMainThreadInvocation : IDelayedMainThreadInvocation
     {
-        public void DelayedInvoke(Action action) 
+        public void DelayedInvoke(Action action)
             => _ = System.Threading.Tasks.Task.Delay(0).ContinueWith(_ =>
                 ThreadHelper.JoinableTaskFactory.RunAsync(async () =>
                 {

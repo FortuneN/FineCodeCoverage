@@ -1,5 +1,5 @@
-﻿using Microsoft.VisualStudio.Text.Tagging;
-using System;
+﻿using System;
+using Microsoft.VisualStudio.Text.Tagging;
 
 namespace FineCodeCoverage.Editor.Tagging.Base
 {

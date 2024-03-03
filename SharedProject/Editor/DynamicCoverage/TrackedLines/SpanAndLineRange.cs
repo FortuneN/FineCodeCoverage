@@ -1,5 +1,5 @@
-﻿using Microsoft.VisualStudio.Text;
-using System.Diagnostics.CodeAnalysis;
+﻿using System.Diagnostics.CodeAnalysis;
+using Microsoft.VisualStudio.Text;
 
 namespace FineCodeCoverage.Editor.DynamicCoverage
 {
@@ -17,8 +17,8 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
         public int EndLineNumber { get; }
 
         [ExcludeFromCodeCoverage]
-        public override bool Equals(object obj) 
-            => obj is SpanAndLineRange other && 
+        public override bool Equals(object obj)
+            => obj is SpanAndLineRange other &&
             other.Span.Equals(this.Span) && other.StartLineNumber == this.StartLineNumber && other.EndLineNumber == this.EndLineNumber;
 
         [ExcludeFromCodeCoverage]

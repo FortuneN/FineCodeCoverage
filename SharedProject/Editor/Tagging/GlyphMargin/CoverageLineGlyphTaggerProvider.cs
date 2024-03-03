@@ -1,13 +1,13 @@
-﻿using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Utilities;
-using System.ComponentModel.Composition;
-using Microsoft.VisualStudio.Text.Tagging;
-using FineCodeCoverage.Core.Utilities;
-using Microsoft.VisualStudio.Text.Editor;
-using FineCodeCoverage.Editor.Tagging.Base;
-using FineCodeCoverage.Editor.Management;
-using FineCodeCoverage.Editor.DynamicCoverage;
+﻿using System.ComponentModel.Composition;
 using System.Windows.Media;
+using FineCodeCoverage.Core.Utilities;
+using FineCodeCoverage.Editor.DynamicCoverage;
+using FineCodeCoverage.Editor.Management;
+using FineCodeCoverage.Editor.Tagging.Base;
+using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.Tagging;
+using Microsoft.VisualStudio.Utilities;
 
 namespace FineCodeCoverage.Editor.Tagging.GlyphMargin
 {
@@ -16,8 +16,8 @@ namespace FineCodeCoverage.Editor.Tagging.GlyphMargin
     [ContentType(SupportedContentTypeLanguages.CPP)]
     [TagType(typeof(CoverageLineGlyphTag))]
     [Name(Vsix.TaggerProviderName)]
-	[Export(typeof(IViewTaggerProvider))]
-	internal class CoverageLineGlyphTaggerProvider : IViewTaggerProvider, ILineSpanTagger<CoverageLineGlyphTag>
+    [Export(typeof(IViewTaggerProvider))]
+    internal class CoverageLineGlyphTaggerProvider : IViewTaggerProvider, ILineSpanTagger<CoverageLineGlyphTag>
     {
         private readonly ICoverageTaggerProvider<CoverageLineGlyphTag> coverageTaggerProvider;
         private readonly IEventAggregator eventAggregator;
@@ -30,14 +30,14 @@ namespace FineCodeCoverage.Editor.Tagging.GlyphMargin
             ICoverageTaggerProviderFactory coverageTaggerProviderFactory
         )
         {
-            this.coverageTaggerProvider = coverageTaggerProviderFactory.Create<CoverageLineGlyphTag,GlyphFilter>(this);
+            this.coverageTaggerProvider = coverageTaggerProviderFactory.Create<CoverageLineGlyphTag, GlyphFilter>(this);
             this.eventAggregator = eventAggregator;
             this.coverageColoursProvider = coverageColoursProvider;
         }
 
-        public ITagger<T> CreateTagger<T>(ITextView textView,ITextBuffer buffer) where T : ITag
+        public ITagger<T> CreateTagger<T>(ITextView textView, ITextBuffer buffer) where T : ITag
         {
-            ICoverageTagger<CoverageLineGlyphTag> coverageTagger = this.coverageTaggerProvider.CreateTagger(textView,buffer);
+            ICoverageTagger<CoverageLineGlyphTag> coverageTagger = this.coverageTaggerProvider.CreateTagger(textView, buffer);
             return coverageTagger == null ? null : new CoverageLineGlyphTagger(this.eventAggregator, coverageTagger) as ITagger<T>;
         }
 

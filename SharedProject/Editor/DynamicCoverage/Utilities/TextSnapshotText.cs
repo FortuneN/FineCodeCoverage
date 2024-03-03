@@ -1,6 +1,6 @@
-﻿using Microsoft.VisualStudio.Text;
-using System.ComponentModel.Composition;
+﻿using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
+using Microsoft.VisualStudio.Text;
 
 namespace FineCodeCoverage.Editor.DynamicCoverage
 {
@@ -8,7 +8,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
     [ExcludeFromCodeCoverage]
     internal class TextSnapshotText : ITextSnapshotText
     {
-        public string GetLineText(ITextSnapshot textSnapshot, int lineNumber) 
+        public string GetLineText(ITextSnapshot textSnapshot, int lineNumber)
             => textSnapshot.GetLineFromLineNumber(lineNumber).Extent.GetText();
     }
 }

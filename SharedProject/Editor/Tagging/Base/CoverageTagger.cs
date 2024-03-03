@@ -1,10 +1,10 @@
-﻿using FineCodeCoverage.Core.Utilities;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using FineCodeCoverage.Core.Utilities;
 using FineCodeCoverage.Editor.DynamicCoverage;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace FineCodeCoverage.Editor.Tagging.Base
 {
@@ -59,7 +59,7 @@ namespace FineCodeCoverage.Editor.Tagging.Base
             var spanEventArgs = new SnapshotSpanEventArgs(span);
             TagsChanged?.Invoke(this, spanEventArgs);
         }
-        
+
         public IEnumerable<ITagSpan<TTag>> GetTags(NormalizedSnapshotSpanCollection spans)
         {
             if (this.coverageLines == null || this.coverageTypeFilter.Disabled)
@@ -89,7 +89,7 @@ namespace FineCodeCoverage.Editor.Tagging.Base
         public void Handle(CoverageChangedMessage message)
         {
             this.coverageLines = message.CoverageLines;
-            if(message.AppliesTo == this.textInfo.FilePath)
+            if (message.AppliesTo == this.textInfo.FilePath)
             {
                 this.RaiseTagsChanged();
             }
