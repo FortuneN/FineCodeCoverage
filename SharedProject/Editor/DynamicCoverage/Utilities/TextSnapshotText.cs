@@ -8,9 +8,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
     [ExcludeFromCodeCoverage]
     internal class TextSnapshotText : ITextSnapshotText
     {
-        public string GetLineText(ITextSnapshot textSnapshot, int lineNumber)
-        {
-            return textSnapshot.GetLineFromLineNumber(lineNumber).Extent.GetText();
-        }
+        public string GetLineText(ITextSnapshot textSnapshot, int lineNumber) 
+            => textSnapshot.GetLineFromLineNumber(lineNumber).Extent.GetText();
     }
 }

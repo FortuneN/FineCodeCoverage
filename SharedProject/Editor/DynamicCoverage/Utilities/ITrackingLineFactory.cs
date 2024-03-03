@@ -6,5 +6,4 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
     {
         ITrackingSpan CreateTrackingSpan(ITextSnapshot textSnapshot, int lineNumber, SpanTrackingMode spanTrackingMode);
     }
-
 }

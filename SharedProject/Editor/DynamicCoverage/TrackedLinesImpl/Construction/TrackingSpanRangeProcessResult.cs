@@ -6,10 +6,10 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
     {
         public TrackingSpanRangeProcessResult(ITrackingSpanRange trackingSpanRange,List<SpanAndLineRange> nonIntersectingSpans, bool isEmpty, bool textChanged)
         {
-            TrackingSpanRange = trackingSpanRange;
-            NonIntersectingSpans = nonIntersectingSpans;
-            IsEmpty = isEmpty;
-            TextChanged = textChanged;
+            this.TrackingSpanRange = trackingSpanRange;
+            this.NonIntersectingSpans = nonIntersectingSpans;
+            this.IsEmpty = isEmpty;
+            this.TextChanged = textChanged;
         }
         public ITrackingSpanRange TrackingSpanRange { get; }
         public List<SpanAndLineRange> NonIntersectingSpans { get; }

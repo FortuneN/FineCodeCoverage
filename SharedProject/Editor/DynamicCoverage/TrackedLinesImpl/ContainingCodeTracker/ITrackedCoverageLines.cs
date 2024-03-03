@@ -8,5 +8,4 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
         IEnumerable<IDynamicLine> Lines { get; }
         bool Update(ITextSnapshot currentSnapshot);
     }
-
 }

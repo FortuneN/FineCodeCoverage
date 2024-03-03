@@ -13,35 +13,26 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
         {
             get
             {
-                if (!triedGetProperty)
+                if (!this.triedGetProperty)
                 {
-                    triedGetProperty = true;
-                    if (TextBuffer.Properties.TryGetProperty(typeof(ITextDocument), out ITextDocument document))
+                    this.triedGetProperty = true;
+                    if (this.TextBuffer.Properties.TryGetProperty(typeof(ITextDocument), out ITextDocument document))
                     {
                         this.document = document;
                     }
                 }
-                return document;
+
+                return this.document;
             }
         }
         public TextInfo(ITextView textView, ITextBuffer textBuffer)
         {
-            TextView = textView;
-            TextBuffer = textBuffer as ITextBuffer2;
+            this.TextView = textView;
+            this.TextBuffer = textBuffer as ITextBuffer2;
         }
 
         public ITextView TextView { get; }
         public ITextBuffer2 TextBuffer { get; }
-        public string FilePath
-        {
-            get
-            {
-                if (TextDocument != null)
-                {
-                    return TextDocument.FilePath;
-                }
-                return null;
-            }
-        }
+        public string FilePath => this.TextDocument?.FilePath;
     }
 }

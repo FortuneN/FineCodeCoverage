@@ -17,23 +17,22 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
             this.updatableDynamicLines = updatableDynamicLines;
         }
 
-        public IEnumerable<IDynamicLine> Lines => updatableDynamicLines.Lines;
+        public IEnumerable<IDynamicLine> Lines => this.updatableDynamicLines.Lines;
 
-        public ContainingCodeTrackerState GetState()
-        {
-            return new ContainingCodeTrackerState(updatableDynamicLines.Type, trackingSpanRange.ToCodeSpanRange(), Lines);
-        }
+        public ContainingCodeTrackerState GetState() 
+            => new ContainingCodeTrackerState(this.updatableDynamicLines.Type, this.trackingSpanRange.ToCodeSpanRange(), this.Lines);
 
         public IContainingCodeTrackerProcessResult ProcessChanges(ITextSnapshot currentSnapshot, List<SpanAndLineRange> newSpanAndLineRanges)
         {
-            var trackingSpanRangeProcessResult = trackingSpanRange.Process(currentSnapshot, newSpanAndLineRanges);
-            var nonIntersectingSpans = trackingSpanRangeProcessResult.NonIntersectingSpans;
+            TrackingSpanRangeProcessResult trackingSpanRangeProcessResult = this.trackingSpanRange.Process(currentSnapshot, newSpanAndLineRanges);
+            List<SpanAndLineRange> nonIntersectingSpans = trackingSpanRangeProcessResult.NonIntersectingSpans;
             if (trackingSpanRangeProcessResult.IsEmpty)
             {
                 // todo - determine changed parameter
                 return new ContainingCodeTrackerProcessResult(true, nonIntersectingSpans, true);
             }
-            var changed = updatableDynamicLines.Update(trackingSpanRangeProcessResult, currentSnapshot, newSpanAndLineRanges);
+
+            bool changed = this.updatableDynamicLines.Update(trackingSpanRangeProcessResult, currentSnapshot, newSpanAndLineRanges);
             return new ContainingCodeTrackerProcessResult(changed, nonIntersectingSpans, false);
         }
     }

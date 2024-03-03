@@ -9,9 +9,6 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
     [Export(typeof(ITextInfoFactory))]
     internal class TextInfoFactory : ITextInfoFactory
     {
-        public ITextInfo Create(ITextView textView, ITextBuffer textBuffer)
-        {
-            return new TextInfo(textView, textBuffer);
-        }
+        public ITextInfo Create(ITextView textView, ITextBuffer textBuffer) => new TextInfo(textView, textBuffer);
     }
 }

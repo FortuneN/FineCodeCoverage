@@ -25,63 +25,51 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
             ITextSnapshot currentSnapshot,
             ITrackingSpanRange trackingSpanRange)
         {
-            var createdDirtyLine = false;
-            if (dirtyLine == null && textChanged && Intersected(newSpanChanges,nonIntersecting))
+            bool createdDirtyLine = false;
+            if (this.dirtyLine == null && textChanged && this.Intersected(newSpanChanges, nonIntersecting))
             {
-                CreateDirtyLine(currentSnapshot, trackingSpanRange);
+                this.CreateDirtyLine(currentSnapshot, trackingSpanRange);
                 createdDirtyLine = true;
             }
+
             return createdDirtyLine;
         }
 
         private void CreateDirtyLine(ITextSnapshot currentSnapshot, ITrackingSpanRange trackingSpanRange)
         {
-            var firstTrackingSpan = trackingSpanRange.GetFirstTrackingSpan();
-            dirtyLine = dirtyLineFactory.Create(firstTrackingSpan, currentSnapshot);
-            trackedCoverageLines = null;
+            ITrackingSpan firstTrackingSpan = trackingSpanRange.GetFirstTrackingSpan();
+            this.dirtyLine = this.dirtyLineFactory.Create(firstTrackingSpan, currentSnapshot);
+            this.trackedCoverageLines = null;
         }
 
         private bool Intersected(
             List<SpanAndLineRange> newSpanChanges,
-            List<SpanAndLineRange> nonIntersecting)
-        {
-            return nonIntersecting.Count < newSpanChanges.Count;
-        }
+            List<SpanAndLineRange> nonIntersecting
+        ) => nonIntersecting.Count < newSpanChanges.Count;
 
         public bool Update(TrackingSpanRangeProcessResult trackingSpanRangeProcessResult, ITextSnapshot currentSnapshot, List<SpanAndLineRange> newSpanAndLIneRanges)
         {
-            var createdDirtyLine = CreateDirtyLineIfRequired(
+            bool createdDirtyLine = this.CreateDirtyLineIfRequired(
                     newSpanAndLIneRanges,
                     trackingSpanRangeProcessResult.NonIntersectingSpans,
                     trackingSpanRangeProcessResult.TextChanged,
                     currentSnapshot,
                     trackingSpanRangeProcessResult.TrackingSpanRange
                 );
-            var changed = createdDirtyLine;
+            bool changed = createdDirtyLine;
             if (!createdDirtyLine)
             {
-                changed = UpdateLines(currentSnapshot);
+                changed = this.UpdateLines(currentSnapshot);
             }
+
             return changed;
-
         }
 
-        private bool UpdateLines(ITextSnapshot currentSnapshot)
-        {
-            if (dirtyLine != null)
-            {
-               return dirtyLine.Update(currentSnapshot);
-            }
-            else
-            {
-                return trackedCoverageLines.Update(currentSnapshot);
-            }
-        }
+        private bool UpdateLines(ITextSnapshot currentSnapshot) 
+            => this.dirtyLine != null ? this.dirtyLine.Update(currentSnapshot) : this.trackedCoverageLines.Update(currentSnapshot);
 
-
-        public IEnumerable<IDynamicLine> Lines => dirtyLine != null ? new List<IDynamicLine> { dirtyLine.Line } :  trackedCoverageLines.Lines;
+        public IEnumerable<IDynamicLine> Lines => this.dirtyLine != null ? new List<IDynamicLine> { this.dirtyLine.Line } : this.trackedCoverageLines.Lines;
 
         public ContainingCodeTrackerType Type => ContainingCodeTrackerType.CoverageLines;
     }
-    
 }

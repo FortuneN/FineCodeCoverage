@@ -12,15 +12,15 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
             )
         {
             this.trackingLine = trackingLine;
-            Type = containingCodeTrackerType;
+            this.Type = containingCodeTrackerType;
         }
-        public IEnumerable<IDynamicLine> Lines => new List<IDynamicLine> { trackingLine.Line };
+        public IEnumerable<IDynamicLine> Lines => new List<IDynamicLine> { this.trackingLine.Line };
 
         public ContainingCodeTrackerType Type { get; }
 
-        public bool Update(TrackingSpanRangeProcessResult trackingSpanRangeProcessResult, ITextSnapshot currentSnapshot, List<SpanAndLineRange> newSpanAndLineRanges)
-        {
-            return trackingLine.Update(currentSnapshot);
-        }
+        public bool Update(
+            TrackingSpanRangeProcessResult trackingSpanRangeProcessResult,
+            ITextSnapshot currentSnapshot,
+            List<SpanAndLineRange> newSpanAndLineRanges) => this.trackingLine.Update(currentSnapshot);
     }
 }

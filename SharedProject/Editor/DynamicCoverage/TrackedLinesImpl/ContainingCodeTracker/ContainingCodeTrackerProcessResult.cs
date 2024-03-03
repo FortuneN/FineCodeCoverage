@@ -6,9 +6,9 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
     {
         public ContainingCodeTrackerProcessResult(bool changed, List<SpanAndLineRange> unprocessedSpans, bool isEmpty)
         {
-            Changed = changed;
-            UnprocessedSpans = unprocessedSpans;
-            IsEmpty = isEmpty;
+            this.Changed = changed;
+            this.UnprocessedSpans = unprocessedSpans;
+            this.IsEmpty = isEmpty;
         }
         public bool IsEmpty { get; }
         public bool Changed { get; set; }

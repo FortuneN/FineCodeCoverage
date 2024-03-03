@@ -9,5 +9,4 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
         ITrackingSpan GetFirstTrackingSpan();
         CodeSpanRange ToCodeSpanRange();
     }
-
 }

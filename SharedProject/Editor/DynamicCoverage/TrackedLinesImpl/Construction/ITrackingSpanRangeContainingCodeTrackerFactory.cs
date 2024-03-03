@@ -9,5 +9,4 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
         IContainingCodeTracker CreateNotIncluded(ITrackingLine trackingLine, ITrackingSpanRange trackingSpanRange);
         IContainingCodeTracker CreateOtherLines(ITrackingSpanRange trackingSpanRange);
     }
-
 }
