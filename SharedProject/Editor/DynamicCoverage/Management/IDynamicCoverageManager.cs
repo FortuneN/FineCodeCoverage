@@ -1,6 +1,6 @@
 ﻿namespace FineCodeCoverage.Editor.DynamicCoverage
 {
-    interface IDynamicCoverageManager
+    internal interface IDynamicCoverageManager
     {
         IBufferLineCoverage Manage(ITextInfo textInfo);
     }

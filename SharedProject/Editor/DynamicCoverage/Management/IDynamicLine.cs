@@ -1,6 +1,6 @@
 ﻿namespace FineCodeCoverage.Editor.DynamicCoverage
 {
-    interface IDynamicLine
+    internal interface IDynamicLine
     {
         int Number { get; }
         DynamicCoverageType CoverageType { get; }

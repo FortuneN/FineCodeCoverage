@@ -1,6 +1,6 @@
 ﻿namespace FineCodeCoverage.Editor.Roslyn
 {
-    interface ILanguageContainingCodeVisitorFactory
+    internal interface ILanguageContainingCodeVisitorFactory
     {
         ILanguageContainingCodeVisitor Create(bool isCSharp);
     }

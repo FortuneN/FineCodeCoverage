@@ -2,7 +2,7 @@
 
 namespace FineCodeCoverage.Editor.DynamicCoverage
 {
-    interface IBufferLineCoverage
+    internal interface IBufferLineCoverage
     {
         IEnumerable<IDynamicLine> GetLines(int startLineNumber, int endLineNumber);
     }

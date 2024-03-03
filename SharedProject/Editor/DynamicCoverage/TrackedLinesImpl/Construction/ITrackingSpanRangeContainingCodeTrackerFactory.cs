@@ -2,7 +2,7 @@
 
 namespace FineCodeCoverage.Editor.DynamicCoverage
 {
-    interface ITrackingSpanRangeContainingCodeTrackerFactory
+    internal interface ITrackingSpanRangeContainingCodeTrackerFactory
     {
         IContainingCodeTracker CreateCoverageLines(ITrackingSpanRange trackingSpanRange, ITrackedCoverageLines trackedCoverageLines);
         IContainingCodeTracker CreateDirty(ITrackingSpanRange trackingSpanRange, ITextSnapshot textSnapshot);

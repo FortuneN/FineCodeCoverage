@@ -2,7 +2,7 @@
 
 namespace FineCodeCoverage.Editor.Management
 {
-    interface ITextFormattingRunPropertiesFactory
+    internal interface ITextFormattingRunPropertiesFactory
     {
         TextFormattingRunProperties Create(IFontAndColorsInfo fontAndColorsInfo);
     }

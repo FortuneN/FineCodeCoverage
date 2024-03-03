@@ -3,7 +3,7 @@ using FineCodeCoverage.Options;
 
 namespace FineCodeCoverage.Editor.Tagging.Base
 {
-    interface ICoverageTypeFilter
+    internal interface ICoverageTypeFilter
     {
         void Initialize(IAppOptions appOptions);
         bool Disabled { get; }

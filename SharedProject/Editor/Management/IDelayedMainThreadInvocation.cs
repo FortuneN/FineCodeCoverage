@@ -2,7 +2,7 @@
 
 namespace FineCodeCoverage.Editor.Management
 {
-    interface IDelayedMainThreadInvocation
+    internal interface IDelayedMainThreadInvocation
     {
         void DelayedInvoke(Action action);
     }

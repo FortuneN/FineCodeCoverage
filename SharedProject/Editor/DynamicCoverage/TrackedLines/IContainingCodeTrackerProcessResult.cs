@@ -2,7 +2,7 @@
 
 namespace FineCodeCoverage.Editor.DynamicCoverage
 {
-    interface IContainingCodeTrackerProcessResult
+    internal interface IContainingCodeTrackerProcessResult
     {
         bool IsEmpty { get; }
         bool Changed { get; }

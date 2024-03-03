@@ -2,7 +2,7 @@
 
 namespace FineCodeCoverage.Editor.Management
 {
-    interface ICoverageClassificationColourService : ICoverageTypeService
+    internal interface ICoverageClassificationColourService : ICoverageTypeService
     {
         void SetCoverageColours(IEnumerable<ICoverageTypeColour> coverageTypeColours);
     }

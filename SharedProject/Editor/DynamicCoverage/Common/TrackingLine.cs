@@ -23,9 +23,9 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
 
         private void SetLine(ITextSnapshot currentSnapshot)
         {
-            int startLineNumber = lineTracker.GetLineNumber(startTrackingSpan, currentSnapshot, false);
+            int startLineNumber = this.lineTracker.GetLineNumber(this.startTrackingSpan, currentSnapshot, false);
 
-            this.Line = new DynamicLine(startLineNumber, dynamicCoverageType);
+            this.Line = new DynamicLine(startLineNumber, this.dynamicCoverageType);
         }
 
         public bool Update(ITextSnapshot currentSnapshot)

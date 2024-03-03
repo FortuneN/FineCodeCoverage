@@ -2,7 +2,7 @@
 
 namespace FineCodeCoverage.Editor.DynamicCoverage
 {
-    interface ITrackedNewCodeLine
+    internal interface ITrackedNewCodeLine
     {
         TrackedNewCodeLineUpdate Update(ITextSnapshot currentSnapshot);
         string GetText(ITextSnapshot currentSnapshot);

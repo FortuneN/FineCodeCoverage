@@ -3,7 +3,7 @@ using FineCodeCoverage.Engine.Model;
 
 namespace FineCodeCoverage.Editor.DynamicCoverage
 {
-    interface IBufferLineCoverageFactory
+    internal interface IBufferLineCoverageFactory
     {
         IBufferLineCoverage Create(
             IFileLineCoverage fileLineCoverage, ITextInfo textInfo, IEventAggregator eventAggregator, ITrackedLinesFactory trackedLinesFactory
