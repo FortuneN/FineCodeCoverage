@@ -32,7 +32,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
         )
         {
             this.fileLineCoverage = fileLineCoverage;
-            language = SupportedContentTypeLanguages.GetLanguage(textInfo.TextBuffer.ContentType.TypeName);
+            this.language = SupportedContentTypeLanguages.GetLanguage(textInfo.TextBuffer.ContentType.TypeName);
             this.textBuffer = textInfo.TextBuffer;
             this.textInfo = textInfo;
             this.eventAggregator = eventAggregator;
@@ -41,28 +41,31 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
             this.appOptionsProvider = appOptionsProvider;
             void AppOptionsChanged(IAppOptions appOptions)
             {
-                var newEditorCoverageModeOff = appOptions.EditorCoverageColouringMode == EditorCoverageColouringMode.Off;
-                if (trackedLines != null && newEditorCoverageModeOff && editorCoverageModeOff != newEditorCoverageModeOff)
+                bool newEditorCoverageModeOff = appOptions.EditorCoverageColouringMode == EditorCoverageColouringMode.Off;
+                if (this.trackedLines != null && newEditorCoverageModeOff && this.editorCoverageModeOff != newEditorCoverageModeOff)
                 {
-                    trackedLines = null;
-                    SendCoverageChangedMessage();
+                    this.trackedLines = null;
+                    this.SendCoverageChangedMessage();
                 }
-                editorCoverageModeOff = newEditorCoverageModeOff;
+
+                this.editorCoverageModeOff = newEditorCoverageModeOff;
             }
+
             appOptionsProvider.OptionsChanged += AppOptionsChanged;
             if (fileLineCoverage != null)
             {
-                CreateTrackedLinesIfRequired(true);
+                this.CreateTrackedLinesIfRequired(true);
             }
-            eventAggregator.AddListener(this);
-            textBuffer.ChangedOnBackground += TextBuffer_ChangedOnBackground;
+
+            _ = eventAggregator.AddListener(this);
+            this.textBuffer.ChangedOnBackground += this.TextBuffer_ChangedOnBackground;
             void textViewClosedHandler(object s, EventArgs e)
             {
-                UpdateDynamicCoverageStore();
-                textBuffer.Changed -= TextBuffer_ChangedOnBackground;
+                this.UpdateDynamicCoverageStore();
+                this.textBuffer.Changed -= this.TextBuffer_ChangedOnBackground;
                 textInfo.TextView.Closed -= textViewClosedHandler;
                 appOptionsProvider.OptionsChanged -= AppOptionsChanged;
-                eventAggregator.RemoveListener(this);
+                _ = eventAggregator.RemoveListener(this);
             }
 
             textInfo.TextView.Closed += textViewClosedHandler;
@@ -70,105 +73,95 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
 
         private void UpdateDynamicCoverageStore()
         {
-            if (trackedLines != null)
+            if (this.trackedLines != null)
             {
-                dynamicCoverageStore.SaveSerializedCoverage(textInfo.FilePath, trackedLinesFactory.Serialize(trackedLines));
+                this.dynamicCoverageStore.SaveSerializedCoverage(this.textInfo.FilePath, this.trackedLinesFactory.Serialize(this.trackedLines));
             }
             else
             {
-                dynamicCoverageStore.RemoveSerializedCoverage(textInfo.FilePath);
+                this.dynamicCoverageStore.RemoveSerializedCoverage(this.textInfo.FilePath);
             }
         }
 
         private void CreateTrackedLinesIfRequired(bool initial)
         {
-            if (EditorCoverageColouringModeOff())
+            if (this.EditorCoverageColouringModeOff())
             {
-                trackedLines = null;
+                this.trackedLines = null;
             }
             else
             {
-                CreateTrackedLines(initial);
+                this.CreateTrackedLines(initial);
             }
         }
 
-
         private void CreateTrackedLinesIfRequiredWithMessage()
         {
-            var hadTrackedLines = trackedLines != null;
-            CreateTrackedLinesIfRequired(false);
-            var hasTrackedLines = trackedLines != null;
-            if ((hadTrackedLines || hasTrackedLines))
+            bool hadTrackedLines = this.trackedLines != null;
+            this.CreateTrackedLinesIfRequired(false);
+            bool hasTrackedLines = this.trackedLines != null;
+            if (hadTrackedLines || hasTrackedLines)
             {
-                SendCoverageChangedMessage();
+                this.SendCoverageChangedMessage();
             }
         }
 
         private void CreateTrackedLines(bool initial)
         {
-            var currentSnapshot = textBuffer.CurrentSnapshot;
+            ITextSnapshot currentSnapshot = this.textBuffer.CurrentSnapshot;
             if (initial)
             {
-                var serializedCoverage = dynamicCoverageStore.GetSerializedCoverage(textInfo.FilePath);
+                string serializedCoverage = this.dynamicCoverageStore.GetSerializedCoverage(this.textInfo.FilePath);
                 if (serializedCoverage != null)
                 {
-                    trackedLines = trackedLinesFactory.Create(serializedCoverage, currentSnapshot, language);
+                    this.trackedLines = this.trackedLinesFactory.Create(serializedCoverage, currentSnapshot, this.language);
                     return;
                 }
             }
 
-            var lines = fileLineCoverage.GetLines(textInfo.FilePath).ToList();
-            trackedLines = trackedLinesFactory.Create(lines, currentSnapshot, language);
+            var lines = this.fileLineCoverage.GetLines(this.textInfo.FilePath).ToList();
+            this.trackedLines = this.trackedLinesFactory.Create(lines, currentSnapshot, this.language);
         }
 
         private bool EditorCoverageColouringModeOff()
         {
-            editorCoverageModeOff = appOptionsProvider.Get().EditorCoverageColouringMode == EditorCoverageColouringMode.Off;
-            return editorCoverageModeOff.Value;
+            this.editorCoverageModeOff = this.appOptionsProvider.Get().EditorCoverageColouringMode == EditorCoverageColouringMode.Off;
+            return this.editorCoverageModeOff.Value;
         }
 
         private void TextBuffer_ChangedOnBackground(object sender, TextContentChangedEventArgs e)
         {
-            if (trackedLines != null)
+            if (this.trackedLines != null)
             {
-                var changed = trackedLines.Changed(e.After, e.Changes.Select(change => change.NewSpan).ToList());
+                bool changed = this.trackedLines.Changed(e.After, e.Changes.Select(change => change.NewSpan).ToList());
                 if (changed)
                 {
-                    SendCoverageChangedMessage();
+                    this.SendCoverageChangedMessage();
                 }
             }
         }
 
-        private void SendCoverageChangedMessage()
-        {
-            eventAggregator.SendMessage(new CoverageChangedMessage(this, textInfo.FilePath));
-        }
+        private void SendCoverageChangedMessage() => this.eventAggregator.SendMessage(new CoverageChangedMessage(this, this.textInfo.FilePath));
 
-        public IEnumerable<IDynamicLine> GetLines(int startLineNumber, int endLineNumber)
-        {
-            if (trackedLines == null)
-            {
-                return Enumerable.Empty<IDynamicLine>();
-            }
-            return trackedLines.GetLines(startLineNumber, endLineNumber);
-        }
+        public IEnumerable<IDynamicLine> GetLines(int startLineNumber, int endLineNumber) 
+            => this.trackedLines == null ? Enumerable.Empty<IDynamicLine>() : this.trackedLines.GetLines(startLineNumber, endLineNumber);
 
         public void Handle(NewCoverageLinesMessage message)
         {
-            fileLineCoverage = message.CoverageLines;
+            this.fileLineCoverage = message.CoverageLines;
 
-            var hadTrackedLines = trackedLines != null;
-            if (fileLineCoverage == null)
+            bool hadTrackedLines = this.trackedLines != null;
+            if (this.fileLineCoverage == null)
             {
-                trackedLines = null;
+                this.trackedLines = null;
                 if (hadTrackedLines)
                 {
-                    SendCoverageChangedMessage();
+                    this.SendCoverageChangedMessage();
                 }
             }
             else
             {
-                CreateTrackedLinesIfRequiredWithMessage();
+                this.CreateTrackedLinesIfRequiredWithMessage();
             }
         }
     }
