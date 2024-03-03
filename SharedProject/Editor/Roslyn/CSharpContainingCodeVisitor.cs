@@ -17,10 +17,8 @@ namespace FineCodeCoverage.Editor.Roslyn
         }
 
 #if VS2022
-        public override void VisitFileScopedNamespaceDeclaration(FileScopedNamespaceDeclarationSyntax node)
-        {
-            VisitMembers(node.Members);
-        }
+        public override void VisitFileScopedNamespaceDeclaration(FileScopedNamespaceDeclarationSyntax node) 
+            => this.VisitMembers(node.Members);
 #endif
         public override void VisitCompilationUnit(CompilationUnitSyntax node) => this.VisitMembers(node.Members);
 
