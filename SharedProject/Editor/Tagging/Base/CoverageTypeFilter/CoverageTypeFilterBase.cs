@@ -20,13 +20,20 @@ namespace FineCodeCoverage.Editor.Tagging.Base
 
         public void Initialize(IAppOptions appOptions)
         {
-            if (appOptions.ShowEditorCoverage && this.EnabledPrivate(appOptions))
+            if (this.ShouldGetShowLookup(appOptions))
             {
                 this.showLookup = this.GetShowLookup(appOptions);
-                if (this.showLookup == null || this.showLookup.Count != 6)
-                {
-                    throw new InvalidOperationException("Invalid showLookup");
-                }
+                this.ThrowIfInvalidShowLookup();
+            }
+        }
+
+        private bool ShouldGetShowLookup(IAppOptions appOptions) => appOptions.ShowEditorCoverage && this.EnabledPrivate(appOptions);
+
+        private void ThrowIfInvalidShowLookup()
+        {
+            if (this.showLookup == null || this.showLookup.Count != 6)
+            {
+                throw new InvalidOperationException("Invalid showLookup");
             }
         }
 
@@ -48,12 +55,13 @@ namespace FineCodeCoverage.Editor.Tagging.Base
 
         public bool Changed(ICoverageTypeFilter other)
         {
-            if (other.TypeIdentifier != this.TypeIdentifier)
-            {
-                throw new ArgumentException("Argument of incorrect type", nameof(other));
-            }
+            this.ThrowIfIncorrectCoverageTypeFilter(other);
 
-            Dictionary<DynamicCoverageType, bool> otherShowLookup = (other as CoverageTypeFilterBase).showLookup;
+            return  this.CompareLookups((other as CoverageTypeFilterBase).showLookup);
+        }
+
+        private bool CompareLookups(Dictionary<DynamicCoverageType, bool> otherShowLookup)
+        {
             foreach (KeyValuePair<DynamicCoverageType, bool> kvp in doNotShowLookup)
             {
                 DynamicCoverageType coverageType = kvp.Key;
@@ -64,6 +72,14 @@ namespace FineCodeCoverage.Editor.Tagging.Base
             }
 
             return false;
+        }
+
+        private void ThrowIfIncorrectCoverageTypeFilter(ICoverageTypeFilter other)
+        {
+            if (other.TypeIdentifier != this.TypeIdentifier)
+            {
+                throw new ArgumentException("Argument of incorrect type", nameof(other));
+            }
         }
     }
 }

@@ -23,7 +23,7 @@ namespace FineCodeCoverage.Editor.Tagging.Classification
         [ImportingConstructor]
         public CoverageLineClassificationTaggerProvider(
             ICoverageTypeService coverageTypeService,
-             ICoverageTaggerProviderFactory coverageTaggerProviderFactory
+            ICoverageTaggerProviderFactory coverageTaggerProviderFactory
         )
         {
             this.coverageTypeService = coverageTypeService;

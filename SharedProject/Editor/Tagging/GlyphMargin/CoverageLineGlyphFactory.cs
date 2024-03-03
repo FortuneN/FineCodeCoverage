@@ -10,12 +10,14 @@ namespace FineCodeCoverage.Editor.Tagging.GlyphMargin
     {
         public UIElement GenerateGlyph(IWpfTextViewLine textViewLine, IGlyphTag glyphTag)
             => glyphTag is CoverageLineGlyphTag tag
-                ? new Rectangle
-                {
-                    Fill = new SolidColorBrush(tag.Colour),
-                    Width = 3,
-                    Height = 16
-                }
+                ? this.GetColouredRectange(tag.Colour)
                 : (UIElement)null;
+
+        private Rectangle GetColouredRectange(Color colour) => new Rectangle
+        {
+            Fill = new SolidColorBrush(colour),
+            Width = 3,
+            Height = 16
+        };
     }
 }

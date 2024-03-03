@@ -232,34 +232,27 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
             List<CodeSpanRange> codeSpanRanges,
             List<SerializedState> states,
             ITextSnapshot currentSnapshot
-        )
-        {
-            var containingCodeTrackers = new List<IContainingCodeTracker>();
-            foreach (SerializedState state in states)
-            {
-                CodeSpanRange codeSpanRange = state.CodeSpanRange;
-                bool removed = codeSpanRanges.Remove(codeSpanRange);
-                if (removed)
-                {
-                    IContainingCodeTracker containingCodeTracker = null;
-                    switch (state.Type)
-                    {
-                        case ContainingCodeTrackerType.OtherLines:
-                            containingCodeTracker = this.CreateOtherLines(currentSnapshot, codeSpanRange);
-                            break;
-                        case ContainingCodeTrackerType.NotIncluded:
-                            containingCodeTracker = this.CreateNotIncluded(currentSnapshot, codeSpanRange);
-                            break;
-                        case ContainingCodeTrackerType.CoverageLines:
-                            containingCodeTracker = this.RecreateCoverageLines(state, currentSnapshot);
-                            break;
-                    }
+        ) => states.Where(state => codeSpanRanges.Remove(state.CodeSpanRange))
+            .Select(state => this.RecreateContainingCodeTracker(state, currentSnapshot)).ToList();
 
-                    containingCodeTrackers.Add(containingCodeTracker);
-                }
+        private IContainingCodeTracker RecreateContainingCodeTracker(SerializedState state, ITextSnapshot currentSnapshot)
+        {
+            CodeSpanRange codeSpanRange = state.CodeSpanRange;
+            IContainingCodeTracker containingCodeTracker = null;
+            switch (state.Type)
+            {
+                case ContainingCodeTrackerType.OtherLines:
+                    containingCodeTracker = this.CreateOtherLines(currentSnapshot, codeSpanRange);
+                    break;
+                case ContainingCodeTrackerType.NotIncluded:
+                    containingCodeTracker = this.CreateNotIncluded(currentSnapshot, codeSpanRange);
+                    break;
+                case ContainingCodeTrackerType.CoverageLines:
+                    containingCodeTracker = this.RecreateCoverageLines(state, currentSnapshot);
+                    break;
             }
 
-            return containingCodeTrackers;
+            return containingCodeTracker;
         }
 
         private ITrackedLines RecreateTrackedLinesFromRoslynState(List<SerializedState> states, ITextSnapshot currentSnapshot, bool isCharp)
