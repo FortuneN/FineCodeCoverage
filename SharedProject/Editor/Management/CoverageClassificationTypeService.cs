@@ -22,6 +22,15 @@ namespace FineCodeCoverage.Editor.Management
         public const string FCCDirtyClassificationTypeName = "FCCDirty";
         public const string FCCNewLineClassificationTypeName = "FCCNewLine";
         public const string FCCNotIncludedClassificationTypeName = "FCCNotIncluded";
+        private readonly Dictionary<DynamicCoverageType, string> editorFormatNames = new Dictionary<DynamicCoverageType, string>
+        {
+            {DynamicCoverageType.Partial, FCCPartiallyCoveredClassificationTypeName },
+            {DynamicCoverageType.NotCovered, FCCNotCoveredClassificationTypeName },
+            {DynamicCoverageType.Covered, FCCCoveredClassificationTypeName },
+            {DynamicCoverageType.Dirty, FCCDirtyClassificationTypeName },
+            {DynamicCoverageType.NewLine, FCCNewLineClassificationTypeName },
+            {DynamicCoverageType.NotIncluded, FCCNotIncludedClassificationTypeName }
+        };
 
         private readonly IClassificationFormatMap classificationFormatMap;
         private readonly ReadOnlyDictionary<DynamicCoverageType, IClassificationType> classificationTypes;
@@ -99,31 +108,8 @@ namespace FineCodeCoverage.Editor.Management
             }
         }
 
-        public string GetEditorFormatDefinitionName(DynamicCoverageType coverageType)
-        {
-            string editorFormatDefinitionName = FCCCoveredClassificationTypeName;
-            switch (coverageType)
-            {
-                case DynamicCoverageType.Partial:
-                    editorFormatDefinitionName = FCCPartiallyCoveredClassificationTypeName;
-                    break;
-                case DynamicCoverageType.NotCovered:
-                    editorFormatDefinitionName = FCCNotCoveredClassificationTypeName;
-                    break;
-                case DynamicCoverageType.Dirty:
-                    editorFormatDefinitionName = FCCDirtyClassificationTypeName;
-                    break;
-                case DynamicCoverageType.NewLine:
-                    editorFormatDefinitionName = FCCNewLineClassificationTypeName;
-                    break;
-                case DynamicCoverageType.NotIncluded:
-                    editorFormatDefinitionName = FCCNotIncludedClassificationTypeName;
-                    break;
-            }
-
-            return editorFormatDefinitionName;
-        }
-
+        public string GetEditorFormatDefinitionName(DynamicCoverageType coverageType) => this.editorFormatNames[coverageType];
+        
         public IClassificationType GetClassificationType(DynamicCoverageType coverageType) => this.classificationTypes[coverageType];
 
         public void SetCoverageColours(IEnumerable<ICoverageTypeColour> coverageTypeColours)

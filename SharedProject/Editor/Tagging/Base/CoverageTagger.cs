@@ -60,29 +60,22 @@ namespace FineCodeCoverage.Editor.Tagging.Base
             TagsChanged?.Invoke(this, spanEventArgs);
         }
 
-        public IEnumerable<ITagSpan<TTag>> GetTags(NormalizedSnapshotSpanCollection spans)
-        {
-            if (this.coverageLines == null || this.coverageTypeFilter.Disabled)
-            {
-                return Enumerable.Empty<ITagSpan<TTag>>();
-            }
+        public IEnumerable<ITagSpan<TTag>> GetTags(NormalizedSnapshotSpanCollection spans) 
+            => this.CanGetTagsFromCoverageLines
+                ? this.GetTagsFromCoverageLines(spans)
+                : Enumerable.Empty<ITagSpan<TTag>>();
 
+        private bool CanGetTagsFromCoverageLines => this.coverageLines != null && !this.coverageTypeFilter.Disabled;
+
+        private IEnumerable<ITagSpan<TTag>> GetTagsFromCoverageLines(NormalizedSnapshotSpanCollection spans)
+        {
             IEnumerable<ILineSpan> lineSpans = this.lineSpanLogic.GetLineSpans(this.coverageLines, spans);
             return this.GetTags(lineSpans);
         }
 
-        private IEnumerable<ITagSpan<TTag>> GetTags(IEnumerable<ILineSpan> lineSpans)
-        {
-            foreach (ILineSpan lineSpan in lineSpans)
-            {
-                if (!this.coverageTypeFilter.Show(lineSpan.Line.CoverageType))
-                {
-                    continue;
-                }
-
-                yield return this.lineSpanTagger.GetTagSpan(lineSpan);
-            }
-        }
+        private IEnumerable<ITagSpan<TTag>> GetTags(IEnumerable<ILineSpan> lineSpans) 
+            => lineSpans.Where(lineSpan => this.coverageTypeFilter.Show(lineSpan.Line.CoverageType))
+                .Select(lineSpan => this.lineSpanTagger.GetTagSpan(lineSpan));
 
         public void Dispose() => _ = this.eventAggregator.RemoveListener(this);
 

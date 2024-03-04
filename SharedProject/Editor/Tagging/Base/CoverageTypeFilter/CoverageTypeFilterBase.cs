@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using FineCodeCoverage.Editor.DynamicCoverage;
 using FineCodeCoverage.Options;
 
@@ -60,19 +61,9 @@ namespace FineCodeCoverage.Editor.Tagging.Base
             return  this.CompareLookups((other as CoverageTypeFilterBase).showLookup);
         }
 
-        private bool CompareLookups(Dictionary<DynamicCoverageType, bool> otherShowLookup)
-        {
-            foreach (KeyValuePair<DynamicCoverageType, bool> kvp in doNotShowLookup)
-            {
-                DynamicCoverageType coverageType = kvp.Key;
-                if (this.showLookup[coverageType] != otherShowLookup[coverageType])
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
+        private bool CompareLookups(Dictionary<DynamicCoverageType, bool> otherShowLookup) 
+            => Enum.GetValues(typeof(DynamicCoverageType)).Cast<DynamicCoverageType>()
+                .Any(coverageType => this.showLookup[coverageType] != otherShowLookup[coverageType]);
 
         private void ThrowIfIncorrectCoverageTypeFilter(ICoverageTypeFilter other)
         {

@@ -23,7 +23,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
         }
         public INewCodeTracker Create(bool isCSharp) => new NewCodeTracker(isCSharp, this.trackedNewCodeLineFactory, this.codeLineExcluder);
 
-        public INewCodeTracker Create(bool isCSharp, List<int> lineNumbers, ITextSnapshot textSnapshot)
+        public INewCodeTracker Create(bool isCSharp, IEnumerable<int> lineNumbers, ITextSnapshot textSnapshot)
             => new NewCodeTracker(isCSharp, this.trackedNewCodeLineFactory, this.codeLineExcluder, lineNumbers, textSnapshot);
     }
 }

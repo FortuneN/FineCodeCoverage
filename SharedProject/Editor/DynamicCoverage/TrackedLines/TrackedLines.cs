@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using FineCodeCoverage.Core.Utilities;
 using Microsoft.VisualStudio.Text;
 
 namespace FineCodeCoverage.Editor.DynamicCoverage
@@ -41,22 +42,30 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
             var removals = new List<IContainingCodeTracker>();
             foreach (IContainingCodeTracker containingCodeTracker in this.containingCodeTrackers)
             {
-                IContainingCodeTrackerProcessResult processResult = containingCodeTracker.ProcessChanges(currentSnapshot, spanAndLineRanges);
-                if (processResult.IsEmpty)
-                {
-                    removals.Add(containingCodeTracker);
-                }
-
-                spanAndLineRanges = processResult.UnprocessedSpans;
-                if (processResult.Changed)
-                {
-                    changed = true;
-                }
+                (bool containingCodeTrackerChanged, List<SpanAndLineRange> unprocessedSpans)  = this.ProcessContainingCodeTracker(removals, containingCodeTracker, currentSnapshot, spanAndLineRanges);
+                changed = changed || containingCodeTrackerChanged;
+                spanAndLineRanges = unprocessedSpans;
             }
 
             removals.ForEach(removal => this.containingCodeTrackers.Remove(removal));
 
             return (changed, spanAndLineRanges);
+        }
+
+        private (bool changed, List<SpanAndLineRange> unprocessedSpans) ProcessContainingCodeTracker(
+            List<IContainingCodeTracker> removals,
+            IContainingCodeTracker containingCodeTracker, 
+            ITextSnapshot currentSnapshot,
+            List<SpanAndLineRange> spanAndLineRanges
+        )
+        {
+            IContainingCodeTrackerProcessResult processResult = containingCodeTracker.ProcessChanges(currentSnapshot, spanAndLineRanges);
+            if (processResult.IsEmpty)
+            {
+                removals.Add(containingCodeTracker);
+            }
+
+            return (processResult.Changed, processResult.UnprocessedSpans);
         }
 
         // normalized spans
@@ -68,17 +77,23 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
             return changed || newCodeTrackerChanged;
         }
 
-        private bool ProcessNewCodeTracker(ITextSnapshot currentSnapshot, List<SpanAndLineRange> spanAndLineRanges)
-        {
-            bool newCodeTrackerChanged = false;
-            if (this.newCodeTracker != null)
-            {
-                List<CodeSpanRange> newCodeCodeRanges = this.useFileCodeSpanRangeService ? this.GetNewCodeCodeRanges(currentSnapshot, this.containingCodeTrackers.Select(ct => ct.GetState().CodeSpanRange).ToList()) : null;
-                newCodeTrackerChanged = this.newCodeTracker.ProcessChanges(currentSnapshot, spanAndLineRanges, newCodeCodeRanges);
-            }
+        private bool ProcessNewCodeTracker(ITextSnapshot currentSnapshot, List<SpanAndLineRange> spanAndLineRanges) 
+            => this.newCodeTracker != null && this.ProcessNewCodeTrackerActual(currentSnapshot, spanAndLineRanges);
 
-            return newCodeTrackerChanged;
+        private bool ProcessNewCodeTrackerActual(ITextSnapshot currentSnapshot, List<SpanAndLineRange> spanAndLineRanges)
+        {
+            List<CodeSpanRange> newCodeCodeRanges = this.GetNewCodeCodeRanges(currentSnapshot);
+            return this.newCodeTracker.ProcessChanges(currentSnapshot, spanAndLineRanges, newCodeCodeRanges);
         }
+
+        private List<CodeSpanRange> GetNewCodeCodeRanges(ITextSnapshot currentSnapshot) 
+            => this.useFileCodeSpanRangeService ? this.GetNewCodeCodeRangesActual(currentSnapshot) : null;
+
+        private List<CodeSpanRange> GetNewCodeCodeRangesActual(ITextSnapshot currentSnapshot)
+            => this.GetNewCodeCodeRanges(currentSnapshot, this.GetContainingCodeTrackersCodeSpanRanges()).ToList();
+
+        private List<CodeSpanRange> GetContainingCodeTrackersCodeSpanRanges() 
+            => this.containingCodeTrackers.Select(ct => ct.GetState().CodeSpanRange).ToList();
 
         private List<CodeSpanRange> GetNewCodeCodeRanges(
             ITextSnapshot currentSnapshot,
@@ -106,7 +121,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
                 }
                 else
                 {
-                    // roslynRange intersects with trackerRange, skip it
+                    // fileRange intersects with trackerRange, skip it
                     i++;
                 }
             }
@@ -121,49 +136,36 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
             return newCodeCodeRanges;
         }
 
-        public IEnumerable<IDynamicLine> GetLines(int startLineNumber, int endLineNumber)
+        private (bool done, IEnumerable<IDynamicLine> lines) GetLines(IEnumerable<IDynamicLine> dynamicLines, int startLineNumber, int endLineNumber)
         {
-            var lineNumbers = new List<int>();
-            foreach (IContainingCodeTracker containingCodeTracker in this.containingCodeTrackers)
-            {
-                bool done = false;
-                foreach (IDynamicLine line in containingCodeTracker.Lines)
-                {
-                    if (line.Number > endLineNumber)
-                    {
-                        done = true;
-                        break;
-                    }
+            IEnumerable<IDynamicLine> linesApplicableToStartLineNumber = this.LinesApplicableToStartLineNumber(dynamicLines, startLineNumber);
+            var lines = linesApplicableToStartLineNumber.TakeWhile(l => l.Number <= endLineNumber).ToList();
+            bool done = lines.Count != linesApplicableToStartLineNumber.Count();
+            return (done, lines);
+        }
 
-                    if (line.Number >= startLineNumber)
-                    {
-                        lineNumbers.Add(line.Number);
-                        yield return line;
-                    }
-                }
+        private IEnumerable<IDynamicLine> LinesApplicableToStartLineNumber(IEnumerable<IDynamicLine> dynamicLines, int startLineNumber)
+            => dynamicLines.Where(l => l.Number >= startLineNumber);
 
-                if (done)
-                {
-                    break;
-                }
-            }
+        private IEnumerable<IDynamicLine> GetLinesFromContainingCodeTrackers(int startLineNumber, int endLineNumber) 
+            => this.containingCodeTrackers.Select(containingCodeTracker => this.GetLines(containingCodeTracker.Lines, startLineNumber, endLineNumber))
+                .TakeUntil(a => a.done).SelectMany(a => a.lines);
 
-            IEnumerable<IDynamicLine> newLines = this.newCodeTracker?.Lines ?? Enumerable.Empty<IDynamicLine>();
-            foreach (IDynamicLine line in newLines)
-            {
-                if (line.Number > endLineNumber)
-                {
-                    break;
-                }
+        private IEnumerable<IDynamicLine> NewCodeTrackerLines() => this.newCodeTracker?.Lines ?? Enumerable.Empty<IDynamicLine>();
 
-                if (line.Number >= startLineNumber)
-                {
-                    if (!lineNumbers.Contains(line.Number))
-                    {
-                        yield return line;
-                    }
-                }
-            }
+        private IEnumerable<IDynamicLine> GetNewLines(int startLineNumber, int endLineNumber) 
+            => this.LinesApplicableToStartLineNumber(this.NewCodeTrackerLines(), startLineNumber)
+                .TakeWhile(l => l.Number <= endLineNumber);
+
+        public IEnumerable<IDynamicLine> GetLines(int startLineNumber, int endLineNumber) 
+            => this.GetLinesFromContainingCodeTrackers(startLineNumber, endLineNumber)
+                .Concat(this.GetNewLines(startLineNumber, endLineNumber))
+                .Distinct(new DynamicLineByLineNumberComparer()).ToList();
+
+        private class DynamicLineByLineNumberComparer : IEqualityComparer<IDynamicLine>
+        {
+            public bool Equals(IDynamicLine x, IDynamicLine y) => x.Number == y.Number;
+            public int GetHashCode(IDynamicLine obj) => obj.Number;
         }
     }
 }

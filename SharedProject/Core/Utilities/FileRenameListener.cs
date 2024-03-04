@@ -22,7 +22,6 @@ namespace FineCodeCoverage.Core.Utilities
             this.serviceProvider = serviceProvider;
         }
 
-       
         private void EnsureListening()
         {
             if (!listening)

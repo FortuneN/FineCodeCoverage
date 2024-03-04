@@ -11,10 +11,14 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
 
         public bool ExcludeIfNotCode(string text, bool isCSharp)
         {
-            var lineExclusionCharacters = isCSharp ? cSharpExclusions : vbExclusions;
-            var trimmedLineText = text.Trim();
-            return trimmedLineText.Length == 0 || lineExclusionCharacters.Any(lineExclusionCharacter => trimmedLineText.StartsWith(lineExclusionCharacter));
+            string trimmedLineText = text.Trim();
+            return trimmedLineText.Length == 0 || this.StartsWithExclusion(trimmedLineText,isCSharp);
         }
 
+        private bool StartsWithExclusion(string text, bool isCSharp)
+        {
+            string[] languageExclusions = isCSharp ? cSharpExclusions : vbExclusions;
+            return languageExclusions.Any(languageExclusion => text.StartsWith(languageExclusion));
+        }
     }
 }

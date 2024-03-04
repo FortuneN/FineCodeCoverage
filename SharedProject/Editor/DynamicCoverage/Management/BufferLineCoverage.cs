@@ -133,11 +133,21 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
         {
             if (this.trackedLines != null)
             {
-                bool changed = this.trackedLines.Changed(e.After, e.Changes.Select(change => change.NewSpan).ToList());
-                if (changed)
-                {
-                    this.SendCoverageChangedMessage();
-                }
+                this.UpdateTrackedLines(e);
+            }
+        }
+
+        private void UpdateTrackedLines(TextContentChangedEventArgs e)
+        {
+            bool changed = this.trackedLines.Changed(e.After, e.Changes.Select(change => change.NewSpan).ToList());
+            this.SendCoverageChangedMessageIfChanged(changed);
+        }
+
+        private void SendCoverageChangedMessageIfChanged(bool changed)
+        {
+            if (changed)
+            {
+                this.SendCoverageChangedMessage();
             }
         }
 

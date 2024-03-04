@@ -20,7 +20,8 @@ namespace FineCodeCoverage.Editor.Management
         private CoverageColours lastCoverageColours;
         private ICoverageFontAndColorsCategoryItemNames coverageFontAndColorsCategoryItemNames;
 
-        public ICoverageFontAndColorsCategoryItemNames CoverageFontAndColorsCategoryItemNames { set => this.coverageFontAndColorsCategoryItemNames = value; }
+        public ICoverageFontAndColorsCategoryItemNames CoverageFontAndColorsCategoryItemNames { 
+            set => this.coverageFontAndColorsCategoryItemNames = value; }
 
         private readonly struct NameIndex
         {
@@ -52,29 +53,32 @@ namespace FineCodeCoverage.Editor.Management
             this.threadHelper = threadHelper;
         }
 
+        private List<(FontAndColorsCategoryItemName, int)> IndexedFontAndColorsCategoryItemNames() 
+            => new List<(FontAndColorsCategoryItemName, int)>
+                {
+                    (this.coverageFontAndColorsCategoryItemNames.Covered, 0),
+                    (this.coverageFontAndColorsCategoryItemNames.NotCovered, 1),
+                    (this.coverageFontAndColorsCategoryItemNames.PartiallyCovered, 2),
+                    (this.coverageFontAndColorsCategoryItemNames.Dirty,3),
+                    (this.coverageFontAndColorsCategoryItemNames.NewLines,4),
+                    (this.coverageFontAndColorsCategoryItemNames.NotIncluded,5)
+                };
+
         private List<CategoryNameIndices> GetCategoryNameIndices()
         {
             var lookup = new Dictionary<Guid, CategoryNameIndices>();
 
-            var items = new List<(FontAndColorsCategoryItemName, int)>
-            {
-                (this.coverageFontAndColorsCategoryItemNames.Covered, 0),
-                (this.coverageFontAndColorsCategoryItemNames.NotCovered, 1),
-                (this.coverageFontAndColorsCategoryItemNames.PartiallyCovered, 2),
-                (this.coverageFontAndColorsCategoryItemNames.Dirty,3),
-                (this.coverageFontAndColorsCategoryItemNames.NewLines,4),
-                (this.coverageFontAndColorsCategoryItemNames.NotIncluded,5)
-            };
+            List<(FontAndColorsCategoryItemName, int)> indexedFontAndColorsCategoryItemNames = this.IndexedFontAndColorsCategoryItemNames();
 
-            foreach ((FontAndColorsCategoryItemName, int) item in items)
+            foreach ((FontAndColorsCategoryItemName fontAndColorsCategoryItemName, int index)  in indexedFontAndColorsCategoryItemNames)
             {
-                if (!lookup.TryGetValue(item.Item1.Category, out CategoryNameIndices categoryNameIndices))
+                if (!lookup.TryGetValue(fontAndColorsCategoryItemName.Category, out CategoryNameIndices categoryNameIndices))
                 {
-                    categoryNameIndices = new CategoryNameIndices(item.Item1.Category);
-                    lookup.Add(item.Item1.Category, categoryNameIndices);
+                    categoryNameIndices = new CategoryNameIndices(fontAndColorsCategoryItemName.Category);
+                    lookup.Add(fontAndColorsCategoryItemName.Category, categoryNameIndices);
                 }
 
-                categoryNameIndices.NameIndices.Add(new NameIndex(item.Item1.ItemName, item.Item2));
+                categoryNameIndices.NameIndices.Add(new NameIndex(fontAndColorsCategoryItemName.ItemName, index));
             }
 
             return lookup.Values.ToList();
@@ -110,15 +114,16 @@ namespace FineCodeCoverage.Editor.Management
 
         private async Task<List<IFontAndColorsInfo>> GetItemCoverageInfosFromFontsAndColorsAsync()
         {
-            List<CategoryNameIndices> allCategoryNameIndices = this.GetCategoryNameIndices();
-            var tasks = new List<Task<List<(IFontAndColorsInfo, int)>>>();
-            foreach (CategoryNameIndices categoryNameIndices in allCategoryNameIndices)
-            {
-                tasks.Add(this.GetAsync(categoryNameIndices));
-            }
+            List<(IFontAndColorsInfo fontAndColorsInfo, int nameIndex)>[] results = await this.GetItemCoverageInfosWithNameIndexFromFontsAndColorsAsync();
+            return results.SelectMany(r => r).OrderBy(r => r.nameIndex).Select(r => r.fontAndColorsInfo).ToList();
+        }
 
-            List<(IFontAndColorsInfo, int)>[] results = await Task.WhenAll(tasks);
-            return results.SelectMany(r => r).OrderBy(r => r.Item2).Select(r => r.Item1).ToList();
+        private Task<List<(IFontAndColorsInfo fontAndColorsInfo, int nameIndex)>[]> GetItemCoverageInfosWithNameIndexFromFontsAndColorsAsync()
+        {
+            List<CategoryNameIndices> allCategoryNameIndices = this.GetCategoryNameIndices();
+            return Task.WhenAll(
+                allCategoryNameIndices.Select(categoryNameIndices => this.GetAsync(categoryNameIndices))
+            );
         }
 
         private async Task<List<(IFontAndColorsInfo, int)>> GetAsync(CategoryNameIndices categoryNameIndices)

@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using Esprima.Ast;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -42,10 +43,10 @@ namespace FineCodeCoverage.Editor.Roslyn
 
         public override void VisitOperatorDeclaration(OperatorDeclarationSyntax node) => this.AddIfHasBody(node);
 
+        private bool HasBody(BaseMethodDeclarationSyntax node) => node.Body != null || node.ExpressionBody != null;
         private void AddIfHasBody(BaseMethodDeclarationSyntax node)
         {
-            bool hasBody = node.Body != null || node.ExpressionBody != null;
-            if (hasBody)
+            if (this.HasBody(node))
             {
                 this.AddNode(node);
             }
@@ -61,27 +62,32 @@ namespace FineCodeCoverage.Editor.Roslyn
         {
             if (!this.IsAbstract(node.Modifiers))
             {
-                if (node.AccessorList == null)
-                {
-                    if (node is PropertyDeclarationSyntax propertyDeclarationSyntax)
-                    {
-                        this.AddNode(propertyDeclarationSyntax);
-                    }
-                }
-                else
-                {
-                    bool isInterfaceProperty = node.Parent is InterfaceDeclarationSyntax;
-                    foreach (AccessorDeclarationSyntax accessor in node.AccessorList.Accessors)
-                    {
-                        bool addAccessor = !isInterfaceProperty || this.AccessorHasBody(accessor);
-                        if (addAccessor)
-                        {
-                            this.AddNode(accessor);
-                        }
-                    }
-                }
+                this.VisitNonAbstractBasePropertyDeclaration(node);
             }
         }
+
+        private void AddIfPropertyDeclaration(BasePropertyDeclarationSyntax node)
+        {
+            if (node is PropertyDeclarationSyntax propertyDeclarationSyntax)
+            {
+                this.AddNode(propertyDeclarationSyntax);
+            }
+        }
+
+        private void VisitNonAbstractBasePropertyDeclaration(BasePropertyDeclarationSyntax node)
+        {
+            if (node.AccessorList == null)
+            {
+                this.AddIfPropertyDeclaration(node);
+            }
+            else
+            {
+                this.AddAccessors(node.AccessorList.Accessors, node.Parent is InterfaceDeclarationSyntax);
+            }
+        }
+
+        private void AddAccessors(SyntaxList<AccessorDeclarationSyntax> accessors, bool typeIsInterface) 
+            => accessors.Where(accessor => !typeIsInterface || this.AccessorHasBody(accessor)).ToList().ForEach(this.AddNode);
 
         private bool AccessorHasBody(AccessorDeclarationSyntax accessor) => accessor.Body != null || accessor.ExpressionBody != null;
 

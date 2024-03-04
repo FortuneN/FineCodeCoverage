@@ -33,12 +33,17 @@ namespace FineCodeCoverage.Editor.Management
         {
             if (this.initialized)
             {
-                bool preUsingEnterprise = this.usingEnterprise;
-                this.Set(() => appOptions.UseEnterpriseFontsAndColors);
-                if (this.usingEnterprise != preUsingEnterprise)
-                {
-                    Changed?.Invoke(this, new EventArgs());
-                }
+                this.ReactToAppOptionsChanging(appOptions);
+            }
+        }
+
+        private void ReactToAppOptionsChanging(IAppOptions appOptions)
+        {
+            bool preUsingEnterprise = this.usingEnterprise;
+            this.Set(() => appOptions.UseEnterpriseFontsAndColors);
+            if (this.usingEnterprise != preUsingEnterprise)
+            {
+                Changed?.Invoke(this, new EventArgs());
             }
         }
 

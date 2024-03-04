@@ -117,9 +117,14 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
             void SetNextCodeSpanRange()
             {
                 currentCodeSpanIndex++;
+                CodeSpanRange previousCodeSpanRange = currentCodeSpanRange;
                 currentCodeSpanRange = currentCodeSpanIndex < roslynContainingCodeSpans.Count
                     ? this.GetCodeSpanRange(roslynContainingCodeSpans[currentCodeSpanIndex], textSnapshot)
                     : null;
+                if (currentCodeSpanRange != null && previousCodeSpanRange!= null && previousCodeSpanRange.Equals(currentCodeSpanRange))
+                {
+                    SetNextCodeSpanRange();
+                }
             }
 
             void TrackOtherLines()
@@ -261,20 +266,25 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
             IFileCodeSpanRangeService roslynFileCodeSpanRangeService = this.GetRoslynFileCodeSpanRangeService(useRoslynWhenTextChanges);
             List<CodeSpanRange> codeSpanRanges = this.GetRoslynCodeSpanRanges(currentSnapshot);
             List<IContainingCodeTracker> containingCodeTrackers = this.RecreateContainingCodeTrackersWithUnchangedCodeSpanRange(codeSpanRanges, states, currentSnapshot);
-            List<int> newCodeLineNumbers = this.GetRecreateNewCodeLineNumbers(codeSpanRanges, useRoslynWhenTextChanges);
+            IEnumerable<int> newCodeLineNumbers = this.GetRecreateNewCodeLineNumbers(codeSpanRanges, useRoslynWhenTextChanges);
             INewCodeTracker newCodeTracker = this.newCodeTrackerFactory.Create(isCharp, newCodeLineNumbers, currentSnapshot);
 
             return this.containingCodeTrackedLinesFactory.Create(containingCodeTrackers, newCodeTracker, roslynFileCodeSpanRangeService);
         }
 
-        private List<int> GetRecreateNewCodeLineNumbers(List<CodeSpanRange> newCodeCodeRanges, bool useRoslynWhenTextChanges)
+        private IEnumerable<int> GetRecreateNewCodeLineNumbers(List<CodeSpanRange> newCodeCodeRanges, bool useRoslynWhenTextChanges)
             => useRoslynWhenTextChanges
-                ? newCodeCodeRanges.Select(newCodeCodeRange => newCodeCodeRange.StartLine).ToList()
-                : newCodeCodeRanges.SelectMany(
+                ? this.StartLines(newCodeCodeRanges)
+                : this.EveryLineInCodeSpanRanges(newCodeCodeRanges);
+
+        private IEnumerable<int> StartLines(List<CodeSpanRange> newCodeCodeRanges) 
+            => newCodeCodeRanges.Select(newCodeCodeRange => newCodeCodeRange.StartLine);
+        private IEnumerable<int> EveryLineInCodeSpanRanges(List<CodeSpanRange> newCodeCodeRanges)
+            => newCodeCodeRanges.SelectMany(
                 newCodeCodeRange => Enumerable.Range(
                     newCodeCodeRange.StartLine,
-                    newCodeCodeRange.EndLine - newCodeCodeRange.StartLine + 1)).ToList();
-
+                    newCodeCodeRange.EndLine - newCodeCodeRange.StartLine + 1)
+                );
         public ITrackedLines Create(string serializedCoverage, ITextSnapshot currentSnapshot, Language language)
         {
             List<SerializedState> states = this.jsonConvertService.DeserializeObject<List<SerializedState>>(serializedCoverage);
