@@ -109,7 +109,7 @@ namespace FineCodeCoverage.Editor.Management
         }
 
         public string GetEditorFormatDefinitionName(DynamicCoverageType coverageType) => this.editorFormatNames[coverageType];
-        
+
         public IClassificationType GetClassificationType(DynamicCoverageType coverageType) => this.classificationTypes[coverageType];
 
         public void SetCoverageColours(IEnumerable<ICoverageTypeColour> coverageTypeColours)

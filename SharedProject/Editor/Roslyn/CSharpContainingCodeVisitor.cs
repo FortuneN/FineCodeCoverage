@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using Esprima.Ast;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -86,7 +85,7 @@ namespace FineCodeCoverage.Editor.Roslyn
             }
         }
 
-        private void AddAccessors(SyntaxList<AccessorDeclarationSyntax> accessors, bool typeIsInterface) 
+        private void AddAccessors(SyntaxList<AccessorDeclarationSyntax> accessors, bool typeIsInterface)
             => accessors.Where(accessor => !typeIsInterface || this.AccessorHasBody(accessor)).ToList().ForEach(this.AddNode);
 
         private bool AccessorHasBody(AccessorDeclarationSyntax accessor) => accessor.Body != null || accessor.ExpressionBody != null;

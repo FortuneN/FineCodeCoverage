@@ -68,7 +68,7 @@ namespace FineCodeCoverage.Editor.Management
         {
             var infos = new List<IFontAndColorsInfo>();
             await this.OpenCloseCategoryAsync(
-                category, 
+                category,
                 fontAndColorStorage => infos = names.Select(name => this.GetInfo(name, fontAndColorStorage)).Where(color => color != null).ToList()
             );
             return infos;

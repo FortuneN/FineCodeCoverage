@@ -15,7 +15,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
             this.textSnapshotText = textSnapshotText;
             this.codeLineExcluder = codeLineExcluder;
         }
-        public bool ExcludeIfNotCode(ITextSnapshot textSnapshot, int lineNumber, bool isCSharp) 
+        public bool ExcludeIfNotCode(ITextSnapshot textSnapshot, int lineNumber, bool isCSharp)
             => this.codeLineExcluder.ExcludeIfNotCode(this.textSnapshotText.GetLineText(textSnapshot, lineNumber), isCSharp);
     }
 }

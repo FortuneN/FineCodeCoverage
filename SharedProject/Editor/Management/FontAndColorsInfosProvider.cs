@@ -20,8 +20,10 @@ namespace FineCodeCoverage.Editor.Management
         private CoverageColours lastCoverageColours;
         private ICoverageFontAndColorsCategoryItemNames coverageFontAndColorsCategoryItemNames;
 
-        public ICoverageFontAndColorsCategoryItemNames CoverageFontAndColorsCategoryItemNames { 
-            set => this.coverageFontAndColorsCategoryItemNames = value; }
+        public ICoverageFontAndColorsCategoryItemNames CoverageFontAndColorsCategoryItemNames
+        {
+            set => this.coverageFontAndColorsCategoryItemNames = value;
+        }
 
         private readonly struct NameIndex
         {
@@ -53,7 +55,7 @@ namespace FineCodeCoverage.Editor.Management
             this.threadHelper = threadHelper;
         }
 
-        private List<(FontAndColorsCategoryItemName, int)> IndexedFontAndColorsCategoryItemNames() 
+        private List<(FontAndColorsCategoryItemName, int)> IndexedFontAndColorsCategoryItemNames()
             => new List<(FontAndColorsCategoryItemName, int)>
                 {
                     (this.coverageFontAndColorsCategoryItemNames.Covered, 0),
@@ -70,7 +72,7 @@ namespace FineCodeCoverage.Editor.Management
 
             List<(FontAndColorsCategoryItemName, int)> indexedFontAndColorsCategoryItemNames = this.IndexedFontAndColorsCategoryItemNames();
 
-            foreach ((FontAndColorsCategoryItemName fontAndColorsCategoryItemName, int index)  in indexedFontAndColorsCategoryItemNames)
+            foreach ((FontAndColorsCategoryItemName fontAndColorsCategoryItemName, int index) in indexedFontAndColorsCategoryItemNames)
             {
                 if (!lookup.TryGetValue(fontAndColorsCategoryItemName.Category, out CategoryNameIndices categoryNameIndices))
                 {

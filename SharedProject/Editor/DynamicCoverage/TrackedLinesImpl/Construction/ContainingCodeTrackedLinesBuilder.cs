@@ -121,7 +121,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
                 currentCodeSpanRange = currentCodeSpanIndex < roslynContainingCodeSpans.Count
                     ? this.GetCodeSpanRange(roslynContainingCodeSpans[currentCodeSpanIndex], textSnapshot)
                     : null;
-                if (currentCodeSpanRange != null && previousCodeSpanRange!= null && previousCodeSpanRange.Equals(currentCodeSpanRange))
+                if (currentCodeSpanRange != null && previousCodeSpanRange != null && previousCodeSpanRange.Equals(currentCodeSpanRange))
                 {
                     SetNextCodeSpanRange();
                 }
@@ -277,7 +277,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
                 ? this.StartLines(newCodeCodeRanges)
                 : this.EveryLineInCodeSpanRanges(newCodeCodeRanges);
 
-        private IEnumerable<int> StartLines(List<CodeSpanRange> newCodeCodeRanges) 
+        private IEnumerable<int> StartLines(List<CodeSpanRange> newCodeCodeRanges)
             => newCodeCodeRanges.Select(newCodeCodeRange => newCodeCodeRange.StartLine);
         private IEnumerable<int> EveryLineInCodeSpanRanges(List<CodeSpanRange> newCodeCodeRanges)
             => newCodeCodeRanges.SelectMany(

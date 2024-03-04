@@ -60,7 +60,7 @@ namespace FineCodeCoverage.Editor.Tagging.Base
             TagsChanged?.Invoke(this, spanEventArgs);
         }
 
-        public IEnumerable<ITagSpan<TTag>> GetTags(NormalizedSnapshotSpanCollection spans) 
+        public IEnumerable<ITagSpan<TTag>> GetTags(NormalizedSnapshotSpanCollection spans)
             => this.CanGetTagsFromCoverageLines
                 ? this.GetTagsFromCoverageLines(spans)
                 : Enumerable.Empty<ITagSpan<TTag>>();
@@ -73,7 +73,7 @@ namespace FineCodeCoverage.Editor.Tagging.Base
             return this.GetTags(lineSpans);
         }
 
-        private IEnumerable<ITagSpan<TTag>> GetTags(IEnumerable<ILineSpan> lineSpans) 
+        private IEnumerable<ITagSpan<TTag>> GetTags(IEnumerable<ILineSpan> lineSpans)
             => lineSpans.Where(lineSpan => this.coverageTypeFilter.Show(lineSpan.Line.CoverageType))
                 .Select(lineSpan => this.lineSpanTagger.GetTagSpan(lineSpan));
 

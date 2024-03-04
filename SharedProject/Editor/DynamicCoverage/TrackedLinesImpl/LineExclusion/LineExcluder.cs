@@ -12,7 +12,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
         public bool ExcludeIfNotCode(string text, bool isCSharp)
         {
             string trimmedLineText = text.Trim();
-            return trimmedLineText.Length == 0 || this.StartsWithExclusion(trimmedLineText,isCSharp);
+            return trimmedLineText.Length == 0 || this.StartsWithExclusion(trimmedLineText, isCSharp);
         }
 
         private bool StartsWithExclusion(string text, bool isCSharp)

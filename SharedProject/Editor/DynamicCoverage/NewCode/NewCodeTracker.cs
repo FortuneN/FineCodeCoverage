@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using EnvDTE;
 using Microsoft.VisualStudio.Text;
 
 namespace FineCodeCoverage.Editor.DynamicCoverage
@@ -76,7 +75,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
                 : this.ProcessSpanAndLineRanges(potentialNewLines, currentSnapshot);
 
         private (bool, List<SpanAndLineRange>) UpdateAndReduceBySpanAndLineRanges(
-            ITextSnapshot currentSnapshot, 
+            ITextSnapshot currentSnapshot,
             List<SpanAndLineRange> potentialNewLines
         )
         {
@@ -94,8 +93,8 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
             return (requiresUpdate, potentialNewLines);
         }
 
-        private (bool requiresUpdate,List<SpanAndLineRange> reducedPotentialNewLines) UpdateAndReduce(
-            ITrackedNewCodeLine trackedNewCodeLine, 
+        private (bool requiresUpdate, List<SpanAndLineRange> reducedPotentialNewLines) UpdateAndReduce(
+            ITrackedNewCodeLine trackedNewCodeLine,
             ITextSnapshot currentSnapshot,
             List<SpanAndLineRange> potentialNewLines,
             List<ITrackedNewCodeLine> removals
@@ -105,14 +104,14 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
 
             List<SpanAndLineRange> reducedPotentialNewLines = this.ReducePotentialNewLines(potentialNewLines, trackedNewCodeLineUpdate.LineNumber);
 
-            bool requiresUpdate = this.RemoveTrackedNewCodeLineIfExcluded(removals,trackedNewCodeLine,trackedNewCodeLineUpdate);
+            bool requiresUpdate = this.RemoveTrackedNewCodeLineIfExcluded(removals, trackedNewCodeLine, trackedNewCodeLineUpdate);
 
             return (requiresUpdate, reducedPotentialNewLines);
         }
 
         private bool RemoveTrackedNewCodeLineIfExcluded(
-            List<ITrackedNewCodeLine> removals, 
-            ITrackedNewCodeLine trackedNewCodeLine, 
+            List<ITrackedNewCodeLine> removals,
+            ITrackedNewCodeLine trackedNewCodeLine,
             TrackedNewCodeLineUpdate trackedNewCodeLineUpdate)
         {
             bool requiresUpdate;
@@ -129,7 +128,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
             return requiresUpdate;
         }
 
-        private List<SpanAndLineRange> ReducePotentialNewLines(List<SpanAndLineRange> potentialNewLines, int updatedLineNumber) 
+        private List<SpanAndLineRange> ReducePotentialNewLines(List<SpanAndLineRange> potentialNewLines, int updatedLineNumber)
             => potentialNewLines.Where(spanAndLineRange => spanAndLineRange.StartLineNumber != updatedLineNumber).ToList();
 
         private bool ProcessSpanAndLineRanges(List<SpanAndLineRange> potentialNewLines, ITextSnapshot currentSnapshot)
@@ -139,7 +138,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
             return requiresUpdate || added;
         }
 
-        private bool AddTrackedNewCodeLinesIfNotExcluded(IEnumerable<SpanAndLineRange> potentialNewLines, ITextSnapshot currentSnapshot) 
+        private bool AddTrackedNewCodeLinesIfNotExcluded(IEnumerable<SpanAndLineRange> potentialNewLines, ITextSnapshot currentSnapshot)
             => this.GetDistinctStartLineNumbers(potentialNewLines)
                     .Any(lineNumber => this.AddTrackedNewCodeLineIfNotExcluded(currentSnapshot, lineNumber));
 
