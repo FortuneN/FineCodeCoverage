@@ -2,7 +2,7 @@
 
 namespace FineCodeCoverage.Editor.Roslyn
 {
-    class RootNodeAndLanguage
+    internal class RootNodeAndLanguage
     {
         public SyntaxNode Root { get; }
         public string Language { get; }

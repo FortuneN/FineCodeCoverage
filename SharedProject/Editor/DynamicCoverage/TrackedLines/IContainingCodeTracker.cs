@@ -3,7 +3,7 @@ using Microsoft.VisualStudio.Text;
 
 namespace FineCodeCoverage.Editor.DynamicCoverage
 {
-    interface IContainingCodeTracker
+    internal interface IContainingCodeTracker
     {
         IContainingCodeTrackerProcessResult ProcessChanges(ITextSnapshot currentSnapshot, List<SpanAndLineRange> newSpanAndLineRanges);
         ContainingCodeTrackerState GetState();

@@ -4,7 +4,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace FineCodeCoverage.Editor.Roslyn
 {
-    interface ILanguageContainingCodeVisitor
+    internal interface ILanguageContainingCodeVisitor
     {
         List<TextSpan> GetSpans(SyntaxNode rootNode);
     }

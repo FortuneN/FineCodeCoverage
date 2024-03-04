@@ -3,7 +3,7 @@ using Microsoft.VisualStudio.Text;
 
 namespace FineCodeCoverage.Editor.DynamicCoverage
 {
-    interface ITrackedCoverageLines
+    internal interface ITrackedCoverageLines
     {
         IEnumerable<IDynamicLine> Lines { get; }
         bool Update(ITextSnapshot currentSnapshot);

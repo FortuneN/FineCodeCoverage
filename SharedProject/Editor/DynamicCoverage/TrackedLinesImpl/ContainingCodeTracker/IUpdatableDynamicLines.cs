@@ -3,7 +3,7 @@ using Microsoft.VisualStudio.Text;
 
 namespace FineCodeCoverage.Editor.DynamicCoverage
 {
-    interface IUpdatableDynamicLines
+    internal interface IUpdatableDynamicLines
     {
         IEnumerable<IDynamicLine> Lines { get; }
         ContainingCodeTrackerType Type { get; }

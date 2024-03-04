@@ -5,7 +5,7 @@ using Microsoft.VisualStudio.Text;
 
 namespace FineCodeCoverage.Editor.Roslyn
 {
-    interface IRoslynService
+    internal interface IRoslynService
     {
         Task<List<TextSpan>> GetContainingCodeSpansAsync(ITextSnapshot textSnapshot);
     }

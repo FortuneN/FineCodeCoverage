@@ -4,7 +4,7 @@ using Microsoft.VisualStudio.Text;
 
 namespace FineCodeCoverage.Editor.DynamicCoverage
 {
-    class NewCodeTracker : INewCodeTracker
+    internal class NewCodeTracker : INewCodeTracker
     {
         private readonly List<ITrackedNewCodeLine> trackedNewCodeLines = new List<ITrackedNewCodeLine>();
         private readonly bool isCSharp;

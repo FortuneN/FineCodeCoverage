@@ -5,7 +5,7 @@ using Microsoft.VisualStudio.Text;
 
 namespace FineCodeCoverage.Editor.DynamicCoverage
 {
-    interface ITrackedLinesFactory
+    internal interface ITrackedLinesFactory
     {
         ITrackedLines Create(List<ILine> lines, ITextSnapshot textSnapshot, Language language);
         ITrackedLines Create(string serializedCoverage, ITextSnapshot currentSnapshot, Language language);
