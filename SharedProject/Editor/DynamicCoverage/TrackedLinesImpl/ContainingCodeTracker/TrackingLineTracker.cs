@@ -1,9 +1,10 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using Microsoft.VisualStudio.Text;
 
 namespace FineCodeCoverage.Editor.DynamicCoverage
 {
-    internal abstract class TrackingLineTracker : IUpdatableDynamicLines
+    internal class TrackingLineTracker : IUpdatableDynamicLines
     {
         private readonly ITrackingLine trackingLine;
 
@@ -14,11 +15,12 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
             this.trackingLine = trackingLine;
             this.Type = containingCodeTrackerType;
         }
+
         public IEnumerable<IDynamicLine> Lines => new List<IDynamicLine> { this.trackingLine.Line };
 
         public ContainingCodeTrackerType Type { get; }
 
-        public bool Update(
+        public IEnumerable<int> GetUpdatedLineNumbers(
             TrackingSpanRangeProcessResult trackingSpanRangeProcessResult,
             ITextSnapshot currentSnapshot,
             List<SpanAndLineRange> newSpanAndLineRanges) => this.trackingLine.Update(currentSnapshot);

@@ -22,8 +22,15 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
             Assert.That(trackingSpanRangeUpdatingTracker.Lines, Is.SameAs(dynamicLines));
         }
 
+        private static IDynamicLine CreateDynamicLine(int lineNumber)
+        {
+            var mockDynamicLine = new Mock<IDynamicLine>();
+            mockDynamicLine.SetupGet(dynamicLine => dynamicLine.Number).Returns(lineNumber);
+            return mockDynamicLine.Object;
+        }
+
         [Test]
-        public void Should_Not_Update_IUpdatableDynamicLines_When_Empty_And_be_Changed()
+        public void Should_Not_Update_IUpdatableDynamicLines_When_Empty_Returning_All_UpdatableDynamicLines_Line_Numbers()
         {
             var textSnapshot = new Mock<ITextSnapshot>().Object;
             var newSpanAndLineRanges = new List<SpanAndLineRange> { new SpanAndLineRange(new Span(1, 2), 0, 0) };
@@ -32,39 +39,41 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
             mockTrackingSpanRange.Setup(trackingSpanRange => trackingSpanRange.Process(textSnapshot, newSpanAndLineRanges))
                 .Returns(new TrackingSpanRangeProcessResult(mockTrackingSpanRange.Object, nonIntersectingSpans, true, false));
             var mockUpdatableDynamicLines = new Mock<IUpdatableDynamicLines>(MockBehavior.Strict);
-            
+
+            var dynamicLines = new List<IDynamicLine> { CreateDynamicLine(1), CreateDynamicLine(2) };
+            mockUpdatableDynamicLines.SetupGet(updatableDynamicLines => updatableDynamicLines.Lines).Returns(dynamicLines);
 
             var trackingSpanRangeUpdatingTracker = new TrackingSpanRangeUpdatingTracker(mockTrackingSpanRange.Object, mockUpdatableDynamicLines.Object);
 
             var result = trackingSpanRangeUpdatingTracker.ProcessChanges(textSnapshot, newSpanAndLineRanges);
 
             Assert.That(result.UnprocessedSpans, Is.SameAs(nonIntersectingSpans));
-            Assert.That(result.Changed, Is.True);
+            Assert.That(result.ChangedLines, Is.EqualTo(new List<int> { 1,2}));
             Assert.That(result.IsEmpty, Is.True);
         }
 
-        [TestCase(true)]
-        [TestCase(false)]
-        public void Should_Update_IUpdatableDynamicLines_When_Non_Empty(bool updatableChanged)
+        [Test]
+        public void Should_Update_IUpdatableDynamicLines_When_Non_Empty()
         {
             var textSnapshot = new Mock<ITextSnapshot>().Object;
             var newSpanAndLineRanges = new List<SpanAndLineRange> { new SpanAndLineRange(new Span(1, 2), 0, 0) };
             var mockTrackingSpanRange = new Mock<ITrackingSpanRange>();
             var nonIntersectingSpans = new List<SpanAndLineRange>();
-            var trackingSpanRangeProcessResult  = new TrackingSpanRangeProcessResult(mockTrackingSpanRange.Object, nonIntersectingSpans, false, false);
+            var trackingSpanRangeProcessResult = new TrackingSpanRangeProcessResult(mockTrackingSpanRange.Object, nonIntersectingSpans, false, false);
             mockTrackingSpanRange.Setup(trackingSpanRange => trackingSpanRange.Process(textSnapshot, newSpanAndLineRanges))
                 .Returns(trackingSpanRangeProcessResult);
             var mockUpdatableDynamicLines = new Mock<IUpdatableDynamicLines>();
+            var updatedLineNumbers = new List<int> { 1, 2 };
             mockUpdatableDynamicLines.Setup(
-                updatableDynamicLines => updatableDynamicLines.Update(trackingSpanRangeProcessResult, textSnapshot, newSpanAndLineRanges)
-            ).Returns(updatableChanged);
+                updatableDynamicLines => updatableDynamicLines.GetUpdatedLineNumbers(trackingSpanRangeProcessResult, textSnapshot, newSpanAndLineRanges)
+            ).Returns(updatedLineNumbers);
 
             var trackingSpanRangeUpdatingTracker = new TrackingSpanRangeUpdatingTracker(mockTrackingSpanRange.Object, mockUpdatableDynamicLines.Object);
 
             var result = trackingSpanRangeUpdatingTracker.ProcessChanges(textSnapshot, newSpanAndLineRanges);
 
             Assert.That(result.UnprocessedSpans, Is.SameAs(nonIntersectingSpans));
-            Assert.That(result.Changed, Is.EqualTo(updatableChanged));
+            Assert.That(result.ChangedLines, Is.SameAs(updatedLineNumbers));
             Assert.That(result.IsEmpty, Is.False);
         }
 

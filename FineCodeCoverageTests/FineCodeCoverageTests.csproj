@@ -69,7 +69,6 @@
     <Compile Include="AppOptionsProvider_Tests.cs" />
     <Compile Include="CoverageUtilManager_Tests.cs" />
     <Compile Include="Editor\DynamicCoverage\BufferLineCoverage_Tests.cs" />
-    <Compile Include="Editor\DynamicCoverage\DirtyCodeTracker_Tests.cs" />
     <Compile Include="Editor\DynamicCoverage\DynamicCoverageStore_Tests.cs" />
     <Compile Include="Editor\DynamicCoverage\LineExcluder_Tests.cs" />
     <Compile Include="Editor\DynamicCoverage\CoverageCodeTracker_Tests.cs" />
@@ -77,7 +76,7 @@
     <Compile Include="Editor\DynamicCoverage\TrackingLine_Tests.cs" />
     <Compile Include="Editor\DynamicCoverage\CodeSpanRangeContainingCodeTrackerFactory_Tests.cs" />
     <Compile Include="Editor\DynamicCoverage\NewCodeTracker_Tests.cs" />
-    <Compile Include="Editor\DynamicCoverage\NotIncludedTracker_Tests.cs" />
+    <Compile Include="Editor\DynamicCoverage\TrackingLineTracker_Tests.cs" />
     <Compile Include="Editor\DynamicCoverage\OtherLinesTracker_Tests.cs" />
     <Compile Include="Editor\DynamicCoverage\SerializedState_Tests.cs" />
     <Compile Include="Editor\DynamicCoverage\TextInfo_Tests.cs" />

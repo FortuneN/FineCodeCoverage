@@ -1,4 +1,6 @@
-﻿using FineCodeCoverage.Editor.DynamicCoverage;
+﻿using System.Collections.Generic;
+using System.Linq;
+using FineCodeCoverage.Editor.DynamicCoverage;
 using FineCodeCoverage.Engine.Model;
 using Microsoft.VisualStudio.Text;
 using Moq;
@@ -39,9 +41,9 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
                 .Returns(updatedLineNumber);
             var coverageLine = new CoverageLine(trackingSpan, mockLine.Object, mockLineTracker.Object);
 
-            var updated = coverageLine.Update(currentTextSnapshot);
+            var updatedLineNumbers = coverageLine.Update(currentTextSnapshot);
 
-            Assert.That(updated, Is.EqualTo(updateLineNumber));
+            Assert.That(updatedLineNumbers, Is.EqualTo(updateLineNumber ? new List<int> { 0, 10 } : Enumerable.Empty<int>()));
 
             Assert.That(coverageLine.Line.Number, Is.EqualTo(updatedLineNumber));
         }

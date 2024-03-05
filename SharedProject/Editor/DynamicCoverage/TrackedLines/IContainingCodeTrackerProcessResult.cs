@@ -5,7 +5,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
     internal interface IContainingCodeTrackerProcessResult
     {
         bool IsEmpty { get; }
-        bool Changed { get; }
+        IEnumerable<int> ChangedLines { get; }
         List<SpanAndLineRange> UnprocessedSpans { get; }
     }
 }

@@ -19,10 +19,13 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
             => this.Wrap(trackingSpanRange, new CoverageCodeTracker(trackedCoverageLines, this.dirtyLineFactory));
 
         public IContainingCodeTracker CreateDirty(ITrackingSpanRange trackingSpanRange, ITextSnapshot textSnapshot)
-            => this.Wrap(trackingSpanRange, new DirtyCodeTracker(this.dirtyLineFactory.Create(trackingSpanRange.GetFirstTrackingSpan(), textSnapshot)));
+            => this.Wrap(trackingSpanRange, new TrackingLineTracker(
+                    this.dirtyLineFactory.Create(trackingSpanRange.GetFirstTrackingSpan(), textSnapshot),
+                    ContainingCodeTrackerType.CoverageLines)
+            );
 
         public IContainingCodeTracker CreateNotIncluded(ITrackingLine trackingLine, ITrackingSpanRange trackingSpanRange)
-            => this.Wrap(trackingSpanRange, new NotIncludedCodeTracker(trackingLine));
+            => this.Wrap(trackingSpanRange, new TrackingLineTracker(trackingLine,ContainingCodeTrackerType.NotIncluded));
 
         public IContainingCodeTracker CreateOtherLines(ITrackingSpanRange trackingSpanRange)
             => this.Wrap(trackingSpanRange, new OtherLinesTracker());

@@ -2,14 +2,14 @@
 {
     internal readonly struct TrackedNewCodeLineUpdate
     {
-        public TrackedNewCodeLineUpdate(string text, int lineNumber, bool lineUpdated)
+        public TrackedNewCodeLineUpdate(string text, int newLineNumber, int oldLineNumber)
         {
             this.Text = text;
-            this.LineNumber = lineNumber;
-            this.LineUpdated = lineUpdated;
+            this.NewLineNumber = newLineNumber;
+            this.OldLineNumber = oldLineNumber;
         }
         public string Text { get; }
-        public int LineNumber { get; }
-        public bool LineUpdated { get; }
+        public int NewLineNumber { get; }
+        public int OldLineNumber { get; }
     }
 }

@@ -1,4 +1,5 @@
-﻿using Microsoft.VisualStudio.Text;
+﻿using System.Collections.Generic;
+using Microsoft.VisualStudio.Text;
 
 namespace FineCodeCoverage.Editor.DynamicCoverage
 {
@@ -6,6 +7,6 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
     {
         IDynamicLine Line { get; }
 
-        bool Update(ITextSnapshot currentSnapshot);
+        List<int> Update(ITextSnapshot currentSnapshot);
     }
 }

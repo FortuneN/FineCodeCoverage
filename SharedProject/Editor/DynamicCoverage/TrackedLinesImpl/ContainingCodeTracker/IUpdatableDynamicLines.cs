@@ -8,7 +8,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
         IEnumerable<IDynamicLine> Lines { get; }
         ContainingCodeTrackerType Type { get; }
 
-        bool Update(
+        IEnumerable<int> GetUpdatedLineNumbers(
             TrackingSpanRangeProcessResult trackingSpanRangeProcessResult,
             ITextSnapshot currentSnapshot,
             List<SpanAndLineRange> newSpanAndLineRanges);

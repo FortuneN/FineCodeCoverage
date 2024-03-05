@@ -14,11 +14,11 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
         }
 
         [Test]
-        public void Should_Never_Change()
+        public void Should_Never_Have_Updated_Line_Numbers()
         {
             var otherLinesTracker = new OtherLinesTracker();
 
-            Assert.That(otherLinesTracker.Update(null, null, null), Is.False);
+            Assert.That(otherLinesTracker.GetUpdatedLineNumbers(null, null, null), Is.Empty);
         }
 
         [Test]

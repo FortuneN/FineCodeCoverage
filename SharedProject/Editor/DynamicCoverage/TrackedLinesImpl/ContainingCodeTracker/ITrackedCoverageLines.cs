@@ -6,6 +6,6 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
     internal interface ITrackedCoverageLines
     {
         IEnumerable<IDynamicLine> Lines { get; }
-        bool Update(ITextSnapshot currentSnapshot);
+        IEnumerable<int> GetUpdatedLineNumbers(ITextSnapshot currentSnapshot);
     }
 }

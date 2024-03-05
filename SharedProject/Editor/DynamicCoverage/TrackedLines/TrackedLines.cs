@@ -33,26 +33,27 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
                      currentSnapshot.GetLineNumberFromPosition(newSpanChange.End)
                  )).ToList();
 
-        private (bool, List<SpanAndLineRange>) ProcessContainingCodeTrackers(
+        private (IEnumerable<int>, List<SpanAndLineRange>) ProcessContainingCodeTrackers(
             ITextSnapshot currentSnapshot,
             List<SpanAndLineRange> spanAndLineRanges
             )
         {
-            bool changed = false;
             var removals = new List<IContainingCodeTracker>();
+            var allChangedLines = new List<int>();
             foreach (IContainingCodeTracker containingCodeTracker in this.containingCodeTrackers)
             {
-                (bool containingCodeTrackerChanged, List<SpanAndLineRange> unprocessedSpans) = this.ProcessContainingCodeTracker(removals, containingCodeTracker, currentSnapshot, spanAndLineRanges);
-                changed = changed || containingCodeTrackerChanged;
+                (IEnumerable<int> changedLines, List<SpanAndLineRange> unprocessedSpans) = 
+                    this.ProcessContainingCodeTracker(removals, containingCodeTracker, currentSnapshot, spanAndLineRanges);
+                allChangedLines.AddRange(changedLines);
                 spanAndLineRanges = unprocessedSpans;
             }
 
             removals.ForEach(removal => this.containingCodeTrackers.Remove(removal));
 
-            return (changed, spanAndLineRanges);
+            return (allChangedLines, spanAndLineRanges);
         }
 
-        private (bool changed, List<SpanAndLineRange> unprocessedSpans) ProcessContainingCodeTracker(
+        private (IEnumerable<int> changedLines, List<SpanAndLineRange> unprocessedSpans) ProcessContainingCodeTracker(
             List<IContainingCodeTracker> removals,
             IContainingCodeTracker containingCodeTracker,
             ITextSnapshot currentSnapshot,
@@ -65,25 +66,26 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
                 removals.Add(containingCodeTracker);
             }
 
-            return (processResult.Changed, processResult.UnprocessedSpans);
+            return (processResult.ChangedLines, processResult.UnprocessedSpans);
         }
 
         // normalized spans
-        public bool Changed(ITextSnapshot currentSnapshot, List<Span> newSpanChanges)
+        public IEnumerable<int> GetChangedLineNumbers(ITextSnapshot currentSnapshot, List<Span> newSpanChanges)
         {
             List<SpanAndLineRange> spanAndLineRanges = this.GetSpanAndLineRanges(currentSnapshot, newSpanChanges);
-            (bool changed, List<SpanAndLineRange> unprocessedSpans) = this.ProcessContainingCodeTrackers(currentSnapshot, spanAndLineRanges);
-            bool newCodeTrackerChanged = this.ProcessNewCodeTracker(currentSnapshot, unprocessedSpans);
-            return changed || newCodeTrackerChanged;
+            (IEnumerable<int> changedLines, List<SpanAndLineRange> unprocessedSpans) = 
+                this.ProcessContainingCodeTrackers(currentSnapshot, spanAndLineRanges);
+            IEnumerable<int> newCodeTrackerChangedLines = this.GetNewCodeTrackerChangedLineNumbers(currentSnapshot, unprocessedSpans);
+            return changedLines.Concat(newCodeTrackerChangedLines).Distinct();
         }
 
-        private bool ProcessNewCodeTracker(ITextSnapshot currentSnapshot, List<SpanAndLineRange> spanAndLineRanges)
-            => this.newCodeTracker != null && this.ProcessNewCodeTrackerActual(currentSnapshot, spanAndLineRanges);
+        private IEnumerable<int> GetNewCodeTrackerChangedLineNumbers(ITextSnapshot currentSnapshot, List<SpanAndLineRange> spanAndLineRanges)
+            => this.newCodeTracker == null ? Enumerable.Empty<int>() : this.GetNewCodeTrackerChangedLineNumbersActual(currentSnapshot, spanAndLineRanges);
 
-        private bool ProcessNewCodeTrackerActual(ITextSnapshot currentSnapshot, List<SpanAndLineRange> spanAndLineRanges)
+        private IEnumerable<int> GetNewCodeTrackerChangedLineNumbersActual(ITextSnapshot currentSnapshot, List<SpanAndLineRange> spanAndLineRanges)
         {
             List<CodeSpanRange> newCodeCodeRanges = this.GetNewCodeCodeRanges(currentSnapshot);
-            return this.newCodeTracker.ProcessChanges(currentSnapshot, spanAndLineRanges, newCodeCodeRanges);
+            return this.newCodeTracker.GetChangedLineNumbers(currentSnapshot, spanAndLineRanges, newCodeCodeRanges);
         }
 
         private List<CodeSpanRange> GetNewCodeCodeRanges(ITextSnapshot currentSnapshot)

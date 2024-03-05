@@ -243,7 +243,9 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
 
             var newSpan = new Span(1, 2);
             var mockTrackedLines = new Mock<ITrackedLines>();
-            mockTrackedLines.Setup(trackedLines => trackedLines.Changed(afterSnapshot, new List<Span> { newSpan })).Returns(textLinesChanged);
+            var changedLineNumbers = textLinesChanged ? new List<int> { 1, 2 } : new List<int>();
+            mockTrackedLines.Setup(trackedLines => trackedLines.GetChangedLineNumbers(afterSnapshot, new List<Span> { newSpan }))
+                .Returns(changedLineNumbers);
             autoMoqer.Setup<ITrackedLinesFactory, ITrackedLines>(trackedLinesFactory => trackedLinesFactory.Create(It.IsAny<List<ILine>>(), It.IsAny<ITextSnapshot>(), It.IsAny<Language>()))
                 .Returns(mockTrackedLines.Object);
 
@@ -254,7 +256,7 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
 
             autoMoqer.Verify<IEventAggregator>(
                         eventAggregator => eventAggregator.SendMessage(
-                            It.Is<CoverageChangedMessage>(message => message.AppliesTo == "filepath" && message.CoverageLines == bufferLineCoverage)
+                            It.Is<CoverageChangedMessage>(message => message.AppliesTo == "filepath" && message.CoverageLines == bufferLineCoverage && message.ChangedLineNumbers == changedLineNumbers)
                             , null
                         ), Times.Exactly(textLinesChanged ? 1 : 0));
 

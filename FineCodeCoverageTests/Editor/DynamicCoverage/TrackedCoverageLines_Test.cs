@@ -9,34 +9,31 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
 {
     internal class TrackedCoverageLines_Tests
     {
-        [TestCase(true, true, true)]
-        [TestCase(false, true, true)]
-        [TestCase(true, false, true)]
-        [TestCase(false, false, false)]
-        public void Should_Update_All_CoverageLine(bool firstUpdated, bool secondUpdated, bool expectedUpdated)
+        [Test]
+        public void Should_Update_All_CoverageLine()
         {
             var textSnapshot = new Mock<ITextSnapshot>().Object;
-            Mock<ICoverageLine> CreateMockCoverageLine(bool coverageLineUpdated)
+            Mock<ICoverageLine> CreateMockCoverageLine(List<int> updatedCoverageLines)
             {
                 var mockCoverageLine = new Mock<ICoverageLine>();
-                mockCoverageLine.Setup(coverageLine => coverageLine.Update(textSnapshot)).Returns(coverageLineUpdated);
+                mockCoverageLine.Setup(coverageLine => coverageLine.Update(textSnapshot)).Returns(updatedCoverageLines);
                 return mockCoverageLine;
             }
 
             var mockCoverageLines = new List<Mock<ICoverageLine>>
             {
-                CreateMockCoverageLine(firstUpdated),
-                CreateMockCoverageLine(secondUpdated)
+                CreateMockCoverageLine(new List<int>{ 1,2}),
+                CreateMockCoverageLine(new List<int>{3,4})
             };
 
             var trackedCoverageLines = new TrackedCoverageLines(mockCoverageLines.Select(mock => mock.Object).ToList());
-            
 
-            var updated = trackedCoverageLines.Update(textSnapshot);
 
-            mockCoverageLines.ForEach(mock => mock.VerifyAll());
+            var updatedLineNumbers = trackedCoverageLines.GetUpdatedLineNumbers(textSnapshot).ToList();
 
-            Assert.That(updated, Is.EqualTo(expectedUpdated));
+            mockCoverageLines.ForEach(mock => mock.Verify());
+
+            Assert.That(updatedLineNumbers, Is.EqualTo(new List<int> { 1,2,3,4}));
         }
 
         [Test]

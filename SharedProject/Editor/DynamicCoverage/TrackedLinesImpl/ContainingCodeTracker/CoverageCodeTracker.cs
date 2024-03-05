@@ -1,11 +1,13 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
+using Microsoft.Build.Framework.XamlTypes;
 using Microsoft.VisualStudio.Text;
 
 namespace FineCodeCoverage.Editor.DynamicCoverage
 {
     internal class CoverageCodeTracker : IUpdatableDynamicLines
     {
-        private ITrackedCoverageLines trackedCoverageLines;
+        private readonly ITrackedCoverageLines trackedCoverageLines;
         private readonly IDirtyLineFactory dirtyLineFactory;
         private ITrackingLine dirtyLine;
 
@@ -18,28 +20,21 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
             this.dirtyLineFactory = dirtyLineFactory;
         }
 
-        private bool CreateDirtyLineIfRequired(
+        private List<int> CreateDirtyLineIfRequired(
             List<SpanAndLineRange> newSpanChanges,
             List<SpanAndLineRange> nonIntersecting,
             bool textChanged,
             ITextSnapshot currentSnapshot,
-            ITrackingSpanRange trackingSpanRange)
-        {
-            bool createdDirtyLine = false;
-            if (this.dirtyLine == null && textChanged && this.Intersected(newSpanChanges, nonIntersecting))
-            {
-                this.CreateDirtyLine(currentSnapshot, trackingSpanRange);
-                createdDirtyLine = true;
-            }
+            ITrackingSpanRange trackingSpanRange
+        ) => this.dirtyLine == null && textChanged && this.Intersected(newSpanChanges, nonIntersecting)
+                ? this.CreateDirtyLine(currentSnapshot, trackingSpanRange)
+                : null;
 
-            return createdDirtyLine;
-        }
-
-        private void CreateDirtyLine(ITextSnapshot currentSnapshot, ITrackingSpanRange trackingSpanRange)
+        private List<int> CreateDirtyLine(ITextSnapshot currentSnapshot, ITrackingSpanRange trackingSpanRange)
         {
             ITrackingSpan firstTrackingSpan = trackingSpanRange.GetFirstTrackingSpan();
             this.dirtyLine = this.dirtyLineFactory.Create(firstTrackingSpan, currentSnapshot);
-            this.trackedCoverageLines = null;
+            return new int[] { this.dirtyLine.Line.Number }.Concat(this.trackedCoverageLines.Lines.Select(l => l.Number)).ToList();
         }
 
         private bool Intersected(
@@ -47,26 +42,26 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
             List<SpanAndLineRange> nonIntersecting
         ) => nonIntersecting.Count < newSpanChanges.Count;
 
-        public bool Update(TrackingSpanRangeProcessResult trackingSpanRangeProcessResult, ITextSnapshot currentSnapshot, List<SpanAndLineRange> newSpanAndLIneRanges)
+        public IEnumerable<int> GetUpdatedLineNumbers(
+            TrackingSpanRangeProcessResult trackingSpanRangeProcessResult, 
+            ITextSnapshot currentSnapshot, 
+            List<SpanAndLineRange> newSpanAndLIneRanges
+        )
         {
-            bool createdDirtyLine = this.CreateDirtyLineIfRequired(
+            List<int> changedLineNumbers = this.CreateDirtyLineIfRequired(
                     newSpanAndLIneRanges,
                     trackingSpanRangeProcessResult.NonIntersectingSpans,
                     trackingSpanRangeProcessResult.TextChanged,
                     currentSnapshot,
                     trackingSpanRangeProcessResult.TrackingSpanRange
                 );
-            bool changed = createdDirtyLine;
-            if (!createdDirtyLine)
-            {
-                changed = this.UpdateLines(currentSnapshot);
-            }
-
-            return changed;
+            return changedLineNumbers ?? this.UpdateLines(currentSnapshot);
         }
 
-        private bool UpdateLines(ITextSnapshot currentSnapshot)
-            => this.dirtyLine != null ? this.dirtyLine.Update(currentSnapshot) : this.trackedCoverageLines.Update(currentSnapshot);
+        private IEnumerable<int> UpdateLines(ITextSnapshot currentSnapshot) 
+            => this.dirtyLine != null
+                ? this.dirtyLine.Update(currentSnapshot)
+                : this.trackedCoverageLines.GetUpdatedLineNumbers(currentSnapshot);
 
         public IEnumerable<IDynamicLine> Lines => this.dirtyLine != null ? new List<IDynamicLine> { this.dirtyLine.Line } : this.trackedCoverageLines.Lines;
 

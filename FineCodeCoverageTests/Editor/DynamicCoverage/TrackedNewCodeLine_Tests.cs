@@ -51,13 +51,13 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
             Assert.That(line.Number, Is.EqualTo(20));
         }
 
-        [TestCase(true)]
-        [TestCase(false)]
-        public void Should_Be_Changed_When_Line_Number_Changes(bool changeLineNumber)
+        [Test]
+        public void Should_Have_Old_And_New_Line_Numbers()
         {
-            var (update, _) = Update(10, changeLineNumber ? 20 : 10);
+            var (update, _) = Update(10, 20);
 
-            Assert.That(update.LineUpdated, Is.EqualTo(changeLineNumber));
+            Assert.That(update.OldLineNumber, Is.EqualTo(10));
+            Assert.That(update.NewLineNumber, Is.EqualTo(20));
         }
 
         [Test]

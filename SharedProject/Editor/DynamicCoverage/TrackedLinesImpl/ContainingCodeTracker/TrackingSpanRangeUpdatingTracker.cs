@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using Microsoft.VisualStudio.Text;
 
 namespace FineCodeCoverage.Editor.DynamicCoverage
@@ -28,12 +29,12 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
             List<SpanAndLineRange> nonIntersectingSpans = trackingSpanRangeProcessResult.NonIntersectingSpans;
             if (trackingSpanRangeProcessResult.IsEmpty)
             {
-                // todo - determine changed parameter
-                return new ContainingCodeTrackerProcessResult(true, nonIntersectingSpans, true);
+                IEnumerable<int> lines = this.updatableDynamicLines.Lines.Select(l => l.Number);
+                return new ContainingCodeTrackerProcessResult(lines, nonIntersectingSpans, true);
             }
 
-            bool changed = this.updatableDynamicLines.Update(trackingSpanRangeProcessResult, currentSnapshot, newSpanAndLineRanges);
-            return new ContainingCodeTrackerProcessResult(changed, nonIntersectingSpans, false);
+            IEnumerable<int> changedLines = this.updatableDynamicLines.GetUpdatedLineNumbers(trackingSpanRangeProcessResult, currentSnapshot, newSpanAndLineRanges);
+            return new ContainingCodeTrackerProcessResult(changedLines, nonIntersectingSpans, false);
         }
     }
 }

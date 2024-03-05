@@ -139,19 +139,20 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
 
         private void UpdateTrackedLines(TextContentChangedEventArgs e)
         {
-            bool changed = this.trackedLines.Changed(e.After, e.Changes.Select(change => change.NewSpan).ToList());
-            this.SendCoverageChangedMessageIfChanged(changed);
+            IEnumerable<int> changedLineNumbers = this.trackedLines.GetChangedLineNumbers(e.After, e.Changes.Select(change => change.NewSpan).ToList());
+            this.SendCoverageChangedMessageIfChanged(changedLineNumbers );
         }
 
-        private void SendCoverageChangedMessageIfChanged(bool changed)
+        private void SendCoverageChangedMessageIfChanged(IEnumerable<int> changedLineNumbers)
         {
-            if (changed)
+            if (changedLineNumbers.Any())
             {
-                this.SendCoverageChangedMessage();
+                this.SendCoverageChangedMessage(changedLineNumbers);
             }
         }
 
-        private void SendCoverageChangedMessage() => this.eventAggregator.SendMessage(new CoverageChangedMessage(this, this.textInfo.FilePath));
+        private void SendCoverageChangedMessage(IEnumerable<int> changedLineNumbers = null) 
+            => this.eventAggregator.SendMessage(new CoverageChangedMessage(this, this.textInfo.FilePath, changedLineNumbers));
 
         public IEnumerable<IDynamicLine> GetLines(int startLineNumber, int endLineNumber)
             => this.trackedLines == null ? Enumerable.Empty<IDynamicLine>() : this.trackedLines.GetLines(startLineNumber, endLineNumber);

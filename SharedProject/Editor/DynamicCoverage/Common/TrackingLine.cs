@@ -1,4 +1,5 @@
-﻿using Microsoft.VisualStudio.Text;
+﻿using System.Collections.Generic;
+using Microsoft.VisualStudio.Text;
 
 namespace FineCodeCoverage.Editor.DynamicCoverage
 {
@@ -28,11 +29,12 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
             this.Line = new DynamicLine(startLineNumber, this.dynamicCoverageType);
         }
 
-        public bool Update(ITextSnapshot currentSnapshot)
+        public List<int> Update(ITextSnapshot currentSnapshot)
         {
             int currentFirstLineNumber = this.Line.Number;
             this.SetLine(currentSnapshot);
-            return currentFirstLineNumber != this.Line.Number;
+            bool updated =  currentFirstLineNumber != this.Line.Number;
+            return updated ? new List<int> { currentFirstLineNumber, this.Line.Number } : new List<int>();
         }
     }
 }

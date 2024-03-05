@@ -1,4 +1,6 @@
-﻿using FineCodeCoverage.Engine.Model;
+﻿using System.Collections.Generic;
+using System.Linq;
+using FineCodeCoverage.Engine.Model;
 using Microsoft.VisualStudio.Text;
 
 namespace FineCodeCoverage.Editor.DynamicCoverage
@@ -17,17 +19,18 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
             this.lineTracker = lineTracker;
         }
 
-        public bool Update(ITextSnapshot currentSnapshot)
+        public List<int> Update(ITextSnapshot currentSnapshot)
         {
-            bool updated = false;
+            int previousLineNumber = this.Line.Number;
             int newLineNumber = this.lineTracker.GetLineNumber(this.trackingSpan, currentSnapshot, true);
-            if (newLineNumber != this.Line.Number)
+            if (newLineNumber != previousLineNumber)
             {
                 this.line.Number = newLineNumber;
-                updated = true;
+                return new List<int> { previousLineNumber, newLineNumber };
+                
             }
 
-            return updated;
+            return Enumerable.Empty<int>().ToList();
         }
     }
 }

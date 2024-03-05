@@ -53,10 +53,24 @@ namespace FineCodeCoverage.Editor.Tagging.Base
 
         public bool HasCoverage => this.coverageLines != null;
 
-        public void RaiseTagsChanged()
+        public void RaiseTagsChanged() => this.RaiseTagsChangedLinesOrAll();
+
+        private void RaiseTagsChangedLinesOrAll(IEnumerable<int> changedLines = null)
         {
-            var span = new SnapshotSpan(this.textBuffer.CurrentSnapshot, 0, this.textBuffer.CurrentSnapshot.Length);
-            var spanEventArgs = new SnapshotSpanEventArgs(span);
+            ITextSnapshot currentSnapshot = this.textBuffer.CurrentSnapshot;
+            SnapshotSpan snapshotSpan;
+            if (changedLines != null)
+            {
+                Span span = changedLines.Select(changedLine => currentSnapshot.GetLineFromLineNumber(changedLine).Extent.Span)
+                    .Aggregate((acc, next) => Span.FromBounds(Math.Min(acc.Start, next.Start), Math.Max(acc.End, next.End)));
+                snapshotSpan = new SnapshotSpan(currentSnapshot, span);
+            }
+            else
+            {
+                snapshotSpan = new SnapshotSpan(currentSnapshot, 0, currentSnapshot.Length);
+            }
+
+            var spanEventArgs = new SnapshotSpanEventArgs(snapshotSpan);
             TagsChanged?.Invoke(this, spanEventArgs);
         }
 
@@ -84,7 +98,7 @@ namespace FineCodeCoverage.Editor.Tagging.Base
             this.coverageLines = message.CoverageLines;
             if (message.AppliesTo == this.textInfo.FilePath)
             {
-                this.RaiseTagsChanged();
+                this.RaiseTagsChangedLinesOrAll(message.ChangedLineNumbers);
             }
         }
 

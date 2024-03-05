@@ -38,7 +38,7 @@ namespace FineCodeCoverageTests.Editor.Tagging.Base
 
         [TestCase(true)]
         [TestCase(false)]
-        public void Should_Raise_Tags_Changed_For_CurrentSnapshot_Range_When_CoverageChangedMessage_Applies(bool appliesTo)
+        public void Should_Raise_Tags_Changed_For_CurrentSnapshot_Range_When_CoverageChangedMessage_Applies_No_Line_Numbers(bool appliesTo)
         {
             var autoMoqer = new AutoMoqer();
             var mockTextInfo = autoMoqer.GetMock<ITextInfo>();
@@ -53,7 +53,7 @@ namespace FineCodeCoverageTests.Editor.Tagging.Base
             {
                 snapshotSpan = args.Span;
             };
-            coverageTagger.Handle(new CoverageChangedMessage(null, appliesTo ? "filepath" : "otherfile"));
+            coverageTagger.Handle(new CoverageChangedMessage(null, appliesTo ? "filepath" : "otherfile", null));
 
             if (appliesTo)
             {
@@ -68,6 +68,48 @@ namespace FineCodeCoverageTests.Editor.Tagging.Base
             {
                 Assert.That(snapshotSpan, Is.Null);
             }
+        }
+
+        [Test]
+        public void Should_Raise_Tags_Changed_For_Containing_Range_When_CoverageChangedMessage_With_Line_Numbers()
+        {
+            var autoMoqer = new AutoMoqer();
+            var mockTextInfo = autoMoqer.GetMock<ITextInfo>();
+            var mockTextSnapshot = new Mock<ITextSnapshot>();
+            mockTextSnapshot.SetupGet(currentSnapshot => currentSnapshot.Length).Returns(1000);
+            ITextSnapshotLine CreateTextSnapshotLine(int start, int length)
+            {
+                var mockTextSnapshotLine = new Mock<ITextSnapshotLine>();
+                mockTextSnapshotLine.SetupGet(textSnapshotLine => textSnapshotLine.Extent)
+                    .Returns(new SnapshotSpan(mockTextSnapshot.Object, start, length));
+                return mockTextSnapshotLine.Object;
+            };
+            mockTextSnapshot.Setup(currentSnapshot => currentSnapshot.GetLineFromLineNumber(1))
+                .Returns(CreateTextSnapshotLine(10,10));
+            mockTextSnapshot.Setup(currentSnapshot => currentSnapshot.GetLineFromLineNumber(2))
+                .Returns(CreateTextSnapshotLine(5,2));
+            mockTextSnapshot.Setup(currentSnapshot => currentSnapshot.GetLineFromLineNumber(3))
+                .Returns(CreateTextSnapshotLine(15, 10));
+            mockTextInfo.SetupGet(textBufferAndFile => textBufferAndFile.FilePath).Returns("filepath");
+            mockTextInfo.SetupGet(textBufferAndFile => textBufferAndFile.TextBuffer.CurrentSnapshot).Returns(mockTextSnapshot.Object);
+            
+
+            var coverageTagger = autoMoqer.Create<CoverageTagger<DummyTag>>();
+            SnapshotSpan? snapshotSpan = null;
+            coverageTagger.TagsChanged += (sender, args) =>
+            {
+                snapshotSpan = args.Span;
+            };
+            coverageTagger.Handle(new CoverageChangedMessage(null, "filepath", new List<int> { 1, 2, 3}));
+
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(snapshotSpan.Value.Snapshot, Is.SameAs(mockTextSnapshot.Object));
+                Assert.That(snapshotSpan.Value.Start.Position, Is.EqualTo(5));
+                Assert.That(snapshotSpan.Value.End.Position, Is.EqualTo(25));
+            });
+
         }
 
         [TestCase(true)]
@@ -185,7 +227,7 @@ namespace FineCodeCoverageTests.Editor.Tagging.Base
             if (newCoverage)
             {
                 expectedBufferLineCoverageForLogic = new Mock<IBufferLineCoverage>().Object;
-                coverageTagger.Handle(new CoverageChangedMessage(expectedBufferLineCoverageForLogic, "filepath"));
+                coverageTagger.Handle(new CoverageChangedMessage(expectedBufferLineCoverageForLogic, "filepath",null));
             }
 
             coverageTagger.GetTags(spans);

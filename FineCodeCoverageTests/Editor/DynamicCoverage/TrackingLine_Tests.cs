@@ -1,4 +1,6 @@
-﻿using FineCodeCoverage.Editor.DynamicCoverage;
+﻿using System.Collections.Generic;
+using System.Linq;
+using FineCodeCoverage.Editor.DynamicCoverage;
 using Microsoft.VisualStudio.Text;
 using Moq;
 using NUnit.Framework;
@@ -47,8 +49,8 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
             mockLineTracker.Setup(lineTracker => lineTracker.GetLineNumber(trackingSpan, currentSnapshot, false))
                 .Returns(newLineNumber);
 
-            var updated = trackingLine.Update(currentSnapshot);
-            Assert.That(updated, Is.EqualTo(changeLineNumber));
+            var updatedLineNumbers = trackingLine.Update(currentSnapshot);
+            Assert.That(updatedLineNumbers, Is.EqualTo(changeLineNumber ? new List<int> { 10, 11} : Enumerable.Empty<int>()));
             AssertTrackingLine(trackingLine, newLineNumber, DynamicCoverageType.Dirty);
         }
     }

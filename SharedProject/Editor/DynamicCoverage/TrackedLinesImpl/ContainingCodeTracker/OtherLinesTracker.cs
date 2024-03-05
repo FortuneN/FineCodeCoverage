@@ -10,9 +10,9 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
 
         public ContainingCodeTrackerType Type => ContainingCodeTrackerType.OtherLines;
 
-        public bool Update(
+        public IEnumerable<int> GetUpdatedLineNumbers(
             TrackingSpanRangeProcessResult trackingSpanRangeProcessResult,
             ITextSnapshot currentSnapshot,
-            List<SpanAndLineRange> newSpanAndLineRanges) => false;
+            List<SpanAndLineRange> newSpanAndLineRanges) => Enumerable.Empty<int>();
     }
 }
