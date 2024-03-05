@@ -108,7 +108,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
             void CreateSingleLineContainingCodeTrackerInCase(ILine line)
                 => containingCodeTrackers.Add(this.CreateSingleLineContainingCodeTracker(textSnapshot, line));
 
-            List<TextSpan> roslynContainingCodeSpans = this.threadHelper.JoinableTaskFactory.Run(() => this.roslynService.GetContainingCodeSpansAsync(textSnapshot));
+            List<CodeSpanRange> codeSpanRanges = this.GetRoslynCodeSpanRanges(textSnapshot);
             int currentCodeSpanIndex = -1;
             CodeSpanRange currentCodeSpanRange = null;
             SetNextCodeSpanRange();
@@ -118,13 +118,9 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
             {
                 currentCodeSpanIndex++;
                 CodeSpanRange previousCodeSpanRange = currentCodeSpanRange;
-                currentCodeSpanRange = currentCodeSpanIndex < roslynContainingCodeSpans.Count
-                    ? this.GetCodeSpanRange(roslynContainingCodeSpans[currentCodeSpanIndex], textSnapshot)
+                currentCodeSpanRange = currentCodeSpanIndex < codeSpanRanges.Count
+                    ? codeSpanRanges[currentCodeSpanIndex]
                     : null;
-                if (currentCodeSpanRange != null && previousCodeSpanRange != null && previousCodeSpanRange.Equals(currentCodeSpanRange))
-                {
-                    SetNextCodeSpanRange();
-                }
             }
 
             void TrackOtherLines()
@@ -230,7 +226,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
         private List<CodeSpanRange> GetRoslynCodeSpanRanges(ITextSnapshot currentSnapshot)
         {
             List<TextSpan> roslynContainingCodeSpans = this.threadHelper.JoinableTaskFactory.Run(() => this.roslynService.GetContainingCodeSpansAsync(currentSnapshot));
-            return roslynContainingCodeSpans.Select(roslynCodeSpan => this.GetCodeSpanRange(roslynCodeSpan, currentSnapshot)).ToList();
+            return roslynContainingCodeSpans.Select(roslynCodeSpan => this.GetCodeSpanRange(roslynCodeSpan, currentSnapshot)).Distinct().ToList();
         }
 
         private List<IContainingCodeTracker> RecreateContainingCodeTrackersWithUnchangedCodeSpanRange(

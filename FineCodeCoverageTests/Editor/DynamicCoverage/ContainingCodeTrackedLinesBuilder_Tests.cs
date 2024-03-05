@@ -753,24 +753,28 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
         }
 
         [Test]
-        public void Should_IFileCodeSpanRangeService_Using_Roslyn()
+        public void Should_IFileCodeSpanRangeService_Using_Roslyn_Distinct()
         {
             var mockTextSnapshot = new Mock<ITextSnapshot>();
             mockTextSnapshot.Setup(textSnaphot => textSnaphot.GetLineNumberFromPosition(1)).Returns(1);
-            mockTextSnapshot.Setup(textSnaphot => textSnaphot.GetLineNumberFromPosition(11)).Returns(5);
-            
+            mockTextSnapshot.Setup(textSnaphot => textSnaphot.GetLineNumberFromPosition(11)).Returns(1);
+            mockTextSnapshot.Setup(textSnaphot => textSnaphot.GetLineNumberFromPosition(15)).Returns(1);
+            mockTextSnapshot.Setup(textSnaphot => textSnaphot.GetLineNumberFromPosition(20)).Returns(1);
+            mockTextSnapshot.Setup(textSnaphot => textSnaphot.GetLineNumberFromPosition(30)).Returns(2);
+            mockTextSnapshot.Setup(textSnaphot => textSnaphot.GetLineNumberFromPosition(40)).Returns(3);
+
             var autoMoqer = new AutoMoqer();
             var mockRoslynService = autoMoqer.GetMock<IRoslynService>();
             mockRoslynService.Setup(roslynService => roslynService.GetContainingCodeSpansAsync(mockTextSnapshot.Object))
-                    .ReturnsAsync(new List<TextSpan> { new TextSpan(1, 10) });
+                    .ReturnsAsync(new List<TextSpan> { new TextSpan(1, 10), new TextSpan(15,5),new TextSpan(30,10) });
 
             autoMoqer.SetInstance<IThreadHelper>(new TestThreadHelper());
 
             var containingCodeTrackedLinesBuilder = autoMoqer.Create<ContainingCodeTrackedLinesBuilder>();
 
             var fileCodeSpanRanges = containingCodeTrackedLinesBuilder.GetFileCodeSpanRanges(mockTextSnapshot.Object);
-
-            Assert.That(fileCodeSpanRanges.Single().Equals(new CodeSpanRange(1, 5)));
+            
+            Assert.That(fileCodeSpanRanges, Is.EqualTo(new List<CodeSpanRange> { CodeSpanRange.SingleLine(1), new CodeSpanRange(2, 3) }));
         }
     }
 }
