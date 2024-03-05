@@ -33,7 +33,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
         {
             int currentFirstLineNumber = this.Line.Number;
             this.SetLine(currentSnapshot);
-            bool updated =  currentFirstLineNumber != this.Line.Number;
+            bool updated = currentFirstLineNumber != this.Line.Number;
             return updated ? new List<int> { currentFirstLineNumber, this.Line.Number } : new List<int>();
         }
     }

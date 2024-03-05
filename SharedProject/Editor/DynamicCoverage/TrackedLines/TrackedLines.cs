@@ -42,7 +42,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
             var allChangedLines = new List<int>();
             foreach (IContainingCodeTracker containingCodeTracker in this.containingCodeTrackers)
             {
-                (IEnumerable<int> changedLines, List<SpanAndLineRange> unprocessedSpans) = 
+                (IEnumerable<int> changedLines, List<SpanAndLineRange> unprocessedSpans) =
                     this.ProcessContainingCodeTracker(removals, containingCodeTracker, currentSnapshot, spanAndLineRanges);
                 allChangedLines.AddRange(changedLines);
                 spanAndLineRanges = unprocessedSpans;
@@ -73,7 +73,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
         public IEnumerable<int> GetChangedLineNumbers(ITextSnapshot currentSnapshot, List<Span> newSpanChanges)
         {
             List<SpanAndLineRange> spanAndLineRanges = this.GetSpanAndLineRanges(currentSnapshot, newSpanChanges);
-            (IEnumerable<int> changedLines, List<SpanAndLineRange> unprocessedSpans) = 
+            (IEnumerable<int> changedLines, List<SpanAndLineRange> unprocessedSpans) =
                 this.ProcessContainingCodeTrackers(currentSnapshot, spanAndLineRanges);
             IEnumerable<int> newCodeTrackerChangedLines = this.GetNewCodeTrackerChangedLineNumbers(currentSnapshot, unprocessedSpans);
             return changedLines.Concat(newCodeTrackerChangedLines).Distinct();

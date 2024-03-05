@@ -25,7 +25,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
             );
 
         public IContainingCodeTracker CreateNotIncluded(ITrackingLine trackingLine, ITrackingSpanRange trackingSpanRange)
-            => this.Wrap(trackingSpanRange, new TrackingLineTracker(trackingLine,ContainingCodeTrackerType.NotIncluded));
+            => this.Wrap(trackingSpanRange, new TrackingLineTracker(trackingLine, ContainingCodeTrackerType.NotIncluded));
 
         public IContainingCodeTracker CreateOtherLines(ITrackingSpanRange trackingSpanRange)
             => this.Wrap(trackingSpanRange, new OtherLinesTracker());

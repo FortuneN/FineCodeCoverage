@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using Microsoft.Build.Framework.XamlTypes;
 using Microsoft.VisualStudio.Text;
 
 namespace FineCodeCoverage.Editor.DynamicCoverage
@@ -43,8 +42,8 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
         ) => nonIntersecting.Count < newSpanChanges.Count;
 
         public IEnumerable<int> GetUpdatedLineNumbers(
-            TrackingSpanRangeProcessResult trackingSpanRangeProcessResult, 
-            ITextSnapshot currentSnapshot, 
+            TrackingSpanRangeProcessResult trackingSpanRangeProcessResult,
+            ITextSnapshot currentSnapshot,
             List<SpanAndLineRange> newSpanAndLIneRanges
         )
         {
@@ -58,7 +57,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
             return changedLineNumbers ?? this.UpdateLines(currentSnapshot);
         }
 
-        private IEnumerable<int> UpdateLines(ITextSnapshot currentSnapshot) 
+        private IEnumerable<int> UpdateLines(ITextSnapshot currentSnapshot)
             => this.dirtyLine != null
                 ? this.dirtyLine.Update(currentSnapshot)
                 : this.trackedCoverageLines.GetUpdatedLineNumbers(currentSnapshot);

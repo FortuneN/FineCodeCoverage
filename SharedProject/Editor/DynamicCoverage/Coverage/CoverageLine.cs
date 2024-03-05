@@ -27,7 +27,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
             {
                 this.line.Number = newLineNumber;
                 return new List<int> { previousLineNumber, newLineNumber };
-                
+
             }
 
             return Enumerable.Empty<int>().ToList();

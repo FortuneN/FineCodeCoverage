@@ -119,7 +119,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
             }
             else
             {
-                if(trackedNewCodeLineUpdate.NewLineNumber != trackedNewCodeLineUpdate.OldLineNumber)
+                if (trackedNewCodeLineUpdate.NewLineNumber != trackedNewCodeLineUpdate.OldLineNumber)
                 {
                     lineNumberUpdates.Add(trackedNewCodeLineUpdate.OldLineNumber);
                     lineNumberUpdates.Add(trackedNewCodeLineUpdate.NewLineNumber);
