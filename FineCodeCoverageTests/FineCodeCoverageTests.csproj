@@ -60,6 +60,7 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CoberturaUtil_Tests.cs" />
     <Compile Include="CoverageToolOutput_Tests\AppOptionsCoverageToolOutputFolderSolutionProvider_Tests.cs" />
     <Compile Include="CoverageToolOutput_Tests\CoverageToolOutputFolderFromSolutionProvider_Tests.cs" />
     <Compile Include="CoverageToolOutput_Tests\CoverageToolOutputManager_Tests.cs" />
@@ -149,6 +150,7 @@
     <Compile Include="TestHelpers\MefOrderAssertions.cs" />
     <Compile Include="TestHelpers\MoqAssertionsHelper.cs" />
     <Compile Include="TestHelpers\MoqExtensions.cs" />
+    <Compile Include="TestHelpers\MoqMatchers.cs" />
     <Compile Include="TestHelpers\TestThreadHelper.cs" />
     <Compile Include="TestHelpers\XmlAssert.cs" />
     <Compile Include="ToolFolder_Tests.cs" />

@@ -22,7 +22,7 @@ namespace FineCodeCoverage.Engine.Model
             fileCoverageLines.AddRange(lines);
         }
 
-        public void Completed()
+        public void Sort()
         {
             foreach (var lines in m_coverageLines.Values)
                 lines.Sort((a, b) => a.Number - b.Number);
@@ -48,10 +48,9 @@ namespace FineCodeCoverage.Engine.Model
                 for (int it = first; it < lines.Count && lines[it].Number <= endLineNumber; ++it)
                     yield return lines[it];
             }
-            
         }
 
-        internal void UpdateRenamed(string oldFilePath, string newFilePath)
+        public void UpdateRenamed(string oldFilePath, string newFilePath)
         {
             if(m_coverageLines.TryGetValue(oldFilePath, out var lines))
             {
@@ -60,6 +59,4 @@ namespace FineCodeCoverage.Engine.Model
             }
         }
     }
-
-    
 }
