@@ -5,13 +5,6 @@ namespace FineCodeCoverage.Editor.Management
 {
     internal class CoverageColours : ICoverageColours
     {
-        public IFontAndColorsInfo CoverageTouchedInfo { get; }
-        public IFontAndColorsInfo CoverageNotTouchedInfo { get; }
-        public IFontAndColorsInfo CoveragePartiallyTouchedInfo { get; }
-        public IFontAndColorsInfo DirtyInfo { get; }
-        public IFontAndColorsInfo NewLineInfo { get; }
-        public IFontAndColorsInfo NotIncludedInfo { get; }
-
         private readonly Dictionary<DynamicCoverageType, IFontAndColorsInfo> coverageTypeToFontAndColorsInfo;
         public CoverageColours(
             IFontAndColorsInfo coverageTouchedInfo,
@@ -20,15 +13,7 @@ namespace FineCodeCoverage.Editor.Management
             IFontAndColorsInfo dirtyInfo,
             IFontAndColorsInfo newLineInfo,
             IFontAndColorsInfo notIncludedInfo
-        )
-        {
-            this.CoverageTouchedInfo = coverageTouchedInfo;
-            this.CoverageNotTouchedInfo = coverageNotTouchedInfo;
-            this.CoveragePartiallyTouchedInfo = coveragePartiallyTouchedInfo;
-            this.DirtyInfo = dirtyInfo;
-            this.NewLineInfo = newLineInfo;
-            this.NotIncludedInfo = notIncludedInfo;
-            this.coverageTypeToFontAndColorsInfo = new Dictionary<DynamicCoverageType, IFontAndColorsInfo>
+        ) => this.coverageTypeToFontAndColorsInfo = new Dictionary<DynamicCoverageType, IFontAndColorsInfo>
             {
                 { DynamicCoverageType.Covered, coverageTouchedInfo},
                 { DynamicCoverageType.NotCovered, coverageNotTouchedInfo },
@@ -37,52 +22,21 @@ namespace FineCodeCoverage.Editor.Management
                 { DynamicCoverageType.NewLine, newLineInfo},
                 { DynamicCoverageType.NotIncluded, notIncludedInfo}
             };
-        }
 
-        internal Dictionary<DynamicCoverageType, IFontAndColorsInfo> GetChanges(CoverageColours lastCoverageColours)
+        internal Dictionary<DynamicCoverageType, IFontAndColorsInfo> GetChanges(CoverageColours lastCoverageColours) 
+            => lastCoverageColours == null
+                ? this.coverageTypeToFontAndColorsInfo
+                : this.GetChanges(lastCoverageColours.coverageTypeToFontAndColorsInfo);
+
+        private Dictionary<DynamicCoverageType, IFontAndColorsInfo> GetChanges(Dictionary<DynamicCoverageType, IFontAndColorsInfo> lastCoverageTypeToFontAndColorsInfo)
         {
             var changes = new Dictionary<DynamicCoverageType, IFontAndColorsInfo>();
-            if (lastCoverageColours == null)
+            foreach (KeyValuePair<DynamicCoverageType, IFontAndColorsInfo> kvp in lastCoverageTypeToFontAndColorsInfo)
             {
-                return new Dictionary<DynamicCoverageType, IFontAndColorsInfo>
+                if (!this.coverageTypeToFontAndColorsInfo[kvp.Key].Equals(kvp.Value))
                 {
-                    { DynamicCoverageType.Covered, this.CoverageTouchedInfo},
-                    { DynamicCoverageType.NotCovered, this.CoverageNotTouchedInfo },
-                    { DynamicCoverageType.Partial, this.CoveragePartiallyTouchedInfo},
-                    { DynamicCoverageType.Dirty, this.DirtyInfo},
-                    { DynamicCoverageType.NewLine, this.NewLineInfo},
-                    { DynamicCoverageType.NotIncluded, this.NotIncludedInfo}
-                };
-            }
-
-            if (!this.CoverageTouchedInfo.Equals(lastCoverageColours.CoverageTouchedInfo))
-            {
-                changes.Add(DynamicCoverageType.Covered, this.CoverageTouchedInfo);
-            }
-
-            if (!this.CoverageNotTouchedInfo.Equals(lastCoverageColours.CoverageNotTouchedInfo))
-            {
-                changes.Add(DynamicCoverageType.NotCovered, this.CoverageNotTouchedInfo);
-            }
-
-            if (!this.CoveragePartiallyTouchedInfo.Equals(lastCoverageColours.CoveragePartiallyTouchedInfo))
-            {
-                changes.Add(DynamicCoverageType.Partial, this.CoveragePartiallyTouchedInfo);
-            }
-
-            if (!this.DirtyInfo.Equals(lastCoverageColours.DirtyInfo))
-            {
-                changes.Add(DynamicCoverageType.Dirty, this.DirtyInfo);
-            }
-
-            if (!this.NewLineInfo.Equals(lastCoverageColours.NewLineInfo))
-            {
-                changes.Add(DynamicCoverageType.NewLine, this.NewLineInfo);
-            }
-
-            if (!this.NotIncludedInfo.Equals(lastCoverageColours.NotIncludedInfo))
-            {
-                changes.Add(DynamicCoverageType.NotIncluded, this.NotIncludedInfo);
+                    changes.Add(kvp.Key, this.coverageTypeToFontAndColorsInfo[kvp.Key]);
+                }
             }
 
             return changes;
