@@ -1,7 +1,6 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Xml.Serialization;
-
-// Generated from cobertura XML schema
 
 namespace FineCodeCoverage.Engine.Cobertura
 {
@@ -12,8 +11,9 @@ namespace FineCodeCoverage.Engine.Cobertura
         [XmlElement(ElementName = "sources")]
         public Sources Sources { get; set; }
 
-        [XmlElement(ElementName = "packages")]
-        public Packages Packages { get; set; }
+        [XmlArray(ElementName = "packages")]
+        [XmlArrayItem(ElementName = "package")]
+        public List<Package> Packages { get; set; }
 
         [XmlAttribute(AttributeName = "line-rate")]
         public float LineRate { get; set; }

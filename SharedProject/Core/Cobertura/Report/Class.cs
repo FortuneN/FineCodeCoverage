@@ -1,7 +1,6 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Xml.Serialization;
-
-// Generated from cobertura XML schema
 
 namespace FineCodeCoverage.Engine.Cobertura
 {
@@ -9,11 +8,13 @@ namespace FineCodeCoverage.Engine.Cobertura
     [ExcludeFromCodeCoverage]
     public class Class
     {
-        [XmlElement(ElementName = "methods")]
-        public Methods Methods { get; set; }
+        [XmlArray(ElementName = "methods")]
+        [XmlArrayItem(ElementName = "method")]
+        public List<Method> Methods { get; set; }
 
-        [XmlElement(ElementName = "lines")]
-        public Lines Lines { get; set; }
+        [XmlArray(ElementName = "lines")]
+        [XmlArrayItem(ElementName = "line")]
+        public List<Line> Lines { get; set; }
 
         [XmlAttribute(AttributeName = "name")]
         public string Name { get; set; }

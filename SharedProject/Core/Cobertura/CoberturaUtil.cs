@@ -71,11 +71,11 @@ namespace FineCodeCoverage.Engine.Cobertura
 
         private void AddThenSort()
         {
-            foreach (var package in coverageReport.Packages.Package)
+            foreach (var package in coverageReport.Packages)
             {
-                foreach (var classs in package.Classes.Class)
+                foreach (var classs in package.Classes)
                 {
-                    fileLineCoverage.Add(classs.Filename, classs.Lines.Line.Select(l => new FileLine(l)).Cast<ILine>());
+                    fileLineCoverage.Add(classs.Filename, classs.Lines.Select(l => new FileLine(l)).Cast<ILine>());
                 }
             }
 
@@ -84,7 +84,7 @@ namespace FineCodeCoverage.Engine.Cobertura
 
 		private Package GetPackage(string assemblyName)
 		{
-            return coverageReport.Packages.Package.SingleOrDefault(package => package.Name.Equals(assemblyName));
+            return coverageReport.Packages.SingleOrDefault(package => package.Name.Equals(assemblyName));
         }
 
 		public string[] GetSourceFiles(string assemblyName, string qualifiedClassName, int file)
@@ -104,7 +104,7 @@ namespace FineCodeCoverage.Engine.Cobertura
 
         private static IEnumerable<Class> GetClasses(Package package, string qualifiedClassName)
         {
-            return package.Classes.Class.Where(x => x.Name.Equals(qualifiedClassName));
+            return package.Classes.Where(x => x.Name.Equals(qualifiedClassName));
         }
 
         private static string[] GetSourceFiles(IEnumerable<Class> classes, int file)

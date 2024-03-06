@@ -60,6 +60,7 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CoberturaDeserializer_Tests.cs" />
     <Compile Include="CoberturaUtil_Tests.cs" />
     <Compile Include="CoverageToolOutput_Tests\AppOptionsCoverageToolOutputFolderSolutionProvider_Tests.cs" />
     <Compile Include="CoverageToolOutput_Tests\CoverageToolOutputFolderFromSolutionProvider_Tests.cs" />

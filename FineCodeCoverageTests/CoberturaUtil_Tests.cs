@@ -42,31 +42,24 @@ namespace FineCodeCoverageTests
             };
             var coverageReport = new CoverageReport
             {
-                Packages = new Packages
+                Packages = new List<Package>
                 {
-                    Package = new List<Package>
+                    new Package
                     {
-                        new Package
+                        Classes = new List<Class>
                         {
-                            Classes = new Classes
+                            new Class
                             {
-                                Class = new List<Class>
-                                {
-                                    new Class
+                                Filename = "filename",
+
+                                    Lines = new List<Line>
                                     {
-                                        Filename = "filename",
-                                        Lines = new Lines
-                                        {
-                                            Line = new List<Line>
-                                            {
-                                                noHitsLine,
-                                                partialHitsLine,
-                                                coveredLine,
-                                                noConditionCoverageLine
-                                            }
-                                        }
+                                        noHitsLine,
+                                        partialHitsLine,
+                                        coveredLine,
+                                        noConditionCoverageLine
                                     }
-                                }
+                                    
                             }
                         }
                     }
@@ -110,13 +103,7 @@ namespace FineCodeCoverageTests
                 
             var coverageReport = new CoverageReport
             {
-                Packages = new Packages
-                {
-                    Package = new List<Package>
-                    {
-                        
-                    }
-                }
+                Packages = new List<Package>()
             };
             autoMoqer.Setup<ICoberturaDeserializer, CoverageReport>(x => x.Deserialize(It.IsAny<string>())).Returns(coverageReport);
             var mockFileLineCoverage = new Mock<IFileLineCoverage>();
@@ -157,10 +144,7 @@ namespace FineCodeCoverageTests
 
             var coverageReport = new CoverageReport
             {
-                Packages = new Packages
-                {
-                    Package = packages
-                }
+                Packages = packages
             };
             autoMoqer.Setup<ICoberturaDeserializer, CoverageReport>(x => x.Deserialize(It.IsAny<string>())).Returns(coverageReport);
 
@@ -179,13 +163,7 @@ namespace FineCodeCoverageTests
                 new Package
                 {
                     Name = "otherassembly",
-                    Classes = new Classes
-                    {
-                        Class = new List<Class>
-                        {
-
-                        }
-                    }
+                    Classes = new List<Class>()
                 }
             };
             
@@ -199,39 +177,27 @@ namespace FineCodeCoverageTests
                 new Package
                 {
                     Name = "assembly",
-                    Classes = new Classes
-                    {
-                        Class = new List<Class>
+                    Classes = new List<Class>
                         {
                             new Class
                             {
                                 Name = "qcn",
                                 Filename = "file1",
-                                Lines = new Lines
-                                {
-                                    Line = new List<Line>{ }
-                                }
+                                Lines = new List<Line>{ }
                             },
                             new Class
                             {
                                 Name = "qcn",
                                 Filename = "file2",
-                                Lines = new Lines
-                                {
-                                    Line = new List<Line>{ }
-                                }
+                                Lines = new List<Line>{ }
                             },
                             new Class
                             {
                                 Name = "other",
                                 Filename = "file3",
-                                Lines = new Lines
-                                {
-                                    Line = new List<Line>{ }
-                                }
+                                Lines = new List<Line>{ }
                             }
                         }
-                    }
                 }
             };
 

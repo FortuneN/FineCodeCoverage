@@ -15,7 +15,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Core\Cobertura\ICoberturaDeserializer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Cobertura\IFileLineCoverageFactory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Cobertura\Report\Class.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Core\Cobertura\Report\Classes.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Cobertura\CoberturaUtil.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Cobertura\Report\Condition.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Cobertura\Report\Conditions.cs" />
@@ -23,11 +22,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)Core\Cobertura\ICoberturaUtil.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Cobertura\ILine.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Cobertura\Report\Line.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Core\Cobertura\Report\Lines.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Cobertura\Report\Method.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Core\Cobertura\Report\Methods.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Cobertura\Report\Package.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Core\Cobertura\Report\Packages.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Cobertura\Report\Sources.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\CoverageToolOutput\AppOptionsCoverageToolOutputFolderSolutionProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\CoverageToolOutput\CoverageToolOutputFolderFromSolutionProvider.cs" />
