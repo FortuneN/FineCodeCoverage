@@ -95,11 +95,18 @@ namespace FineCodeCoverage.Editor.Tagging.Base
 
         public void Handle(CoverageChangedMessage message)
         {
-            this.coverageLines = message.CoverageLines;
-            if (message.AppliesTo == this.textInfo.FilePath)
+            if (this.IsOwnChange(message))
             {
-                this.RaiseTagsChangedLinesOrAll(message.ChangedLineNumbers);
+                this.HandleOwnChange(message);
             }
+        }
+
+        private bool IsOwnChange(CoverageChangedMessage message) => message.AppliesTo == this.textInfo.FilePath;
+
+        private void HandleOwnChange(CoverageChangedMessage message)
+        {
+            this.coverageLines = message.CoverageLines;
+            this.RaiseTagsChangedLinesOrAll(message.ChangedLineNumbers);
         }
 
         public void Handle(CoverageTypeFilterChangedMessage message)
