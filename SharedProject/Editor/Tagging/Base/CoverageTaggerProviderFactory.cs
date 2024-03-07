@@ -36,11 +36,11 @@ namespace FineCodeCoverage.Editor.Tagging.Base
             where TTag : ITag
             where TCoverageTypeFilter : ICoverageTypeFilter, new()
                 => new CoverageTaggerProvider<TCoverageTypeFilter, TTag>(
-                    this.eventAggregator, 
-                    this.appOptionsProvider, 
-                    this.lineSpanLogic, 
-                    tagger, 
-                    this.dynamicCoverageManager, 
+                    this.eventAggregator,
+                    this.appOptionsProvider,
+                    this.lineSpanLogic,
+                    tagger,
+                    this.dynamicCoverageManager,
                     this.textInfoFactory
                 );
     }

@@ -23,7 +23,7 @@ namespace FineCodeCoverage.Editor.Management
                 { DynamicCoverageType.NotIncluded, notIncludedInfo}
             };
 
-        internal Dictionary<DynamicCoverageType, IFontAndColorsInfo> GetChanges(CoverageColours lastCoverageColours) 
+        internal Dictionary<DynamicCoverageType, IFontAndColorsInfo> GetChanges(CoverageColours lastCoverageColours)
             => lastCoverageColours == null
                 ? this.coverageTypeToFontAndColorsInfo
                 : this.GetChanges(lastCoverageColours.coverageTypeToFontAndColorsInfo);
