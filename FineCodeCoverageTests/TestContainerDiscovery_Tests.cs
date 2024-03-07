@@ -124,7 +124,9 @@ namespace Test
             testContainerDiscoverer = mocker.Create<TestContainerDiscoverer>();
             testContainerDiscoverer.RunAsync = (taskProvider) =>
             {
+#pragma warning disable VSTHRD002 // Avoid problematic synchronous waits
                 taskProvider().Wait();
+#pragma warning restore VSTHRD002 // Avoid problematic synchronous waits
             };
             var mockTestOperationStateInvocationManager = mocker.GetMock<ITestOperationStateInvocationManager>();
             mockTestOperationStateInvocationManager.Setup(testOperationStateInvocationManager => testOperationStateInvocationManager.CanInvoke(It.IsAny<TestOperationStates>())).Returns(true);
@@ -172,7 +174,9 @@ namespace Test
         [TestCase(MsCodeCoverageCollectionStatus.Collecting, false)]
         [TestCase(MsCodeCoverageCollectionStatus.NotCollecting, false)]
         [TestCase(MsCodeCoverageCollectionStatus.Error, false)]
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
         public void Should_Notify_MsCodeCoverage_When_Test_Execution_Not_Finished_IfCollectingAsync(MsCodeCoverageCollectionStatus status, bool cancelling)
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
         {
             var mockMsCodeCoverageRunSettingsService = SetMsCodeCoverageCollecting(status);
             var operation = new Mock<IOperation>().Object;
@@ -263,7 +267,7 @@ namespace Test
         }
 
         [Test]
-        public async Task Should_ReloadCoverage_When_TestExecutionStarting_And_Settings_RunInParallel_Is_True()
+        public async Task Should_ReloadCoverage_When_TestExecutionStarting_And_Settings_RunInParallel_Is_True_Async()
         {
             SetUpOptions(mockAppOptions =>
             {
@@ -313,7 +317,7 @@ namespace Test
         [TestCase(false, 10, 1, 0, false, Description = "Should not run when tests fail if settings RunWhenTestsFail is false")]
         [TestCase(false, 0, 1, 1, false, Description = "Should not run when total tests does not exceed the RunWhenTestsExceed setting")]
         [TestCase(false, 0, 1, 0, true, Description = "Should run when total tests does not exceed the RunWhenTestsExceed setting")]
-        public async Task Conditional_Run_Coverage_When_TestExecutionFinished(bool runWhenTestsFail, long numberFailedTests, long totalTests, int runWhenTestsExceed, bool expectReloadedCoverage)
+        public async Task Conditional_Run_Coverage_When_TestExecutionFinished_Async(bool runWhenTestsFail, long numberFailedTests, long totalTests, int runWhenTestsExceed, bool expectReloadedCoverage)
         {
             var (operation, coverageProjects, mockTestOperation) = SetUpForProceedPath();
             mockTestOperation.Setup(o => o.FailedTests).Returns(numberFailedTests);

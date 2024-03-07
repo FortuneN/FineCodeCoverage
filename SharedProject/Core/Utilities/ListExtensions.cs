@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace FineCodeCoverage.Core.Utilities
 {
-    public static class ListExtensions
+    public static class List
     {
         // To be performed on a sorted list
         // Returns -1 for empty list or when all elements are outside the lower bounds

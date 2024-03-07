@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Security.Permissions;
-using System.Text;
+﻿using System.Security.Permissions;
 
 namespace FineCodeCoverage.Engine.ReportGenerator
 {
@@ -9,8 +6,6 @@ namespace FineCodeCoverage.Engine.ReportGenerator
     [System.Runtime.InteropServices.ComVisible(true)]
     public class JsThemeStyling
     {
-//#pragma warning disable IDE0079 // Remove unnecessary suppression
-//#pragma warning disable SA1401 // Fields should be private
         public string BackgroundColour;
         public string FontColour;
         public string TableBorderColour;
@@ -56,7 +51,5 @@ namespace FineCodeCoverage.Engine.ReportGenerator
         public string ButtonFocusedTextColour;
         public string ButtonHoverTextColour;
         public string ButtonPressedTextColour;
-        //#pragma warning restore SA1401 // Fields should be private
-        //#pragma warning restore IDE0079 // Remove unnecessary suppression
     }
 }

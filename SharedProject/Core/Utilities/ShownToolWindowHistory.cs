@@ -18,14 +18,14 @@ namespace FineCodeCoverage.Core.Utilities
             this.fccEngine = fccEngine;
             this.fileUtil = fileUtil;
         }
-        private string shownToolWindowFilePath => Path.Combine(fccEngine.AppDataFolderPath, "outputWindowInitialized");
+        private string ShownToolWindowFilePath => Path.Combine(fccEngine.AppDataFolderPath, "outputWindowInitialized");
         public bool HasShownToolWindow
         {
             get
             {
                 if (!hasShownToolWindow && !checkedFileExists)
                 {
-                    hasShownToolWindow = fileUtil.Exists(shownToolWindowFilePath);
+                    hasShownToolWindow = fileUtil.Exists(ShownToolWindowFilePath);
                     checkedFileExists = true;
                 }
                 return hasShownToolWindow;
@@ -37,7 +37,7 @@ namespace FineCodeCoverage.Core.Utilities
             if (!hasShownToolWindow)
             {
                 hasShownToolWindow = true;
-                fileUtil.WriteAllText(shownToolWindowFilePath, string.Empty);
+                fileUtil.WriteAllText(ShownToolWindowFilePath, string.Empty);
             }
         }
     }

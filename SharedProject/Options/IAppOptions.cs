@@ -1,5 +1,8 @@
 ﻿namespace FineCodeCoverage.Options
 {
+    /*
+        Note that option properties must not be renamed
+    */
     internal interface IFCCCommonOptions
     {
         bool Enabled { get; set; }
@@ -46,7 +49,54 @@
         string OpenCoverTarget { get; set; }
         string OpenCoverTargetArgs { get; set; }
     }
-    internal interface IAppOptions : IMsCodeCoverageOptions, IOpenCoverCoverletExcludeIncludeOptions, IFCCCommonOptions, IOpenCoverOptions
+
+    interface IOverviewMarginOptions
+    {
+        bool ShowCoverageInOverviewMargin { get; set; }
+        bool ShowCoveredInOverviewMargin { get; set; }
+        bool ShowUncoveredInOverviewMargin { get; set; }
+        bool ShowPartiallyCoveredInOverviewMargin { get; set; }
+        bool ShowDirtyInOverviewMargin { get; set; }
+        bool ShowNewInOverviewMargin { get; set; }
+        bool ShowNotIncludedInOverviewMargin { get; set; }
+    }
+
+    interface IGlyphMarginOptions
+    {
+        bool ShowCoverageInGlyphMargin { get; set; }
+        bool ShowCoveredInGlyphMargin { get; set; }
+        bool ShowUncoveredInGlyphMargin { get; set; }
+        bool ShowPartiallyCoveredInGlyphMargin { get; set; }
+        bool ShowDirtyInGlyphMargin { get; set; }
+        bool ShowNewInGlyphMargin { get; set; }
+        bool ShowNotIncludedInGlyphMargin { get; set; }
+    }
+
+    interface IEditorLineHighlightingCoverageOptions
+    {
+        bool ShowLineCoverageHighlighting { get; set; }
+        bool ShowLineCoveredHighlighting { get; set; }
+        bool ShowLineUncoveredHighlighting { get; set; }
+        bool ShowLinePartiallyCoveredHighlighting { get; set; }
+        bool ShowLineDirtyHighlighting { get; set; }
+        bool ShowLineNewHighlighting { get; set; }
+        bool ShowLineNotIncludedHighlighting { get; set; }
+    }
+
+    internal enum EditorCoverageColouringMode
+    {
+        UseRoslynWhenTextChanges,
+        DoNotUseRoslynWhenTextChanges,
+        Off
+    }
+
+    interface IEditorCoverageColouringOptions : IOverviewMarginOptions, IGlyphMarginOptions,IEditorLineHighlightingCoverageOptions { 
+        bool ShowEditorCoverage { get; set; }
+        bool UseEnterpriseFontsAndColors { get; set; }
+        EditorCoverageColouringMode EditorCoverageColouringMode { get; set; }
+    }
+
+    internal interface IAppOptions : IMsCodeCoverageOptions, IOpenCoverCoverletExcludeIncludeOptions, IFCCCommonOptions, IOpenCoverOptions, IEditorCoverageColouringOptions
     {
         bool RunInParallel { get; set; }
         int RunWhenTestsExceed { get; set; }
@@ -62,11 +112,6 @@
         int ThresholdForCyclomaticComplexity { get; set; }
         int ThresholdForNPathComplexity { get; set; }
         int ThresholdForCrapScore { get; set; }
-        bool CoverageColoursFromFontsAndColours { get; set; }
-        bool ShowCoverageInOverviewMargin { get; set; }
-        bool ShowCoveredInOverviewMargin { get; set; }
-        bool ShowUncoveredInOverviewMargin { get; set; }
-        bool ShowPartiallyCoveredInOverviewMargin { get; set; }
         bool StickyCoverageTable { get; set; }
         bool NamespacedClasses { get; set; }
         bool HideFullyCovered { get; set; }

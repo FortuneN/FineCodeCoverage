@@ -23,7 +23,7 @@ namespace FineCodeCoverageTests
         [TestCase(true, true, false)]
         [TestCase(false, false, false)]
         [TestCase(false, true, false)]
-        public async Task It_Should_Open_If_Have_Never_Shown_The_ToolWindow_And_InitializedFromTestContainerDiscoverer(
+        public async Task It_Should_Open_If_Have_Never_Shown_The_ToolWindow_And_InitializedFromTestContainerDiscoverer_Async(
             bool initializedFromTestContainerDiscoverer,
             bool hasShownToolWindow,
             bool expectedShown

@@ -29,7 +29,7 @@ namespace Test
         }
 
         [Test]
-        public async Task Should_Use_The_DataCollector_If_Possible()
+        public async Task Should_Use_The_DataCollector_If_Possible_Async()
         {
             var ct = CancellationToken.None;
             var project = new Mock<ICoverageProject>().Object;
@@ -44,7 +44,7 @@ namespace Test
         }
 
         [Test]
-        public async Task Should_Use_The_Global_Tool_If_Not_Possible()
+        public async Task Should_Use_The_Global_Tool_If_Not_Possible_Async()
         {
             var ct = CancellationToken.None;
             var project = new Mock<ICoverageProject>().Object;

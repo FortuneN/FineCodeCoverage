@@ -27,7 +27,7 @@ namespace FineCodeCoverage.Output
         public static readonly Guid CommandSet = PackageGuids.guidOutputToolWindowPackageCmdSet;
 
         private readonly DTE2 dte;
-        private MenuCommand command;
+        private readonly MenuCommand command;
         private string hotspotsFile;
 
         public static OpenHotspotsCommand Instance

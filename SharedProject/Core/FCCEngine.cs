@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
-using FineCodeCoverage.Core.Initialization;
 using FineCodeCoverage.Core.Utilities;
 using FineCodeCoverage.Engine.Cobertura;
 using FineCodeCoverage.Engine.Model;
@@ -17,9 +16,9 @@ namespace FineCodeCoverage.Engine
 {
     internal enum ReloadCoverageStatus { Start, Done, Cancelled, Error, Initializing };
 
-    internal class NewCoverageLinesMessage
+    internal sealed class NewCoverageLinesMessage
     {
-        public FileLineCoverage CoverageLines { get; set; }
+        public IFileLineCoverage CoverageLines { get; set; }
     }
 
     internal class CoverageTaskState
@@ -30,7 +29,7 @@ namespace FineCodeCoverage.Engine
 
     internal class ReportResult
     {
-        public FileLineCoverage FileLineCoverage { get; set; }
+        public IFileLineCoverage FileLineCoverage { get; set; }
         public string ProcessedReport { get; set; }
         public string HotspotsFile { get; set; }
         public string CoberturaFile { get; set; }
@@ -88,7 +87,7 @@ namespace FineCodeCoverage.Engine
             this.solutionEvents = solutionEvents;
             this.eventAggregator = eventAggregator;
             this.disposeAwareTaskRunner = disposeAwareTaskRunner;
-            solutionEvents.AfterClosing += (s,args) => ClearOutputWindow(false);
+            solutionEvents.AfterClosing += (s,args) => ClearUI(false);
             appOptionsProvider.OptionsChanged += (appOptions) =>
             {
                 if (!appOptions.Enabled)
@@ -126,10 +125,10 @@ namespace FineCodeCoverage.Engine
             msCodeCoverageRunSettingsService.Initialize(AppDataFolderPath, this,cancellationToken);
         }
 
-        public void ClearUI()
+        public void ClearUI(bool clearOutputWindowHistory = true)
         {
             ClearCoverageLines();
-            ClearOutputWindow(true);
+            ClearOutputWindow(clearOutputWindowHistory);
         }
 
         private void ClearOutputWindow(bool withHistory)
@@ -213,12 +212,12 @@ namespace FineCodeCoverage.Engine
             RaiseCoverageLines(null);
         }
 
-        private void RaiseCoverageLines(FileLineCoverage coverageLines)
+        private void RaiseCoverageLines(IFileLineCoverage coverageLines)
         {
             eventAggregator.SendMessage(new NewCoverageLinesMessage { CoverageLines = coverageLines});
         }
 
-        private void UpdateUI(FileLineCoverage coverageLines, string reportHtml)
+        private void UpdateUI(IFileLineCoverage coverageLines, string reportHtml)
         {
             RaiseCoverageLines(coverageLines);
             if (reportHtml == null)
@@ -300,10 +299,12 @@ namespace FineCodeCoverage.Engine
                         break;
                     case System.Threading.Tasks.TaskStatus.RanToCompletion:
                         LogReloadCoverageStatus(ReloadCoverageStatus.Done);
+#pragma warning disable IDE0079 // Remove unnecessary suppression
 #pragma warning disable VSTHRD002 // Avoid problematic synchronous waits
                         UpdateUI(t.Result.FileLineCoverage, t.Result.ProcessedReport);
                         RaiseReportFiles(t.Result);
 #pragma warning restore VSTHRD002 // Avoid problematic synchronous waits
+#pragma warning restore IDE0079 // Remove unnecessary suppression
                         break;
                 }
 
@@ -340,7 +341,7 @@ namespace FineCodeCoverage.Engine
         {
             var vsLinkedCancellationTokenSource = Reset();
             var vsShutdownLinkedCancellationToken = vsLinkedCancellationTokenSource.Token;
-            disposeAwareTaskRunner.RunAsync(() =>
+            disposeAwareTaskRunner.RunAsyncFunc(() =>
             {
                 reloadCoverageTask = System.Threading.Tasks.Task.Run(async () =>
                 {

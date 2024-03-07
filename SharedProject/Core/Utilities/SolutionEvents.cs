@@ -4,6 +4,7 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using System;
 using System.ComponentModel.Composition;
+using Task = System.Threading.Tasks.Task;
 
 namespace FineCodeCoverage.Core.Utilities
 {
@@ -19,6 +20,7 @@ namespace FineCodeCoverage.Core.Utilities
             IServiceProvider serviceProvider
             )
         {
+#pragma warning disable VSTHRD104 // Offer async methods
             ThreadHelper.JoinableTaskFactory.Run(async () =>
             {
                 await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
@@ -26,6 +28,7 @@ namespace FineCodeCoverage.Core.Utilities
                 Assumes.Present(vsSolution);
                 vsSolution.AdviseSolutionEvents(this, out uint _);
             });
+#pragma warning restore VSTHRD104 // Offer async methods
         }
 
         public int OnAfterOpenProject(IVsHierarchy pHierarchy, int fAdded)

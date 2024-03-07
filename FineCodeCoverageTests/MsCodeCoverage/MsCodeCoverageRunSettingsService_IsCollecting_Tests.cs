@@ -10,7 +10,7 @@ using System.Collections.Generic;
 using FineCodeCoverage.Engine;
 using System.Linq;
 using System.Threading;
-using FineCodeCoverageTests.Test_helpers;
+using FineCodeCoverageTests.TestHelpers;
 using FineCodeCoverage.Engine.ReportGenerator;
 using FineCodeCoverage.Core.Utilities;
 using System.IO;
@@ -87,7 +87,7 @@ namespace FineCodeCoverageTests.MsCodeCoverage
         }
 
         [Test]
-        public async Task Should_Not_Be_Collecting_If_RunMsCodeCoverage_No()
+        public async Task Should_Not_Be_Collecting_If_RunMsCodeCoverage_No_Async()
         {
             SetupAppOptionsProvider(RunMsCodeCoverage.No);
             var testOperation = SetUpTestOperation(new List<ICoverageProject> {  });
@@ -98,7 +98,7 @@ namespace FineCodeCoverageTests.MsCodeCoverage
 
         [TestCase(true)]
         [TestCase(false)]
-        public async Task Should_Try_Analyse_Projects_With_Runsettings(bool useMsCodeCoverageOption)
+        public async Task Should_Try_Analyse_Projects_With_Runsettings_Async(bool useMsCodeCoverageOption)
         {
             var runMsCodeCoverage = useMsCodeCoverageOption ? RunMsCodeCoverage.Yes : RunMsCodeCoverage.IfInRunSettings;
             SetupAppOptionsProvider(runMsCodeCoverage);
@@ -122,7 +122,7 @@ namespace FineCodeCoverageTests.MsCodeCoverage
         }
 
         [Test] // in case shutdown visual studio before normal clean up operation
-        public async Task Should_CleanUp_Projects_With_RunSettings_First()
+        public async Task Should_CleanUp_Projects_With_RunSettings_First_Async()
         {
             var coverageProjectWithRunSettings = CreateCoverageProject(".runsettings");
             var coverageProjects = new List<ICoverageProject> { coverageProjectWithRunSettings, CreateCoverageProject(null) };
@@ -155,37 +155,37 @@ namespace FineCodeCoverageTests.MsCodeCoverage
         }
 
         [Test]
-        public async Task Should_Log_Exception_From_UserRunSettingsService_Analyse()
+        public async Task Should_Log_Exception_From_UserRunSettingsService_Analyse_Async()
         {
             var exception = new Exception("Msg");
-            await Throw_Exception_From_UserRunSettingsService_Analyse(exception);
+            await Throw_Exception_From_UserRunSettingsService_Analyse_Async(exception);
             VerifyLogException("Exception analysing runsettings files", exception);
         }
 
         [Test]
-        public async Task Should_Have_Status_Error_When_Exception_From_UserRunSettingsService_Analyse()
+        public async Task Should_Have_Status_Error_When_Exception_From_UserRunSettingsService_Analyse_Async()
         {
             var exception = new Exception("Msg");
-            var status = await Throw_Exception_From_UserRunSettingsService_Analyse(exception);
+            var status = await Throw_Exception_From_UserRunSettingsService_Analyse_Async(exception);
             Assert.AreEqual(MsCodeCoverageCollectionStatus.Error, status);
         }
 
         [Test]
-        public async Task Should_Report_End_Of_CoverageRun_If_Error()
+        public async Task Should_Report_End_Of_CoverageRun_If_Error_Async()
         {
             var exception = new Exception("Msg");
-            await Throw_Exception_From_UserRunSettingsService_Analyse(exception);
+            await Throw_Exception_From_UserRunSettingsService_Analyse_Async(exception);
             autoMocker.Verify<IReportGeneratorUtil>(reportGeneratorUtil => reportGeneratorUtil.EndOfCoverageRun());
         }
 
-        private Task<MsCodeCoverageCollectionStatus> Throw_Exception_From_UserRunSettingsService_Analyse(Exception exception)
+        private Task<MsCodeCoverageCollectionStatus> Throw_Exception_From_UserRunSettingsService_Analyse_Async(Exception exception)
         {
             SetupIUserRunSettingsServiceAnalyseAny().Throws(exception);
             return msCodeCoverageRunSettingsService.IsCollectingAsync(SetUpTestOperation());
         }
 
         [Test]
-        public async Task Should_Prepare_Coverage_Projects_When_Suitable()
+        public async Task Should_Prepare_Coverage_Projects_When_Suitable_Async()
         {
             SetupAppOptionsProvider(RunMsCodeCoverage.IfInRunSettings);
 
@@ -210,7 +210,7 @@ namespace FineCodeCoverageTests.MsCodeCoverage
         }
 
         [Test]
-        public async Task Should_Set_UserRunSettingsProjectDetailsLookup_For_IRunSettingsService_When_Suitable()
+        public async Task Should_Set_UserRunSettingsProjectDetailsLookup_For_IRunSettingsService_When_Suitable_Async()
         {
             SetupAppOptionsProvider(RunMsCodeCoverage.IfInRunSettings);
 
@@ -246,20 +246,20 @@ namespace FineCodeCoverageTests.MsCodeCoverage
         }
 
         [Test]
-        public async Task Should_Be_Collecting_When_Suitable_RunSettings_And_No_Templates()
+        public async Task Should_Be_Collecting_When_Suitable_RunSettings_And_No_Templates_Async()
         {
-            var status = await IsCollecting_With_Suitable_RunSettings_Only();
+            var status = await IsCollecting_With_Suitable_RunSettings_Only_Async();
             Assert.AreEqual(MsCodeCoverageCollectionStatus.Collecting, status);
         }
 
         [Test]
-        public async Task Should_Combined_Log_Collecting_With_RunSettings_When_Only_Suitable_RunSettings()
+        public async Task Should_Combined_Log_Collecting_With_RunSettings_When_Only_Suitable_RunSettings_Async()
         {
-            await IsCollecting_With_Suitable_RunSettings_Only();
+            await IsCollecting_With_Suitable_RunSettings_Only_Async();
             VerifyCombinedLogMessage("Ms code coverage with user runsettings");
         }
 
-        private Task<MsCodeCoverageCollectionStatus> IsCollecting_With_Suitable_RunSettings_Only()
+        private Task<MsCodeCoverageCollectionStatus> IsCollecting_With_Suitable_RunSettings_Only_Async()
         {
             var testOperation = SetUpTestOperation();
             SetupIUserRunSettingsServiceAnalyseAny().Returns(new UserRunSettingsAnalysisResult(true, false));
@@ -267,7 +267,7 @@ namespace FineCodeCoverageTests.MsCodeCoverage
         }
 
         [Test]
-        public async Task Should_Not_Be_Collecting_If_User_RunSettings_Are_Not_Suitable()
+        public async Task Should_Not_Be_Collecting_If_User_RunSettings_Are_Not_Suitable_Async()
         {
             var testOperation = SetUpTestOperation();
             SetupIUserRunSettingsServiceAnalyseAny().Returns(new UserRunSettingsAnalysisResult());
@@ -277,18 +277,18 @@ namespace FineCodeCoverageTests.MsCodeCoverage
         }
 
         [Test]
-        public Task Should_Generate_RunSettings_From_Templates_When_MsCodeCoverage_Option_is_True()
+        public Task Should_Generate_RunSettings_From_Templates_When_MsCodeCoverage_Option_is_True_Async()
         {
-            return GenerateRunSettingsFromTemplate(true, false);
+            return GenerateRunSettingsFromTemplate_Async(true, false);
         }
 
         [Test]
-        public Task Should_Generate_RunSettings_From_Templates_When_RunSettings_SpecifiedMsCodeCoverage()
+        public Task Should_Generate_RunSettings_From_Templates_When_RunSettings_SpecifiedMsCodeCoverage_Async()
         {
-            return GenerateRunSettingsFromTemplate(false, true);
+            return GenerateRunSettingsFromTemplate_Async(false, true);
         }
 
-        public async Task GenerateRunSettingsFromTemplate(bool msCodeCoverageOptions, bool runSettingsSpecifiedMsCodeCoverage)
+        public async Task GenerateRunSettingsFromTemplate_Async(bool msCodeCoverageOptions, bool runSettingsSpecifiedMsCodeCoverage)
         {
             var runMsCodeCoverage = msCodeCoverageOptions ? RunMsCodeCoverage.Yes : RunMsCodeCoverage.IfInRunSettings;
             SetupAppOptionsProvider(runMsCodeCoverage);
@@ -319,24 +319,24 @@ namespace FineCodeCoverageTests.MsCodeCoverage
         }
 
         [Test]
-        public Task Should_Combined_Log_When_Successfully_Generate_RunSettings_From_Templates()
+        public Task Should_Combined_Log_When_Successfully_Generate_RunSettings_From_Templates_Async()
         {
-            return Successful_RunSettings_From_Templates_CombinedLog_Test(
+            return Successful_RunSettings_From_Templates_CombinedLog_Test_Async(
                 new List<string> { }, 
                 new List<string> { "Ms code coverage" }
             );
         }
 
         [Test]
-        public Task Should_Combined_Log_With_Custom_Template_Paths_When_Successfully_Generate_RunSettings_From_Templates()
+        public Task Should_Combined_Log_With_Custom_Template_Paths_When_Successfully_Generate_RunSettings_From_Templates_Async()
         {
-            return Successful_RunSettings_From_Templates_CombinedLog_Test(
+            return Successful_RunSettings_From_Templates_CombinedLog_Test_Async(
                 new List<string> { "Custom path 1", "Custom path 2","Custom path 2" },
                 new List<string> { "Ms code coverage - custom template paths","Custom path 1", "Custom path 2"}
             );
         }
 
-        private async Task Successful_RunSettings_From_Templates_CombinedLog_Test(List<string> customTemplatePaths,List<string> expectedLoggerMessages)
+        private async Task Successful_RunSettings_From_Templates_CombinedLog_Test_Async(List<string> customTemplatePaths,List<string> expectedLoggerMessages)
         {
             SetupIUserRunSettingsServiceAnalyseAny().Returns(new UserRunSettingsAnalysisResult(true, true));
 
@@ -359,22 +359,22 @@ namespace FineCodeCoverageTests.MsCodeCoverage
         }
 
         [Test]
-        public async Task Should_Combined_Log_Exception_From_Generate_RunSettings_From_Templates()
+        public async Task Should_Combined_Log_Exception_From_Generate_RunSettings_From_Templates_Async()
         {
             var exception = new Exception("The message");
-            await ExceptionWhenGenerateRunSettingsFromTemplates(exception);
+            await ExceptionWhenGenerateRunSettingsFromTemplates_Async(exception);
 
             VerifyLogException("The reason", exception);
         }
 
         [Test]
-        public async Task Should_Have_Status_Error_When_Exception_From_Generate_RunSettings_From_Templates()
+        public async Task Should_Have_Status_Error_When_Exception_From_Generate_RunSettings_From_Templates_Async()
         {
-            var status = await ExceptionWhenGenerateRunSettingsFromTemplates(new Exception());
+            var status = await ExceptionWhenGenerateRunSettingsFromTemplates_Async(new Exception());
             Assert.AreEqual(MsCodeCoverageCollectionStatus.Error, status);
         }
 
-        private Task<MsCodeCoverageCollectionStatus> ExceptionWhenGenerateRunSettingsFromTemplates(Exception exception)
+        private Task<MsCodeCoverageCollectionStatus> ExceptionWhenGenerateRunSettingsFromTemplates_Async(Exception exception)
         {
             SetupIUserRunSettingsServiceAnalyseAny().Returns(new UserRunSettingsAnalysisResult(true, true));
 
@@ -400,7 +400,7 @@ namespace FineCodeCoverageTests.MsCodeCoverage
         }
 
         [Test]
-        public async Task Should_Not_Be_Collecting_When_Template_Projects_And_Do_Not_Ms_Collect()
+        public async Task Should_Not_Be_Collecting_When_Template_Projects_And_Do_Not_Ms_Collect_Async()
         {
             SetupAppOptionsProvider(RunMsCodeCoverage.IfInRunSettings);
             SetupIUserRunSettingsServiceAnalyseAny().Returns(new UserRunSettingsAnalysisResult(true, false));
@@ -417,7 +417,7 @@ namespace FineCodeCoverageTests.MsCodeCoverage
         }
 
         [Test]
-        public async Task Should_Shim_Copy_From_RunSettingsProjects_And_Template_Projects_That_Require_It()
+        public async Task Should_Shim_Copy_From_RunSettingsProjects_And_Template_Projects_That_Require_It_Async()
         {
             var shimPath = InitializeShimPath();
 

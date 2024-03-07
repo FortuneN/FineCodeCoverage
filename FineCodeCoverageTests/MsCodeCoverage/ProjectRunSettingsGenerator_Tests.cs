@@ -65,7 +65,7 @@ namespace FineCodeCoverageTests.MsCodeCoverage
         }
 
         [Test]
-        public async Task Should_Write_All_Project_Run_Settings_File_Path_With_The_VsRunSettingsWriter()
+        public async Task Should_Write_All_Project_Run_Settings_File_Path_With_The_VsRunSettingsWriter_Async()
         {
             await projectRunSettingsGenerator.WriteProjectsRunSettingsAsync(coverageProjectsRunSettings);
 
@@ -77,7 +77,7 @@ namespace FineCodeCoverageTests.MsCodeCoverage
 
         [TestCase(true)]
         [TestCase(false)]
-        public async Task Should_Write_RunSettings_In_Project_Output_Folder_If_The_VsRunSettingsWriter_Is_Successful(bool success)
+        public async Task Should_Write_RunSettings_In_Project_Output_Folder_If_The_VsRunSettingsWriter_Is_Successful_Async(bool success)
         {
             var mockVsRunSettingsWriter = autoMocker.GetMock<IVsRunSettingsWriter>();
             mockVsRunSettingsWriter.Setup(rsw => rsw.WriteRunSettingsFilePathAsync(projectId1, generatedRunSettingsInOutputFolderPath1)).ReturnsAsync(success);
@@ -99,7 +99,7 @@ namespace FineCodeCoverageTests.MsCodeCoverage
         }
 
         [Test]
-        public async Task Should_Remove_Generated_Run_Settings_File_Path_With_The_VsRunSettingsWriter()
+        public async Task Should_Remove_Generated_Run_Settings_File_Path_With_The_VsRunSettingsWriter_Async()
         {
             var mockProjectWithGeneratedRunSettings = new Mock<ICoverageProject>();
             var mockProjectWithoutRunSettings = new Mock<ICoverageProject>();

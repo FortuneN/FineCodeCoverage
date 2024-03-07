@@ -50,7 +50,7 @@ namespace FineCodeCoverageTests
 
         [TestCase(true)]
         [TestCase(false)]
-        public async Task Should_Delete_The_Test_Pdb_When_RunOpenCoverAsync_And_IncludeTestAssembly_Is_False(bool includeTestAssembly)
+        public async Task Should_Delete_The_Test_Pdb_When_RunOpenCoverAsync_And_IncludeTestAssembly_Is_False_Async(bool includeTestAssembly)
         {
             var ct = CancellationToken.None;
             mocker.Setup<IOpenCoverExeArgumentsProvider,List<string>>(openCoverExeArgumentsProvider => openCoverExeArgumentsProvider.Provide(

@@ -4,6 +4,7 @@ using System.Linq;
 using AutoMoq;
 using FineCodeCoverage.Core.Utilities;
 using FineCodeCoverage.Options;
+using Microsoft.VisualStudio.Settings;
 using Moq;
 using NUnit.Framework;
 
@@ -13,16 +14,16 @@ namespace FineCodeCoverageTests
     {
         private AutoMoqer autoMocker;
         private AppOptionsProvider appOptionsProvider;
-        private Mock<IWritableSettingsStore> mockWritableSettingsStore;
+        private Mock<WritableSettingsStore> mockWritableSettingsStore;
 
         [SetUp]
         public void Setup()
         {
             autoMocker = new AutoMoqer();
             appOptionsProvider = autoMocker.Create<AppOptionsProvider>();
-            mockWritableSettingsStore = new Mock<IWritableSettingsStore>();
-            var mockWritableSettingsStoreProvider = autoMocker.GetMock<IWritableSettingsStoreProvider>();
-            mockWritableSettingsStoreProvider.Setup(
+            mockWritableSettingsStore = new Mock<WritableSettingsStore>();
+            var mockWritableUserSettingsStoreProvider = autoMocker.GetMock<IWritableUserSettingsStoreProvider>();
+            mockWritableUserSettingsStoreProvider.Setup(
                 writableSettingsStoreProvider => writableSettingsStoreProvider.Provide()
             ).Returns(mockWritableSettingsStore.Object);
         }
@@ -205,7 +206,16 @@ namespace FineCodeCoverageTests
                 nameof(IAppOptions.ShowPartiallyCoveredInOverviewMargin),
                 nameof(IAppOptions.ShowToolWindowToolbar),
                 nameof(IAppOptions.Hide0Coverable),
-                nameof(IAppOptions.DisabledNoCoverage)
+                nameof(IAppOptions.DisabledNoCoverage),
+                nameof(IAppOptions.ShowEditorCoverage),
+                nameof(IAppOptions.ShowCoverageInGlyphMargin),
+                nameof(IAppOptions.ShowCoveredInGlyphMargin),
+                nameof(IAppOptions.ShowUncoveredInGlyphMargin),
+                nameof(IAppOptions.ShowPartiallyCoveredInGlyphMargin),
+                nameof(IAppOptions.ShowLineCoveredHighlighting),
+                nameof(IAppOptions.ShowLinePartiallyCoveredHighlighting),
+                nameof(IAppOptions.ShowLineUncoveredHighlighting),
+                nameof(IAppOptions.UseEnterpriseFontsAndColors)
             };
             CollectionAssert.AreEquivalent(expectedSetters.Select(s => $"set_{s}"), invocationNames);
         }
@@ -273,7 +283,6 @@ namespace FineCodeCoverageTests
                 { nameof(IAppOptions.AttributesInclude), new string[]{ "ainclude"}},
                 { nameof(IAppOptions.CompanyNamesExclude), new string[]{ "cexclude"}},
                 { nameof(IAppOptions.CompanyNamesInclude), new string[]{ "cinclude"}},
-                { nameof(IAppOptions.CoverageColoursFromFontsAndColours), true},
                 { nameof(IAppOptions.CoverletCollectorDirectoryPath), "p"},
                 { nameof(IAppOptions.CoverletConsoleCustomPath), "cp"},
                 { nameof(IAppOptions.CoverletConsoleGlobal), true},
@@ -313,14 +322,34 @@ namespace FineCodeCoverageTests
                 { nameof(IAppOptions.ShowCoverageInOverviewMargin),true},
                 { nameof(IAppOptions.ShowCoveredInOverviewMargin),true},
                 { nameof(IAppOptions.ShowPartiallyCoveredInOverviewMargin),true},
+                { nameof(IAppOptions.ShowDirtyInOverviewMargin), true },
+                { nameof(IAppOptions.ShowNewInOverviewMargin), true },
                 { nameof(IAppOptions.ShowUncoveredInOverviewMargin),true},
+                { nameof(IAppOptions.ShowNotIncludedInOverviewMargin),true},
                 { nameof(IAppOptions.ShowToolWindowToolbar),true},
                 {nameof(IAppOptions.ExcludeAssemblies),new string[]{ "Exclude"} },
                 {nameof(IAppOptions.IncludeAssemblies),new string[]{ "Include"} },
                 {nameof(IAppOptions.NamespaceQualification),NamespaceQualification.AlwaysUnqualified },
                 {nameof(IAppOptions.OpenCoverRegister),OpenCoverRegister.Default },
                 {nameof(IAppOptions.OpenCoverTarget),"" },
-                {nameof(IAppOptions.OpenCoverTargetArgs),"" }
+                {nameof(IAppOptions.OpenCoverTargetArgs),"" },
+                {nameof(IAppOptions.ShowEditorCoverage),true },
+                {nameof(IAppOptions.ShowCoverageInGlyphMargin),true },
+                {nameof(IAppOptions.ShowCoveredInGlyphMargin),true },
+                {nameof(IAppOptions.ShowPartiallyCoveredInGlyphMargin),true },
+                {nameof(IAppOptions.ShowUncoveredInGlyphMargin),true },
+                {nameof(IAppOptions.ShowDirtyInGlyphMargin),true },
+                {nameof(IAppOptions.ShowNewInGlyphMargin),true },
+                {nameof(IAppOptions.ShowNotIncludedInGlyphMargin),true },
+                {nameof(IAppOptions.ShowLineCoverageHighlighting),true },
+                {nameof(IAppOptions.ShowLineCoveredHighlighting),true },
+                {nameof(IAppOptions.ShowLinePartiallyCoveredHighlighting),true },
+                {nameof(IAppOptions.ShowLineUncoveredHighlighting),true },
+                {nameof(IAppOptions.ShowLineDirtyHighlighting),true },
+                {nameof(IAppOptions.ShowLineNewHighlighting),true },
+                {nameof(IAppOptions.ShowLineNotIncludedHighlighting),true },
+                {nameof(IAppOptions.UseEnterpriseFontsAndColors),true },
+                {nameof(IAppOptions.EditorCoverageColouringMode), EditorCoverageColouringMode.UseRoslynWhenTextChanges }
             };
             var mockJsonConvertService = autoMocker.GetMock<IJsonConvertService>();
             mockJsonConvertService.Setup(

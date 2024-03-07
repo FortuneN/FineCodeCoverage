@@ -5,7 +5,7 @@ using AutoMoq;
 using Moq;
 using Microsoft.VisualStudio.TestWindow.Extensibility;
 using System.Collections.Generic;
-using FineCodeCoverageTests.Test_helpers;
+using FineCodeCoverageTests.TestHelpers;
 
 namespace FineCodeCoverageTests.MsCodeCoverage
 {

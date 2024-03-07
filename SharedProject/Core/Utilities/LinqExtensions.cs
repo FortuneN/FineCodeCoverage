@@ -21,5 +21,21 @@ namespace FineCodeCoverage.Core.Utilities
             }
             return null;
         }
+
+        public static IEnumerable<T> TakeUntil<T>(this IEnumerable<T> source, System.Func<T, bool> predicate)
+            => source == null
+                ? throw new ArgumentNullException(nameof(source))
+                : predicate == null ? throw new ArgumentNullException(nameof(predicate)) :
+                TakeUntilIterator<T>(source, predicate);
+
+        private static IEnumerable<T> TakeUntilIterator<T>(IEnumerable<T> source, Func<T, bool> predicate)
+        {
+            foreach (T item in source)
+            {
+                yield return item;
+                if (predicate(item))
+                    yield break;
+            }
+        }
     }
 }

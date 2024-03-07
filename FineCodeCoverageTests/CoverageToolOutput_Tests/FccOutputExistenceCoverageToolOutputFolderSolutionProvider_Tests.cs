@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using AutoMoq;
 using FineCodeCoverage.Core.Utilities;
 using FineCodeCoverage.Engine;
-using FineCodeCoverageTests.Test_helpers;
+using FineCodeCoverageTests.TestHelpers;
 using NUnit.Framework;
 
 namespace FineCodeCoverageTests.CoverageToolOutput_Tests

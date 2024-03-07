@@ -2,6 +2,7 @@
 using System.ComponentModel.Composition;
 using System.Reflection;
 using FineCodeCoverage.Core.Utilities;
+using Microsoft.VisualStudio.Settings;
 
 namespace FineCodeCoverage.Options
 {
@@ -10,7 +11,7 @@ namespace FineCodeCoverage.Options
     internal class AppOptionsProvider : IAppOptionsProvider, IAppOptionsStorageProvider
     {
         private readonly ILogger logger;
-        private readonly IWritableSettingsStoreProvider writableSettingsStoreProvider;
+        private readonly IWritableUserSettingsStoreProvider writableUserSettingsStoreProvider;
         private readonly IJsonConvertService jsonConvertService;
         private readonly PropertyInfo[] appOptionsPropertyInfos;
 
@@ -19,12 +20,12 @@ namespace FineCodeCoverage.Options
         [ImportingConstructor]
         public AppOptionsProvider(
             ILogger logger, 
-            IWritableSettingsStoreProvider writableSettingsStoreProvider,
+            IWritableUserSettingsStoreProvider writableUserSettingsStoreProvider,
             IJsonConvertService jsonConvertService
             )
         {
             this.logger = logger;
-            this.writableSettingsStoreProvider = writableSettingsStoreProvider;
+            this.writableUserSettingsStoreProvider = writableUserSettingsStoreProvider;
             this.jsonConvertService = jsonConvertService;
             appOptionsPropertyInfos =typeof(IAppOptions).GetPublicProperties();
         }
@@ -41,9 +42,9 @@ namespace FineCodeCoverage.Options
             return options;
         }
 
-        private IWritableSettingsStore EnsureStore()
+        private WritableSettingsStore EnsureStore()
         {
-            var settingsStore = writableSettingsStoreProvider.Provide();
+            var settingsStore = writableUserSettingsStoreProvider.Provide();
             if (!settingsStore.CollectionExists(Vsix.Code))
             {
                 settingsStore.CreateCollection(Vsix.Code);
@@ -65,10 +66,23 @@ namespace FineCodeCoverage.Options
             appOptions.ExcludeByFile = new[] { "**/Migrations/*" };
             appOptions.Enabled = true;
             appOptions.DisabledNoCoverage = true;
+            appOptions.ShowEditorCoverage = true;
             appOptions.ShowCoverageInOverviewMargin = true;
             appOptions.ShowCoveredInOverviewMargin = true;
             appOptions.ShowPartiallyCoveredInOverviewMargin = true;
             appOptions.ShowUncoveredInOverviewMargin = true;
+
+            appOptions.ShowCoverageInGlyphMargin = true;
+            appOptions.ShowCoveredInGlyphMargin = true;
+            appOptions.ShowPartiallyCoveredInGlyphMargin = true;
+            appOptions.ShowUncoveredInGlyphMargin = true;
+            
+            appOptions.ShowLineCoveredHighlighting = true;
+            appOptions.ShowLinePartiallyCoveredHighlighting = true;
+            appOptions.ShowLineUncoveredHighlighting = true;
+
+            appOptions.UseEnterpriseFontsAndColors = true;
+            
             appOptions.Hide0Coverable = true;
         }
 
@@ -174,6 +188,9 @@ namespace FineCodeCoverage.Options
         public bool ShowUncoveredInOverviewMargin { get; set; }
         
         public bool ShowPartiallyCoveredInOverviewMargin { get; set; }
+        public bool ShowDirtyInOverviewMargin { get; set; }
+        public bool ShowNewInOverviewMargin { get; set; }
+        public bool ShowNotIncludedInOverviewMargin { get; set; }
 
         public bool StickyCoverageTable { get; set; }
 
@@ -213,5 +230,24 @@ namespace FineCodeCoverage.Options
         public OpenCoverRegister OpenCoverRegister { get; set; }
         public string OpenCoverTarget { get; set; }
         public string OpenCoverTargetArgs { get; set; }
+        public bool ShowCoverageInGlyphMargin { get; set; }
+        public bool ShowCoveredInGlyphMargin { get; set; }
+        public bool ShowUncoveredInGlyphMargin { get; set; }
+        public bool ShowPartiallyCoveredInGlyphMargin { get; set; }
+        public bool ShowDirtyInGlyphMargin { get; set; }
+        public bool ShowNewInGlyphMargin { get; set; }
+        public bool ShowNotIncludedInGlyphMargin { get; set; }
+        public bool ShowLineCoverageHighlighting { get; set; }
+        public bool ShowLineCoveredHighlighting { get; set; }
+        public bool ShowLineUncoveredHighlighting { get; set; }
+        public bool ShowLinePartiallyCoveredHighlighting { get; set; }
+        public bool ShowLineDirtyHighlighting { get; set; }
+        public bool ShowLineNewHighlighting { get; set; }
+        public bool ShowLineNotIncludedHighlighting { get; set; }
+        public bool ShowEditorCoverage { get; set; }
+        public bool UseEnterpriseFontsAndColors { get; set; }
+        public EditorCoverageColouringMode EditorCoverageColouringMode { get; set; }
+        
+        
     }
 }

@@ -7,6 +7,8 @@ using FineCodeCoverage.Engine.Model;
 
 namespace FineCodeCoverage.Core.Initialization
 {
+    interface IInitializable { }
+
     [Export(typeof(IInitializer))]
     [Export(typeof(IInitializeStatusProvider))]
     internal class Initializer : IInitializer
@@ -24,7 +26,9 @@ namespace FineCodeCoverage.Core.Initialization
             IFCCEngine fccEngine, 
             ILogger logger, 
             ICoverageProjectFactory coverageProjectFactory,
-            IFirstTimeToolWindowOpener firstTimeToolWindowOpener
+            IFirstTimeToolWindowOpener firstTimeToolWindowOpener,
+            [ImportMany]
+            IInitializable[] initializables
         )
         {
             this.fccEngine = fccEngine;

@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.IO;
 using FineCodeCoverage.Core.Utilities;
 using FineCodeCoverage.Engine;
 using NUnit.Framework;
@@ -13,7 +8,7 @@ namespace FineCodeCoverageTests.CoverageToolOutput_Tests
     class SolutionFolderProvider_Tests
     {
         private string tempDirectory;
-        private FileUtil fileUtil = new FileUtil();
+        private readonly FileUtil fileUtil = new FileUtil();
 
         [SetUp]
         public void Create_Temp_Directory()

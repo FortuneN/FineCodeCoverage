@@ -12,6 +12,8 @@ using FineCodeCoverage.Engine;
 using EnvDTE80;
 using FineCodeCoverage.Core.Utilities;
 using FineCodeCoverage.Core.Initialization;
+using FineCodeCoverage.Impl;
+using FineCodeCoverage.Editor.Management;
 
 namespace FineCodeCoverage.Output
 {
@@ -41,7 +43,7 @@ namespace FineCodeCoverage.Output
     [ProvideProfile(typeof(AppOptionsPage), Vsix.Name, Vsix.Name, 101, 102, true)]
     [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
 	[ProvideToolWindow(typeof(OutputToolWindow), Style = VsDockStyle.Tabbed, DockedHeight = 300, Window = EnvDTE.Constants.vsWindowKindOutput)]
-	public sealed class OutputToolWindowPackage : AsyncPackage
+    public sealed class OutputToolWindowPackage : AsyncPackage
 	{
 		private static Microsoft.VisualStudio.ComponentModelHost.IComponentModel componentModel;
         private IFCCEngine fccEngine;
@@ -83,20 +85,22 @@ namespace FineCodeCoverage.Output
 			// Do any initialization that requires the UI thread after switching to the UI thread.
 			await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-			var _dte2 = (DTE2)GetGlobalService(typeof(SDTE));			
+			var _dte2 = (DTE2)GetGlobalService(typeof(SDTE));
 			var sp = new ServiceProvider(_dte2 as Microsoft.VisualStudio.OLE.Interop.IServiceProvider);
+			// you cannot MEF import in the constructor of the package
 			componentModel = sp.GetService(typeof(Microsoft.VisualStudio.ComponentModelHost.SComponentModel)) as Microsoft.VisualStudio.ComponentModelHost.IComponentModel;
-            Assumes.Present(componentModel);
-			fccEngine = componentModel.GetService<IFCCEngine>();	
+			Assumes.Present(componentModel);
+			fccEngine = componentModel.GetService<IFCCEngine>();
 			var eventAggregator = componentModel.GetService<IEventAggregator>();
 			await OpenCoberturaCommand.InitializeAsync(this, eventAggregator);
 			await OpenHotspotsCommand.InitializeAsync(this, eventAggregator);
-            await ClearUICommand.InitializeAsync(this, fccEngine);
-            await OutputToolWindowCommand.InitializeAsync(
-				this, 
+			await ClearUICommand.InitializeAsync(this, fccEngine);
+			await OutputToolWindowCommand.InitializeAsync(
+				this,
 				componentModel.GetService<ILogger>(),
 				componentModel.GetService<IShownToolWindowHistory>()
 			);
+			
 			await componentModel.GetService<IInitializer>().InitializeAsync(cancellationToken);
         }
 

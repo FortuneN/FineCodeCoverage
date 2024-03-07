@@ -22,12 +22,10 @@ namespace Test
     {
         private AutoMoqer mocker;
         private FCCEngine fccEngine;
-        private bool updatedMarginTags;
 
         [SetUp]
         public void SetUp()
         {
-            updatedMarginTags = false;
             mocker = new AutoMoqer();
             fccEngine = mocker.Create<FCCEngine>();
         }
@@ -73,6 +71,17 @@ namespace Test
             mocker.Verify<IEventAggregator>(ea => ea.SendMessage(It.Is<NewCoverageLinesMessage>(msg => msg.CoverageLines == null), null));
         }
 
+        [Test]
+        public void Should_Clear_UI_When_Solution_Closes()
+        {
+            var mockSolutionEvents = mocker.GetMock<ISolutionEvents>();
+            mocker.Setup<IReportGeneratorUtil,string>(reportGeneratorUtil => reportGeneratorUtil.BlankReport(false)).Returns("reportHtml");
+            mockSolutionEvents.Raise(s => s.AfterClosing += null, EventArgs.Empty);
+
+            mocker.Verify<IEventAggregator>(ea => ea.SendMessage(It.Is<NewCoverageLinesMessage>(msg => msg.CoverageLines == null), null));
+            mocker.Verify<IEventAggregator>(ea => ea.SendMessage(It.Is<NewReportMessage>(msg => msg.Report == "reportHtml"), null));
+          
+        }
     }
 
     public class FCCEngine_ReloadCoverage_Tests
@@ -85,7 +94,9 @@ namespace Test
         {
             mocker = new AutoMoqer();
             var mockDisposeAwareTaskRunner = mocker.GetMock<IDisposeAwareTaskRunner>();
-            mockDisposeAwareTaskRunner.Setup(runner => runner.RunAsync(It.IsAny<Func<Task>>())).Callback<Func<Task>>(async taskProvider => await taskProvider());
+#pragma warning disable VSTHRD101 // Avoid unsupported async delegates
+            mockDisposeAwareTaskRunner.Setup(runner => runner.RunAsyncFunc(It.IsAny<Func<Task>>())).Callback<Func<Task>>(async taskProvider => await taskProvider());
+#pragma warning restore VSTHRD101 // Avoid unsupported async delegates
             fccEngine = mocker.Create<FCCEngine>();
 
             var mockedAppOptions = mocker.GetMock<IAppOptions>();
@@ -95,21 +106,21 @@ namespace Test
         }
 
         [Test]
-        public async Task Should_Log_Starting_When_Initialized()
+        public async Task Should_Log_Starting_When_Initialized_Async()
         {
-            await ReloadInitializedCoverage();
+            await ReloadInitializedCoverage_Async();
             VerifyLogsReloadCoverageStatus(ReloadCoverageStatus.Start);
         }
 
         [Test]
-        public async Task Should_Prepare_For_Coverage_Suitable_CoverageProjects()
+        public async Task Should_Prepare_For_Coverage_Suitable_CoverageProjects_Async()
         {
-            var mockSuitableCoverageProject = await ReloadSuitableCoverageProject();
+            var mockSuitableCoverageProject = await ReloadSuitableCoverageProject_Async();
             mockSuitableCoverageProject.Verify(p => p.PrepareForCoverageAsync(It.IsAny<CancellationToken>(),true));
         }
 
         [Test]
-        public async Task Should_Set_Failure_Description_For_Unsuitable_Projects()
+        public async Task Should_Set_Failure_Description_For_Unsuitable_Projects_Async()
         {
             SetUpSuccessfulRunReportGenerator();
 
@@ -122,7 +133,7 @@ namespace Test
             mockDisabledProject.Setup(p => p.ProjectFile).Returns("proj.csproj");
             mockDisabledProject.Setup(p => p.Settings.Enabled).Returns(false);
             
-            await ReloadInitializedCoverage(mockNullProjectFileProject.Object, mockWhitespaceProjectFileProject.Object, mockDisabledProject.Object);
+            await ReloadInitializedCoverage_Async(mockNullProjectFileProject.Object, mockWhitespaceProjectFileProject.Object, mockDisabledProject.Object);
             
             mockDisabledProject.VerifySet(p => p.FailureDescription = "Disabled");
             mockWhitespaceProjectFileProject.VerifySet(p => p.FailureDescription = "Unsupported project type for DLL 'Whitespace_Project_File.dll'");
@@ -131,9 +142,9 @@ namespace Test
         }
 
         [Test]
-        public async Task Should_Run_The_CoverTool_Step()
+        public async Task Should_Run_The_CoverTool_Step_Async()
         {
-            var mockCoverageProject = await ReloadSuitableCoverageProject();
+            var mockCoverageProject = await ReloadSuitableCoverageProject_Async();
             mockCoverageProject.Verify(p => p.StepAsync("Run Coverage Tool", It.IsAny<Func<ICoverageProject, Task>>()));
         }
 
@@ -141,11 +152,14 @@ namespace Test
         public async Task Should_Run_Coverage_ThrowingErrors_But_Safely_With_StepAsync()
         {
             ICoverageProject coverageProject = null;
-            await ReloadSuitableCoverageProject(mockCoverageProject => {
+            await ReloadSuitableCoverageProject_Async(mockCoverageProject => {
                 coverageProject = mockCoverageProject.Object;
-                mockCoverageProject.Setup(p => p.StepAsync("Run Coverage Tool", It.IsAny<Func<ICoverageProject, Task>>())).Callback<string,Func<ICoverageProject, Task>>((_,runCoverTool) =>
+                mockCoverageProject.Setup(p => p.StepAsync("Run Coverage Tool", It.IsAny<Func<ICoverageProject, Task>>()))
+                .Callback<string,Func<ICoverageProject, Task>>((_,runCoverTool) =>
                 {
+#pragma warning disable VSTHRD110 // Observe result of async calls
                     runCoverTool(coverageProject);
+#pragma warning restore VSTHRD110 // Observe result of async calls
                 });
             });
 
@@ -154,7 +168,7 @@ namespace Test
         }
 
         [Test]
-        public async Task Should_Allow_The_CoverageOutputManager_To_SetProjectCoverageOutputFolder()
+        public async Task Should_Allow_The_CoverageOutputManager_To_SetProjectCoverageOutputFolder_Async()
         {
             var mockCoverageToolOutputManager = mocker.GetMock<ICoverageToolOutputManager>();
             mockCoverageToolOutputManager.Setup(om => om.SetProjectCoverageOutputFolder(It.IsAny<List<ICoverageProject>>())).
@@ -171,11 +185,13 @@ namespace Test
                      coverageProjectAfterCoverageOutputManager = cp;
                  });
 
-            await ReloadSuitableCoverageProject(mockCoverageProject => {
+            await ReloadSuitableCoverageProject_Async(mockCoverageProject => {
                 mockCoverageProject.SetupProperty(cp => cp.CoverageOutputFolder);
                 mockCoverageProject.Setup(p => p.StepAsync("Run Coverage Tool", It.IsAny<Func<ICoverageProject, Task>>())).Callback<string, Func<ICoverageProject, Task>>((_, runCoverTool) =>
                 {
+#pragma warning disable VSTHRD110 // Observe result of async calls
                     runCoverTool(mockCoverageProject.Object);
+#pragma warning restore VSTHRD110 // Observe result of async calls
                 });
             });
 
@@ -183,7 +199,7 @@ namespace Test
         }
 
         [Test]
-        public async Task Should_Run_Report_Generator_With_Output_Files_From_Coverage_For_Coverage_Projects_That_Have_Not_Failed()
+        public async Task Should_Run_Report_Generator_With_Output_Files_From_Coverage_For_Coverage_Projects_That_Have_Not_Failed_Async()
         {
             var failedProject = CreateSuitableProject();
             failedProject.Setup(p => p.HasFailed).Returns(true);
@@ -200,21 +216,21 @@ namespace Test
                     It.IsAny<CancellationToken>()
                     ).Result).Returns(new ReportGeneratorResult { });
 
-            await ReloadInitializedCoverage(failedProject.Object, passedProject.Object);
+            await ReloadInitializedCoverage_Async(failedProject.Object, passedProject.Object);
 
             mocker.GetMock<IReportGeneratorUtil>().VerifyAll();
             
         }
 
         [Test]
-        public async Task Should_Not_Run_ReportGenerator_If_No_Successful_Projects()
+        public async Task Should_Not_Run_ReportGenerator_If_No_Successful_Projects_Async()
         {
-            await ReloadInitializedCoverage();
+            await ReloadInitializedCoverage_Async();
             mocker.Verify<IReportGeneratorUtil>(rg => rg.GenerateAsync(It.IsAny<IEnumerable<string>>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never());
         }
 
         [Test]
-        public async Task Should_Process_ReportGenerator_Output_If_Success_Raising_Events()
+        public async Task Should_Process_ReportGenerator_Output_If_Success_Raising_Events_Async()
         {
             var passedProject = CreateSuitableProject();
             var reportGeneratorResult = new ReportGeneratorResult
@@ -239,7 +255,7 @@ namespace Test
             var fileLineCoverage = new FileLineCoverage();
             mockCoberturaUtil.Setup(coberturaUtil => coberturaUtil.ProcessCoberturaXml("Unified xml file")).Returns(fileLineCoverage);
 
-            await ReloadInitializedCoverage(passedProject.Object);
+            await ReloadInitializedCoverage_Async(passedProject.Object);
             
             mockReportGenerator.VerifyAll();
             mockReportGenerator.Verify(reportGenerator => reportGenerator.EndOfCoverageRun());
@@ -262,9 +278,9 @@ namespace Test
         }
 
         [Test]
-        public async Task Should_Cancel_Running_Coverage_Logging_Cancelled_When_StopCoverage()
+        public async Task Should_Cancel_Running_Coverage_Logging_Cancelled_When_StopCoverage_Async()
         {
-            await StopCoverage();
+            await StopCoverage_Async();
             VerifyLogsReloadCoverageStatus(ReloadCoverageStatus.Cancelled);
         }
 
@@ -275,7 +291,7 @@ namespace Test
         } 
 
         [Test]
-        public async Task Should_Cancel_Existing_ReloadCoverage_When_ReloadCoverage()
+        public async Task Should_Cancel_Existing_ReloadCoverage_When_ReloadCoverage_Async()
         {
             SetUpSuccessfulRunReportGenerator();
 
@@ -295,7 +311,7 @@ namespace Test
 
             }).Returns(Task.FromResult(new CoverageProjectFileSynchronizationDetails()));
 
-            await ReloadInitializedCoverage(mockSuitableCoverageProject.Object);
+            await ReloadInitializedCoverage_Async(mockSuitableCoverageProject.Object);
             VerifyLogsReloadCoverageStatus(ReloadCoverageStatus.Cancelled);
 
 
@@ -306,69 +322,7 @@ namespace Test
             mocker.Verify<ILogger>(l => l.Log(fccEngine.GetLogReloadCoverageStatusMessage(reloadCoverageStatus)));
         }
 
-        private async Task<(string reportGeneratedHtmlContent, FileLineCoverage updatedCoverageLines)> RunToCompletion(bool noCoverageProjects)
-        {
-            var coverageProject = CreateSuitableProject().Object;
-            var mockReportGenerator = mocker.GetMock<IReportGeneratorUtil>();
-            mockReportGenerator.Setup(rg =>
-                rg.GenerateAsync(
-                    It.Is<IEnumerable<string>>(coverOutputFiles => coverOutputFiles.Count() == 1 && coverOutputFiles.First() == coverageProject.CoverageOutputFile),
-                    It.IsAny<string>(),
-                    It.IsAny<CancellationToken>()
-                ).Result)
-                .Returns(
-                    new ReportGeneratorResult
-                    {
-                        UnifiedHtml = "Unified"
-                    }
-                );
-
-            var reportGeneratedHtmlContent = "<somehtml/>";
-            mockReportGenerator.Setup(rg => rg.ProcessUnifiedHtml("Unified", It.IsAny<string>())).Returns(reportGeneratedHtmlContent);
-            var coverageLines = new FileLineCoverage();
-            coverageLines.Add("test", new[] { new Line() });
-            coverageLines.Completed();
-            mocker.GetMock<ICoberturaUtil>().Setup(coberturaUtil => coberturaUtil.ProcessCoberturaXml(It.IsAny<string>())).Returns(coverageLines);
-            if (noCoverageProjects)
-            {
-                await ReloadInitializedCoverage();
-            }
-            else
-            {
-                await ReloadInitializedCoverage(coverageProject);
-            }
-
-            return (reportGeneratedHtmlContent, coverageLines);
-
-        }
-
-        private async Task ThrowReadingReportHtml()
-        {
-            var passedProject = CreateSuitableProject();
-
-            var mockReportGenerator = mocker.GetMock<IReportGeneratorUtil>();
-            mockReportGenerator.Setup(rg =>
-                rg.GenerateAsync(
-                    It.IsAny<IEnumerable<string>>(),
-                    It.IsAny<string>(),
-                    It.IsAny<CancellationToken>()
-                 ).Result)
-                .Returns(
-                    new ReportGeneratorResult
-                    {
-                    }
-                );
-
-            var coverageLines = new FileLineCoverage();
-            coverageLines.Add("test", new[] { new Line() });
-            coverageLines.Completed();
-            mocker.GetMock<ICoberturaUtil>().Setup(coberturaUtil => coberturaUtil.ProcessCoberturaXml(It.IsAny<string>())).Returns(coverageLines);
-
-            await ReloadInitializedCoverage(passedProject.Object);
-
-        }
-
-        private async Task StopCoverage()
+        private async Task StopCoverage_Async()
         {
             var mockSuitableCoverageProject = new Mock<ICoverageProject>();
             mockSuitableCoverageProject.Setup(p => p.ProjectFile).Returns("Defined.csproj");
@@ -380,7 +334,7 @@ namespace Test
 
             }).Returns(Task.FromResult(new CoverageProjectFileSynchronizationDetails()));
 
-            await ReloadInitializedCoverage(mockSuitableCoverageProject.Object);
+            await ReloadInitializedCoverage_Async(mockSuitableCoverageProject.Object);
         }
 
         private void SetUpSuccessfulRunReportGenerator()
@@ -390,16 +344,18 @@ namespace Test
                     It.IsAny<IEnumerable<string>>(),
                     It.IsAny<string>(),
                     It.IsAny<CancellationToken>()
-                    ).Result)
-                .Returns(new ReportGeneratorResult {  });
+                    ))
+                .ReturnsAsync(new ReportGeneratorResult {  });
         }
 
-        private async Task ReloadInitializedCoverage(params ICoverageProject[] coverageProjects)
+        private async Task ReloadInitializedCoverage_Async(params ICoverageProject[] coverageProjects)
         {
             var projectsFromTask = Task.FromResult(coverageProjects.ToList());
             fccEngine.Initialize(CancellationToken.None);
+#pragma warning disable VSTHRD003 // Avoid awaiting foreign Tasks
             fccEngine.ReloadCoverage(() => projectsFromTask);
             await fccEngine.reloadCoverageTask;
+#pragma warning restore VSTHRD003 // Avoid awaiting foreign Tasks
         }
         private Mock<ICoverageProject> CreateSuitableProject()
         {
@@ -410,12 +366,12 @@ namespace Test
             mockSuitableCoverageProject.Setup(p => p.StepAsync("Run Coverage Tool", It.IsAny<Func<ICoverageProject, Task>>())).Returns(Task.CompletedTask);
             return mockSuitableCoverageProject;
         }
-        private async Task<Mock<ICoverageProject>> ReloadSuitableCoverageProject(Action<Mock<ICoverageProject>> setUp = null)
+        private async Task<Mock<ICoverageProject>> ReloadSuitableCoverageProject_Async(Action<Mock<ICoverageProject>> setUp = null)
         {
             var mockSuitableCoverageProject = CreateSuitableProject();
             setUp?.Invoke(mockSuitableCoverageProject);
             SetUpSuccessfulRunReportGenerator();
-            await ReloadInitializedCoverage(mockSuitableCoverageProject.Object);
+            await ReloadInitializedCoverage_Async(mockSuitableCoverageProject.Object);
             return mockSuitableCoverageProject;
         }
 

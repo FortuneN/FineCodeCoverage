@@ -19,11 +19,7 @@ namespace FineCodeCoverage.Engine.Model
         }
         public async Task<XElement> ProvideAsync(ICoverageProject coverageProject)
         {
-            var settingsElement = ProjectSettingsElementFromFCCLabelledPropertyGroup(coverageProject);
-            if (settingsElement == null)
-            {
-                settingsElement = await vsBuildFCCSettingsProvider.GetSettingsAsync(coverageProject.Id);
-            }
+            var settingsElement = ProjectSettingsElementFromFCCLabelledPropertyGroup(coverageProject) ?? await vsBuildFCCSettingsProvider.GetSettingsAsync(coverageProject.Id);
             return settingsElement;
         }
 

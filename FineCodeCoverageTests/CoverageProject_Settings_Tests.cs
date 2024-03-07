@@ -2,7 +2,7 @@ using AutoMoq;
 using FineCodeCoverage.Core.Utilities;
 using FineCodeCoverage.Engine.Model;
 using FineCodeCoverage.Options;
-using FineCodeCoverageTests.Test_helpers;
+using FineCodeCoverageTests.TestHelpers;
 using Moq;
 using NUnit.Framework;
 using StructureMap.AutoMocking;
@@ -85,7 +85,7 @@ namespace FineCodeCoverageTests
     public class CoverageProjectSettingsProvider_Tests
     {
         [Test]
-        public async Task Should_Return_The_FineCodeCoverage_Labelled_PropertyGroup()
+        public async Task Should_Return_The_FineCodeCoverage_Labelled_PropertyGroup_Async()
         {
             var coverageProjectSettingsProvider = new CoverageProjectSettingsProvider(null);
             var mockCoverageProject = new Mock<ICoverageProject>();
@@ -108,7 +108,7 @@ namespace FineCodeCoverageTests
 
         [TestCase(true)]
         [TestCase(false)]
-        public async Task Should_Return_Using_VsBuild_When_No_Labelled_PropertyGroup(bool returnNull)
+        public async Task Should_Return_Using_VsBuild_When_No_Labelled_PropertyGroup_Async(bool returnNull)
         {
             var mockCoverageProject = new Mock<ICoverageProject>();
             var coverageProjectGuid = Guid.NewGuid();
@@ -635,7 +635,7 @@ namespace FineCodeCoverageTests
     public class CoverageProjectSettingsManager_Tests
     {
         [Test]
-        public async Task Should_Provide_The_Merged_Result_Using_Global_Options()
+        public async Task Should_Provide_The_Merged_Result_Using_Global_Options_Async()
         {
             var mockAppOptionsProvider = new Mock<IAppOptionsProvider>();
             var mockAppOptions = new Mock<IAppOptions>();
@@ -662,7 +662,7 @@ namespace FineCodeCoverageTests
         }
 
         [Test]
-        public async Task Should_Provide_The_Merged_Result_Using_FCC_Settings_Files()
+        public async Task Should_Provide_The_Merged_Result_Using_FCC_Settings_Files_Async()
         {
             var mockCoverageProject = new Mock<ICoverageProject>();
             mockCoverageProject.Setup(cp => cp.ProjectFile).Returns("SomeProject/SomeProject.csproj");
@@ -693,7 +693,7 @@ namespace FineCodeCoverageTests
         }
 
         [Test]
-        public async Task Should_Provide_The_Merged_Result_Using_Project_Settings()
+        public async Task Should_Provide_The_Merged_Result_Using_Project_Settings_Async()
         {
             var coverageProject = new Mock<ICoverageProject>().Object;
 
@@ -723,7 +723,7 @@ namespace FineCodeCoverageTests
         }
 
         [Test]
-        public async Task Should_Add_Common_Assembly_Excludes_Includes()
+        public async Task Should_Add_Common_Assembly_Excludes_Includes_Async()
         {
             var mockAppOptions = new Mock<IAppOptions>();
             mockAppOptions.SetupAllProperties();

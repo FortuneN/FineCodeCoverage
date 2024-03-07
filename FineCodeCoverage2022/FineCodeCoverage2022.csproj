@@ -32,7 +32,7 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;VS2022</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
@@ -145,14 +145,37 @@
     <PackageReference Include="Microsoft.Build.Locator">
       <Version>1.4.1</Version>
     </PackageReference>
+    <PackageReference Include="Microsoft.CodeAnalysis.Common">
+      <Version>4.8.0</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp">
+      <Version>4.8.0</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.CodeAnalysis.EditorFeatures.Text">
+      <Version>4.8.0</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic">
+      <Version>4.8.0</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common">
+      <Version>4.8.0</Version>
+    </PackageReference>
     <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.MSBuild">
-      <Version>4.0.1</Version>
+      <Version>4.8.0</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Composition.Analyzers">
+      <Version>17.7.40</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.SDK" Version="17.1.32210.191" ExcludeAssets="runtime">
       <IncludeAssets>compile; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.TestWindow.Interfaces">
       <Version>11.0.61030</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Threading.Analyzers">
+      <Version>17.9.28</Version>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="17.1.4054">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -166,6 +189,9 @@
     </PackageReference>
     <PackageReference Include="RSA.Fizzler.Systems.HtmlAgilityPack">
       <Version>1.0.0</Version>
+    </PackageReference>
+    <PackageReference Include="StreamJsonRpc">
+      <Version>2.16.36</Version>
     </PackageReference>
     <PackageReference Include="Svg">
       <Version>3.3.0</Version>
