@@ -8,7 +8,7 @@ Feedback and ideas are welcome [click here to let me know](https://github.com/Fo
 Run a(some) unit test(s) and ...
 
 #### Get highlights on the code being tested and the code doing the testing
-![Code Being Tested](https://raw.githubusercontent.com/FortuneN/FineCodeCoverage/master/Art/preview-coverage.png)
+[![Highlights video](https://img.youtube.com/vi/CvrySUcTi7I/0.jpg)](https://youtu.be/CvrySUcTi7I)
 
 #### Report Coverage View
 ![Coverage View](https://raw.githubusercontent.com/FortuneN/FineCodeCoverage/master/Art/Output-Coverage.png)
