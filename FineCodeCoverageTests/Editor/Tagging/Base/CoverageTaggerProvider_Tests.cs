@@ -102,7 +102,7 @@ namespace FineCodeCoverageTests.Editor.Tagging.Base
         }
 
         [TestCase]
-        public void Should_Create_A_Coverage_Tagger_With_Last_Coverage_Lines_From_DynamicCoverageManager_And_Last_Coverage_Type_Filter_When_The_TextBuffer_Has_An_Associated_File_Document()
+        public void Should_Create_A_Coverage_Tagger_With_BufferLineCoverage_From_DynamicCoverageManager_And_Last_Coverage_Type_Filter_When_The_TextBuffer_Has_An_Associated_File_Document()
         {
             var textView = new Mock<ITextView>().Object;
             var textBuffer = new Mock<ITextBuffer>().Object;
@@ -134,7 +134,7 @@ namespace FineCodeCoverageTests.Editor.Tagging.Base
 
             var coverageTaggerType = typeof(CoverageTagger<DummyTag>);
 
-            var fileLineCoverageArg = coverageTaggerType.GetField("coverageLines", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).GetValue(tagger) as IBufferLineCoverage;
+            var fileLineCoverageArg = coverageTaggerType.GetField("bufferLineCoverage", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).GetValue(tagger) as IBufferLineCoverage;
             var coverageTypeFilterArg = coverageTaggerType.GetField("coverageTypeFilter", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).GetValue(tagger) as ICoverageTypeFilter;
             var textInfoArg = coverageTaggerType.GetField("textInfo", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).GetValue(tagger) as ITextInfo;
 
