@@ -62,10 +62,10 @@ namespace FineCodeCoverage.Editor.Tagging.Base
                 return null;
             }
 
-            IBufferLineCoverage lastCoverageLines = this.dynamicCoverageManager.Manage(textInfo);
+            IBufferLineCoverage bufferLineCoverage = this.dynamicCoverageManager.Manage(textInfo);
             return new CoverageTagger<TTag>(
                 textInfo,
-                lastCoverageLines,
+                bufferLineCoverage,
                 this.coverageTypeFilter,
                 this.eventAggregator,
                 this.lineSpanLogic,

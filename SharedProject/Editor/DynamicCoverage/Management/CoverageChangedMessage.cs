@@ -5,13 +5,13 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
 {
     internal class CoverageChangedMessage
     {
-        public IBufferLineCoverage CoverageLines { get; }
+        public IBufferLineCoverage BufferLineCoverage { get; }
         public string AppliesTo { get; }
         public IEnumerable<int> ChangedLineNumbers { get; }
 
-        public CoverageChangedMessage(IBufferLineCoverage coverageLines, string appliesTo, IEnumerable<int> changedLineNumbers)
+        public CoverageChangedMessage(IBufferLineCoverage bufferLineCoverage, string appliesTo, IEnumerable<int> changedLineNumbers)
         {
-            this.CoverageLines = coverageLines;
+            this.BufferLineCoverage = bufferLineCoverage;
             this.AppliesTo = appliesTo;
             this.ChangedLineNumbers = changedLineNumbers;
         }

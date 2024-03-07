@@ -19,7 +19,7 @@ namespace FineCodeCoverage.Editor.Tagging.Base
     {
         private readonly ITextInfo textInfo;
         private readonly ITextBuffer textBuffer;
-        private IBufferLineCoverage coverageLines;
+        private IBufferLineCoverage bufferLineCoverage;
         private ICoverageTypeFilter coverageTypeFilter;
         private readonly IEventAggregator eventAggregator;
         private readonly ILineSpanLogic lineSpanLogic;
@@ -29,7 +29,7 @@ namespace FineCodeCoverage.Editor.Tagging.Base
 
         public CoverageTagger(
             ITextInfo textInfo,
-            IBufferLineCoverage lastCoverageLines,
+            IBufferLineCoverage bufferLineCoverage,
             ICoverageTypeFilter coverageTypeFilter,
             IEventAggregator eventAggregator,
             ILineSpanLogic lineSpanLogic,
@@ -43,7 +43,7 @@ namespace FineCodeCoverage.Editor.Tagging.Base
             ThrowIf.Null(lineSpanTagger, nameof(lineSpanTagger));
             this.textInfo = textInfo;
             this.textBuffer = textInfo.TextBuffer;
-            this.coverageLines = lastCoverageLines;
+            this.bufferLineCoverage = bufferLineCoverage;
             this.coverageTypeFilter = coverageTypeFilter;
             this.eventAggregator = eventAggregator;
             this.lineSpanLogic = lineSpanLogic;
@@ -51,7 +51,7 @@ namespace FineCodeCoverage.Editor.Tagging.Base
             _ = eventAggregator.AddListener(this);
         }
 
-        public bool HasCoverage => this.coverageLines != null;
+        public bool HasCoverage => this.bufferLineCoverage != null;
 
         public void RaiseTagsChanged() => this.RaiseTagsChangedLinesOrAll();
 
@@ -79,11 +79,11 @@ namespace FineCodeCoverage.Editor.Tagging.Base
                 ? this.GetTagsFromCoverageLines(spans)
                 : Enumerable.Empty<ITagSpan<TTag>>();
 
-        private bool CanGetTagsFromCoverageLines => this.coverageLines != null && !this.coverageTypeFilter.Disabled;
+        private bool CanGetTagsFromCoverageLines => this.bufferLineCoverage != null && !this.coverageTypeFilter.Disabled;
 
         private IEnumerable<ITagSpan<TTag>> GetTagsFromCoverageLines(NormalizedSnapshotSpanCollection spans)
         {
-            IEnumerable<ILineSpan> lineSpans = this.lineSpanLogic.GetLineSpans(this.coverageLines, spans);
+            IEnumerable<ILineSpan> lineSpans = this.lineSpanLogic.GetLineSpans(this.bufferLineCoverage, spans);
             return this.GetTags(lineSpans);
         }
 
@@ -105,7 +105,7 @@ namespace FineCodeCoverage.Editor.Tagging.Base
 
         private void HandleOwnChange(CoverageChangedMessage message)
         {
-            this.coverageLines = message.CoverageLines;
+            this.bufferLineCoverage = message.BufferLineCoverage;
             this.RaiseTagsChangedLinesOrAll(message.ChangedLineNumbers);
         }
 

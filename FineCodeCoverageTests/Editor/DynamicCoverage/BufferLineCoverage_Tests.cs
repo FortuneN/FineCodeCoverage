@@ -228,7 +228,7 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
 
             autoMoqer.Verify<IEventAggregator>(
                 eventAggregator => eventAggregator.SendMessage(
-                    It.Is<CoverageChangedMessage>(message => message.AppliesTo == "filepath" && message.CoverageLines == bufferLineCoverage)
+                    It.Is<CoverageChangedMessage>(message => message.AppliesTo == "filepath" && message.BufferLineCoverage == bufferLineCoverage)
                     , null
                 ), expectedSends ? Times.Once() : Times.Never());
         }
@@ -256,7 +256,7 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
 
             autoMoqer.Verify<IEventAggregator>(
                         eventAggregator => eventAggregator.SendMessage(
-                            It.Is<CoverageChangedMessage>(message => message.AppliesTo == "filepath" && message.CoverageLines == bufferLineCoverage && message.ChangedLineNumbers == changedLineNumbers)
+                            It.Is<CoverageChangedMessage>(message => message.AppliesTo == "filepath" && message.BufferLineCoverage == bufferLineCoverage && message.ChangedLineNumbers == changedLineNumbers)
                             , null
                         ), Times.Exactly(textLinesChanged ? 1 : 0));
 
