@@ -26,7 +26,7 @@ namespace FineCodeCoverage.Engine.OpenCover
         private void AddFilter(ICoverageProject project, List<string> opencoverSettings)
         {
             var includedModules = project.IncludedReferencedProjects.ToList();
-            if(project.Settings.IncludeTestAssembly)
+            if (project.Settings.IncludeTestAssembly)
             {
                 includedModules.Add(project.ProjectName);
             }
