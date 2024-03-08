@@ -101,10 +101,6 @@
       <Link>Resources\OutputToolWindowCommand.png</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="..\Shared Files\ZippedTools\microsoft.codecoverage.17.1.0.zip">
-      <Link>ZippedTools\microsoft.codecoverage.17.1.0.zip</Link>
-      <IncludeInVSIX>true</IncludeInVSIX>
-    </Content>
     <Content Include="..\Shared Files\ZippedTools\microsoft.testplatform.16.9.1.zip">
       <Link>ZippedTools\microsoft.testplatform.16.9.1.zip</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
@@ -123,6 +119,10 @@
     </Content>
     <Content Include="..\Shared Files\ZippedTools\reportGenerator.4.7.4.zip">
       <Link>ZippedTools\reportGenerator.4.7.4.zip</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="..\Shared Files\ZippedTools\microsoft.codecoverage.17.9.0.zip">
+      <Link>ZippedTools\microsoft.codecoverage.17.9.0.zip</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <!--
