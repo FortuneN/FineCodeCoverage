@@ -112,8 +112,8 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
         {
             this.fccEngine = fccEngine;
             var zipDestination = toolUnzipper.EnsureUnzipped(appDataFolder, zipDirectoryName,zipPrefix, cancellationToken);
-            fccMsTestAdapterPath = Path.Combine(zipDestination, "build", "netstandard1.0");
-            shimPath = Path.Combine(zipDestination, "build", "netstandard1.0", "CodeCoverage", "coreclr", "Microsoft.VisualStudio.CodeCoverage.Shim.dll");
+            fccMsTestAdapterPath = Path.Combine(zipDestination, "build", "netstandard2.0");
+            shimPath = Path.Combine(zipDestination, "build", "netstandard2.0", "CodeCoverage", "coreclr", "Microsoft.VisualStudio.CodeCoverage.Shim.dll");
         }
         
         #region set up for collection

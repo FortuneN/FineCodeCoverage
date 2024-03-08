@@ -134,7 +134,7 @@ namespace FineCodeCoverageTests.MsCodeCoverage
                 .Returns("ZipDestination");
 
             msCodeCoverageRunSettingsService.Initialize(null, null, CancellationToken.None);
-            return Path.Combine("ZipDestination", "build", "netstandard1.0");
+            return Path.Combine("ZipDestination", "build", "netstandard2.0");
         }
     
     }
