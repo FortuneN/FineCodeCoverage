@@ -510,13 +510,13 @@ namespace FineCodeCoverageTests.MsCodeCoverage
         private string InitializeFCCMsTestAdapterPath()
         {
             InitializeZipDestination();
-            return Path.Combine("ZipDestination", "build", "netstandard1.0");
+            return Path.Combine("ZipDestination", "build", "netstandard2.0");
         }
 
         private string InitializeShimPath()
         {
             InitializeZipDestination();
-            return Path.Combine("ZipDestination", "build", "netstandard1.0", "CodeCoverage", "coreclr", "Microsoft.VisualStudio.CodeCoverage.Shim.dll");
+            return Path.Combine("ZipDestination", "build", "netstandard2.0", "CodeCoverage", "coreclr", "Microsoft.VisualStudio.CodeCoverage.Shim.dll");
         }
 
         private void InitializeZipDestination()
