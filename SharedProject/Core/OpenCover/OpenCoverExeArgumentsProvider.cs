@@ -25,7 +25,12 @@ namespace FineCodeCoverage.Engine.OpenCover
         private enum Delimiter { Semicolon, Space}
         private void AddFilter(ICoverageProject project, List<string> opencoverSettings)
         {
-            var includeFilters = GetExcludesOrIncludes(project.Settings.Include, project.IncludedReferencedProjects,true);
+            var includedModules = project.IncludedReferencedProjects.ToList();
+            if (project.Settings.IncludeTestAssembly)
+            {
+                includedModules.Add(project.ProjectName);
+            }
+            var includeFilters = GetExcludesOrIncludes(project.Settings.Include, includedModules, true);
             var excludeFilters = GetExcludesOrIncludes(project.Settings.Exclude, project.ExcludedReferencedProjects,false);
             AddIncludeAllIfExcludingWithoutIncludes();
             var filters = includeFilters.Concat(excludeFilters).ToList();
@@ -39,25 +44,26 @@ namespace FineCodeCoverage.Engine.OpenCover
                 }
             }
 
-            List<string> GetExcludesOrIncludes(string[] excludesOrIncludes,List<string> referencedExcludesOrIncludes, bool isInclude)
+            List<string> GetExcludesOrIncludes(
+                IEnumerable<string> excludesOrIncludes,IEnumerable<string> moduleExcludesOrIncludes, bool isInclude)
             {
                 var excludeOrIncludeFilters = new List<string>();
                 var prefix = IncludeSymbol(isInclude);
-                excludesOrIncludes = SanitizeExcludesOrIncludes(excludesOrIncludes).ToArray();
+                var sanitizedExcludesOrIncludes = SanitizeExcludesOrIncludes(excludesOrIncludes);
                 
-                foreach (var value in excludesOrIncludes)
+                foreach (var value in sanitizedExcludesOrIncludes)
                 {
                     excludeOrIncludeFilters.Add($@"{prefix}{value}");
                 }
 
-                foreach (var includedReferencedProject in referencedExcludesOrIncludes)
+                foreach (var moduleExcludeOrInclude in moduleExcludesOrIncludes)
                 {
-                    excludeOrIncludeFilters.Add(IncludeOrExclude(isInclude, includedReferencedProject));
+                    excludeOrIncludeFilters.Add(IncludeOrExcludeModule(isInclude, moduleExcludeOrInclude));
                 }
                 return excludeOrIncludeFilters.Distinct().ToList();
             }
 
-            string IncludeOrExclude(bool include,string moduleFilter,string classFilter = "*")
+            string IncludeOrExcludeModule(bool include,string moduleFilter,string classFilter = "*")
             {
                 var filter = IncludeSymbol(include);
                 return $"{filter}[{moduleFilter}]{classFilter}";
@@ -66,7 +72,7 @@ namespace FineCodeCoverage.Engine.OpenCover
             string IncludeSymbol(bool include) => include ? "+" : "-"; 
         }
 
-        private IEnumerable<string> SanitizeExcludesOrIncludes(string[] excludesOrIncludes)
+        private IEnumerable<string> SanitizeExcludesOrIncludes(IEnumerable<string> excludesOrIncludes)
         {
             return (excludesOrIncludes ?? new string[0])
                 .Where(x => x != null)
@@ -170,8 +176,6 @@ namespace FineCodeCoverage.Engine.OpenCover
         {
             var opencoverSettings = new List<string>();
             AddTargetAndTargetArgs(project, opencoverSettings, msTestPlatformExePath);
-            //opencoverSettings.Add(CommandLineArguments.AddQuotes($"-target:{msTestPlatformExePath}"));
-            //opencoverSettings.Add(GetTargetArgs(project));
 
             opencoverSettings.Add(CommandLineArguments.AddQuotes($"-output:{project.CoverageOutputFile}"));
             

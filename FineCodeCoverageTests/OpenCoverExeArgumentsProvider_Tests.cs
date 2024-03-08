@@ -95,6 +95,19 @@ namespace FineCodeCoverageTests
         }
 
         [Test]
+        public void Should_Include_The_Test_Assembly_In_The_Filter_When_AppOptions_IncludeTestAssembly()
+        {
+            var openCoverExeArgumentsProvider = new OpenCoverExeArgumentsProvider();
+            var mockCoverageProject = SafeMockCoverageProject();
+            mockCoverageProject.SetupGet(coverageProject => coverageProject.Settings.IncludeTestAssembly).Returns(true);
+            mockCoverageProject.SetupGet(coverageProject => coverageProject.ProjectName).Returns("TheTestName");
+
+            var arguments = openCoverExeArgumentsProvider.Provide(mockCoverageProject.Object, "");
+
+            AssertHasEscapedSetting(arguments, "-filter:+[TheTestName]*");
+        }
+
+        [Test]
         public void Should_Safely_Include_The_Project_RunSettingsFile_In_The_TargetArgs_When_Present()
         {
             var openCoverExeArgumentsProvider = new OpenCoverExeArgumentsProvider();

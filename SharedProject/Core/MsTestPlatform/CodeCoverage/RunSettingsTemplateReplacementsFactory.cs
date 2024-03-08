@@ -1,4 +1,5 @@
-﻿using FineCodeCoverage.Engine.Model;
+﻿using FineCodeCoverage.Core.Model;
+using FineCodeCoverage.Engine.Model;
 using FineCodeCoverage.Options;
 using Microsoft.VisualStudio.TestWindow.Extensibility;
 using System;
@@ -151,33 +152,46 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
 
 
             var additionalModulePathsExclude = allProjectDetails.SelectMany(pd =>
-            {
-                var additional = pd.ExcludedReferencedProjects.Select(rp => MsCodeCoverageRegex.RegexModuleName(rp)).ToList();
-                if (!pd.Settings.IncludeTestAssembly)
-                {
-                    additional.Add(MsCodeCoverageRegex.RegexEscapePath(pd.TestDllFile));
-                }
-                return additional;
-
-            });
-
-            var additionalModulePathsInclude = allProjectDetails.SelectMany(projectDetails => projectDetails.IncludedReferencedProjects.Select(rp => MsCodeCoverageRegex.RegexModuleName(rp)));
+                GetAdditionalModulePaths(pd.ExcludedReferencedProjects, pd.TestDllFile, pd.Settings.IncludeTestAssembly, false));
+            var additionalModulePathsInclude = allProjectDetails.SelectMany(pd =>
+                GetAdditionalModulePaths(pd.IncludedReferencedProjects, pd.TestDllFile, pd.Settings.IncludeTestAssembly, true));
             var settings = new CombinedIncludesExcludesOptions(mergedSettings, additionalModulePathsInclude, additionalModulePathsExclude);
             return new RunSettingsTemplateReplacements(settings, resultsDirectory, (!allProjectsDisabled).ToString().ToLower(), testAdapter);
+        }
+
+        private IEnumerable<string> GetAdditionalModulePaths(
+            IEnumerable<string> referencedProjects,
+            string testDllFile,
+            bool includeTestAssembly,
+            bool isInclude
+            )
+        {
+            var additionalReferenced = referencedProjects.Select(
+                rp => MsCodeCoverageRegex.RegexModuleName(rp));
+            if(includeTestAssembly == isInclude)
+            {
+                additionalReferenced = additionalReferenced.Append(MsCodeCoverageRegex.RegexEscapePath(testDllFile));
+            }
+            return additionalReferenced;
+
         }
 
         public IRunSettingsTemplateReplacements Create(ICoverageProject coverageProject, string testAdapter)
         {
             var projectSettings = coverageProject.Settings;
-            var additionalModulePathsExclude = coverageProject.ExcludedReferencedProjects.Select(
-                rp => MsCodeCoverageRegex.RegexModuleName(rp)).ToList();
+            var additionalModulePathsExclude = GetAdditionalModulePaths(
+                coverageProject.ExcludedReferencedProjects,
+                coverageProject.TestDllFile,
+                projectSettings.IncludeTestAssembly,
+                false);
 
-            if (!projectSettings.IncludeTestAssembly)
-            {
-                additionalModulePathsExclude.Add(MsCodeCoverageRegex.RegexEscapePath(coverageProject.TestDllFile));
-            }
-
-            var additionalModulePathsInclude = coverageProject.IncludedReferencedProjects.Select(rp => MsCodeCoverageRegex.RegexModuleName(rp)).ToList();
+            
+            var additionalModulePathsInclude = GetAdditionalModulePaths(
+                coverageProject.IncludedReferencedProjects,
+                coverageProject.TestDllFile,
+                projectSettings.IncludeTestAssembly,
+                true);
+            
             var settings = new CombinedIncludesExcludesOptions(projectSettings, additionalModulePathsInclude, additionalModulePathsExclude);
             return new RunSettingsTemplateReplacements(settings, coverageProject.CoverageOutputFolder, projectSettings.Enabled.ToString(), testAdapter);
         }
