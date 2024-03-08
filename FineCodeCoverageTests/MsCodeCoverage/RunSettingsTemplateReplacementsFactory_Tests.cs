@@ -89,6 +89,7 @@ namespace FineCodeCoverageTests.MsCodeCoverage
                     new TestUserRunSettingsProjectDetails
                     {
                         CoverageOutputFolder = "",
+                        TestDllFile = "",
                         Settings = new TestMsCodeCoverageOptions{ IncludeTestAssembly = true},
                         ExcludedReferencedProjects = new List<string>(),
                         IncludedReferencedProjects = new List<string>(),
@@ -116,6 +117,7 @@ namespace FineCodeCoverageTests.MsCodeCoverage
                     new TestUserRunSettingsProjectDetails
                     {
                         CoverageOutputFolder = outputFolder1,
+                        TestDllFile = "",
                         Settings = new TestMsCodeCoverageOptions{ IncludeTestAssembly = true},
                         ExcludedReferencedProjects = new List<string>(),
                         IncludedReferencedProjects = new List<string>(),
@@ -126,6 +128,7 @@ namespace FineCodeCoverageTests.MsCodeCoverage
                     new TestUserRunSettingsProjectDetails
                     {
                         CoverageOutputFolder = outputFolder2,
+                        TestDllFile = "",
                         Settings = new TestMsCodeCoverageOptions{ IncludeTestAssembly = true},
                         ExcludedReferencedProjects = new List<string>(),
                         IncludedReferencedProjects = new List<string>(),
@@ -157,7 +160,6 @@ namespace FineCodeCoverageTests.MsCodeCoverage
                 return new TestMsCodeCoverageOptions
                 {
                     IncludeTestAssembly = true,
-
                     AttributesExclude = new string[] { $"AttributeExclude{id}" },
                     AttributesInclude = new string[] { $"AttributeInclude{id}" },
                     CompanyNamesExclude = new string[] { $"CompanyNameExclude{id}" },
@@ -178,6 +180,7 @@ namespace FineCodeCoverageTests.MsCodeCoverage
                     new TestUserRunSettingsProjectDetails
                     {
                         CoverageOutputFolder = "",
+                        TestDllFile = "",
                         Settings = CreateSettings("1"),
                         ExcludedReferencedProjects = new List<string>(),
                         IncludedReferencedProjects = new List<string>(),
@@ -188,6 +191,7 @@ namespace FineCodeCoverageTests.MsCodeCoverage
                     new TestUserRunSettingsProjectDetails
                     {
                         CoverageOutputFolder = "",
+                        TestDllFile = "",
                         Settings = CreateSettings("2"),
                         ExcludedReferencedProjects = new List<string>(),
                         IncludedReferencedProjects = new List<string>(),
@@ -276,8 +280,9 @@ namespace FineCodeCoverageTests.MsCodeCoverage
             Assert.AreEqual(expectedModulePathExcludes, replacements.ModulePathsExclude);
         }
 
-        [Test]
-        public void Should_Add_Regexed_IncludedExcluded_Referenced_Projects_To_ModulePaths()
+        [TestCase(true)]
+        [TestCase(false)]
+        public void Should_Add_Regexed_IncludedExcluded_Referenced_Projects_To_ModulePaths(bool included)
         {
             var testContainers = new List<ITestContainer>()
             {
@@ -290,48 +295,47 @@ namespace FineCodeCoverageTests.MsCodeCoverage
                 {
                     "Source1",
                     new TestUserRunSettingsProjectDetails
-                    {
-                        CoverageOutputFolder = "",
-                        Settings = new TestMsCodeCoverageOptions{
-                            IncludeTestAssembly = true,
-                            ModulePathsExclude = new string[]{ "ModulePathExclude"},
-                            ModulePathsInclude = new string[]{ "ModulePathInclude"}
-                        },
-                        ExcludedReferencedProjects = new List<string>{ "ExcludedReferenced1"},
-                        IncludedReferencedProjects = new List<string>{ "IncludedReferenced1" },
-                    }
+            {
+                CoverageOutputFolder = "",
+                TestDllFile = "",
+                Settings = new TestMsCodeCoverageOptions
+                {
+                    IncludeTestAssembly = !included,
+                    ModulePathsExclude = new string[] { "ModulePathExclude" },
+                    ModulePathsInclude = new string[] { "ModulePathInclude" }
+                },
+                ExcludedReferencedProjects = new List<string> { "ExcludedReferenced1" },
+                IncludedReferencedProjects = new List<string> { "IncludedReferenced1" },
+            }
                 },
                 {
                     "Source2",
                     new TestUserRunSettingsProjectDetails
                     {
                         CoverageOutputFolder = "",
-                        Settings = new TestMsCodeCoverageOptions{ IncludeTestAssembly = true},
-                        ExcludedReferencedProjects = new List<string>{ "ExcludedReferenced2"},
-                        IncludedReferencedProjects = new List<string>{ "IncludedReferenced2" },
+                        TestDllFile = "",
+                        Settings = new TestMsCodeCoverageOptions { IncludeTestAssembly = !included },
+                        ExcludedReferencedProjects = new List<string> { "ExcludedReferenced2" },
+                        IncludedReferencedProjects = new List<string> { "IncludedReferenced2" },
                     }
                 },
             };
 
             var projectDetails = userRunSettingsProjectDetailsLookup.Select(kvp => kvp.Value).ToList();
-            var allExcludedReferencesProjects = projectDetails.SelectMany(pd => pd.ExcludedReferencedProjects);
-            var allIncludedReferencesProjects = projectDetails.SelectMany(pd => pd.IncludedReferencedProjects);
+            IEnumerable<string> allReferencedProjects = projectDetails.SelectMany(pd => included ? pd.IncludedReferencedProjects : pd.ExcludedReferencedProjects);
 
             string GetExpectedExcludedOrIncludedEscaped(IEnumerable<string> excludedOrIncludedReferenced)
             {
                 return string.Join("", excludedOrIncludedReferenced.Select(referenced => ModulePathElement(MsCodeCoverageRegex.RegexModuleName(referenced))));
             }
-
-            var expectedModulePathExcludes = GetExpectedExcludedOrIncludedEscaped(allExcludedReferencesProjects) + ModulePathElement("ModulePathExclude");
-            var expectedModulePathIncludes = GetExpectedExcludedOrIncludedEscaped(allIncludedReferencesProjects) + ModulePathElement("ModulePathInclude");
+            var expectedExcludes = GetExpectedExcludedOrIncludedEscaped(allReferencedProjects) + ModulePathElement(included ? "ModulePathInclude" : "ModulePathExclude");
 
             var replacements = runSettingsTemplateReplacementsFactory.Create(testContainers, userRunSettingsProjectDetailsLookup, null);
-            Assert.AreEqual(expectedModulePathExcludes, replacements.ModulePathsExclude);
-            Assert.AreEqual(expectedModulePathIncludes, replacements.ModulePathsInclude);
+            Assert.AreEqual(expectedExcludes, included ? replacements.ModulePathsInclude : replacements.ModulePathsExclude);
         }
 
         [Test]
-        public void Should_Be_Empty_String_Replacement_When_Null()
+        public void Should_Be_Null_TestAdapter_Replacement_When_Null()
         {
             var testContainers = new List<ITestContainer>()
             {
@@ -346,6 +350,7 @@ namespace FineCodeCoverageTests.MsCodeCoverage
                     new TestUserRunSettingsProjectDetails
                     {
                         CoverageOutputFolder = "",
+                        TestDllFile = "",
                         Settings = new TestMsCodeCoverageOptions{ IncludeTestAssembly = true},
                         ExcludedReferencedProjects = new List<string>(),
                         IncludedReferencedProjects = new List<string>(),
@@ -356,6 +361,7 @@ namespace FineCodeCoverageTests.MsCodeCoverage
                     new TestUserRunSettingsProjectDetails
                     {
                         CoverageOutputFolder = "",
+                        TestDllFile = "",
                         Settings = new TestMsCodeCoverageOptions{ IncludeTestAssembly = true},
                         ExcludedReferencedProjects = new List<string>(),
                         IncludedReferencedProjects = new List<string>(),
@@ -363,7 +369,7 @@ namespace FineCodeCoverageTests.MsCodeCoverage
                 }
             };
             var replacements = runSettingsTemplateReplacementsFactory.Create(testContainers, userRunSettingsProjectDetailsLookup, null);
-            ReplacementsAssertions.AssertAllEmpty(replacements);
+            Assert.That(replacements.TestAdapter, Is.Null);
         }
 
         [TestCase(true,true,"true")]
@@ -386,6 +392,7 @@ namespace FineCodeCoverageTests.MsCodeCoverage
                     new TestUserRunSettingsProjectDetails
                     {
                         CoverageOutputFolder = "",
+                        TestDllFile = "",
                         Settings = new TestMsCodeCoverageOptions{ Enabled = project1Enabled, IncludeTestAssembly = true},
                         ExcludedReferencedProjects = new List<string>(),
                         IncludedReferencedProjects = new List<string>(),
@@ -396,6 +403,7 @@ namespace FineCodeCoverageTests.MsCodeCoverage
                     new TestUserRunSettingsProjectDetails
                     {
                         CoverageOutputFolder = "",
+                        TestDllFile = "",
                         Settings = new TestMsCodeCoverageOptions{ Enabled = project2Enabled,  IncludeTestAssembly = true},
                         ExcludedReferencedProjects = new List<string>(),
                         IncludedReferencedProjects = new List<string>(),
@@ -438,13 +446,14 @@ namespace FineCodeCoverageTests.MsCodeCoverage
             Assert.AreEqual("MsTestAdapterPath", replacements.TestAdapter);
         }
 
-        private ICoverageProject CreateCoverageProject(Action<Mock<ICoverageProject>> furtherSetup = null)
+        private ICoverageProject CreateCoverageProject(Action<Mock<ICoverageProject>> furtherSetup = null, bool includeTestAssembly = true)
         {
             var mockSettings = new Mock<IAppOptions>();
-            mockSettings.Setup(settings => settings.IncludeTestAssembly).Returns(true);
+            mockSettings.Setup(settings => settings.IncludeTestAssembly).Returns(includeTestAssembly);
             var mockCoverageProject = new Mock<ICoverageProject>();
             mockCoverageProject.Setup(cp => cp.ExcludedReferencedProjects).Returns(new List<string>());
             mockCoverageProject.Setup(cp => cp.IncludedReferencedProjects).Returns(new List<string>());
+            mockCoverageProject.Setup(cp => cp.TestDllFile).Returns("");
             mockCoverageProject.Setup(cp  => cp.Settings).Returns(mockSettings.Object);
             furtherSetup?.Invoke(mockCoverageProject);
             return mockCoverageProject.Object;
@@ -498,7 +507,6 @@ namespace FineCodeCoverageTests.MsCodeCoverage
             }
 
             AssertReplacement(replacements.ModulePathsExclude, "ModulePath", false);
-            AssertReplacement(replacements.ModulePathsInclude, "ModulePath", true);
             AssertReplacement(replacements.FunctionsExclude, "Function", false);
             AssertReplacement(replacements.FunctionsInclude, "Function", true);
             AssertReplacement(replacements.CompanyNamesExclude, "CompanyName", false);
@@ -541,7 +549,6 @@ namespace FineCodeCoverageTests.MsCodeCoverage
             }
 
             AssertReplacement(replacements.ModulePathsExclude, "ModulePath", false);
-            AssertReplacement(replacements.ModulePathsInclude, "ModulePath", true);
 
             AssertReplacement(replacements.FunctionsExclude, "Function", false);
             AssertReplacement(replacements.FunctionsInclude, "Function", true);
@@ -556,7 +563,7 @@ namespace FineCodeCoverageTests.MsCodeCoverage
         }
 
         [Test]
-        public void Should_Be_Empty_String_Replacement_When_Null()
+        public void Should_Be_Null_TestAdapter_Replacement_When_Null()
         {
             var msCodeCoverageOptions = new TestCoverageProjectOptions
             {
@@ -565,9 +572,7 @@ namespace FineCodeCoverageTests.MsCodeCoverage
 
             var coverageProject = CreateCoverageProject(mock => mock.Setup(cp => cp.Settings).Returns(msCodeCoverageOptions));
             var replacements = runSettingsTemplateReplacementsFactory.Create(coverageProject, null);
-            
-
-            ReplacementsAssertions.AssertAllEmpty(replacements);
+            Assert.That(replacements.TestAdapter, Is.Null);
         }
 
         [Test]
@@ -595,7 +600,7 @@ namespace FineCodeCoverageTests.MsCodeCoverage
         }
 
         [Test]
-        public void Should_Have_ModulePathsInclude_Replacements_From_IncludedReferencedProjects_And_Settings()
+        public void Should_Have_ModulePathsInclude_Replacements_From_IncludedReferencedProjects_Settings_And_Included_Test_Assembly()
         {
             var msCodeCoverageOptions = new TestCoverageProjectOptions
             {
@@ -610,10 +615,11 @@ namespace FineCodeCoverageTests.MsCodeCoverage
                 {
                     "ModuleName"
                 });
+                mock.Setup(cp => cp.TestDllFile).Returns(@"Path\To\Test.dll");
             });
 
             var replacements = runSettingsTemplateReplacementsFactory.Create(coverageProject, null);
-            var expectedModulePathsInclude = $"{ModulePathElement(MsCodeCoverageRegex.RegexModuleName("ModuleName"))}{ModulePathElement("FromSettings")}";
+            var expectedModulePathsInclude = $"{ModulePathElement(MsCodeCoverageRegex.RegexModuleName("ModuleName"))}{ModulePathElement(MsCodeCoverageRegex.RegexEscapePath(@"Path\To\Test.dll"))}{ModulePathElement("FromSettings")}";
             Assert.AreEqual(expectedModulePathsInclude, replacements.ModulePathsInclude);
         }
 
