@@ -97,7 +97,9 @@ Ms code coverage requires a [runsettings](https://docs.microsoft.com/en-us/visua
 code coverage. This requires that you have the ms code coverage package and have pointed to it with the TestAdaptersPaths element as well as specifying the ms data collector.  [Exclusions and inclusions](https://docs.microsoft.com/en-us/visualstudio/test/customizing-code-coverage-analysis?view=vs-2022#include-or-exclude-assemblies-and-members) 
 are also specified in the runsettings.  I don't think that the documentation is clear enough on how this works so you may want to look at [this issue](https://github.com/microsoft/vstest/issues/3462).
 
-FCC does not require you to do this.  If you do not provide a runsettings and RunMsCodeCoverage is Yes then FCC will generate one.  If RunMsCodeCoverage is IfInRunSettings then if the project has runsettings that includes the ms data collector element configured correctly then FCC will process the collected results.
+FCC does not require you to do this.  If you do not provide a runsettings and RunMsCodeCoverage is Yes then FCC will generate one and write the necessary entry in the project file.  
+Note that having a test project file open in visual studio whilst running tests may result in a conflict warning when FCC removes the entry at the end of the test. 
+If RunMsCodeCoverage is IfInRunSettings then if the project has runsettings that includes the ms data collector element configured correctly then FCC will process the collected results.
 
 ## Run settings generation from template
 
