@@ -58,14 +58,15 @@ namespace FineCodeCoverage.Engine.Model
             }
             var newMs = ListFromExisting(ms);
             var newOldStyle = ListFromExisting(oldStyle);
-            
-            common.ToList().ForEach(assemblyFileName =>
+
+            var nonWhitespaceCommon = common.Where(c => !string.IsNullOrWhiteSpace(c));
+            foreach(var assemblyFileName in nonWhitespaceCommon)
             {
                 var msModulePath = $".*\\{assemblyFileName}.dll$";
                 newMs.Add(msModulePath);
                 var old = $"[{assemblyFileName}]*";
                 newOldStyle.Add(old);
-            });
+            }
             
             return (newOldStyle.ToArray(), newMs.ToArray());
         }

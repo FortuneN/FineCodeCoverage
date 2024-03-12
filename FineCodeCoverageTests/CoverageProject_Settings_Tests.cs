@@ -723,7 +723,7 @@ namespace FineCodeCoverageTests
         }
 
         [Test]
-        public async Task Should_Add_Common_Assembly_Excludes_Includes_Async()
+        public async Task Should_Add_Common_Assembly_Excludes_Includes_Ignoring_Whitespace_Async()
         {
             var mockAppOptions = new Mock<IAppOptions>();
             mockAppOptions.SetupAllProperties();
@@ -732,8 +732,8 @@ namespace FineCodeCoverageTests
             appOptions.Include = new string[] { "oldinclude" };
             appOptions.ModulePathsExclude = new string[] { "msexclude" };
             appOptions.ModulePathsInclude = new string[] { "msinclude" };
-            appOptions.ExcludeAssemblies = new string[] { "excludeassembly" };
-            appOptions.IncludeAssemblies = new string[] { "includeassembly" };
+            appOptions.ExcludeAssemblies = new string[] { "excludeassembly", " "};
+            appOptions.IncludeAssemblies = new string[] { "includeassembly", " "};
 
             var autoMoqer = new AutoMoqer();
             var coverageProjectSettingsManager = autoMoqer.Create<CoverageProjectSettingsManager>();
