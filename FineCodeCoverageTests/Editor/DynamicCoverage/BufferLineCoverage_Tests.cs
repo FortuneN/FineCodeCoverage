@@ -235,16 +235,17 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
 
         [TestCase(true)]
         [TestCase(false)]
-        public void Should_Update_TrackedLines_When_Text_Buffer_ChangedOnBackground(bool textLinesChanged)
+        public void Should_Update_TrackedLines_When_Text_Buffer_ChangedOnBackground(bool linesInRange)
         {
             SimpleTextInfoSetUp();
 
-            var afterSnapshot = new Mock<ITextSnapshot>().Object;
+            var mockAfterSnapshot = new Mock<ITextSnapshot>();
+            mockAfterSnapshot.SetupGet(textSnapshot => textSnapshot.LineCount).Returns(linesInRange ? 100 : 11);
 
             var newSpan = new Span(1, 2);
             var mockTrackedLines = new Mock<ITrackedLines>();
-            var changedLineNumbers = textLinesChanged ? new List<int> { 1, 2 } : new List<int>();
-            mockTrackedLines.Setup(trackedLines => trackedLines.GetChangedLineNumbers(afterSnapshot, new List<Span> { newSpan }))
+            var changedLineNumbers = new List<int> { 11, 12 };
+            mockTrackedLines.Setup(trackedLines => trackedLines.GetChangedLineNumbers(mockAfterSnapshot.Object, new List<Span> { newSpan }))
                 .Returns(changedLineNumbers);
             autoMoqer.Setup<ITrackedLinesFactory, ITrackedLines>(trackedLinesFactory => trackedLinesFactory.Create(It.IsAny<List<ILine>>(), It.IsAny<ITextSnapshot>(), It.IsAny<Language>()))
                 .Returns(mockTrackedLines.Object);
@@ -252,13 +253,13 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
 
             var bufferLineCoverage = autoMoqer.Create<BufferLineCoverage>();
 
-            mockTextBuffer.Raise(textBuffer => textBuffer.ChangedOnBackground += null, CreateTextContentChangedEventArgs(afterSnapshot, newSpan));
+            mockTextBuffer.Raise(textBuffer => textBuffer.ChangedOnBackground += null, CreateTextContentChangedEventArgs(mockAfterSnapshot.Object, newSpan));
 
             autoMoqer.Verify<IEventAggregator>(
                         eventAggregator => eventAggregator.SendMessage(
-                            It.Is<CoverageChangedMessage>(message => message.AppliesTo == "filepath" && message.BufferLineCoverage == bufferLineCoverage && message.ChangedLineNumbers == changedLineNumbers)
+                            It.Is<CoverageChangedMessage>(message => message.AppliesTo == "filepath" && message.BufferLineCoverage == bufferLineCoverage && message.ChangedLineNumbers.SequenceEqual(changedLineNumbers))
                             , null
-                        ), Times.Exactly(textLinesChanged ? 1 : 0));
+                        ), Times.Exactly(linesInRange ? 1 : 0));
 
         }
 
