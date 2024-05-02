@@ -2,6 +2,6 @@
 {
     internal interface ILineExcluder
     {
-        bool ExcludeIfNotCode(string text, bool isCSharp);
+        bool ExcludeIfNotCode(string text);
     }
 }

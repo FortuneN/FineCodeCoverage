@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.ComponentModel.Composition;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -7,14 +8,29 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace FineCodeCoverage.Editor.Roslyn
 {
-    internal class CSharpContainingCodeVisitor : CSharpSyntaxVisitor, ILanguageContainingCodeVisitor
+    internal interface ICSharpNodeVisitor
     {
-        private readonly List<TextSpan> spans = new List<TextSpan>();
+        List<SyntaxNode> GetNodes(SyntaxNode rootNode);
+    }
+
+    [Export(typeof(ICSharpNodeVisitor))]
+    internal class CSharpContainingCodeVisitor : CSharpSyntaxVisitor, ILanguageContainingCodeVisitor, ICSharpNodeVisitor
+    {
+        private readonly List<SyntaxNode> nodes = new List<SyntaxNode>();
         public List<TextSpan> GetSpans(SyntaxNode rootNode)
         {
+            this.nodes.Clear();
             this.Visit(rootNode);
-            return this.spans;
+            return this.nodes.Select(node => node.Span).ToList();
         }
+
+        public List<SyntaxNode> GetNodes(SyntaxNode rootNode)
+        {
+            this.nodes.Clear();
+            this.Visit(rootNode);
+            return this.nodes;
+        }
+
 
 #if VS2022
         public override void VisitFileScopedNamespaceDeclaration(FileScopedNamespaceDeclarationSyntax node)
@@ -100,6 +116,6 @@ namespace FineCodeCoverage.Editor.Roslyn
 
         private bool IsAbstract(SyntaxTokenList modifiers) => modifiers.Any(modifier => modifier.IsKind(SyntaxKind.AbstractKeyword));
 
-        private void AddNode(SyntaxNode node) => this.spans.Add(node.Span);
+        private void AddNode(SyntaxNode node) => this.nodes.Add(node);
     }
 }

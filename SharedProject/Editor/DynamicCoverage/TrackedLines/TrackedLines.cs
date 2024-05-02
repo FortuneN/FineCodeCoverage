@@ -17,11 +17,11 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
         public TrackedLines(
             List<IContainingCodeTracker> containingCodeTrackers,
             INewCodeTracker newCodeTracker,
-            IFileCodeSpanRangeService roslynService)
+            IFileCodeSpanRangeService fileCodeSpanRangeService)
         {
             this.containingCodeTrackers = containingCodeTrackers;
             this.newCodeTracker = newCodeTracker;
-            this.fileCodeSpanRangeService = roslynService;
+            this.fileCodeSpanRangeService = fileCodeSpanRangeService;
             this.useFileCodeSpanRangeService = this.fileCodeSpanRangeService != null && newCodeTracker != null;
         }
 

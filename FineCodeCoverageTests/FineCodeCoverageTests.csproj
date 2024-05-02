@@ -70,6 +70,7 @@
     <Compile Include="CoverageToolOutput_Tests\SolutionFolderProvider_Tests.cs" />
     <Compile Include="AppOptionsProvider_Tests.cs" />
     <Compile Include="CoverageUtilManager_Tests.cs" />
+    <Compile Include="Editor\DynamicCoverage\BlazorCoverageContentType_Tests.cs" />
     <Compile Include="Editor\DynamicCoverage\BufferLineCoverage_Tests.cs" />
     <Compile Include="Editor\DynamicCoverage\DynamicCoverageStore_Tests.cs" />
     <Compile Include="Editor\DynamicCoverage\LineExcluder_Tests.cs" />
@@ -82,7 +83,6 @@
     <Compile Include="Editor\DynamicCoverage\OtherLinesTracker_Tests.cs" />
     <Compile Include="Editor\DynamicCoverage\SerializedState_Tests.cs" />
     <Compile Include="Editor\DynamicCoverage\TextInfo_Tests.cs" />
-    <Compile Include="Editor\DynamicCoverage\TextSnapshotLineExcluder_Tests.cs" />
     <Compile Include="Editor\DynamicCoverage\TrackedNewCodeLine_Tests.cs" />
     <Compile Include="Editor\DynamicCoverage\LineTracker_Tests.cs" />
     <Compile Include="Editor\DynamicCoverage\TrackingSpanRangeUpdatingTracker_Tests.cs" />

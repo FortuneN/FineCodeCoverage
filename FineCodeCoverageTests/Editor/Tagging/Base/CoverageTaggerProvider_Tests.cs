@@ -47,6 +47,7 @@ namespace FineCodeCoverageTests.Editor.Tagging.Base
             };
 
             var autoMocker = new AutoMoqer();
+            autoMocker.SetInstance(new IFileExcluder[0]);
             var mockAppOptionsProvider = autoMocker.GetMock<IAppOptionsProvider>();
             mockAppOptionsProvider.Setup(appOptionsProvider => appOptionsProvider.Get()).Returns(firstOptions);
 
@@ -79,6 +80,7 @@ namespace FineCodeCoverageTests.Editor.Tagging.Base
             };
 
             var autoMocker = new AutoMoqer();
+            autoMocker.SetInstance(new IFileExcluder[0]);
             var mockAppOptionsProvider = autoMocker.GetMock<IAppOptionsProvider>();
             var coverageTaggerProvider = autoMocker.Create<CoverageTaggerProvider<DummyCoverageTypeFilter, DummyTag>>();
 
@@ -90,6 +92,7 @@ namespace FineCodeCoverageTests.Editor.Tagging.Base
         public void Should_Not_Create_A_Coverage_Tagger_When_The_TextBuffer_Associated_Document_Has_No_FilePath()
         {
             var autoMocker = new AutoMoqer();
+            autoMocker.SetInstance(new IFileExcluder[0]);
             var mockTextInfo = new Mock<ITextInfo>();
             mockTextInfo.SetupGet(textInfo => textInfo.FilePath).Returns((string)null);
             autoMocker.Setup<ITextInfoFactory,ITextInfo>(textInfoFactory => textInfoFactory.Create(It.IsAny<ITextView>(), It.IsAny<ITextBuffer>()))
@@ -99,6 +102,27 @@ namespace FineCodeCoverageTests.Editor.Tagging.Base
             var tagger = coverageTaggerProvider.CreateTagger(new Mock<ITextView>().Object, new Mock<ITextBuffer>().Object);
 
             Assert.That(tagger, Is.Null);
+        }
+
+        [TestCase(true)]
+        [TestCase(false)]
+        public void Should_Not_Create_A_Coverage_Tagger_When_FilePath_Is_Excluded(bool isExcluded)
+        {
+            var autoMocker = new AutoMoqer();
+            var filePath = "filePath";
+            var firstFileExcluder = new Mock<IFileExcluder>().Object;
+            var mockSecondFileExcluder = new Mock<IFileExcluder>();
+            mockSecondFileExcluder.Setup(fileExcluder => fileExcluder.Exclude(filePath)).Returns(isExcluded);
+            autoMocker.SetInstance(new IFileExcluder[] { firstFileExcluder, mockSecondFileExcluder.Object});
+            var mockTextInfo = new Mock<ITextInfo>();
+            mockTextInfo.SetupGet(textInfo => textInfo.FilePath).Returns(filePath);
+            autoMocker.Setup<ITextInfoFactory, ITextInfo>(textInfoFactory => textInfoFactory.Create(It.IsAny<ITextView>(), It.IsAny<ITextBuffer>()))
+                .Returns(mockTextInfo.Object);
+            var coverageTaggerProvider = autoMocker.Create<CoverageTaggerProvider<DummyCoverageTypeFilter, DummyTag>>();
+
+            var tagger = coverageTaggerProvider.CreateTagger(new Mock<ITextView>().Object, new Mock<ITextBuffer>().Object);
+
+            Assert.That(tagger, isExcluded ? Is.Null : Is.Not.Null);
         }
 
         [TestCase]
@@ -117,6 +141,7 @@ namespace FineCodeCoverageTests.Editor.Tagging.Base
 
             };
             var autoMocker = new AutoMoqer();
+            autoMocker.SetInstance(new IFileExcluder[0]);
             var mockTextInfo = new Mock<ITextInfo>();
             mockTextInfo.SetupGet(textInfo => textInfo.FilePath).Returns("file");
             autoMocker.Setup<ITextInfoFactory,ITextInfo>(textInfoFactory => textInfoFactory.Create(textView, textBuffer)).Returns(mockTextInfo.Object);    

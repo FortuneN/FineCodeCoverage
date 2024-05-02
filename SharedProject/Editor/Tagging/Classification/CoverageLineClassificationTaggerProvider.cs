@@ -1,4 +1,7 @@
 ﻿using System.ComponentModel.Composition;
+using FineCodeCoverage.Editor.DynamicCoverage.ContentTypes;
+using FineCodeCoverage.Editor.DynamicCoverage.ContentTypes.Blazor;
+using FineCodeCoverage.Editor.DynamicCoverage.ContentTypes.Roslyn;
 using FineCodeCoverage.Editor.Management;
 using FineCodeCoverage.Editor.Tagging.Base;
 using Microsoft.VisualStudio.Text;
@@ -9,9 +12,10 @@ using Microsoft.VisualStudio.Utilities;
 
 namespace FineCodeCoverage.Editor.Tagging.Classification
 {
-    [ContentType(SupportedContentTypeLanguages.CSharp)]
-    [ContentType(SupportedContentTypeLanguages.VisualBasic)]
-    [ContentType(SupportedContentTypeLanguages.CPP)]
+    [ContentType(CSharpCoverageContentType.ContentType)]
+    [ContentType(VBCoverageContentType.ContentType)]
+    [ContentType(CPPCoverageContentType.ContentType)]
+    [ContentType(BlazorCoverageContentType.ContentType)]
     [TagType(typeof(IClassificationTag))]
     [Name("FCC.CoverageLineClassificationTaggerProvider")]
     [Export(typeof(IViewTaggerProvider))]

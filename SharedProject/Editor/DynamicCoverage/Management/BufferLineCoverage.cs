@@ -17,7 +17,6 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
         private readonly ITrackedLinesFactory trackedLinesFactory;
         private readonly IDynamicCoverageStore dynamicCoverageStore;
         private readonly IAppOptionsProvider appOptionsProvider;
-        private readonly Language language;
         private readonly ITextBuffer2 textBuffer;
         private ITrackedLines trackedLines;
         private bool? editorCoverageModeOff;
@@ -32,7 +31,6 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
         )
         {
             this.fileLineCoverage = fileLineCoverage;
-            this.language = SupportedContentTypeLanguages.GetLanguage(textInfo.TextBuffer.ContentType.TypeName);
             this.textBuffer = textInfo.TextBuffer;
             this.textInfo = textInfo;
             this.eventAggregator = eventAggregator;
@@ -114,13 +112,13 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
                 string serializedCoverage = this.dynamicCoverageStore.GetSerializedCoverage(this.textInfo.FilePath);
                 if (serializedCoverage != null)
                 {
-                    this.trackedLines = this.trackedLinesFactory.Create(serializedCoverage, currentSnapshot, this.language);
+                    this.trackedLines = this.trackedLinesFactory.Create(serializedCoverage, currentSnapshot);
                     return;
                 }
             }
 
             var lines = this.fileLineCoverage.GetLines(this.textInfo.FilePath).ToList();
-            this.trackedLines = this.trackedLinesFactory.Create(lines, currentSnapshot, this.language);
+            this.trackedLines = this.trackedLinesFactory.Create(lines, currentSnapshot);
         }
 
         private bool EditorCoverageColouringModeOff()
