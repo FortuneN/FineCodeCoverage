@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.IO;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
@@ -11,7 +10,13 @@ namespace FineCodeCoverage.Editor.DynamicCoverage.ContentTypes.Blazor
     [Export(typeof(IRazorGeneratedDocumentRootFinder))]
     internal class RazorGeneratedDocumentRootFinder : IRazorGeneratedDocumentRootFinder
     {
-        public async Task<SyntaxNode> FindSyntaxRootAsync(ITextBuffer textBuffer, string fileName)
+        private readonly IRazorGeneratedFilePathMatcher razorGeneratedFilePathMatcher;
+
+        [ImportingConstructor]
+        public RazorGeneratedDocumentRootFinder(IRazorGeneratedFilePathMatcher razorGeneratedFilePathMatcher) 
+            => this.razorGeneratedFilePathMatcher = razorGeneratedFilePathMatcher;
+
+        public async Task<SyntaxNode> FindSyntaxRootAsync(ITextBuffer textBuffer, string filePath)
         {
             Workspace ws = textBuffer.GetWorkspace();
             if (ws != null)
@@ -22,9 +27,8 @@ namespace FineCodeCoverage.Editor.DynamicCoverage.ContentTypes.Blazor
                     foreach (Document document in project.Documents)
                     {
                         string docFilePath = document.FilePath;
-                        string docFileName = Path.GetFileName(docFilePath);
-                        if (docFileName.StartsWith(fileName))
-                        {
+                        if (this.razorGeneratedFilePathMatcher.IsRazorGeneratedFilePath(filePath,docFilePath))
+                        {   
                             return await document.GetSyntaxRootAsync();
                         }
                     }

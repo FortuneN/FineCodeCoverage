@@ -1,5 +1,6 @@
 ﻿using FineCodeCoverage.Editor.DynamicCoverage.ContentTypes;
-using FineCodeCoverage.Editor.Tagging.Base;
+using FineCodeCoverage.Editor.DynamicCoverage.ContentTypes.Blazor;
+using FineCodeCoverage.Editor.DynamicCoverage.ContentTypes.Roslyn;
 using FineCodeCoverage.Editor.Tagging.Classification;
 using FineCodeCoverage.Editor.Tagging.GlyphMargin;
 using FineCodeCoverage.Editor.Tagging.OverviewMargin;

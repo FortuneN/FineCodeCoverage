@@ -14,7 +14,9 @@ namespace FineCodeCoverage.Editor.DynamicCoverage.ContentTypes
             non C++ https://learn.microsoft.com/en-us/dotnet/api/envdte80.filecodemodel2?view=visualstudiosdk-2022
         */
         public IFileCodeSpanRangeService FileCodeSpanRangeService => null;
-        public IFileCodeSpanRangeService FileCodeSpanRangeServiceForChanges => null;
+        // not relevant
+        public bool CoverageOnlyFromFileCodeSpanRangeService => false;
+        public bool UseFileCodeSpanRangeServiceForChanges => false;
 
         public ILineExcluder LineExcluder => null;
     }

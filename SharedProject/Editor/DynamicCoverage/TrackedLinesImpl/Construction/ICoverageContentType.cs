@@ -4,7 +4,8 @@
     {
         string ContentTypeName { get; }
         IFileCodeSpanRangeService FileCodeSpanRangeService { get; }
-        IFileCodeSpanRangeService FileCodeSpanRangeServiceForChanges { get; }
+        bool CoverageOnlyFromFileCodeSpanRangeService { get; }
+        bool UseFileCodeSpanRangeServiceForChanges { get; }
         ILineExcluder LineExcluder { get; }
     }
 }

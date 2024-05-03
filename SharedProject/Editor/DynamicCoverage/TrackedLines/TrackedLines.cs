@@ -105,6 +105,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
             var newCodeCodeRanges = new List<CodeSpanRange>();
             int i = 0, j = 0;
 
+            containingCodeTrackersCodeSpanRanges = containingCodeTrackersCodeSpanRanges.OrderBy(codeSpanRange => codeSpanRange.StartLine).ToList();
             while (i < fileCodeSpanRanges.Count && j < containingCodeTrackersCodeSpanRanges.Count)
             {
                 CodeSpanRange fileRange = fileCodeSpanRanges[i];

@@ -332,6 +332,25 @@ namespace MyNamespace
 ";
             AssertShouldNotVisit(text);
         }
+
+        [Test]
+        public void Should_Delete_State_When_Visits()
+        {
+            var text = @"
+public class MyClass
+{
+    public int MyProperty { get; set; }
+}
+";
+            var cSharpContainingCodeVisitor = new CSharpContainingCodeVisitor();
+            var compilation = ParseCompilation(text);
+            var textSpans1 = cSharpContainingCodeVisitor.GetSpans(compilation);
+            var textSpans2 = cSharpContainingCodeVisitor.GetSpans(compilation);
+            var nodes1 = cSharpContainingCodeVisitor.GetNodes(compilation);
+            var nodes2 = cSharpContainingCodeVisitor.GetNodes(compilation);
+            Assert.That(textSpans1.Count, Is.EqualTo(textSpans2.Count));
+            Assert.That(nodes1.Count, Is.EqualTo(nodes2.Count));
+        }
     }
 
 }

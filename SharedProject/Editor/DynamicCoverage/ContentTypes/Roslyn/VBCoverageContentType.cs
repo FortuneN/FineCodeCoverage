@@ -18,8 +18,10 @@ namespace FineCodeCoverage.Editor.DynamicCoverage.ContentTypes.Roslyn
         public IFileCodeSpanRangeService FileCodeSpanRangeService
             => this.roslynFileCodeSpanRangeService.FileCodeSpanRangeService;
 
-        public IFileCodeSpanRangeService FileCodeSpanRangeServiceForChanges
-            => this.roslynFileCodeSpanRangeService.FileCodeSpanRangeServiceForChanges;
+        public bool CoverageOnlyFromFileCodeSpanRangeService => false;
+
+        public bool UseFileCodeSpanRangeServiceForChanges
+            => this.roslynFileCodeSpanRangeService.UseFileCodeSpanRangeServiceForChanges;
 
         public ILineExcluder LineExcluder { get; } = new LineExcluder(new string[] { "REM", "'", "#" });
     }

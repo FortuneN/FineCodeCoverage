@@ -1,4 +1,4 @@
-﻿using FineCodeCoverage.Editor.DynamicCoverage.ContentTypes;
+﻿using FineCodeCoverage.Editor.DynamicCoverage.ContentTypes.Blazor;
 using NUnit.Framework;
 
 namespace FineCodeCoverageTests.Editor.DynamicCoverage
@@ -10,7 +10,7 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
         [TestCase("path.vbhtml", true)]
         public void Should_Include_Razor_Component_Files(string filePath, bool expectedExclude)
         {
-            Assert.That(new BlazorCoverageContentType().Exclude(filePath), Is.EqualTo(expectedExclude));
+            Assert.That(new BlazorCoverageContentType(null).Exclude(filePath), Is.EqualTo(expectedExclude));
         }
     }
 }

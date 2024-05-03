@@ -110,17 +110,21 @@ namespace FineCodeCoverageTests.Editor.Tagging.Base
         {
             var autoMocker = new AutoMoqer();
             var filePath = "filePath";
-            var firstFileExcluder = new Mock<IFileExcluder>().Object;
+            var contentTypeTypeName = "contentType";
+            var mockFirstFileExcluder = new Mock<IFileExcluder>();
+            mockFirstFileExcluder.Setup(fileExcluder => fileExcluder.Exclude(filePath)).Returns(true);
             var mockSecondFileExcluder = new Mock<IFileExcluder>();
+            mockSecondFileExcluder.SetupGet(fileExcluder => fileExcluder.ContentTypeName).Returns(contentTypeTypeName);
             mockSecondFileExcluder.Setup(fileExcluder => fileExcluder.Exclude(filePath)).Returns(isExcluded);
-            autoMocker.SetInstance(new IFileExcluder[] { firstFileExcluder, mockSecondFileExcluder.Object});
+            autoMocker.SetInstance(new IFileExcluder[] { mockFirstFileExcluder.Object, mockSecondFileExcluder.Object});
             var mockTextInfo = new Mock<ITextInfo>();
             mockTextInfo.SetupGet(textInfo => textInfo.FilePath).Returns(filePath);
             autoMocker.Setup<ITextInfoFactory, ITextInfo>(textInfoFactory => textInfoFactory.Create(It.IsAny<ITextView>(), It.IsAny<ITextBuffer>()))
                 .Returns(mockTextInfo.Object);
             var coverageTaggerProvider = autoMocker.Create<CoverageTaggerProvider<DummyCoverageTypeFilter, DummyTag>>();
-
-            var tagger = coverageTaggerProvider.CreateTagger(new Mock<ITextView>().Object, new Mock<ITextBuffer>().Object);
+            var mockTextBuffer = new Mock<ITextBuffer>();
+            mockTextBuffer.SetupGet(textBuffer => textBuffer.ContentType.TypeName).Returns(contentTypeTypeName);
+            var tagger = coverageTaggerProvider.CreateTagger(new Mock<ITextView>().Object, mockTextBuffer.Object);
 
             Assert.That(tagger, isExcluded ? Is.Null : Is.Not.Null);
         }
@@ -129,7 +133,9 @@ namespace FineCodeCoverageTests.Editor.Tagging.Base
         public void Should_Create_A_Coverage_Tagger_With_BufferLineCoverage_From_DynamicCoverageManager_And_Last_Coverage_Type_Filter_When_The_TextBuffer_Has_An_Associated_File_Document()
         {
             var textView = new Mock<ITextView>().Object;
-            var textBuffer = new Mock<ITextBuffer>().Object;
+            var mockTextBuffer = new Mock<ITextBuffer>();
+            mockTextBuffer.SetupGet(tb => tb.ContentType.TypeName).Returns("");
+            var textBuffer = mockTextBuffer.Object;
             DummyCoverageTypeFilter lastFilter = null;
             DummyCoverageTypeFilter.Initialized += (sender, args) =>
             {

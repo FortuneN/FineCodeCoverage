@@ -1,9 +1,11 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
+using FineCodeCoverage.Core.Utilities.VsThreading;
 using FineCodeCoverage.Editor.Roslyn;
 using FineCodeCoverage.Options;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text;
 
 namespace FineCodeCoverage.Editor.DynamicCoverage.ContentTypes.Roslyn
@@ -13,13 +15,19 @@ namespace FineCodeCoverage.Editor.DynamicCoverage.ContentTypes.Roslyn
     {
         private readonly IRoslynService roslynService;
         private readonly IAppOptionsProvider appOptionsProvider;
+        private readonly IThreadHelper threadHelper;
 
         [ImportingConstructor]
-        public RoslynFileCodeSpanRangeService(IRoslynService roslynService, IAppOptionsProvider appOptionsProvider)
+        public RoslynFileCodeSpanRangeService(
+            IRoslynService roslynService, 
+            IAppOptionsProvider appOptionsProvider,
+            IThreadHelper threadHelper
+            )
         {
 
             this.roslynService = roslynService;
             this.appOptionsProvider = appOptionsProvider;
+            this.threadHelper = threadHelper;
         }
 
         private CodeSpanRange GetCodeSpanRange(TextSpan span, ITextSnapshot textSnapshot)
@@ -31,14 +39,16 @@ namespace FineCodeCoverage.Editor.DynamicCoverage.ContentTypes.Roslyn
 
         public List<CodeSpanRange> GetFileCodeSpanRanges(ITextSnapshot snapshot)
         {
-            // will use joinable...
-            List<TextSpan> textSpans = this.roslynService.GetContainingCodeSpansAsync(snapshot).GetAwaiter().GetResult();
+            List<TextSpan> textSpans = this.threadHelper.JoinableTaskFactory.Run(
+                () => this.roslynService.GetContainingCodeSpansAsync(snapshot)
+            );
+
             return textSpans.Select(textSpan => this.GetCodeSpanRange(textSpan, snapshot)).ToList();
         }
 
         public IFileCodeSpanRangeService FileCodeSpanRangeService => this;
 
-        public IFileCodeSpanRangeService FileCodeSpanRangeServiceForChanges
-            => this.appOptionsProvider.Get().EditorCoverageColouringMode == EditorCoverageColouringMode.DoNotUseRoslynWhenTextChanges ? null : this;
+        public bool UseFileCodeSpanRangeServiceForChanges
+            => this.appOptionsProvider.Get().EditorCoverageColouringMode != EditorCoverageColouringMode.DoNotUseRoslynWhenTextChanges;
     }
 }

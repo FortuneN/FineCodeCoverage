@@ -17,12 +17,8 @@ namespace FineCodeCoverage.Editor.Roslyn
     internal class CSharpContainingCodeVisitor : CSharpSyntaxVisitor, ILanguageContainingCodeVisitor, ICSharpNodeVisitor
     {
         private readonly List<SyntaxNode> nodes = new List<SyntaxNode>();
-        public List<TextSpan> GetSpans(SyntaxNode rootNode)
-        {
-            this.nodes.Clear();
-            this.Visit(rootNode);
-            return this.nodes.Select(node => node.Span).ToList();
-        }
+        public List<TextSpan> GetSpans(SyntaxNode rootNode) 
+            => this.GetNodes(rootNode).Select(node => node.Span).ToList();
 
         public List<SyntaxNode> GetNodes(SyntaxNode rootNode)
         {
@@ -30,7 +26,6 @@ namespace FineCodeCoverage.Editor.Roslyn
             this.Visit(rootNode);
             return this.nodes;
         }
-
 
 #if VS2022
         public override void VisitFileScopedNamespaceDeclaration(FileScopedNamespaceDeclarationSyntax node)

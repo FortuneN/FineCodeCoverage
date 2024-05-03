@@ -3,6 +3,6 @@
     internal interface IRoslynFileCodeSpanRangeService
     {
         IFileCodeSpanRangeService FileCodeSpanRangeService { get; }
-        IFileCodeSpanRangeService FileCodeSpanRangeServiceForChanges { get; }
+        bool UseFileCodeSpanRangeServiceForChanges { get; }
     }
 }

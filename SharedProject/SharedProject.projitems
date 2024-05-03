@@ -188,10 +188,11 @@
     <Compile Include="$(MSBuildThisFileDirectory)Editor\DynamicCoverage\Common\DynamicCoverageTypeConverter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editor\DynamicCoverage\ContentTypes\Blazor\BlazorCoverageContentType.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editor\DynamicCoverage\ContentTypes\Blazor\BlazorFileCodeSpanRangeService.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Editor\DynamicCoverage\ContentTypes\Blazor\DoNotExcludeLine.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editor\DynamicCoverage\ContentTypes\Blazor\IBlazorFileCodeSpanRangeService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editor\DynamicCoverage\ContentTypes\Blazor\IRazorGeneratedDocumentRootFinder.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Editor\DynamicCoverage\ContentTypes\Blazor\IRazorGeneratedFilePathMatcher.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editor\DynamicCoverage\ContentTypes\Blazor\RazorGeneratedDocumentRootFinder.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Editor\DynamicCoverage\ContentTypes\Blazor\RazorGeneratedFilePathMatcher.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editor\DynamicCoverage\ContentTypes\CPPCoverageContentType.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editor\DynamicCoverage\ContentTypes\Roslyn\CSharpCoverageContentType.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editor\DynamicCoverage\ContentTypes\Roslyn\IRoslynFileCodeSpanRangeService.cs" />
