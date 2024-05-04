@@ -5,7 +5,7 @@ using Microsoft.VisualStudio.Text;
 
 namespace FineCodeCoverage.Editor.DynamicCoverage
 {
-    internal class TrackedLines : ITrackedLines
+    internal class TrackedLines : IContainingCodeTrackerTrackedLines
     {
         private readonly List<IContainingCodeTracker> containingCodeTrackers;
         private readonly INewCodeTracker newCodeTracker;
