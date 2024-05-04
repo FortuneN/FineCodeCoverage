@@ -1,14 +1,9 @@
 ﻿using AutoMoq;
 using FineCodeCoverage.Core.Utilities;
-using FineCodeCoverage.Core.Utilities.VsThreading;
 using FineCodeCoverage.Editor.DynamicCoverage;
 using FineCodeCoverage.Editor.DynamicCoverage.TrackedLinesImpl.Construction;
-using FineCodeCoverage.Editor.Roslyn;
-using FineCodeCoverage.Editor.Tagging.Base;
 using FineCodeCoverage.Engine.Model;
-using FineCodeCoverage.Options;
 using FineCodeCoverageTests.TestHelpers;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Moq;
 using NUnit.Framework;
