@@ -8,13 +8,8 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace FineCodeCoverage.Editor.Roslyn
 {
-    internal interface ICSharpNodeVisitor
-    {
-        List<SyntaxNode> GetNodes(SyntaxNode rootNode);
-    }
-
-    [Export(typeof(ICSharpNodeVisitor))]
-    internal class CSharpContainingCodeVisitor : CSharpSyntaxVisitor, ILanguageContainingCodeVisitor, ICSharpNodeVisitor
+    [Export(typeof(ICSharpCodeCoverageNodeVisitor))]
+    internal class CSharpContainingCodeVisitor : CSharpSyntaxVisitor, ILanguageContainingCodeVisitor, ICSharpCodeCoverageNodeVisitor
     {
         private readonly List<SyntaxNode> nodes = new List<SyntaxNode>();
         public List<TextSpan> GetSpans(SyntaxNode rootNode) 

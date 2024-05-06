@@ -9,6 +9,6 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
     {
         ITrackedLines Create(List<ILine> lines, ITextSnapshot textSnapshot);
         ITrackedLines Create(string serializedCoverage, ITextSnapshot currentSnapshot);
-        string Serialize(ITrackedLines trackedLines);
+        string Serialize(ITrackedLines trackedLines, string text);
     }
 }

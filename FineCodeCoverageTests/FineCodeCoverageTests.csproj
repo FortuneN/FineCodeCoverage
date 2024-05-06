@@ -71,7 +71,12 @@
     <Compile Include="AppOptionsProvider_Tests.cs" />
     <Compile Include="CoverageUtilManager_Tests.cs" />
     <Compile Include="Editor\DynamicCoverage\BlazorCoverageContentType_Tests.cs" />
+    <Compile Include="Editor\DynamicCoverage\BlazorFileCodeSpanRangeService_Tests.cs" />
+    <Compile Include="Editor\DynamicCoverage\BlazorGeneratedFilePathMatcher_Tests.cs" />
     <Compile Include="Editor\DynamicCoverage\BufferLineCoverage_Tests.cs" />
+    <Compile Include="Editor\DynamicCoverage\CPPCoverageContentType_Tests.cs" />
+    <Compile Include="Editor\DynamicCoverage\VBCoverageContentType_Tests.cs" />
+    <Compile Include="Editor\DynamicCoverage\CSharpCoverageContentType_Tests.cs" />
     <Compile Include="Editor\DynamicCoverage\DynamicCoverageStore_Tests.cs" />
     <Compile Include="Editor\DynamicCoverage\LineExcluder_Tests.cs" />
     <Compile Include="Editor\DynamicCoverage\CoverageCodeTracker_Tests.cs" />

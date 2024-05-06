@@ -13,6 +13,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
         public int StartLine { get; set; }
         public int EndLine { get; set; }
 
+        [ExcludeFromCodeCoverage]
         public override bool Equals(object obj)
             => obj is CodeSpanRange codeSpanRange && codeSpanRange.StartLine == this.StartLine && codeSpanRange.EndLine == this.EndLine;
 

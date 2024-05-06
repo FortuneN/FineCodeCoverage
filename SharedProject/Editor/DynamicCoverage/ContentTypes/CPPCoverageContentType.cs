@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.Composition;
+using System.Diagnostics.CodeAnalysis;
 using FineCodeCoverage.Editor.DynamicCoverage.TrackedLinesImpl.Construction;
 
 namespace FineCodeCoverage.Editor.DynamicCoverage.ContentTypes
@@ -14,8 +15,11 @@ namespace FineCodeCoverage.Editor.DynamicCoverage.ContentTypes
             non C++ https://learn.microsoft.com/en-us/dotnet/api/envdte80.filecodemodel2?view=visualstudiosdk-2022
         */
         public IFileCodeSpanRangeService FileCodeSpanRangeService => null;
+
         // not relevant
+        [ExcludeFromCodeCoverage]
         public bool CoverageOnlyFromFileCodeSpanRangeService => false;
+        [ExcludeFromCodeCoverage]
         public bool UseFileCodeSpanRangeServiceForChanges => false;
 
         public ILineExcluder LineExcluder => null;

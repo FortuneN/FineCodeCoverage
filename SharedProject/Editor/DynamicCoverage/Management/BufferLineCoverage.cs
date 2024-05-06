@@ -7,6 +7,7 @@ using FineCodeCoverage.Engine;
 using FineCodeCoverage.Engine.Model;
 using FineCodeCoverage.Options;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
 
 namespace FineCodeCoverage.Editor.DynamicCoverage
 {
@@ -59,7 +60,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
             this.textBuffer.ChangedOnBackground += this.TextBuffer_ChangedOnBackground;
             void textViewClosedHandler(object s, EventArgs e)
             {
-                this.UpdateDynamicCoverageStore();
+                this.UpdateDynamicCoverageStore((s as ITextView).TextSnapshot.GetText());
                 this.textBuffer.Changed -= this.TextBuffer_ChangedOnBackground;
                 textInfo.TextView.Closed -= textViewClosedHandler;
                 appOptionsProvider.OptionsChanged -= AppOptionsChanged;
@@ -69,11 +70,14 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
             textInfo.TextView.Closed += textViewClosedHandler;
         }
 
-        private void UpdateDynamicCoverageStore()
+        private void UpdateDynamicCoverageStore(string text)
         {
             if (this.trackedLines != null)
             {
-                this.dynamicCoverageStore.SaveSerializedCoverage(this.textInfo.FilePath, this.trackedLinesFactory.Serialize(this.trackedLines));
+                this.dynamicCoverageStore.SaveSerializedCoverage(
+                    this.textInfo.FilePath, 
+                    this.trackedLinesFactory.Serialize(this.trackedLines, text)
+                );
             }
             else
             {

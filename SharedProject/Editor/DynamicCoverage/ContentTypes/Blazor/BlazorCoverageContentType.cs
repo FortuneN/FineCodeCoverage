@@ -1,11 +1,9 @@
 ﻿using System.ComponentModel.Composition;
 using System.IO;
 using System.Linq;
-using System.Windows.Media.Animation;
 using FineCodeCoverage.Editor.DynamicCoverage.ContentTypes.Roslyn;
 using FineCodeCoverage.Editor.DynamicCoverage.TrackedLinesImpl.Construction;
 using FineCodeCoverage.Editor.Tagging.Base;
-using FineCodeCoverage.Options;
 
 namespace FineCodeCoverage.Editor.DynamicCoverage.ContentTypes.Blazor
 {

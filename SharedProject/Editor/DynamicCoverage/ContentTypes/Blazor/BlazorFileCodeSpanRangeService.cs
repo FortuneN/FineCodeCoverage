@@ -1,9 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
 using FineCodeCoverage.Core.Utilities.VsThreading;
+using FineCodeCoverage.Editor.DynamicCoverage.Utilities;
 using FineCodeCoverage.Editor.Roslyn;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.Text;
@@ -13,36 +12,41 @@ namespace FineCodeCoverage.Editor.DynamicCoverage.ContentTypes.Blazor
     [Export(typeof(IBlazorFileCodeSpanRangeService))]
     internal class BlazorFileCodeSpanRangeService : IBlazorFileCodeSpanRangeService
     {
-        private readonly IRazorGeneratedDocumentRootFinder razorGeneratedDocumentRootFinder;
-        private readonly ICSharpNodeVisitor cSharpNodeVisitor;
+        private readonly IBlazorGeneratedDocumentRootFinder blazorGeneratedDocumentRootFinder;
+        private readonly ICSharpCodeCoverageNodeVisitor cSharpCodeCoverageNodeVisitor;
+        private readonly ISyntaxNodeLocationMapper syntaxNodeLocationMapper;
         private readonly ITextInfoFactory textInfoFactory;
+        private readonly IBlazorGeneratedFilePathMatcher blazorGeneratedFilePathMatcher;
         private readonly IThreadHelper threadHelper;
 
         [ImportingConstructor]
         public BlazorFileCodeSpanRangeService(
-            IRazorGeneratedDocumentRootFinder razorGeneratedDocumentRootFinder,
-            ICSharpNodeVisitor cSharpNodeVisitor,
+            IBlazorGeneratedDocumentRootFinder blazorGeneratedDocumentRootFinder,
+            ICSharpCodeCoverageNodeVisitor cSharpCodeCoverageNodeVisitor,
+            ISyntaxNodeLocationMapper syntaxNodeLocationMapper,
             ITextInfoFactory textInfoFactory,
+            IBlazorGeneratedFilePathMatcher blazorGeneratedFilePathMatcher,
             IThreadHelper threadHelper
         )
         {
-            this.razorGeneratedDocumentRootFinder = razorGeneratedDocumentRootFinder;
-            this.cSharpNodeVisitor = cSharpNodeVisitor;
+            this.blazorGeneratedDocumentRootFinder = blazorGeneratedDocumentRootFinder;
+            this.cSharpCodeCoverageNodeVisitor = cSharpCodeCoverageNodeVisitor;
+            this.syntaxNodeLocationMapper = syntaxNodeLocationMapper;
             this.textInfoFactory = textInfoFactory;
+            this.blazorGeneratedFilePathMatcher = blazorGeneratedFilePathMatcher;
             this.threadHelper = threadHelper;
         }
 
         public List<CodeSpanRange> GetFileCodeSpanRanges(ITextSnapshot snapshot)
         {
-            string filePath = this.textInfoFactory.Create(null, snapshot.TextBuffer).FilePath;
+            string filePath = this.textInfoFactory.GetFilePath(snapshot.TextBuffer);
             SyntaxNode generatedDocumentSyntaxRoot = this.threadHelper.JoinableTaskFactory.Run(
-                () => this.razorGeneratedDocumentRootFinder.FindSyntaxRootAsync(snapshot.TextBuffer, filePath)
+                () => this.blazorGeneratedDocumentRootFinder.FindSyntaxRootAsync(snapshot.TextBuffer, filePath, this.blazorGeneratedFilePathMatcher)
             );
             if (generatedDocumentSyntaxRoot != null)
             {
-                List<SyntaxNode> nodes = this.cSharpNodeVisitor.GetNodes(generatedDocumentSyntaxRoot);
-                // will not be able to mock this
-                return nodes.Select(node => new { Node = node, MappedLineSpan = node.GetLocation().GetMappedLineSpan() })
+                List<SyntaxNode> nodes = this.cSharpCodeCoverageNodeVisitor.GetNodes(generatedDocumentSyntaxRoot);
+                return nodes.Select(node => new { Node = node, MappedLineSpan = this.syntaxNodeLocationMapper.Map(node) })
                     .Where(a => a.MappedLineSpan.Path == filePath)
                     .Select(a => new CodeSpanRange(
                         a.MappedLineSpan.StartLinePosition.Line,

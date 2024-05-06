@@ -5,7 +5,6 @@ using FineCodeCoverage.Core.Utilities.VsThreading;
 using FineCodeCoverage.Editor.Roslyn;
 using FineCodeCoverage.Options;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text;
 
 namespace FineCodeCoverage.Editor.DynamicCoverage.ContentTypes.Roslyn
