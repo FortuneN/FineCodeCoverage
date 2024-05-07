@@ -41,6 +41,34 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
             mockRazorGeneratedDocumentRootFinder.VerifyAll();
         }
 
+        [Test]
+        public void Should_Return_Null_If_Generated_Document_Has_No_Code_Nodes()
+        {
+            var mockTextSnapshot = new Mock<ITextSnapshot>();
+            var mockTextBuffer = new Mock<ITextBuffer>();
+            mockTextSnapshot.SetupGet(textSnapshot => textSnapshot.TextBuffer).Returns(mockTextBuffer.Object);
+
+            var autoMoqer = new AutoMoqer();
+            var mockCSharpCodeCoverageNodeVisitor = autoMoqer.GetMock<ICSharpCodeCoverageNodeVisitor>();
+            mockCSharpCodeCoverageNodeVisitor.Setup(cSharpCodeCoverageNodeVisitor => cSharpCodeCoverageNodeVisitor.GetNodes(It.IsAny<SyntaxNode>()))
+                .Returns(new List<SyntaxNode>());
+            var razorGeneratedFilePathMatcher = autoMoqer.GetMock<IBlazorGeneratedFilePathMatcher>().Object;
+            autoMoqer.SetInstance<IThreadHelper>(new TestThreadHelper());
+            autoMoqer.GetMock<ITextInfoFactory>().Setup(t => t.GetFilePath(mockTextBuffer.Object)).Returns("path");
+
+            var rootNode = SyntaxFactory.AccessorDeclaration(SyntaxKind.GetAccessorDeclaration);
+            var mockRazorGeneratedDocumentRootFinder = autoMoqer.GetMock<IBlazorGeneratedDocumentRootFinder>();
+            mockRazorGeneratedDocumentRootFinder.Setup(
+                razorGeneratedDocumentootFinder => razorGeneratedDocumentootFinder.FindSyntaxRootAsync(mockTextBuffer.Object, "path", razorGeneratedFilePathMatcher)
+            ).ReturnsAsync(rootNode);
+
+            var fileCodeSpanRanges = autoMoqer.Create<BlazorFileCodeSpanRangeService>().GetFileCodeSpanRanges(mockTextSnapshot.Object);
+
+            Assert.IsNull(fileCodeSpanRanges);
+
+            mockCSharpCodeCoverageNodeVisitor.VerifyAll();
+        }
+
         [TestCase(true)]
         [TestCase(false)]
         public void Should_Use_The_Generated_Coverage_Syntax_Nodes_Mapped_To_Razor_File_For_The_CodeSpanRange(

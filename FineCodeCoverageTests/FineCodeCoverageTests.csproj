@@ -75,6 +75,7 @@
     <Compile Include="Editor\DynamicCoverage\BlazorGeneratedFilePathMatcher_Tests.cs" />
     <Compile Include="Editor\DynamicCoverage\BufferLineCoverage_Tests.cs" />
     <Compile Include="Editor\DynamicCoverage\CPPCoverageContentType_Tests.cs" />
+    <Compile Include="Editor\DynamicCoverage\RoslynFileCodeSpanRangeService_Tests.cs" />
     <Compile Include="Editor\DynamicCoverage\VBCoverageContentType_Tests.cs" />
     <Compile Include="Editor\DynamicCoverage\CSharpCoverageContentType_Tests.cs" />
     <Compile Include="Editor\DynamicCoverage\DynamicCoverageStore_Tests.cs" />

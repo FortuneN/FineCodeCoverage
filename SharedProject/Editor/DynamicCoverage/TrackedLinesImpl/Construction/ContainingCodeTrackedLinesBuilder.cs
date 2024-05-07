@@ -55,19 +55,22 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
         {
             ICoverageContentType coverageContentType = this.GetCoverageContentType(textSnapshot);
             IFileCodeSpanRangeService fileCodeSpanRangeService = coverageContentType.FileCodeSpanRangeService;
-            List<IContainingCodeTracker> containingCodeTrackers = this.CreateContainingCodeTrackers(
+            (List<IContainingCodeTracker> containingCodeTrackers, bool usedFileCodeSpanRangeService) = this.CreateContainingCodeTrackers(
                 lines, textSnapshot, fileCodeSpanRangeService, coverageContentType.CoverageOnlyFromFileCodeSpanRangeService);
-            return containingCodeTrackers == null
+
+            IContainingCodeTrackerTrackedLines trackedLines = containingCodeTrackers == null
                 ? this.GetNonTrackingTrackedLines()
                 : this.containingCodeTrackedLinesFactory.Create(
                 containingCodeTrackers,
                 this.GetNewCodeTrackerIfProvidesLineExcluder(coverageContentType.LineExcluder),
                 this.GetFileCodeSpanRangeServiceForChanges(coverageContentType));
+
+            return new ContainingCodeTrackerTrackedLinesWithState(trackedLines, usedFileCodeSpanRangeService);
         }
 
-        private ITrackedLines GetNonTrackingTrackedLines() => this.containingCodeTrackedLinesFactory.Create(new List<IContainingCodeTracker>(), null, null);
+        private IContainingCodeTrackerTrackedLines GetNonTrackingTrackedLines() => this.containingCodeTrackedLinesFactory.Create(new List<IContainingCodeTracker>(), null, null);
 
-        private List<IContainingCodeTracker> CreateContainingCodeTrackers(
+        private (List<IContainingCodeTracker> containingCodeTrackers, bool usedFileCodeSpanRangeService) CreateContainingCodeTrackers(
             List<ILine> lines, 
             ITextSnapshot textSnapshot, 
             IFileCodeSpanRangeService fileCodeSpanRangeService,
@@ -76,7 +79,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
         {
             if (this.AnyLinesOutsideTextSnapshot(lines, textSnapshot))
             {
-                return null;
+                return (null, false);
             }
 
             if (fileCodeSpanRangeService != null)
@@ -84,12 +87,12 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
                 List<CodeSpanRange> codeSpanRanges = fileCodeSpanRangeService.GetFileCodeSpanRanges(textSnapshot);
                 if (codeSpanRanges != null)
                 {
-                    return this.CreateContainingCodeTrackersFromCodeSpanRanges(
-                        lines, textSnapshot, codeSpanRanges, coverageOnlyFromFileCodeSpanRangeService);
+                    return (this.CreateContainingCodeTrackersFromCodeSpanRanges(
+                        lines, textSnapshot, codeSpanRanges, coverageOnlyFromFileCodeSpanRangeService), true);
                 }
             }
 
-            return lines.Select(line => this.CreateSingleLineContainingCodeTracker(textSnapshot, line)).ToList();
+            return (lines.Select(line => this.CreateSingleLineContainingCodeTracker(textSnapshot, line)).ToList(), false);
         }
 
         private bool AnyLinesOutsideTextSnapshot(List<ILine> lines, ITextSnapshot textSnapshot)
@@ -204,7 +207,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
 
         #region Serialization
 
-        private ITrackedLines RecreateTrackedLines(
+        private IContainingCodeTrackerTrackedLines RecreateTrackedLinesNoFileCodeSpanRangeService(
             List<SerializedContainingCodeTracker> serializedContainingCodeTrackers, 
             ITextSnapshot currentSnapshot,
             ILineExcluder lineExcluder,
@@ -267,14 +270,14 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
             return containingCodeTracker;
         }
 
-        private ITrackedLines RecreateTrackedLines(
+        private IContainingCodeTrackerTrackedLines RecreateTrackedLinesFileCodeSpanRangeService(
             List<SerializedContainingCodeTracker> serializedContainingCodeTrackers, 
             ITextSnapshot currentSnapshot,
             ICoverageContentType coverageContentType)
         {
-            List<CodeSpanRange> codeSpanRanges = coverageContentType.FileCodeSpanRangeService.GetFileCodeSpanRanges(currentSnapshot);
             List<IContainingCodeTracker> containingCodeTrackers = this.RecreateContainingCodeTrackers(
                 serializedContainingCodeTrackers, currentSnapshot);
+            List<CodeSpanRange> codeSpanRanges = coverageContentType.FileCodeSpanRangeService.GetFileCodeSpanRanges(currentSnapshot);
             INewCodeTracker newCodeTracker = this.RecreateNewCodeTracker(
                 serializedContainingCodeTrackers,
                 currentSnapshot,
@@ -330,26 +333,29 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
         public ITrackedLines Create(string serializedCoverage, ITextSnapshot currentSnapshot)
         {
             SerializedEditorDynamicCoverage serializedEditorDynamicCoverage = this.jsonConvertService.DeserializeObject<SerializedEditorDynamicCoverage>(serializedCoverage);
-
-            return this.TextUnchanged(serializedEditorDynamicCoverage, currentSnapshot)
+            bool usedFileCodeSpanRangeService = serializedEditorDynamicCoverage.UsedFileCodeSpanRangeService;
+            IContainingCodeTrackerTrackedLines trackedLines = this.TextUnchanged(serializedEditorDynamicCoverage, currentSnapshot)
                 ? this.RecreateTrackedLines(
                     serializedEditorDynamicCoverage.SerializedContainingCodeTrackers,
                     serializedEditorDynamicCoverage.NewCodeLineNumbers,
-                    currentSnapshot)
+                    currentSnapshot,
+                    usedFileCodeSpanRangeService
+                    )
                 : this.GetNonTrackingTrackedLines();
+            return new ContainingCodeTrackerTrackedLinesWithState(trackedLines, usedFileCodeSpanRangeService);
         }
 
-        private ITrackedLines RecreateTrackedLines(
+        private IContainingCodeTrackerTrackedLines RecreateTrackedLines(
             List<SerializedContainingCodeTracker> serializedContainingCodeTrackers, 
             List<int> newCodeLineNumbers,
-            ITextSnapshot currentSnapshot
+            ITextSnapshot currentSnapshot,
+            bool usedFileCodeSpanRangeService
         )
         {
             ICoverageContentType coverageContentType = this.GetCoverageContentType(currentSnapshot);
-            IFileCodeSpanRangeService fileCodeSpanRangeService = coverageContentType.FileCodeSpanRangeService;
-            return fileCodeSpanRangeService == null
-                ? this.RecreateTrackedLines(serializedContainingCodeTrackers, currentSnapshot, coverageContentType.LineExcluder, newCodeLineNumbers)
-                : this.RecreateTrackedLines(serializedContainingCodeTrackers, currentSnapshot, coverageContentType);
+            return usedFileCodeSpanRangeService ? 
+                this.RecreateTrackedLinesFileCodeSpanRangeService(serializedContainingCodeTrackers, currentSnapshot, coverageContentType) :
+                this.RecreateTrackedLinesNoFileCodeSpanRangeService(serializedContainingCodeTrackers, currentSnapshot, coverageContentType.LineExcluder, newCodeLineNumbers);
         }
 
         private bool TextUnchanged(SerializedEditorDynamicCoverage serializedEditorDyamicCoverage, ITextSnapshot textSnapshot)
@@ -361,13 +367,20 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
 
         public string Serialize(ITrackedLines trackedLines, string text)
         {
-            var containingCodeTrackerTrackedLines = trackedLines as IContainingCodeTrackerTrackedLines;
-            List<SerializedContainingCodeTracker> serializedContainingCodeTrackers = this.GetSerializedContainingCodeTrackers(containingCodeTrackerTrackedLines);
+            var containingCodeTrackerTrackedLinesWithState = trackedLines as ContainingCodeTrackerTrackedLinesWithState;
+            List<SerializedContainingCodeTracker> serializedContainingCodeTrackers = this.GetSerializedContainingCodeTrackers(containingCodeTrackerTrackedLinesWithState);
+            var newCodeLineNumbers = new List<int>();
+            if (containingCodeTrackerTrackedLinesWithState.NewCodeTracker != null)
+            {
+                newCodeLineNumbers = containingCodeTrackerTrackedLinesWithState.NewCodeTracker.Lines.Select(l => l.Number).ToList();
+            }
+
             return this.jsonConvertService.SerializeObject(
                 new SerializedEditorDynamicCoverage { 
                     SerializedContainingCodeTrackers = serializedContainingCodeTrackers, 
                     Text = text,
-                    NewCodeLineNumbers = containingCodeTrackerTrackedLines.NewCodeTracker?.Lines.Select(l => l.Number).ToList()
+                    NewCodeLineNumbers = newCodeLineNumbers,
+                    UsedFileCodeSpanRangeService = containingCodeTrackerTrackedLinesWithState.UsedFileCodeSpanRangeService
                 });
         }
 
