@@ -365,6 +365,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Impl\TestContainerDiscovery\ITestOperation.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\TestContainerDiscovery\ITestOperationFactory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\TestContainerDiscovery\ITestOperationStateInvocationManager.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Impl\TestContainerDiscovery\TestExecutionStartingMessage.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\TestContainerDiscovery\TestOperationStateInvocationManager.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\TestContainerDiscovery\TestRunRequest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Initialization\PackageLoader.cs" />

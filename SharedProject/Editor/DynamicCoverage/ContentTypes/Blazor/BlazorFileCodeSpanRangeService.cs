@@ -51,6 +51,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage.ContentTypes.Blazor
                 {
                     return null; // sometimes the generated document has not been generated
                 }
+
                 return nodes.Select(node => new { Node = node, MappedLineSpan = this.syntaxNodeLocationMapper.Map(node) })
                     .Where(a => a.MappedLineSpan.Path == filePath)
                     .Select(a => new CodeSpanRange(

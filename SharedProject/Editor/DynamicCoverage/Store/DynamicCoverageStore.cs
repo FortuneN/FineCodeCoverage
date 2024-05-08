@@ -25,9 +25,8 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
             }
         }
 
-        // todo needs to listen for solution change as well as vs shutdown to clear
-        // needs to listen to 	https://learn.microsoft.com/en-us/dotnet/api/microsoft.visualstudio.shell.interop.ivstrackprojectdocuments2.onafterrenamefile?view=visualstudiosdk-2019
-        // also the normal coverage needs to listen for file name changed
+        // when visual studio is closed SolutionEvents AfterClosing event is fired, the FCCEngine
+        // will NewCoverageLinesMessage and the store will be removed
         [ImportingConstructor]
         public DynamicCoverageStore(
             IWritableUserSettingsStoreProvider writableUserSettingsStoreProvider,
@@ -73,7 +72,9 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
             this.WritableUserSettingsStore.SetString(dynamicCoverageStoreCollectionName, filePath, serializedCoverage);
         }
 
-        public void Handle(NewCoverageLinesMessage message)
+        public void Handle(NewCoverageLinesMessage message) => this.RemoveStore();
+
+        private void RemoveStore()
         {
             bool collectionExists = this.WritableUserSettingsStore.CollectionExists(dynamicCoverageStoreCollectionName);
             if (collectionExists)

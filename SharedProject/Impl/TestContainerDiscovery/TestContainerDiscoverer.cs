@@ -13,6 +13,7 @@ using Microsoft.VisualStudio.Utilities;
 using FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage;
 using System.Threading;
 using FineCodeCoverage.Core.Initialization;
+using FineCodeCoverage.Core.Utilities;
 
 namespace FineCodeCoverage.Impl
 {
@@ -32,6 +33,7 @@ namespace FineCodeCoverage.Impl
         private readonly IAppOptionsProvider appOptionsProvider;
         private readonly IReportGeneratorUtil reportGeneratorUtil;
         private readonly IMsCodeCoverageRunSettingsService msCodeCoverageRunSettingsService;
+        private readonly IEventAggregator eventAggregator;
         internal Dictionary<TestOperationStates, Func<IOperation, Task>> testOperationStateChangeHandlers;
         private bool cancelling;
         private MsCodeCoverageCollectionStatus msCodeCoverageCollectionStatus;
@@ -59,12 +61,14 @@ namespace FineCodeCoverage.Impl
             ILogger logger,
             IAppOptionsProvider appOptionsProvider,
             IReportGeneratorUtil reportGeneratorUtil,
-            IMsCodeCoverageRunSettingsService msCodeCoverageRunSettingsService
+            IMsCodeCoverageRunSettingsService msCodeCoverageRunSettingsService,
+            IEventAggregator eventAggregator
         )
         {
             this.appOptionsProvider = appOptionsProvider;
             this.reportGeneratorUtil = reportGeneratorUtil;
             this.msCodeCoverageRunSettingsService = msCodeCoverageRunSettingsService;
+            this.eventAggregator = eventAggregator;
             this.fccEngine = fccEngine;
             this.testOperationStateInvocationManager = testOperationStateInvocationManager;
             this.testOperationFactory = testOperationFactory;
@@ -92,6 +96,7 @@ namespace FineCodeCoverage.Impl
 
         private async Task TestExecutionStartingAsync(IOperation operation)
         {
+            this.eventAggregator.SendMessage(new TestExecutionStartingMessage());
             cancelling = false;
             runningInParallel = false;
             StopCoverage();

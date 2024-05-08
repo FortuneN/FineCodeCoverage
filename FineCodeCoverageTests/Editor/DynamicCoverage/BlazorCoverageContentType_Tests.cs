@@ -49,9 +49,9 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
         }
 
         [Test]
-        public void Should_CoverageOnlyFromFileCodeSpanRangeService()
+        public void Should_CoverageFromFileCodeSpanRangeService_And_Additional_Lines()
         {
-            Assert.True(new BlazorCoverageContentType(null).CoverageOnlyFromFileCodeSpanRangeService);
+            Assert.False(new BlazorCoverageContentType(null).CoverageOnlyFromFileCodeSpanRangeService);
         }
 
         [Test]

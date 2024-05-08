@@ -34,6 +34,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
                 eventAggregator,
                 trackedLinesFactory,
                 this.dynamicCoverageStore,
-                this.appOptionsProvider);
+                this.appOptionsProvider
+                );
     }
 }

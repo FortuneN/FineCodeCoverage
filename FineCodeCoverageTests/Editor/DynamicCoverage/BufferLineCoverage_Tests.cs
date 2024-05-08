@@ -1,9 +1,9 @@
 ﻿using AutoMoq;
 using FineCodeCoverage.Core.Utilities;
 using FineCodeCoverage.Editor.DynamicCoverage;
-using FineCodeCoverage.Editor.Tagging.Base;
 using FineCodeCoverage.Engine;
 using FineCodeCoverage.Engine.Model;
+using FineCodeCoverage.Impl;
 using FineCodeCoverage.Options;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -11,7 +11,9 @@ using Moq;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 
 namespace FineCodeCoverageTests.Editor.DynamicCoverage
 {
@@ -72,7 +74,7 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
 
             var bufferLineCoverage = autoMoqer.Create<BufferLineCoverage>();
 
-            autoMoqer.Verify<ITrackedLinesFactory>(trackedLinesFactory => trackedLinesFactory.Create(lines, textSnapshot));
+            autoMoqer.Verify<ITrackedLinesFactory>(trackedLinesFactory => trackedLinesFactory.Create(lines, textSnapshot, "filepath"));
         }
 
         [Test]
@@ -82,7 +84,7 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
 
             var bufferLineCoverage = autoMoqer.Create<BufferLineCoverage>();
 
-            autoMoqer.Verify<ITrackedLinesFactory>(trackedLinesFactory => trackedLinesFactory.Create(It.IsAny<List<ILine>>(), It.IsAny<ITextSnapshot>()), Times.Never());
+            autoMoqer.Verify<ITrackedLinesFactory>(trackedLinesFactory => trackedLinesFactory.Create(It.IsAny<List<ILine>>(), It.IsAny<ITextSnapshot>(),It.IsAny<string>()), Times.Never());
         }
 
         [Test]
@@ -95,7 +97,74 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
             var newCoverageLinesMessage = new NewCoverageLinesMessage { CoverageLines = new Mock<IFileLineCoverage>().Object };
             bufferLineCoverage.Handle(newCoverageLinesMessage);
 
-            autoMoqer.Verify<ITrackedLinesFactory>(trackedLinesFactory => trackedLinesFactory.Create(It.IsAny<List<ILine>>(), It.IsAny<ITextSnapshot>()), Times.Never());
+            autoMoqer.Verify<ITrackedLinesFactory>(trackedLinesFactory => trackedLinesFactory.Create(It.IsAny<List<ILine>>(), It.IsAny<ITextSnapshot>(), It.IsAny<string>()), Times.Never());
+        }
+
+        // todo - check all other tests - should be verifying on GetLines and CoverageChangedMessage
+        [TestCase(true)]
+        [TestCase(false)]
+        public void Should_Not_Create_TrackedLines_From_NewCoverageLinesMessage_If_Text_Changed_Since_TestExecutionStartingMessage(
+            bool textChangedSinceTestExecutionStarting
+        )
+        {
+            var autoMoqer = new AutoMoqer();
+            var mockTextView = new Mock<ITextView>();
+            var mockTextBuffer = new Mock<ITextBuffer2>();
+            var textSnapshot = new Mock<ITextSnapshot>().Object;
+            mockTextBuffer.Setup(textBuffer => textBuffer.CurrentSnapshot).Returns(textSnapshot);
+            var mockTextInfo = new Mock<ITextInfo>();
+            mockTextInfo.SetupGet(textInfo => textInfo.TextBuffer).Returns(mockTextBuffer.Object);
+            mockTextInfo.SetupGet(textInfo => textInfo.TextView).Returns(mockTextView.Object);
+            mockTextInfo.SetupGet(textInfo => textInfo.FilePath).Returns("filepath");
+            autoMoqer.SetInstance(mockTextInfo.Object);
+
+            var mockAppOptionsProvider = autoMoqer.GetMock<IAppOptionsProvider>();
+            var firstMockAppOptions = new Mock<IAppOptions>();
+            firstMockAppOptions.SetupGet(appOptions => appOptions.EditorCoverageColouringMode).Returns(EditorCoverageColouringMode.Off);
+            var secondAppOptions = new Mock<IAppOptions>();
+            secondAppOptions.SetupGet(appOptions => appOptions.EditorCoverageColouringMode).Returns(EditorCoverageColouringMode.UseRoslynWhenTextChanges);
+            mockAppOptionsProvider.SetupSequence(appOptionsProvider => appOptionsProvider.Get())
+                .Returns(firstMockAppOptions.Object).Returns(secondAppOptions.Object);
+
+            var mockTrackedLinesFactory = autoMoqer.GetMock<ITrackedLinesFactory>();
+            var mockTrackedLines = new Mock<ITrackedLines>();
+            mockTrackedLines.Setup(trackedLines => trackedLines.GetLines(0, 10)).Returns(new List<IDynamicLine> { new Mock<IDynamicLine>().Object });
+            mockTrackedLinesFactory.Setup(trackedLinesFactory => trackedLinesFactory.Create(It.IsAny<List<ILine>>(), textSnapshot, "filepath"))
+                .Returns(mockTrackedLines.Object);
+
+
+            var bufferLineCoverage = autoMoqer.Create<BufferLineCoverage>();
+            void RaiseChangedOnBackground()
+            {
+                mockTextBuffer.Raise(textBuffer => textBuffer.ChangedOnBackground += null, new TextContentChangedEventArgs(new Mock<ITextSnapshot>().Object, new Mock<ITextSnapshot>().Object, new EditOptions(), null));
+            }
+            void RaiseTestExecutionStartingMessage()
+            {
+                (bufferLineCoverage as IListener<TestExecutionStartingMessage>).Handle(new TestExecutionStartingMessage());
+            }
+            
+
+            if (textChangedSinceTestExecutionStarting)
+            {
+                RaiseTestExecutionStartingMessage();
+                Thread.Sleep(1);
+                RaiseChangedOnBackground();
+            } else
+            {
+                RaiseChangedOnBackground();
+                Thread.Sleep(1);
+                RaiseTestExecutionStartingMessage();
+            }
+
+            bufferLineCoverage.Handle(new NewCoverageLinesMessage { CoverageLines = new Mock<IFileLineCoverage>().Object });
+           
+
+            Assert.That(bufferLineCoverage.GetLines(0,10).Count(), Is.EqualTo(textChangedSinceTestExecutionStarting ? 0 : 1));
+
+            var expectCoverageChangedMessage = textChangedSinceTestExecutionStarting ? false : true;
+            autoMoqer.Verify<IEventAggregator>(eventAggregator => eventAggregator.SendMessage(
+                It.IsAny<CoverageChangedMessage>(), null), 
+                Times.Exactly(expectCoverageChangedMessage ? 1 : 0));
         }
 
         [Test]
@@ -116,7 +185,7 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
             mockTrackedLines.Setup(trackedLines => trackedLines.GetLines(2, 5)).Returns(lines);
 
             autoMoqer.Setup<ITrackedLinesFactory, ITrackedLines>(
-                trackedLinesFactory => trackedLinesFactory.Create(It.IsAny<List<ILine>>(), It.IsAny<ITextSnapshot>()))
+                trackedLinesFactory => trackedLinesFactory.Create(It.IsAny<List<ILine>>(), It.IsAny<ITextSnapshot>(), It.IsAny<string>()))
                 .Returns(mockTrackedLines.Object);
 
             var bufferLineCoverage = autoMoqer.Create<BufferLineCoverage>();
@@ -125,7 +194,7 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
         }
 
         [Test]
-        public void Should_Listen_For_Coverage_Changed()
+        public void Should_Add_Itself_As_A_Listener()
         {
             SimpleTextInfoSetUp();
 
@@ -140,7 +209,7 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
             SimpleTextInfoSetUp();
 
             autoMoqer.Setup<ITrackedLinesFactory, ITrackedLines>(
-                trackedLinesFactory => trackedLinesFactory.Create(It.IsAny<List<ILine>>(), It.IsAny<ITextSnapshot>()))
+                trackedLinesFactory => trackedLinesFactory.Create(It.IsAny<List<ILine>>(), It.IsAny<ITextSnapshot>(), It.IsAny<string>()))
                 .Returns(new Mock<ITrackedLines>().Object);
 
             var bufferLineCoverage = autoMoqer.Create<BufferLineCoverage>();
@@ -180,13 +249,13 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
             var dynamicLines = new List<IDynamicLine>();
             mockTrackedLines.Setup(trackedLines => trackedLines.GetLines(2, 5)).Returns(dynamicLines);
             autoMoqer.Setup<ITrackedLinesFactory, ITrackedLines>(
-                trackedLinesFactory => trackedLinesFactory.Create(lines, mockCurrentSnapshot.Object)
+                trackedLinesFactory => trackedLinesFactory.Create(lines, mockCurrentSnapshot.Object, "filepath")
                 ).Returns(mockTrackedLines.Object);
 
 
             var bufferLineCoverage = autoMoqer.Create<BufferLineCoverage>();
 
-            bufferLineCoverage.Handle(new NewCoverageLinesMessage { CoverageLines = mockNewFileLineCoverage.Object });
+            (bufferLineCoverage as IListener<NewCoverageLinesMessage>).Handle(new NewCoverageLinesMessage { CoverageLines = mockNewFileLineCoverage.Object });
             var bufferLines = bufferLineCoverage.GetLines(2, 5);
             if (off)
             {
@@ -212,7 +281,7 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
             SimpleTextInfoSetUp();
             var trackedLines = new Mock<ITrackedLines>().Object;
             var mockTrackedLinesFactory = autoMoqer.GetMock<ITrackedLinesFactory>();
-            mockTrackedLinesFactory.SetupSequence(trackedLinesFactory => trackedLinesFactory.Create(It.IsAny<List<ILine>>(), It.IsAny<ITextSnapshot>()))
+            mockTrackedLinesFactory.SetupSequence(trackedLinesFactory => trackedLinesFactory.Create(It.IsAny<List<ILine>>(), It.IsAny<ITextSnapshot>(), It.IsAny<string>()))
                 .Returns(initialTrackedLines ? trackedLines : null)
                 .Returns(nextTrackedLines ? trackedLines : null);
             var bufferLineCoverage = autoMoqer.Create<BufferLineCoverage>();
@@ -245,7 +314,7 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
             var changedLineNumbers = new List<int> { 11, 12 };
             mockTrackedLines.Setup(trackedLines => trackedLines.GetChangedLineNumbers(mockAfterSnapshot.Object, new List<Span> { newSpan }))
                 .Returns(changedLineNumbers);
-            autoMoqer.Setup<ITrackedLinesFactory, ITrackedLines>(trackedLinesFactory => trackedLinesFactory.Create(It.IsAny<List<ILine>>(), It.IsAny<ITextSnapshot>()))
+            autoMoqer.Setup<ITrackedLinesFactory, ITrackedLines>(trackedLinesFactory => trackedLinesFactory.Create(It.IsAny<List<ILine>>(), It.IsAny<ITextSnapshot>(), It.IsAny<string>()))
                 .Returns(mockTrackedLines.Object);
 
 
@@ -267,7 +336,7 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
             SimpleTextInfoSetUp();
 
             autoMoqer.Setup<ITrackedLinesFactory, ITrackedLines>(
-                trackedLinesFactory => trackedLinesFactory.Create(It.IsAny<List<ILine>>(), It.IsAny<ITextSnapshot>()))
+                trackedLinesFactory => trackedLinesFactory.Create(It.IsAny<List<ILine>>(), It.IsAny<ITextSnapshot>(), It.IsAny<string>()))
                 .Returns(new Mock<ITrackedLines>().Object);
 
             var bufferLineCoverage = autoMoqer.Create<BufferLineCoverage>();
@@ -326,7 +395,7 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
             ).Returns(new List<ILine> { });
             var trackedLines = new Mock<ITrackedLines>().Object;
             autoMoqer.Setup<ITrackedLinesFactory, ITrackedLines>(
-                trackedLinesFactory => trackedLinesFactory.Create(It.IsAny<List<ILine>>(), It.IsAny<ITextSnapshot>())
+                trackedLinesFactory => trackedLinesFactory.Create(It.IsAny<List<ILine>>(), It.IsAny<ITextSnapshot>(), It.IsAny<string>())
             ).Returns(trackedLines);
             autoMoqer.Setup<ITrackedLinesFactory, string>(
                 trackedLinesFactory => trackedLinesFactory.Serialize(trackedLines, "text")
@@ -342,32 +411,21 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
         [Test]
         public void Should_Remove_Serialized_Coverage_When_TextView_Closed_And_No_TrackedLines()
         {
-            //var autoMoqer = new AutoMoqer();
-            //SetupEditorCoverageColouringMode(autoMoqer);
-            //var mockTextInfo = autoMoqer.GetMock<ITextInfo>();
-            //mockTextInfo.SetupGet(textInfo => textInfo.FilePath).Returns("filepath");
-            //mockTextInfo.SetupGet(textInfo => textInfo.TextBuffer.ContentType.TypeName).Returns("contenttypename");
-            //mockTextInfo.SetupGet(textInfo => textInfo.TextBuffer.CurrentSnapshot).Returns(new Mock<ITextSnapshot>().Object);
-            //var mockTextView = new Mock<ITextView>();
-            //mockTextInfo.SetupGet(textInfo => textInfo.TextView).Returns(mockTextView.Object);
-            //autoMoqer.Setup<IFileLineCoverage, IEnumerable<ILine>>(
-            //    fileLineCoverage => fileLineCoverage.GetLines(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<int>())
-            //).Returns(new List<ILine> { });
-            //var trackedLines = new Mock<ITrackedLines>().Object;
-            //autoMoqer.Setup<ITrackedLinesFactory, ITrackedLines>(
-            //    trackedLinesFactory => trackedLinesFactory.Create(It.IsAny<List<ILine>>(), It.IsAny<ITextSnapshot>())
-            //).Returns(trackedLines);
-            //autoMoqer.Setup<ITrackedLinesFactory, string>(
-            //    trackedLinesFactory => trackedLinesFactory.Serialize(trackedLines)
-            //).Returns("serialized");
+            var autoMoqer = new AutoMoqer();
+            SetupEditorCoverageColouringMode(autoMoqer,true);
+            var mockTextInfo = autoMoqer.GetMock<ITextInfo>();
+            mockTextInfo.SetupGet(textInfo => textInfo.FilePath).Returns("filepath");
+            mockTextInfo.SetupGet(textInfo => textInfo.TextBuffer).Returns(new Mock<ITextBuffer2>().Object);
+            var mockTextView = new Mock<ITextView>();
+            mockTextInfo.SetupGet(textInfo => textInfo.TextView).Returns(mockTextView.Object);
+            mockTextView.Setup(textView => textView.TextSnapshot.GetText()).Returns("");
+            
+            var bufferLineCoverage = autoMoqer.Create<BufferLineCoverage>();
+            
 
-            //var bufferLineCoverage = autoMoqer.Create<BufferLineCoverage>();
-            //// clear coverage
-            //bufferLineCoverage.Handle(new NewCoverageLinesMessage());
+            mockTextView.Raise(textView => textView.Closed += null, EventArgs.Empty);
 
-            //mockTextView.Raise(textView => textView.Closed += null, EventArgs.Empty);
-
-            //autoMoqer.Verify<IDynamicCoverageStore>(dynamicCoverageStore => dynamicCoverageStore.RemoveSerializedCoverage("filepath"));
+            autoMoqer.Verify<IDynamicCoverageStore>(dynamicCoverageStore => dynamicCoverageStore.RemoveSerializedCoverage("filepath"));
         }
 
         [TestCase(true)]
@@ -387,12 +445,12 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
 
             var mockTrackedLinesNoSerialized = new Mock<ITrackedLines>();
             autoMoqer.Setup<ITrackedLinesFactory, ITrackedLines>(
-                trackedLinesFactory => trackedLinesFactory.Create(It.IsAny<List<ILine>>(), It.IsAny<ITextSnapshot>())
+                trackedLinesFactory => trackedLinesFactory.Create(It.IsAny<List<ILine>>(), It.IsAny<ITextSnapshot>(), It.IsAny<string>())
             ).Returns(mockTrackedLinesNoSerialized.Object);
 
             var mockTrackedLinesFromSerialized = new Mock<ITrackedLines>();
             autoMoqer.Setup<ITrackedLinesFactory, ITrackedLines>(
-                trackedLinesFactory => trackedLinesFactory.Create("serialized", currentTextSnaphot)
+                trackedLinesFactory => trackedLinesFactory.Create("serialized", currentTextSnaphot, "filepath")
             ).Returns(mockTrackedLinesFromSerialized.Object);
 
 
@@ -412,7 +470,7 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
             mockTrackedLines.Setup(trackedLines => trackedLines.GetLines(It.IsAny<int>(), It.IsAny<int>()))
                 .Returns(new List<IDynamicLine> { new Mock<IDynamicLine>().Object });
             autoMoqer.Setup<ITrackedLinesFactory, ITrackedLines>(
-                trackedCoverageLinesFactory => trackedCoverageLinesFactory.Create(It.IsAny<List<ILine>>(), It.IsAny<ITextSnapshot>())
+                trackedCoverageLinesFactory => trackedCoverageLinesFactory.Create(It.IsAny<List<ILine>>(), It.IsAny<ITextSnapshot>(), It.IsAny<string>())
             ).Returns(mockTrackedLines.Object);
             
             var bufferLineCoverage = autoMoqer.Create<BufferLineCoverage>();
@@ -435,7 +493,7 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
             mockTrackedLines.Setup(trackedLines => trackedLines.GetLines(It.IsAny<int>(), It.IsAny<int>()))
                 .Returns(new List<IDynamicLine> { new Mock<IDynamicLine>().Object });
             autoMoqer.Setup<ITrackedLinesFactory, ITrackedLines>(
-                trackedCoverageLinesFactory => trackedCoverageLinesFactory.Create(It.IsAny<List<ILine>>(), It.IsAny<ITextSnapshot>())
+                trackedCoverageLinesFactory => trackedCoverageLinesFactory.Create(It.IsAny<List<ILine>>(), It.IsAny<ITextSnapshot>(), It.IsAny<string>())
             ).Returns(mockTrackedLines.Object);
 
             var bufferLineCoverage = autoMoqer.Create<BufferLineCoverage>();
@@ -449,6 +507,6 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
 
             Assert.That(bufferLineCoverage.GetLines(2, 5).Count(), Is.EqualTo(1));
         }
-        
+
     }
 }

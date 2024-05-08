@@ -1,17 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using FineCodeCoverage.Core.Utilities;
-using FineCodeCoverage.Editor.Tagging.Base;
 using FineCodeCoverage.Engine;
 using FineCodeCoverage.Engine.Model;
+using FineCodeCoverage.Impl;
 using FineCodeCoverage.Options;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 
 namespace FineCodeCoverage.Editor.DynamicCoverage
 {
-    internal class BufferLineCoverage : IBufferLineCoverage, IListener<NewCoverageLinesMessage>
+    internal class BufferLineCoverage : 
+        IBufferLineCoverage, IListener<NewCoverageLinesMessage>, IListener<TestExecutionStartingMessage>
     {
         private readonly ITextInfo textInfo;
         private readonly IEventAggregator eventAggregator;
@@ -22,6 +24,8 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
         private ITrackedLines trackedLines;
         private bool? editorCoverageModeOff;
         private IFileLineCoverage fileLineCoverage;
+        private Nullable<DateTime> lastChanged;
+        private DateTime lastTestExecutionStarting; 
         public BufferLineCoverage(
             IFileLineCoverage fileLineCoverage,
             ITextInfo textInfo,
@@ -100,7 +104,15 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
         private void CreateTrackedLinesIfRequiredWithMessage()
         {
             bool hadTrackedLines = this.trackedLines != null;
-            this.CreateTrackedLinesIfRequired(false);
+            if (!this.lastChanged.HasValue || this.lastChanged < this.lastTestExecutionStarting)
+            {
+                this.CreateTrackedLinesIfRequired(false);
+            }
+            else
+            {
+                this.trackedLines = null;
+            }
+
             bool hasTrackedLines = this.trackedLines != null;
             if (hadTrackedLines || hasTrackedLines)
             {
@@ -110,19 +122,20 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
 
         private void CreateTrackedLines(bool initial)
         {
+            string filePath = this.textInfo.FilePath;
             ITextSnapshot currentSnapshot = this.textBuffer.CurrentSnapshot;
             if (initial)
             {
-                string serializedCoverage = this.dynamicCoverageStore.GetSerializedCoverage(this.textInfo.FilePath);
+                string serializedCoverage = this.dynamicCoverageStore.GetSerializedCoverage(filePath);
                 if (serializedCoverage != null)
                 {
-                    this.trackedLines = this.trackedLinesFactory.Create(serializedCoverage, currentSnapshot);
+                    this.trackedLines = this.trackedLinesFactory.Create(serializedCoverage, currentSnapshot, filePath);
                     return;
                 }
             }
 
             var lines = this.fileLineCoverage.GetLines(this.textInfo.FilePath).ToList();
-            this.trackedLines = this.trackedLinesFactory.Create(lines, currentSnapshot);
+            this.trackedLines = this.trackedLinesFactory.Create(lines, currentSnapshot, filePath);
         }
 
         private bool EditorCoverageColouringModeOff()
@@ -133,6 +146,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
 
         private void TextBuffer_ChangedOnBackground(object sender, TextContentChangedEventArgs e)
         {
+            this.lastChanged = DateTime.Now;
             if (this.trackedLines != null)
             {
                 this.UpdateTrackedLines(e);
@@ -178,5 +192,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
                 this.CreateTrackedLinesIfRequiredWithMessage();
             }
         }
+
+        public void Handle(TestExecutionStartingMessage message) => this.lastTestExecutionStarting = DateTime.Now;
     }
 }

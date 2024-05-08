@@ -22,7 +22,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage.ContentTypes.Blazor
 
         public IFileCodeSpanRangeService FileCodeSpanRangeService => this.blazorFileCodeSpanRangeService;
 
-        public bool CoverageOnlyFromFileCodeSpanRangeService => true;
+        public bool CoverageOnlyFromFileCodeSpanRangeService => false;
 
         // Unfortunately, the generated docuent from the workspace is not up to date
         public bool UseFileCodeSpanRangeServiceForChanges => false;

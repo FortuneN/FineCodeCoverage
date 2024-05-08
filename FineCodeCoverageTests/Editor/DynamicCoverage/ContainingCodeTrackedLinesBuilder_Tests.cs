@@ -85,7 +85,7 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
 
             var containingCodeTrackedLinesBuilder = autoMoqer.Create<ContainingCodeTrackedLinesBuilder>();
 
-            containingCodeTrackedLinesBuilder.Create(new List<ILine> {}, mockTextSnapshot.Object);
+            containingCodeTrackedLinesBuilder.Create(new List<ILine> {}, mockTextSnapshot.Object,"");
 
             mockContainingCodeTrackedLinesFactory.VerifyAll();
         }
@@ -116,42 +116,41 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
 
             var containingCodeTrackedLinesBuilder = autoMoqer.Create<ContainingCodeTrackedLinesBuilder>();
 
-            containingCodeTrackedLinesBuilder.Create(new List<ILine> { }, mockTextSnapshot.Object);
+            containingCodeTrackedLinesBuilder.Create(new List<ILine> { }, mockTextSnapshot.Object, "");
 
             mockContainingCodeTrackedLinesFactory.VerifyAll();
         }
 
-        [Test]
-        public void Should_Create_Non_Tracking_When_Coverage_Lines_Not_Within_TextSnapshot()
+        [TestCase(true)]
+        [TestCase(false)]
+        public void Should_Create_Null_TrackedLines__When_Coverage_Lines_Not_Within_TextSnapshot(bool inSnapshot)
         {
             var line1 = new Line(1);
-            var line2 = new Line(100);
+            var line2 = new Line(inSnapshot ? 2 : 100);
 
             var mockTextSnapshot = new Mock<ITextSnapshot>();
             mockTextSnapshot.SetupGet(textSnapshot => textSnapshot.ContentType.TypeName).Returns("contenttypename");
             mockTextSnapshot.SetupGet(textSnapshot => textSnapshot.LineCount).Returns(5);
             var autoMoqer = new AutoMoqer();
             
-            var mockContainingCodeTrackedLinesFactory = autoMoqer.GetMock<IContainingCodeTrackedLinesFactory>();
             var trackedLinesFromFactory = new Mock<IContainingCodeTrackerTrackedLines>().Object;
 
-            mockContainingCodeTrackedLinesFactory.Setup(containingCodeTrackedLinesFactory => containingCodeTrackedLinesFactory.Create(
-                new List<IContainingCodeTracker> { },
-                null,
-                null
-                )).Returns(trackedLinesFromFactory);
             var mockCoverageContentType = new Mock<ICoverageContentType>();
             mockCoverageContentType.SetupGet(coverageContentType => coverageContentType.ContentTypeName).Returns("contenttypename");
-            mockCoverageContentType.SetupGet(coverageContentType => coverageContentType.FileCodeSpanRangeService).Returns(new Mock<IFileCodeSpanRangeService>().Object);
-            mockCoverageContentType.SetupGet(coverageContentTyoe => coverageContentTyoe.UseFileCodeSpanRangeServiceForChanges).Returns(true);
-            mockCoverageContentType.SetupGet(coverageContentType => coverageContentType.LineExcluder).Returns(new Mock<ILineExcluder>().Object);
             autoMoqer.SetInstance(new ICoverageContentType[] { mockCoverageContentType.Object });
 
             var containingCodeTrackedLinesBuilder = autoMoqer.Create<ContainingCodeTrackedLinesBuilder>();
 
-            containingCodeTrackedLinesBuilder.Create(new List<ILine> { line1, line2 }, mockTextSnapshot.Object);
+            var trackedLines = containingCodeTrackedLinesBuilder.Create(new List<ILine> { line1, line2 }, mockTextSnapshot.Object,"");
 
-            mockContainingCodeTrackedLinesFactory.VerifyAll();
+            if (inSnapshot)
+            {
+                Assert.IsNotNull(trackedLines);
+            }
+            else
+            {
+                Assert.IsNull(trackedLines);
+            }
         }
 
         [TestCase(ContainingCodeTrackerType.CoverageLines, 1, DynamicCoverageType.Covered, true, true)]
@@ -205,7 +204,7 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
             }
             else
             {
-                Assert.Null(serializedEditorDynamicCoverage.NewCodeLineNumbers);
+                Assert.IsEmpty(serializedEditorDynamicCoverage.NewCodeLineNumbers);
             }
             Assert.That(serializedEditorDynamicCoverage.Text, Is.EqualTo("text"));
             var serializedContainingCodeTracker = serializedEditorDynamicCoverage.SerializedContainingCodeTrackers.Single();
@@ -217,34 +216,21 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
             Assert.That(serializedEditorDynamicCoverage.UsedFileCodeSpanRangeService, Is.EqualTo(usedFileCodeSpanRangeService));
         }
 
-        [Test]
-        public void Should_Deserialize_As_Empty_TrackedLines_If_Text_Has_Changed_Outside_Editor()
+        [TestCase(true)]
+        [TestCase(false)]
+        public void Should_Deserialize_AsNull_TrackedLines_If_Text_Has_Changed_Outside_Editor(bool textChanged)
         {
             var autoMoqer = new AutoMoqer();
-            var mockNewCodeTrackerFactory = autoMoqer.GetMock<INewCodeTrackerFactory>();
-            mockNewCodeTrackerFactory.Setup(newCodeTrackerFactory => newCodeTrackerFactory.Create(It.IsAny<ILineExcluder>(), It.IsAny<List<int>>(), It.IsAny<ITextSnapshot>()))
-                .Returns(new Mock<INewCodeTracker>().Object);
 
             var mockTextSnaphot = new Mock<ITextSnapshot>();
             mockTextSnaphot.SetupGet(textSnapshot => textSnapshot.ContentType.TypeName)
                 .Returns("contenttypename");
-            mockTextSnaphot.Setup(textSnapshot => textSnapshot.GetText()).Returns("changedtext");
+            mockTextSnaphot.Setup(textSnapshot => textSnapshot.GetText()).Returns(textChanged ? "changedtext" : "text");
 
-            var newLineExcluder = new Mock<ILineExcluder>().Object;
             var mockCoverageContentType = new Mock<ICoverageContentType>();
             mockCoverageContentType.SetupGet(coverageContentType => coverageContentType.ContentTypeName)
                 .Returns("contenttypename");
-            mockCoverageContentType.SetupGet(coverageContentType => coverageContentType.LineExcluder).Returns(newLineExcluder);
             autoMoqer.SetInstance(new ICoverageContentType[] { mockCoverageContentType.Object });
-            
-            var mockContainingCodeTrackedLinesFactory = autoMoqer.GetMock<IContainingCodeTrackedLinesFactory>();
-            var containingCodeTrackerTrackedLinesFromFactory = new Mock<IContainingCodeTrackerTrackedLines>().Object;
-            mockContainingCodeTrackedLinesFactory.Setup(
-                containingCodeTrackedLinesFactory => containingCodeTrackedLinesFactory.Create(
-                    new List<IContainingCodeTracker>(),
-                    null,
-                    null
-                )).Returns(containingCodeTrackerTrackedLinesFromFactory);
 
             var mockJsonConvertService = autoMoqer.GetMock<IJsonConvertService>();
             mockJsonConvertService.Setup(jsonConvertService => jsonConvertService.DeserializeObject<SerializedEditorDynamicCoverage>("serializedState"))
@@ -255,11 +241,18 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
 
             var containingCodeTrackedLinesBuilder = autoMoqer.Create<ContainingCodeTrackedLinesBuilder>();
 
+            var deserializedTrackedLines = containingCodeTrackedLinesBuilder.Create(
+                "serializedState", mockTextSnaphot.Object,"");
 
-            var containingCodeTrackerTrackedLinesWithState = containingCodeTrackedLinesBuilder.Create("serializedState", mockTextSnaphot.Object) as ContainingCodeTrackerTrackedLinesWithState;
+            if (textChanged)
+            {
+                Assert.IsNull(deserializedTrackedLines);
+            }
+            else
+            {
+                Assert.IsNotNull(deserializedTrackedLines);
+            }
             
-            Assert.False(containingCodeTrackerTrackedLinesWithState.UsedFileCodeSpanRangeService);
-            Assert.That(containingCodeTrackerTrackedLinesWithState.Wrapped, Is.SameAs(containingCodeTrackerTrackedLinesFromFactory));
         }
     }
 
@@ -301,7 +294,7 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
 
             var containingCodeTrackedLinesBuilder = autoMoqer.Create<ContainingCodeTrackedLinesBuilder>();
 
-            var trackedLinesWithState = containingCodeTrackedLinesBuilder.Create(new List<ILine> { line1, line2 }, mockTextSnapshot.Object) as ContainingCodeTrackerTrackedLinesWithState;
+            var trackedLinesWithState = containingCodeTrackedLinesBuilder.Create(new List<ILine> { line1, line2 }, mockTextSnapshot.Object, "") as ContainingCodeTrackerTrackedLinesWithState;
 
             Assert.False(trackedLinesWithState.UsedFileCodeSpanRangeService);
             Assert.That(trackedLinesWithState.Wrapped, Is.SameAs(trackedLinesFromFactory));
@@ -373,7 +366,7 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
 
             var containingCodeTrackedLinesBuilder = autoMoqer.Create<ContainingCodeTrackedLinesBuilder>();
 
-            var trackedLinesWithState = containingCodeTrackedLinesBuilder.Create(lines, mockTextSnapshot.Object) as ContainingCodeTrackerTrackedLinesWithState;
+            var trackedLinesWithState = containingCodeTrackedLinesBuilder.Create(lines, mockTextSnapshot.Object,"") as ContainingCodeTrackerTrackedLinesWithState;
 
             Assert.That(trackedLinesWithState.Wrapped, Is.SameAs(trackedLinesFromFactory));
             Assert.True(trackedLinesWithState.UsedFileCodeSpanRangeService);
@@ -705,7 +698,7 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
             var containingCodeTrackedLinesBuilder = autoMoqer.Create<ContainingCodeTrackedLinesBuilder>();
 
 
-            var containingCodeTrackerTrackedLinesWithState = containingCodeTrackedLinesBuilder.Create("serializedState", mockTextSnaphot.Object) as ContainingCodeTrackerTrackedLinesWithState;
+            var containingCodeTrackerTrackedLinesWithState = containingCodeTrackedLinesBuilder.Create("serializedState", mockTextSnaphot.Object, "") as ContainingCodeTrackerTrackedLinesWithState;
 
             Assert.True(containingCodeTrackerTrackedLinesWithState.UsedFileCodeSpanRangeService);
             Assert.That(containingCodeTrackerTrackedLinesWithState.Wrapped, Is.SameAs(containingCodeTrackerTrackedLinesFromFactory));
@@ -839,7 +832,7 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
             var containingCodeTrackedLinesBuilder = autoMoqer.Create<ContainingCodeTrackedLinesBuilder>();
 
 
-            var containingCodeTrackerTrackedLinesWithState = containingCodeTrackedLinesBuilder.Create("serializedState", mockTextSnaphot.Object) as ContainingCodeTrackerTrackedLinesWithState;
+            var containingCodeTrackerTrackedLinesWithState = containingCodeTrackedLinesBuilder.Create("serializedState", mockTextSnaphot.Object, "") as ContainingCodeTrackerTrackedLinesWithState;
 
             Assert.That(containingCodeTrackerTrackedLinesWithState.Wrapped, Is.SameAs(containingCodeTrackerTrackedLinesFromFactory));
 
@@ -906,7 +899,7 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
             var containingCodeTrackedLinesBuilder = autoMoqer.Create<ContainingCodeTrackedLinesBuilder>();
 
 
-            var containingCodeTrackerTrackedLinesWithState = containingCodeTrackedLinesBuilder.Create("serializedState", mockTextSnaphot.Object) as ContainingCodeTrackerTrackedLinesWithState;
+            var containingCodeTrackerTrackedLinesWithState = containingCodeTrackedLinesBuilder.Create("serializedState", mockTextSnaphot.Object, "") as ContainingCodeTrackerTrackedLinesWithState;
 
             Assert.That(containingCodeTrackerTrackedLinesWithState.Wrapped, Is.SameAs(containingCodeTrackerTrackedLinesFromFactory));
         }
@@ -949,7 +942,7 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
 
             var containingCodeTrackedLinesBuilder = autoMoqer.Create<ContainingCodeTrackedLinesBuilder>();
             
-            var trackedLinesWithState = containingCodeTrackedLinesBuilder.Create(new List<ILine> { line1, line2 }, mockTextSnapshot.Object) as ContainingCodeTrackerTrackedLinesWithState;
+            var trackedLinesWithState = containingCodeTrackedLinesBuilder.Create(new List<ILine> { line1, line2 }, mockTextSnapshot.Object, "") as ContainingCodeTrackerTrackedLinesWithState;
 
             Assert.False(trackedLinesWithState.UsedFileCodeSpanRangeService);
             Assert.That(trackedLinesWithState.Wrapped, Is.SameAs(trackedLinesFromFactory));
@@ -1030,7 +1023,7 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
             var containingCodeTrackedLinesBuilder = autoMoqer.Create<ContainingCodeTrackedLinesBuilder>();
 
 
-            var containingCodeTrackerTrackedLinesWithState = containingCodeTrackedLinesBuilder.Create("serializedState", mockTextSnaphot.Object) as ContainingCodeTrackerTrackedLinesWithState;
+            var containingCodeTrackerTrackedLinesWithState = containingCodeTrackedLinesBuilder.Create("serializedState", mockTextSnaphot.Object, "") as ContainingCodeTrackerTrackedLinesWithState;
             Assert.False(containingCodeTrackerTrackedLinesWithState.UsedFileCodeSpanRangeService);
             Assert.That(containingCodeTrackerTrackedLinesWithState.Wrapped, Is.SameAs(containingCodeTrackerTrackedLinesFromFactory));
 
@@ -1084,7 +1077,7 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
             var containingCodeTrackedLinesBuilder = autoMoqer.Create<ContainingCodeTrackedLinesBuilder>();
 
 
-            var containingCodeTrackerTrackedLinesWithState = containingCodeTrackedLinesBuilder.Create("serializedState", mockTextSnaphot.Object) as ContainingCodeTrackerTrackedLinesWithState;
+            var containingCodeTrackerTrackedLinesWithState = containingCodeTrackedLinesBuilder.Create("serializedState", mockTextSnaphot.Object, "") as ContainingCodeTrackerTrackedLinesWithState;
 
             Assert.That(containingCodeTrackerTrackedLinesWithState.Wrapped, Is.SameAs(containingCodeTrackerTrackedLinesFromFactory));
 
