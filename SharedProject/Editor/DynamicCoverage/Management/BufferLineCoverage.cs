@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using FineCodeCoverage.Core.Utilities;
 using FineCodeCoverage.Engine;
@@ -20,6 +19,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
         private readonly ITrackedLinesFactory trackedLinesFactory;
         private readonly IDynamicCoverageStore dynamicCoverageStore;
         private readonly IAppOptionsProvider appOptionsProvider;
+        private readonly ILogger logger;
         private readonly ITextBuffer2 textBuffer;
         private ITrackedLines trackedLines;
         private bool? editorCoverageModeOff;
@@ -32,7 +32,8 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
             IEventAggregator eventAggregator,
             ITrackedLinesFactory trackedLinesFactory,
             IDynamicCoverageStore dynamicCoverageStore,
-            IAppOptionsProvider appOptionsProvider
+            IAppOptionsProvider appOptionsProvider,
+            ILogger logger
         )
         {
             this.fileLineCoverage = fileLineCoverage;
@@ -42,6 +43,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
             this.trackedLinesFactory = trackedLinesFactory;
             this.dynamicCoverageStore = dynamicCoverageStore;
             this.appOptionsProvider = appOptionsProvider;
+            this.logger = logger;
             void AppOptionsChanged(IAppOptions appOptions)
             {
                 bool newEditorCoverageModeOff = appOptions.EditorCoverageColouringMode == EditorCoverageColouringMode.Off;
@@ -97,7 +99,19 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
             }
             else
             {
+                this.TryCreateTrackedLines(initial);
+            }
+        }
+
+        private void TryCreateTrackedLines(bool initial)
+        {
+            try
+            {
                 this.CreateTrackedLines(initial);
+            }
+            catch (Exception e)
+            {
+                this.logger.Log($"Error creating tracked lines for {this.textInfo.FilePath}", e);
             }
         }
 
@@ -110,6 +124,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
             }
             else
             {
+                this.logger.Log($"Not creating editor marks for {this.textInfo.FilePath} as it was changed after test execution started");
                 this.trackedLines = null;
             }
 
@@ -144,19 +159,31 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
             return this.editorCoverageModeOff.Value;
         }
 
-        private void TextBuffer_ChangedOnBackground(object sender, TextContentChangedEventArgs e)
+        private void TextBuffer_ChangedOnBackground(object sender, TextContentChangedEventArgs textContentChangedEventArgs)
         {
             this.lastChanged = DateTime.Now;
             if (this.trackedLines != null)
             {
-                this.UpdateTrackedLines(e);
+                this.TryUpdateTrackedLines(textContentChangedEventArgs);
             }
         }
 
-        private void UpdateTrackedLines(TextContentChangedEventArgs e)
+        private void TryUpdateTrackedLines(TextContentChangedEventArgs textContentChangedEventArgs)
         {
-            IEnumerable<int> changedLineNumbers = this.trackedLines.GetChangedLineNumbers(e.After, e.Changes.Select(change => change.NewSpan).ToList())
-                .Where(changedLine => changedLine >= 0 && changedLine < e.After.LineCount);
+            try
+            {
+                this.UpdateTrackedLines(textContentChangedEventArgs);
+            }
+            catch (Exception e)
+            {
+                this.logger.Log($"Error updating tracked lines for {this.textInfo.FilePath}", e);
+            }
+        }
+
+        private void UpdateTrackedLines(TextContentChangedEventArgs textContentChangedEventArgs)
+        {
+            IEnumerable<int> changedLineNumbers = this.trackedLines.GetChangedLineNumbers(textContentChangedEventArgs.After, textContentChangedEventArgs.Changes.Select(change => change.NewSpan).ToList())
+                .Where(changedLine => changedLine >= 0 && changedLine < textContentChangedEventArgs.After.LineCount);
             this.SendCoverageChangedMessageIfChanged(changedLineNumbers);
         }
 

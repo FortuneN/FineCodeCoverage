@@ -81,6 +81,13 @@ You can turn off editor colouring by setting the visual studio option EditorCove
 You can also set the option to DoNotUseRoslynWhenTextChanges if there is a performance issue.  By doing so new lines colouring will not be as good.
 If you switch to one of the EditorCoverageColouringMode options then you will need to re-run coverage.
 
+For Blazor components with @code blocks coverage lines can be generated outside these regions.
+When the Roslyn syntax tree is available to FCC you can set the option BlazorCoverageLinesFromGeneratedSource to true to limit coverage lines in .razor file to those in generated source.
+
+FCC tracks the visual studio editor and saves this information when a file is closed.  If upon re-opening a file the text has changed there will be no coverage marks for this file.
+
+There will also be no editor marks if you edit a file whilst FCC is collecting coverage. 
+
 ## Why use MS Code Coverage ?
 
 With the old coverage FCC needed to copy your test dll and dependencies and run OpenCover or Coverlet on those files. This is not necessary with ms code coverage.
@@ -284,6 +291,7 @@ If you are using option 1) then project and global options will only be used whe
 |--|---|
 |**Common**||
 |EditorCoverageColouringMode|Set to Off, or Set to DoNotUseRoslynWhenTextChanges if there is a performance issue|
+|BlazorCoverageLinesFromGeneratedSource|Set to true to limit coverage lines in .razor file to those in generated source ( when available)|
 |ShowEditorCoverage|Set to false to disable all editor coverage indicators|
 |ShowCoverageInGlyphMargin|Set to false to prevent coverage marks in the glyph margin|
 |ShowCoveredInGlyphMargin|Set to false to prevent covered marks in the glyph margin|

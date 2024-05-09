@@ -121,9 +121,7 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
             mockContainingCodeTrackedLinesFactory.VerifyAll();
         }
 
-        [TestCase(true)]
-        [TestCase(false)]
-        public void Should_Create_Null_TrackedLines__When_Coverage_Lines_Not_Within_TextSnapshot(bool inSnapshot)
+        private ITrackedLines CoverageLinesNotWithinSnapshot(bool inSnapshot,string filePath = "", Action<AutoMoqer> additionalSetup = null)
         {
             var line1 = new Line(1);
             var line2 = new Line(inSnapshot ? 2 : 100);
@@ -132,7 +130,7 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
             mockTextSnapshot.SetupGet(textSnapshot => textSnapshot.ContentType.TypeName).Returns("contenttypename");
             mockTextSnapshot.SetupGet(textSnapshot => textSnapshot.LineCount).Returns(5);
             var autoMoqer = new AutoMoqer();
-            
+            additionalSetup?.Invoke(autoMoqer);
             var trackedLinesFromFactory = new Mock<IContainingCodeTrackerTrackedLines>().Object;
 
             var mockCoverageContentType = new Mock<ICoverageContentType>();
@@ -141,8 +139,15 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
 
             var containingCodeTrackedLinesBuilder = autoMoqer.Create<ContainingCodeTrackedLinesBuilder>();
 
-            var trackedLines = containingCodeTrackedLinesBuilder.Create(new List<ILine> { line1, line2 }, mockTextSnapshot.Object,"");
+            return containingCodeTrackedLinesBuilder.Create(new List<ILine> { line1, line2 }, mockTextSnapshot.Object, filePath);
 
+        }
+
+        [TestCase(true)]
+        [TestCase(false)]
+        public void Should_Create_Null_TrackedLines__When_Coverage_Lines_Not_Within_TextSnapshot(bool inSnapshot)
+        {
+            var trackedLines = CoverageLinesNotWithinSnapshot(inSnapshot);
             if (inSnapshot)
             {
                 Assert.IsNotNull(trackedLines);
@@ -151,6 +156,16 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
             {
                 Assert.IsNull(trackedLines);
             }
+        }
+
+        [Test]
+        public void Should_Log_When_Coverage_Lines_Not_Within_TextSnapshot()
+        {
+            var mockLogger = new Mock<ILogger>();
+
+            _ = CoverageLinesNotWithinSnapshot(false, "filepath", autoMoqer => autoMoqer.SetInstance(mockLogger.Object));
+
+            mockLogger.Verify(logger => logger.Log("Not creating editor marks for filepath as some coverage lines are outside the text snapshot"));
         }
 
         [TestCase(ContainingCodeTrackerType.CoverageLines, 1, DynamicCoverageType.Covered, true, true)]
@@ -216,12 +231,10 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
             Assert.That(serializedEditorDynamicCoverage.UsedFileCodeSpanRangeService, Is.EqualTo(usedFileCodeSpanRangeService));
         }
 
-        [TestCase(true)]
-        [TestCase(false)]
-        public void Should_Deserialize_AsNull_TrackedLines_If_Text_Has_Changed_Outside_Editor(bool textChanged)
+        private ITrackedLines ChangedOutsideEditor(bool textChanged,string filePath = "", Action<AutoMoqer> additionalSetup = null)
         {
             var autoMoqer = new AutoMoqer();
-
+            additionalSetup?.Invoke(autoMoqer);
             var mockTextSnaphot = new Mock<ITextSnapshot>();
             mockTextSnaphot.SetupGet(textSnapshot => textSnapshot.ContentType.TypeName)
                 .Returns("contenttypename");
@@ -234,15 +247,23 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
 
             var mockJsonConvertService = autoMoqer.GetMock<IJsonConvertService>();
             mockJsonConvertService.Setup(jsonConvertService => jsonConvertService.DeserializeObject<SerializedEditorDynamicCoverage>("serializedState"))
-                .Returns(new SerializedEditorDynamicCoverage { 
-                    Text = "text", 
-                    SerializedContainingCodeTrackers = new List<SerializedContainingCodeTracker>() 
+                .Returns(new SerializedEditorDynamicCoverage
+                {
+                    Text = "text",
+                    SerializedContainingCodeTrackers = new List<SerializedContainingCodeTracker>()
                 });
 
             var containingCodeTrackedLinesBuilder = autoMoqer.Create<ContainingCodeTrackedLinesBuilder>();
 
-            var deserializedTrackedLines = containingCodeTrackedLinesBuilder.Create(
-                "serializedState", mockTextSnaphot.Object,"");
+            return containingCodeTrackedLinesBuilder.Create(
+                "serializedState", mockTextSnaphot.Object, filePath);
+        }
+
+        [TestCase(true)]
+        [TestCase(false)]
+        public void Should_Deserialize_AsNull_TrackedLines_If_Text_Has_Changed_Outside_Editor(bool textChanged)
+        {
+            var deserializedTrackedLines = ChangedOutsideEditor(textChanged);
 
             if (textChanged)
             {
@@ -253,6 +274,16 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
                 Assert.IsNotNull(deserializedTrackedLines);
             }
             
+        }
+
+        [Test]
+        public void Should_Log_When_Text_Changed_Outside_Editor()
+        {
+            var mockLogger = new Mock<ILogger>();
+
+            _ = ChangedOutsideEditor(true, "filepath", autoMoqer => autoMoqer.SetInstance(mockLogger.Object));
+            
+            mockLogger.Verify(logger => logger.Log("Not creating editor marks for filepath as text has changed"));
         }
     }
 

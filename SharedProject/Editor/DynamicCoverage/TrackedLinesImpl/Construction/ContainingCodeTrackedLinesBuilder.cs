@@ -58,7 +58,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
         {
             if (this.AnyLinesOutsideTextSnapshot(lines, textSnapshot))
             {
-                this.logger.Log($"Not creating editor marks for {filePath} as some lines are outside the text snapshot");
+                this.logger.Log($"Not creating editor marks for {filePath} as some coverage lines are outside the text snapshot");
                 return null;
             }
 
@@ -337,6 +337,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
             bool textUnchanged = this.TextUnchanged(serializedEditorDynamicCoverage, currentSnapshot);
             if (!textUnchanged)
             {
+                this.logger.Log($"Not creating editor marks for {filePath} as text has changed");
                 return null;
             }
 

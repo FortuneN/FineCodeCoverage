@@ -731,5 +731,6 @@ namespace FineCodeCoverageTests.MsCodeCoverage
         public bool ShowNotIncludedInOverviewMargin { get; set; }
         public bool ShowNotIncludedInGlyphMargin { get; set; }
         public bool ShowLineNotIncludedHighlighting { get; set; }
+        public bool BlazorCoverageLinesFromGeneratedSource { get; set; }
     }
 }
