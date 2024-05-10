@@ -2,6 +2,7 @@
 using System.Diagnostics.CodeAnalysis;
 using FineCodeCoverage.Core.Utilities;
 using FineCodeCoverage.Engine.Model;
+using FineCodeCoverage.Impl;
 using FineCodeCoverage.Options;
 
 namespace FineCodeCoverage.Editor.DynamicCoverage
@@ -27,12 +28,12 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
         }
 
         public IBufferLineCoverage Create(
-            IFileLineCoverage fileLineCoverage,
+            LastCoverage lastCoverage,
             ITextInfo textInfo,
             IEventAggregator eventAggregator,
             ITrackedLinesFactory trackedLinesFactory
         ) => new BufferLineCoverage(
-                fileLineCoverage,
+                lastCoverage,
                 textInfo,
                 eventAggregator,
                 trackedLinesFactory,

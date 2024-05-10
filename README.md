@@ -84,7 +84,7 @@ If you switch to one of the EditorCoverageColouringMode options then you will ne
 For Blazor components with @code blocks coverage lines can be generated outside these regions.
 When the Roslyn syntax tree is available to FCC you can set the option BlazorCoverageLinesFromGeneratedSource to true to limit coverage lines in .razor file to those in generated source.
 
-FCC tracks the visual studio editor and saves this information when a file is closed.  If upon re-opening a file the text has changed there will be no coverage marks for this file.
+FCC tracks the visual studio editor and saves this information when a file is closed.  If upon re-opening a file the text has changed outside of a document window there will be no coverage marks for this file as the coverage lines are no longer expected to be correct..
 
 There will also be no editor marks if you edit a file whilst FCC is collecting coverage. 
 

@@ -1,8 +1,11 @@
-﻿using AutoMoq;
+﻿using System;
+using AutoMoq;
 using FineCodeCoverage.Core.Utilities;
 using FineCodeCoverage.Editor.DynamicCoverage;
+using FineCodeCoverage.Editor.DynamicCoverage.Utilities;
 using FineCodeCoverage.Engine;
 using FineCodeCoverage.Engine.Model;
+using FineCodeCoverage.Impl;
 using FineCodeCoverageTests.Test_helpers;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -51,14 +54,20 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
         public void Manage_Should_Create_Singleton_IBufferLineCoverage_With_Last_Coverage_And_Dependencies(bool hasLastCoverage)
         {
             var autoMocker = new AutoMoqer();
+            
+            var now = new DateTime();
+            autoMocker.GetMock<IDateTimeService>().Setup(dateTimeService => dateTimeService.Now).Returns(now);
+
             var eventAggregator = autoMocker.GetMock<IEventAggregator>().Object;
             var trackedLinesFactory = autoMocker.GetMock<ITrackedLinesFactory>().Object;
             var dynamicCoverageManager = autoMocker.Create<DynamicCoverageManager>();
-            IFileLineCoverage lastCoverage = null;
+            LastCoverage lastCoverage = null;
             if (hasLastCoverage)
             {
-                lastCoverage = new Mock<IFileLineCoverage>().Object;
-                dynamicCoverageManager.Handle(new NewCoverageLinesMessage { CoverageLines = lastCoverage});
+                var fileLineCoverage = new Mock<IFileLineCoverage>().Object;
+                lastCoverage = new LastCoverage(fileLineCoverage, now);
+                (dynamicCoverageManager as IListener<TestExecutionStartingMessage>).Handle(new TestExecutionStartingMessage());
+                dynamicCoverageManager.Handle(new NewCoverageLinesMessage { CoverageLines = fileLineCoverage});
             }
 
             var mockTextInfo = new Mock<ITextInfo>();
