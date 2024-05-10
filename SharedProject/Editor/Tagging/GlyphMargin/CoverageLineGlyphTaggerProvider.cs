@@ -2,6 +2,9 @@
 using System.Windows.Media;
 using FineCodeCoverage.Core.Utilities;
 using FineCodeCoverage.Editor.DynamicCoverage;
+using FineCodeCoverage.Editor.DynamicCoverage.ContentTypes;
+using FineCodeCoverage.Editor.DynamicCoverage.ContentTypes.Blazor;
+using FineCodeCoverage.Editor.DynamicCoverage.ContentTypes.Roslyn;
 using FineCodeCoverage.Editor.Management;
 using FineCodeCoverage.Editor.Tagging.Base;
 using Microsoft.VisualStudio.Text;
@@ -11,9 +14,10 @@ using Microsoft.VisualStudio.Utilities;
 
 namespace FineCodeCoverage.Editor.Tagging.GlyphMargin
 {
-    [ContentType(SupportedContentTypeLanguages.CSharp)]
-    [ContentType(SupportedContentTypeLanguages.VisualBasic)]
-    [ContentType(SupportedContentTypeLanguages.CPP)]
+    [ContentType(CSharpCoverageContentType.ContentType)]
+    [ContentType(VBCoverageContentType.ContentType)]
+    [ContentType(CPPCoverageContentType.ContentType)]
+    [ContentType(BlazorCoverageContentType.ContentType)]
     [TagType(typeof(CoverageLineGlyphTag))]
     [Name(Vsix.TaggerProviderName)]
     [Export(typeof(IViewTaggerProvider))]

@@ -44,11 +44,11 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
         public IEnumerable<int> GetUpdatedLineNumbers(
             TrackingSpanRangeProcessResult trackingSpanRangeProcessResult,
             ITextSnapshot currentSnapshot,
-            List<SpanAndLineRange> newSpanAndLIneRanges
+            List<SpanAndLineRange> newSpanAndLineRanges
         )
         {
             List<int> changedLineNumbers = this.CreateDirtyLineIfRequired(
-                    newSpanAndLIneRanges,
+                    newSpanAndLineRanges,
                     trackingSpanRangeProcessResult.NonIntersectingSpans,
                     trackingSpanRangeProcessResult.TextChanged,
                     currentSnapshot,

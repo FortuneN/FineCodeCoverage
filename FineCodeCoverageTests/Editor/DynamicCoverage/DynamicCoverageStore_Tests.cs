@@ -1,6 +1,7 @@
 ﻿using AutoMoq;
 using FineCodeCoverage.Core.Utilities;
 using FineCodeCoverage.Editor.DynamicCoverage;
+using FineCodeCoverage.Editor.DynamicCoverage.Utilities;
 using FineCodeCoverage.Engine;
 using FineCodeCoverage.Options;
 using Microsoft.VisualStudio.Settings;
@@ -43,6 +44,12 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
         public void Should_SaveSerializedCoverage_To_The_Store_Creating_Collection_If_Does_Not_Exist(bool collectionExists)
         {
             var autoMoqer = new AutoMoqer();
+            var mockDateTimeService = autoMoqer.GetMock<IDateTimeService>();
+            var now = DateTime.Now;
+            mockDateTimeService.SetupGet(dateTimeService => dateTimeService.Now).Returns(now);
+            var mockJsonConvertService = autoMoqer.GetMock<IJsonConvertService>();
+            mockJsonConvertService.Setup(jsonConvertService => jsonConvertService.SerializeObject(
+                new SerializedCoverageWhen { Serialized = "serialized coverage", When = now })).Returns("serialized");
             var mockWritableSettingsStore = new Mock<WritableSettingsStore>();
             mockWritableSettingsStore.Setup(writableSettingsStore => writableSettingsStore.CollectionExists("FCC.DynamicCoverageStore")).Returns(collectionExists);
             autoMoqer.Setup<IWritableUserSettingsStoreProvider, WritableSettingsStore>(
@@ -50,7 +57,7 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
 
             var dynamicCoverageStore = autoMoqer.Create<DynamicCoverageStore>();
 
-            dynamicCoverageStore.SaveSerializedCoverage("filePath", "serialized");
+            dynamicCoverageStore.SaveSerializedCoverage("filePath", "serialized coverage");
 
             mockWritableSettingsStore.Verify(writableSettingsStore => writableSettingsStore.CreateCollection("FCC.DynamicCoverageStore"), Times.Exactly(collectionExists ? 0 : 1));
             mockWritableSettingsStore.Verify(writableSettingsStore => writableSettingsStore.SetString("FCC.DynamicCoverageStore", "filePath", "serialized"), Times.Once);
@@ -76,6 +83,7 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
         public void Should_Return_From_Collection_When_Property_Exists(bool propertyExists)
         {
             var autoMoqer = new AutoMoqer();
+
             var mockWritableSettingsStore = new Mock<WritableSettingsStore>();
             mockWritableSettingsStore.Setup(writableSettingsStore => writableSettingsStore.CollectionExists("FCC.DynamicCoverageStore")).Returns(true);
             mockWritableSettingsStore.Setup(writableSettingsStore => writableSettingsStore.PropertyExists("FCC.DynamicCoverageStore", "filePath")).Returns(propertyExists);
@@ -83,11 +91,24 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
             autoMoqer.Setup<IWritableUserSettingsStoreProvider, WritableSettingsStore>(
                                writableUserSettingsStoreProvider => writableUserSettingsStoreProvider.Provide()).Returns(mockWritableSettingsStore.Object);
 
+            var deserializedCoverageWhen = new SerializedCoverageWhen { When = DateTime.Now, Serialized = "serializedCoverage coverage" };
+            var mockJsonConvertService = autoMoqer.GetMock<IJsonConvertService>();
+            mockJsonConvertService.Setup(jsonConvertService => jsonConvertService.DeserializeObject<SerializedCoverageWhen>("serialized"))
+                .Returns(deserializedCoverageWhen);
+
             var dynamicCoverageStore = autoMoqer.Create<DynamicCoverageStore>();
 
-            var serializedCoverage = dynamicCoverageStore.GetSerializedCoverage("filePath");
+            var serializedCoverageWhen = dynamicCoverageStore.GetSerializedCoverage("filePath");
 
-            Assert.AreEqual(propertyExists ? "serialized" : null, serializedCoverage);
+            if (propertyExists)
+            {
+                Assert.AreSame(deserializedCoverageWhen, serializedCoverageWhen);
+            }
+            else
+            {
+                Assert.Null(serializedCoverageWhen);
+                
+            }
         }
 
         private void FileRename(

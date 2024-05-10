@@ -1,8 +1,12 @@
-﻿using Microsoft.VisualStudio.Text;
+﻿using System;
+using System.Diagnostics.CodeAnalysis;
+using System.IO;
+using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 
 namespace FineCodeCoverage.Editor.DynamicCoverage
 {
+    [ExcludeFromCodeCoverage]
     internal class TextInfo : ITextInfo
     {
         private bool triedGetProperty;
@@ -32,5 +36,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
         public ITextView TextView { get; }
         public ITextBuffer2 TextBuffer { get; }
         public string FilePath => this.TextDocument?.FilePath;
+        public string GetFileText() => File.ReadAllText(this.FilePath);
+        public DateTime GetLastWriteTime() => new FileInfo(this.FilePath).LastWriteTime;
     }
 }

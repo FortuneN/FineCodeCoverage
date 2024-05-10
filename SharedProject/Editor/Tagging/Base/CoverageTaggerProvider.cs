@@ -1,4 +1,5 @@
-﻿using FineCodeCoverage.Core.Utilities;
+﻿using System.Linq;
+using FineCodeCoverage.Core.Utilities;
 using FineCodeCoverage.Editor.DynamicCoverage;
 using FineCodeCoverage.Options;
 using Microsoft.VisualStudio.Text;
@@ -15,6 +16,7 @@ namespace FineCodeCoverage.Editor.Tagging.Base
         private readonly ILineSpanTagger<TTag> coverageTagger;
         private readonly IDynamicCoverageManager dynamicCoverageManager;
         private readonly ITextInfoFactory textInfoFactory;
+        private readonly IFileExcluder[] fileExcluders;
         private TCoverageTypeFilter coverageTypeFilter;
 
         public CoverageTaggerProvider(
@@ -23,10 +25,12 @@ namespace FineCodeCoverage.Editor.Tagging.Base
             ILineSpanLogic lineSpanLogic,
             ILineSpanTagger<TTag> coverageTagger,
             IDynamicCoverageManager dynamicCoverageManager,
-            ITextInfoFactory textInfoFactory)
+            ITextInfoFactory textInfoFactory,
+            IFileExcluder[] fileExcluders)
         {
             this.dynamicCoverageManager = dynamicCoverageManager;
             this.textInfoFactory = textInfoFactory;
+            this.fileExcluders = fileExcluders;
             IAppOptions appOptions = appOptionsProvider.Get();
             this.coverageTypeFilter = this.CreateFilter(appOptions);
             appOptionsProvider.OptionsChanged += this.AppOptionsProvider_OptionsChanged;
@@ -53,11 +57,17 @@ namespace FineCodeCoverage.Editor.Tagging.Base
             }
         }
 
+        private bool ExcludeContentTypeFile(string contentType,string filePath)
+        {
+            IFileExcluder contentTypeExcluder = this.fileExcluders.FirstOrDefault(fileExcluder => fileExcluder.ContentTypeName == contentType);
+            return contentTypeExcluder != null && contentTypeExcluder.Exclude(filePath);
+        }
+
         public ICoverageTagger<TTag> CreateTagger(ITextView textView, ITextBuffer textBuffer)
         {
             ITextInfo textInfo = this.textInfoFactory.Create(textView, textBuffer);
             string filePath = textInfo.FilePath;
-            if (filePath == null)
+            if (filePath == null || this.ExcludeContentTypeFile(textBuffer.ContentType.TypeName, filePath))
             {
                 return null;
             }

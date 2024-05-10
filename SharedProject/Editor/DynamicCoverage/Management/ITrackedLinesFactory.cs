@@ -7,8 +7,8 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
 {
     internal interface ITrackedLinesFactory
     {
-        ITrackedLines Create(List<ILine> lines, ITextSnapshot textSnapshot, Language language);
-        ITrackedLines Create(string serializedCoverage, ITextSnapshot currentSnapshot, Language language);
-        string Serialize(ITrackedLines trackedLines);
+        ITrackedLines Create(List<ILine> lines, ITextSnapshot textSnapshot, string filePath);
+        ITrackedLines Create(string serializedCoverage, ITextSnapshot currentSnapshot, string filePath);
+        string Serialize(ITrackedLines trackedLines, string text);
     }
 }

@@ -12,8 +12,6 @@ using FineCodeCoverage.Engine;
 using EnvDTE80;
 using FineCodeCoverage.Core.Utilities;
 using FineCodeCoverage.Core.Initialization;
-using FineCodeCoverage.Impl;
-using FineCodeCoverage.Editor.Management;
 
 namespace FineCodeCoverage.Output
 {
@@ -100,7 +98,6 @@ namespace FineCodeCoverage.Output
 				componentModel.GetService<ILogger>(),
 				componentModel.GetService<IShownToolWindowHistory>()
 			);
-			
 			await componentModel.GetService<IInitializer>().InitializeAsync(cancellationToken);
         }
 

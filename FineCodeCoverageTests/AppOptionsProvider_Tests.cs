@@ -349,7 +349,8 @@ namespace FineCodeCoverageTests
                 {nameof(IAppOptions.ShowLineNewHighlighting),true },
                 {nameof(IAppOptions.ShowLineNotIncludedHighlighting),true },
                 {nameof(IAppOptions.UseEnterpriseFontsAndColors),true },
-                {nameof(IAppOptions.EditorCoverageColouringMode), EditorCoverageColouringMode.UseRoslynWhenTextChanges }
+                {nameof(IAppOptions.EditorCoverageColouringMode), EditorCoverageColouringMode.UseRoslynWhenTextChanges },
+                {nameof(IAppOptions.BlazorCoverageLinesFromGeneratedSource), true }
             };
             var mockJsonConvertService = autoMocker.GetMock<IJsonConvertService>();
             mockJsonConvertService.Setup(

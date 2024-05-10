@@ -281,6 +281,10 @@ namespace FineCodeCoverage.Options
 
         #region editorColouringControlCategory
         [Category(editorColouringControlCategory)]
+        [Description("Set to true to limit coverage lines in .razor file to those in generated source ( when available)")]
+        public bool BlazorCoverageLinesFromGeneratedSource { get; set; }
+
+        [Category(editorColouringControlCategory)]
         [Description("Set to false to disable all editor coverage indicators")]
         //[DisplayName("Show Editor Coverage")]
         public bool ShowEditorCoverage { get; set; }

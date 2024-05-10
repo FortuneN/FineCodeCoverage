@@ -3,17 +3,17 @@ using System.Linq;
 
 namespace FineCodeCoverage.Editor.DynamicCoverage
 {
-    internal class SerializedState
+    internal class SerializedContainingCodeTracker
     {
-        public SerializedState(CodeSpanRange codeSpanRange, ContainingCodeTrackerType type, List<DynamicLine> dynamicLines)
+        public SerializedContainingCodeTracker(CodeSpanRange codeSpanRange, ContainingCodeTrackerType type, List<DynamicLine> dynamicLines)
         {
             this.CodeSpanRange = codeSpanRange;
             this.Type = type;
             this.Lines = dynamicLines;
         }
 
-        public static SerializedState From(ContainingCodeTrackerState containingCodeTrackerState)
-            => new SerializedState(
+        public static SerializedContainingCodeTracker From(ContainingCodeTrackerState containingCodeTrackerState)
+            => new SerializedContainingCodeTracker(
                 containingCodeTrackerState.CodeSpanRange,
                 containingCodeTrackerState.Type,
                 containingCodeTrackerState.Lines.Select(line => new DynamicLine(line.Number, line.CoverageType)).ToList()

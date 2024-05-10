@@ -1,4 +1,5 @@
-﻿using Microsoft.VisualStudio.Text;
+﻿using System;
+using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 
 namespace FineCodeCoverage.Editor.DynamicCoverage
@@ -8,5 +9,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
         string FilePath { get; }
         ITextBuffer2 TextBuffer { get; }
         ITextView TextView { get; }
+        string GetFileText();
+        DateTime GetLastWriteTime();
     }
 }

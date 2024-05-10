@@ -1,4 +1,7 @@
 ﻿using System.ComponentModel.Composition;
+using FineCodeCoverage.Editor.DynamicCoverage.ContentTypes;
+using FineCodeCoverage.Editor.DynamicCoverage.ContentTypes.Blazor;
+using FineCodeCoverage.Editor.DynamicCoverage.ContentTypes.Roslyn;
 using FineCodeCoverage.Editor.Management;
 using FineCodeCoverage.Editor.Tagging.Base;
 using Microsoft.VisualStudio.Text;
@@ -8,9 +11,10 @@ using Microsoft.VisualStudio.Utilities;
 
 namespace FineCodeCoverage.Editor.Tagging.OverviewMargin
 {
-    [ContentType(SupportedContentTypeLanguages.CSharp)]
-    [ContentType(SupportedContentTypeLanguages.VisualBasic)]
-    [ContentType(SupportedContentTypeLanguages.CPP)]
+    [ContentType(CSharpCoverageContentType.ContentType)]
+    [ContentType(VBCoverageContentType.ContentType)]
+    [ContentType(CPPCoverageContentType.ContentType)]
+    [ContentType(BlazorCoverageContentType.ContentType)]
     [TagType(typeof(OverviewMarkTag))]
     [Name("FCC.CoverageLineOverviewMarkTaggerProvider")]
     [Export(typeof(IViewTaggerProvider))]

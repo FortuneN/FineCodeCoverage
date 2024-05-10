@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.Composition;
 using FineCodeCoverage.Core.Utilities;
+using FineCodeCoverage.Editor.DynamicCoverage.Utilities;
 using FineCodeCoverage.Engine;
 using FineCodeCoverage.Options;
 using Microsoft.VisualStudio.Settings;
@@ -10,6 +11,8 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
     internal class DynamicCoverageStore : IDynamicCoverageStore, IListener<NewCoverageLinesMessage>
     {
         private readonly IWritableUserSettingsStoreProvider writableUserSettingsStoreProvider;
+        private readonly IJsonConvertService jsonConvertService;
+        private readonly IDateTimeService dateTimeService;
         private const string dynamicCoverageStoreCollectionName = "FCC.DynamicCoverageStore";
         private WritableSettingsStore writableUserSettingsStore;
         private WritableSettingsStore WritableUserSettingsStore
@@ -25,18 +28,21 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
             }
         }
 
-        // todo needs to listen for solution change as well as vs shutdown to clear
-        // needs to listen to 	https://learn.microsoft.com/en-us/dotnet/api/microsoft.visualstudio.shell.interop.ivstrackprojectdocuments2.onafterrenamefile?view=visualstudiosdk-2019
-        // also the normal coverage needs to listen for file name changed
+        // when visual studio is closed SolutionEvents AfterClosing event is fired, the FCCEngine
+        // will NewCoverageLinesMessage and the store will be removed
         [ImportingConstructor]
         public DynamicCoverageStore(
             IWritableUserSettingsStoreProvider writableUserSettingsStoreProvider,
             IFileRenameListener fileRenameListener,
-            IEventAggregator eventAggregator
+            IEventAggregator eventAggregator,
+            IJsonConvertService jsonConvertService,
+            IDateTimeService dateTimeService
         )
         {
             _ = eventAggregator.AddListener(this);
             this.writableUserSettingsStoreProvider = writableUserSettingsStoreProvider;
+            this.jsonConvertService = jsonConvertService;
+            this.dateTimeService = dateTimeService;
             fileRenameListener.ListenForFileRename((oldFileName, newFileName) =>
             {
                 bool collectionExists = this.WritableUserSettingsStore.CollectionExists(dynamicCoverageStoreCollectionName);
@@ -52,13 +58,14 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
             });
         }
 
-        public string GetSerializedCoverage(string filePath)
+        public SerializedCoverageWhen GetSerializedCoverage(string filePath)
         {
             bool collectionExists = this.WritableUserSettingsStore.CollectionExists(dynamicCoverageStoreCollectionName);
             return !collectionExists
                 ? null
                 : this.WritableUserSettingsStore.PropertyExists(dynamicCoverageStoreCollectionName, filePath)
-                ? this.WritableUserSettingsStore.GetString(dynamicCoverageStoreCollectionName, filePath)
+                ? this.jsonConvertService.DeserializeObject<SerializedCoverageWhen>(
+                    this.WritableUserSettingsStore.GetString(dynamicCoverageStoreCollectionName, filePath))
                 : null;
         }
 
@@ -70,10 +77,19 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
                 this.WritableUserSettingsStore.CreateCollection(dynamicCoverageStoreCollectionName);
             }
 
-            this.WritableUserSettingsStore.SetString(dynamicCoverageStoreCollectionName, filePath, serializedCoverage);
+            var serializedCoverageWhen = new SerializedCoverageWhen
+            {
+                Serialized = serializedCoverage,
+                When = this.dateTimeService.Now
+            };
+            string toSerialize = this.jsonConvertService.SerializeObject(serializedCoverageWhen);
+            this.WritableUserSettingsStore.SetString(dynamicCoverageStoreCollectionName, filePath, toSerialize);
         }
 
-        public void Handle(NewCoverageLinesMessage message)
+        // this is fundamental - the store is for restoring the coverage of the current coverage only
+        public void Handle(NewCoverageLinesMessage message) => this.RemoveStore();
+
+        private void RemoveStore()
         {
             bool collectionExists = this.WritableUserSettingsStore.CollectionExists(dynamicCoverageStoreCollectionName);
             if (collectionExists)

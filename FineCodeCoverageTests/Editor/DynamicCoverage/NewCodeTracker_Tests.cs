@@ -12,7 +12,7 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
         [Test]
         public void Should_Have_No_Lines_Initially_When_Passed_No_Line_Numbers()
         {
-            var newCodeTracker = new NewCodeTracker(true, null,null);
+            var newCodeTracker = new NewCodeTracker(null,null);
 
             Assert.That(newCodeTracker.Lines, Is.Empty);
         }
@@ -36,10 +36,10 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
                 trackedNewCodeLineFactory.Create(textSnapshot, SpanTrackingMode.EdgeExclusive, 2)
             ).Returns(mockTrackedNewCodeLine2.Object);
             var mockLineExcluder = new Mock<ILineExcluder>();
-            mockLineExcluder.Setup(lineExcluder => lineExcluder.ExcludeIfNotCode("exclude", true)).Returns(true);
-            mockLineExcluder.Setup(lineExcluder => lineExcluder.ExcludeIfNotCode("notexclude", true)).Returns(false);
+            mockLineExcluder.Setup(lineExcluder => lineExcluder.ExcludeIfNotCode("exclude")).Returns(true);
+            mockLineExcluder.Setup(lineExcluder => lineExcluder.ExcludeIfNotCode("notexclude")).Returns(false);
 
-            var newCodeTracker = new NewCodeTracker(true, mockTrackedNewCodeLineFactory.Object, mockLineExcluder.Object, new List<int> { 1, 2 }, textSnapshot);
+            var newCodeTracker = new NewCodeTracker(mockTrackedNewCodeLineFactory.Object, mockLineExcluder.Object, new List<int> { 1, 2 }, textSnapshot);
 
             var line = newCodeTracker.Lines.Single();
             Assert.That(line, Is.SameAs(expectedLine));
@@ -68,10 +68,9 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
             .Returns(mockSecondTrackedNewCodeLine.Object);
 
             var newCodeTracker = new NewCodeTracker(
-                true, 
-                mockTrackedNewCodeLineFactory.Object, 
-                new Mock<ILineExcluder>().Object, 
-                new List<int> { 1, 2 }, 
+                mockTrackedNewCodeLineFactory.Object,
+                new Mock<ILineExcluder>().Object,
+                new List<int> { 1, 2 },
                 textSnapshot
             );
 
@@ -90,7 +89,7 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
         public void Should_Add_New_TrackedNewCodeLines_For_Non_Excluded_New_Start_Lines(bool exclude)
         {
             var textSnapshot = new Mock<ITextSnapshot>().Object;
-            
+
             var mockNewDynamicLine = new Mock<IDynamicLine>();
             mockNewDynamicLine.SetupGet(l => l.Number).Returns(10);
             var newDynamicLine = mockNewDynamicLine.Object;
@@ -101,19 +100,18 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
             mockTrackedNewCodeLineFactory.Setup(trackedNewCodeLineFactory =>
                 trackedNewCodeLineFactory.Create(textSnapshot, SpanTrackingMode.EdgeExclusive, 1)
             ).Returns(mockTrackedNewCodeLine.Object);
-            
+
             var mockLineExcluder = new Mock<ILineExcluder>();
-            mockLineExcluder.Setup(lineExcluder => lineExcluder.ExcludeIfNotCode("text", true)).Returns(exclude);
+            mockLineExcluder.Setup(lineExcluder => lineExcluder.ExcludeIfNotCode("text")).Returns(exclude);
 
             var newCodeTracker = new NewCodeTracker(
-                true,
                 mockTrackedNewCodeLineFactory.Object,
                 mockLineExcluder.Object
             );
 
             var changedLineNumbers = newCodeTracker.GetChangedLineNumbers(
-                textSnapshot, 
-                new List<SpanAndLineRange> { new SpanAndLineRange(new Span(),1,2), new SpanAndLineRange(new Span(), 1, 2) }, 
+                textSnapshot,
+                new List<SpanAndLineRange> { new SpanAndLineRange(new Span(), 1, 2), new SpanAndLineRange(new Span(), 1, 2) },
                 null);
 
             if (exclude)
@@ -130,7 +128,6 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
 
                 Assert.That(changedLineNumbers.Single(), Is.EqualTo(1));
             }
-            
         }
 
         [Test]
@@ -138,12 +135,12 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
         {
             var textSnapshot = new Mock<ITextSnapshot>().Object;
             var currentTextSnapshot = new Mock<ITextSnapshot>().Object;
-            
+
             var mockTrackedNewCodeLine = new Mock<ITrackedNewCodeLine>();
             var dynamicLine = new Mock<IDynamicLine>().Object;
             mockTrackedNewCodeLine.Setup(trackedNewCodeLine => trackedNewCodeLine.Line).Returns(dynamicLine);
             mockTrackedNewCodeLine.Setup(trackedNewCodeLine => trackedNewCodeLine.Update(currentTextSnapshot))
-                .Returns(new TrackedNewCodeLineUpdate("",1,1));
+                .Returns(new TrackedNewCodeLineUpdate("", 1, 1));
             mockTrackedNewCodeLine.Setup(trackedNewCodeLine => trackedNewCodeLine.GetText(textSnapshot)).Returns("exclude");
             var mockTrackedNewCodeLineFactory = new Mock<ITrackedNewCodeLineFactory>();
             mockTrackedNewCodeLineFactory.Setup(trackedNewCodeLineFactory =>
@@ -151,11 +148,11 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
             ).Returns(mockTrackedNewCodeLine.Object);
 
             var newCodeTracker = new NewCodeTracker(
-                true, mockTrackedNewCodeLineFactory.Object, new Mock<ILineExcluder>().Object, new List<int> { 1 }, textSnapshot);
+                mockTrackedNewCodeLineFactory.Object, new Mock<ILineExcluder>().Object, new List<int> { 1 }, textSnapshot);
 
             var changedLineNumbers = newCodeTracker.GetChangedLineNumbers(
-                currentTextSnapshot, 
-                new List<SpanAndLineRange> { new SpanAndLineRange(new Span(),1,1) }, 
+                currentTextSnapshot,
+                new List<SpanAndLineRange> { new SpanAndLineRange(new Span(), 1, 1) },
                 null);
 
             Assert.That(changedLineNumbers, Is.Empty);
@@ -180,9 +177,9 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
             ).Returns(mockTrackedNewCodeLine.Object);
 
             var mockLineExcluder = new Mock<ILineExcluder>();
-            mockLineExcluder.Setup(lineExcluder => lineExcluder.ExcludeIfNotCode("updated", true)).Returns(true);
+            mockLineExcluder.Setup(lineExcluder => lineExcluder.ExcludeIfNotCode("updated")).Returns(true);
             var newCodeTracker = new NewCodeTracker(
-                true, mockTrackedNewCodeLineFactory.Object,mockLineExcluder.Object, new List<int> { 1 }, textSnapshot);
+                mockTrackedNewCodeLineFactory.Object, mockLineExcluder.Object, new List<int> { 1 }, textSnapshot);
 
             var changedLineNumbers = newCodeTracker.GetChangedLineNumbers(
                 currentTextSnapshot,
@@ -210,11 +207,11 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
             ).Returns(mockTrackedNewCodeLine.Object);
 
             var newCodeTracker = new NewCodeTracker(
-                true, mockTrackedNewCodeLineFactory.Object, new Mock<ILineExcluder>().Object, new List<int> { 1 }, textSnapshot);
+                mockTrackedNewCodeLineFactory.Object, new Mock<ILineExcluder>().Object, new List<int> { 1 }, textSnapshot);
 
             var changedLineNumbers = newCodeTracker.GetChangedLineNumbers(
                 currentTextSnapshot,
-                new List<SpanAndLineRange> {  },
+                new List<SpanAndLineRange> { },
                 null);
 
             Assert.That(changedLineNumbers, Is.EqualTo(new List<int> { 1, 2 }));
@@ -246,7 +243,7 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
             ).Returns(newMockTrackedNewCodeLine.Object);
 
             var newCodeTracker = new NewCodeTracker(
-                true, mockTrackedNewCodeLineFactory.Object, new Mock<ILineExcluder>().Object, new List<int> { 1 }, textSnapshot);
+                mockTrackedNewCodeLineFactory.Object, new Mock<ILineExcluder>().Object, new List<int> { 1 }, textSnapshot);
 
             var potentialNewLineNumber = newLineNumberReduces ? 2 : 3;
             var changedLineNumbers = newCodeTracker.GetChangedLineNumbers(
@@ -264,8 +261,8 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
                 Assert.That(changedLineNumbers, Is.EqualTo(new List<int> { 1, 2, 3 }));
                 Assert.That(newCodeTracker.Lines.Count(), Is.EqualTo(2));
             }
-            
-           
+
+
         }
         #endregion
 
@@ -285,12 +282,12 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
             ).Returns(mockTrackedNewCodeLine.Object);
 
             var newCodeTracker = new NewCodeTracker(
-                true, mockTrackedNewCodeLineFactory.Object, new Mock<ILineExcluder>().Object, new List<int> { 1 }, textSnapshot);
+                mockTrackedNewCodeLineFactory.Object, new Mock<ILineExcluder>().Object, new List<int> { 1 }, textSnapshot);
 
             var changedLineNumbers = newCodeTracker.GetChangedLineNumbers(
                 new Mock<ITextSnapshot>().Object,
                 null,
-                new List<CodeSpanRange> { new CodeSpanRange(1,3)});
+                new List<CodeSpanRange> { new CodeSpanRange(1, 3) });
 
             Assert.That(changedLineNumbers, Is.Empty);
             Assert.That(newCodeTracker.Lines.Single(), Is.SameAs(mockDynamicLine.Object));
@@ -310,14 +307,14 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
             ).Returns(mockTrackedNewCodeLine.Object);
 
             var newCodeTracker = new NewCodeTracker(
-                true, mockTrackedNewCodeLineFactory.Object, null);
+                mockTrackedNewCodeLineFactory.Object, null);
 
             var changedLineNumbers = newCodeTracker.GetChangedLineNumbers(
                 currentTextSnapshot,
                 null,
                 new List<CodeSpanRange> { new CodeSpanRange(1, 3) });
 
-            Assert.That(changedLineNumbers.Single(),Is.EqualTo(1));
+            Assert.That(changedLineNumbers.Single(), Is.EqualTo(1));
             Assert.That(newCodeTracker.Lines.Single(), Is.SameAs(dynamicLine));
         }
 
@@ -348,10 +345,9 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
             ).Returns(mockRemovedTrackedNewCodeLine2.Object);
 
             var newCodeTracker = new NewCodeTracker(
-                true, 
-                mockTrackedNewCodeLineFactory.Object, 
-                new Mock<ILineExcluder>().Object, 
-                new List<int> { 1,2,}, 
+                mockTrackedNewCodeLineFactory.Object,
+                new Mock<ILineExcluder>().Object,
+                new List<int> { 1, 2, },
                 textSnapshot);
 
             Assert.That(newCodeTracker.Lines.Count(), Is.EqualTo(2));

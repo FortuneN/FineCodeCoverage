@@ -13,7 +13,7 @@ namespace FineCodeCoverageTests.Editor.Roslyn
 
         protected (List<TextSpan>, SyntaxNode) Visit(string compilationText)
         {
-           var rootNode = ParseCompilation(compilationText);
+            var rootNode = ParseCompilation(compilationText);
             var textSpans = GetVisitor().GetSpans(rootNode);
             return (textSpans, rootNode);
         }

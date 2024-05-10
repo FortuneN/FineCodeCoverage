@@ -392,8 +392,14 @@ namespace Test
            
             RaiseTestExecutionCancelling();
             Assert.That(invoked, Is.EqualTo(canInvoke));
-            
+        }
 
-        }   
+        [Test]
+        public void Should_Send_TestExecutionStartingMessage_When_TestExecutionStarting()
+        {
+            var operation = new Mock<IOperation>().Object;
+            RaiseTestExecutionStarting(operation);
+            mocker.Verify<IEventAggregator>(eventAggregator => eventAggregator.SendMessage(It.IsAny<TestExecutionStartingMessage>(),null));
+        }
     }
 }

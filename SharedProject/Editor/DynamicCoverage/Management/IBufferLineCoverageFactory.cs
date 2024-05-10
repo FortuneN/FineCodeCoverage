@@ -6,7 +6,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
     internal interface IBufferLineCoverageFactory
     {
         IBufferLineCoverage Create(
-            IFileLineCoverage fileLineCoverage, ITextInfo textInfo, IEventAggregator eventAggregator, ITrackedLinesFactory trackedLinesFactory
+            LastCoverage lastCoverage, ITextInfo textInfo, IEventAggregator eventAggregator, ITrackedLinesFactory trackedLinesFactory
         );
     }
 }

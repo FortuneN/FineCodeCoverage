@@ -122,6 +122,7 @@
         bool ShowToolWindowToolbar { get; set; }
 
         NamespaceQualification NamespaceQualification { get; set; }
+        bool BlazorCoverageLinesFromGeneratedSource { get; set; }
     }
 
     internal enum NamespaceQualification

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.ComponentModel.Composition;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -7,13 +8,18 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace FineCodeCoverage.Editor.Roslyn
 {
-    internal class CSharpContainingCodeVisitor : CSharpSyntaxVisitor, ILanguageContainingCodeVisitor
+    [Export(typeof(ICSharpCodeCoverageNodeVisitor))]
+    internal class CSharpContainingCodeVisitor : CSharpSyntaxVisitor, ILanguageContainingCodeVisitor, ICSharpCodeCoverageNodeVisitor
     {
-        private readonly List<TextSpan> spans = new List<TextSpan>();
-        public List<TextSpan> GetSpans(SyntaxNode rootNode)
+        private readonly List<SyntaxNode> nodes = new List<SyntaxNode>();
+        public List<TextSpan> GetSpans(SyntaxNode rootNode) 
+            => this.GetNodes(rootNode).Select(node => node.Span).ToList();
+
+        public List<SyntaxNode> GetNodes(SyntaxNode rootNode)
         {
+            this.nodes.Clear();
             this.Visit(rootNode);
-            return this.spans;
+            return this.nodes;
         }
 
 #if VS2022
@@ -100,6 +106,6 @@ namespace FineCodeCoverage.Editor.Roslyn
 
         private bool IsAbstract(SyntaxTokenList modifiers) => modifiers.Any(modifier => modifier.IsKind(SyntaxKind.AbstractKeyword));
 
-        private void AddNode(SyntaxNode node) => this.spans.Add(node.Span);
+        private void AddNode(SyntaxNode node) => this.nodes.Add(node);
     }
 }

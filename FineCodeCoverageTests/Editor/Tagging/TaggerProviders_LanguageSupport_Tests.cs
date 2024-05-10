@@ -1,4 +1,6 @@
-﻿using FineCodeCoverage.Editor.Tagging.Base;
+﻿using FineCodeCoverage.Editor.DynamicCoverage.ContentTypes;
+using FineCodeCoverage.Editor.DynamicCoverage.ContentTypes.Blazor;
+using FineCodeCoverage.Editor.DynamicCoverage.ContentTypes.Roslyn;
 using FineCodeCoverage.Editor.Tagging.Classification;
 using FineCodeCoverage.Editor.Tagging.GlyphMargin;
 using FineCodeCoverage.Editor.Tagging.OverviewMargin;
@@ -20,7 +22,7 @@ namespace FineCodeCoverageTests.Editor.Tagging
             {
                 var contentTypeAttributes = type.GetCustomAttributes(typeof(ContentTypeAttribute), false);
                 var contentTypes = contentTypeAttributes.OfType<ContentTypeAttribute>().Select(ct => ct.ContentTypes);
-                Assert.That(contentTypes, Is.EqualTo(new[] { SupportedContentTypeLanguages.CSharp, SupportedContentTypeLanguages.VisualBasic, SupportedContentTypeLanguages.CPP }));
+                Assert.That(contentTypes, Is.EqualTo(new[] { CSharpCoverageContentType.ContentType, VBCoverageContentType.ContentType, CPPCoverageContentType.ContentType, BlazorCoverageContentType.ContentType }));
             });
         }
     }

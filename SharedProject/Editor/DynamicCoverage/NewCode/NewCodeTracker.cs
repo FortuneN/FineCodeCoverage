@@ -7,26 +7,22 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
     internal class NewCodeTracker : INewCodeTracker
     {
         private readonly List<ITrackedNewCodeLine> trackedNewCodeLines = new List<ITrackedNewCodeLine>();
-        private readonly bool isCSharp;
         private readonly ITrackedNewCodeLineFactory trackedNewCodeLineFactory;
         private readonly ILineExcluder codeLineExcluder;
 
-        public NewCodeTracker(bool isCSharp, ITrackedNewCodeLineFactory trackedNewCodeLineFactory, ILineExcluder codeLineExcluder)
+        public NewCodeTracker(ITrackedNewCodeLineFactory trackedNewCodeLineFactory, ILineExcluder codeLineExcluder)
         {
-            this.isCSharp = isCSharp;
             this.trackedNewCodeLineFactory = trackedNewCodeLineFactory;
             this.codeLineExcluder = codeLineExcluder;
         }
 
         public NewCodeTracker(
-            bool isCSharp,
             ITrackedNewCodeLineFactory trackedNewCodeLineFactory,
             ILineExcluder codeLineExcluder,
             IEnumerable<int> lineNumbers,
             ITextSnapshot currentSnapshot
             )
         {
-            this.isCSharp = isCSharp;
             this.trackedNewCodeLineFactory = trackedNewCodeLineFactory;
             this.codeLineExcluder = codeLineExcluder;
             foreach (int lineNumber in lineNumbers)
@@ -138,7 +134,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
             string newText)
         {
             bool excluded = false;
-            if (this.codeLineExcluder.ExcludeIfNotCode(newText, this.isCSharp))
+            if (this.codeLineExcluder.ExcludeIfNotCode(newText))
             {
                 excluded = true;
                 removals.Add(trackedNewCodeLine);
@@ -160,7 +156,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
             bool added = false;
             ITrackedNewCodeLine trackedNewCodeLine = this.CreateTrackedNewCodeLine(currentSnapshot, lineNumber);
             string text = trackedNewCodeLine.GetText(currentSnapshot);
-            if (!this.codeLineExcluder.ExcludeIfNotCode(text, this.isCSharp))
+            if (!this.codeLineExcluder.ExcludeIfNotCode(text))
             {
                 this.trackedNewCodeLines.Add(trackedNewCodeLine);
                 added = true;

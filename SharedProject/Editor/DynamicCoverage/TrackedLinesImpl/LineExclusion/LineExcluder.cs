@@ -6,19 +6,17 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
     [Export(typeof(ILineExcluder))]
     internal class LineExcluder : ILineExcluder
     {
-        private static readonly string[] cSharpExclusions = new string[] { "//", "#", "using" };
-        private static readonly string[] vbExclusions = new string[] { "REM", "'", "#" };
+        private readonly string[] startsWithExclusions;
 
-        public bool ExcludeIfNotCode(string text, bool isCSharp)
+        public LineExcluder(string[] startsWithExclusions) => this.startsWithExclusions = startsWithExclusions;
+
+        public bool ExcludeIfNotCode(string text)
         {
             string trimmedLineText = text.Trim();
-            return trimmedLineText.Length == 0 || this.StartsWithExclusion(trimmedLineText, isCSharp);
+            return trimmedLineText.Length == 0 || this.StartsWithExclusion(trimmedLineText);
         }
 
-        private bool StartsWithExclusion(string text, bool isCSharp)
-        {
-            string[] languageExclusions = isCSharp ? cSharpExclusions : vbExclusions;
-            return languageExclusions.Any(languageExclusion => text.StartsWith(languageExclusion));
-        }
+        private bool StartsWithExclusion(string text) 
+            => this.startsWithExclusions.Any(languageExclusion => text.StartsWith(languageExclusion));
     }
 }

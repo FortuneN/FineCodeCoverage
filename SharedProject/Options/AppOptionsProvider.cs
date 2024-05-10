@@ -247,7 +247,8 @@ namespace FineCodeCoverage.Options
         public bool ShowEditorCoverage { get; set; }
         public bool UseEnterpriseFontsAndColors { get; set; }
         public EditorCoverageColouringMode EditorCoverageColouringMode { get; set; }
-        
-        
+
+        public bool BlazorCoverageLinesFromGeneratedSource { get; set; }
+
     }
 }
