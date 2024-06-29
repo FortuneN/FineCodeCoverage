@@ -1,21 +1,54 @@
-﻿using FineCodeCoverage.Core.Utilities;
-using FineCodeCoverage.Impl;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace FineCodeCoverage.Engine.Model
 {
+
+    internal class UniqueCoverageLines : HashSet<ILine>
+    {
+        public UniqueCoverageLines() : base(new LineComparer())
+        {
+        }
+
+        public void AddRange(IEnumerable<ILine> lines)
+        {
+            foreach (var line in lines)
+                Add(line);
+        }
+
+        private IEnumerable<ILine> sortedLines;
+        public IEnumerable<ILine> SortedLines => sortedLines;
+
+        public void Sort()
+        {
+            sortedLines = this.OrderBy(l => l.Number).ToList();
+        }
+
+        class LineComparer : IEqualityComparer<ILine>
+        {
+            public bool Equals(ILine x, ILine y)
+            {
+                return x.Number == y.Number;
+            }
+
+            public int GetHashCode(ILine obj)
+            {
+                return obj.Number;
+            }
+        }
+    }
+
     // FileLineCoverage maps from a filename to the list of lines in the file
     internal class FileLineCoverage : IFileLineCoverage
     {
-        private readonly Dictionary<string, List<ILine>> m_coverageLines = new Dictionary<string, List<ILine>>(StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<string, UniqueCoverageLines> m_coverageLines = new Dictionary<string, UniqueCoverageLines>(StringComparer.OrdinalIgnoreCase);
 
         public void Add(string filename, IEnumerable<ILine> lines)
         {
             if (!m_coverageLines.TryGetValue(filename, out var fileCoverageLines))
             {
-                fileCoverageLines = new List<ILine>();
+                fileCoverageLines = new UniqueCoverageLines();
                 m_coverageLines.Add(filename, fileCoverageLines);
             }
 
@@ -25,29 +58,17 @@ namespace FineCodeCoverage.Engine.Model
         public void Sort()
         {
             foreach (var lines in m_coverageLines.Values)
-                lines.Sort((a, b) => a.Number - b.Number);
+                lines.Sort();
         }
 
         public IEnumerable<ILine> GetLines(string filePath)
         {
             if (!m_coverageLines.TryGetValue(filePath, out var lines))
             {
-                lines = Enumerable.Empty<ILine>().ToList();
+                return Enumerable.Empty<ILine>().ToList();
             }
-            return lines;
+            return lines.SortedLines;
                 
-        }
-        public IEnumerable<ILine> GetLines(string filePath, int startLineNumber, int endLineNumber)
-        {
-            if (!m_coverageLines.TryGetValue(filePath, out var lines))
-                yield break;
-
-            int first = lines.LowerBound(line => startLineNumber - line.Number);
-            if (first != -1)
-            {
-                for (int it = first; it < lines.Count && lines[it].Number <= endLineNumber; ++it)
-                    yield return lines[it];
-            }
         }
 
         public void UpdateRenamed(string oldFilePath, string newFilePath)
