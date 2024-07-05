@@ -1,6 +1,7 @@
 ﻿using System.Linq;
 using FineCodeCoverage.Core.Utilities;
 using FineCodeCoverage.Editor.DynamicCoverage;
+using FineCodeCoverage.Editor.IndicatorVisibility;
 using FineCodeCoverage.Options;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -17,6 +18,7 @@ namespace FineCodeCoverage.Editor.Tagging.Base
         private readonly IDynamicCoverageManager dynamicCoverageManager;
         private readonly ITextInfoFactory textInfoFactory;
         private readonly IFileExcluder[] fileExcluders;
+        private readonly IFileIndicatorVisibility fileIndicatorVisibility;
         private TCoverageTypeFilter coverageTypeFilter;
 
         public CoverageTaggerProvider(
@@ -26,11 +28,13 @@ namespace FineCodeCoverage.Editor.Tagging.Base
             ILineSpanTagger<TTag> coverageTagger,
             IDynamicCoverageManager dynamicCoverageManager,
             ITextInfoFactory textInfoFactory,
-            IFileExcluder[] fileExcluders)
+            IFileExcluder[] fileExcluders,
+            IFileIndicatorVisibility fileIndicatorVisibility)
         {
             this.dynamicCoverageManager = dynamicCoverageManager;
             this.textInfoFactory = textInfoFactory;
             this.fileExcluders = fileExcluders;
+            this.fileIndicatorVisibility = fileIndicatorVisibility;
             IAppOptions appOptions = appOptionsProvider.Get();
             this.coverageTypeFilter = this.CreateFilter(appOptions);
             appOptionsProvider.OptionsChanged += this.AppOptionsProvider_OptionsChanged;
@@ -79,7 +83,9 @@ namespace FineCodeCoverage.Editor.Tagging.Base
                 this.coverageTypeFilter,
                 this.eventAggregator,
                 this.lineSpanLogic,
-                this.coverageTagger);
+                this.coverageTagger,
+                this.fileIndicatorVisibility
+                );
         }
     }
 }

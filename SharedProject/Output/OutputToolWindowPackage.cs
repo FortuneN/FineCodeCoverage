@@ -93,6 +93,7 @@ namespace FineCodeCoverage.Output
 			await OpenCoberturaCommand.InitializeAsync(this, eventAggregator);
 			await OpenHotspotsCommand.InitializeAsync(this, eventAggregator);
 			await ClearUICommand.InitializeAsync(this, fccEngine);
+			await ToggleCoverageIndicatorsCommand.InitializeAsync(this, eventAggregator);
 			await OutputToolWindowCommand.InitializeAsync(
 				this,
 				componentModel.GetService<ILogger>(),
