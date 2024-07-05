@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using FineCodeCoverage.Core.Utilities;
 using FineCodeCoverage.Editor.DynamicCoverage;
+using FineCodeCoverage.Editor.IndicatorVisibility;
+using FineCodeCoverage.Output;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
 
@@ -24,6 +26,8 @@ namespace FineCodeCoverage.Editor.Tagging.Base
         private readonly IEventAggregator eventAggregator;
         private readonly ILineSpanLogic lineSpanLogic;
         private readonly ILineSpanTagger<TTag> lineSpanTagger;
+        private readonly IFileIndicatorVisibility fileIndicatorVisibility;
+        private bool isDisplayingIndicators;
 
         public event EventHandler<SnapshotSpanEventArgs> TagsChanged;
 
@@ -33,8 +37,8 @@ namespace FineCodeCoverage.Editor.Tagging.Base
             ICoverageTypeFilter coverageTypeFilter,
             IEventAggregator eventAggregator,
             ILineSpanLogic lineSpanLogic,
-            ILineSpanTagger<TTag> lineSpanTagger
-        )
+            ILineSpanTagger<TTag> lineSpanTagger,
+            IFileIndicatorVisibility fileIndicatorVisibility)
         {
             ThrowIf.Null(textInfo, nameof(textInfo));
             ThrowIf.Null(coverageTypeFilter, nameof(coverageTypeFilter));
@@ -48,7 +52,21 @@ namespace FineCodeCoverage.Editor.Tagging.Base
             this.eventAggregator = eventAggregator;
             this.lineSpanLogic = lineSpanLogic;
             this.lineSpanTagger = lineSpanTagger;
+            this.fileIndicatorVisibility = fileIndicatorVisibility;
+            this.isDisplayingIndicators = fileIndicatorVisibility.IsVisible(textInfo.FilePath);
+            fileIndicatorVisibility.VisibilityChanged += this.FileIndicatorVisibility_VisibilityChanged;
             _ = eventAggregator.AddListener(this);
+        }
+
+        private void FileIndicatorVisibility_VisibilityChanged(object sender, EventArgs e)
+        {
+            bool newIsDisplayingIndicators = this.fileIndicatorVisibility.IsVisible(this.textInfo.FilePath);
+            bool visibilityChanged = newIsDisplayingIndicators != this.isDisplayingIndicators;
+            if (visibilityChanged)
+            {
+                this.isDisplayingIndicators = newIsDisplayingIndicators;
+                this.RaiseTagsChanged();
+            }
         }
 
         public bool HasCoverage => this.bufferLineCoverage != null;
@@ -79,7 +97,7 @@ namespace FineCodeCoverage.Editor.Tagging.Base
                 ? this.GetTagsFromCoverageLines(spans)
                 : Enumerable.Empty<ITagSpan<TTag>>();
 
-        private bool CanGetTagsFromCoverageLines => this.bufferLineCoverage != null && !this.coverageTypeFilter.Disabled;
+        private bool CanGetTagsFromCoverageLines => this.bufferLineCoverage != null && !this.coverageTypeFilter.Disabled && this.isDisplayingIndicators;
 
         private IEnumerable<ITagSpan<TTag>> GetTagsFromCoverageLines(NormalizedSnapshotSpanCollection spans)
         {
@@ -91,7 +109,10 @@ namespace FineCodeCoverage.Editor.Tagging.Base
             => lineSpans.Where(lineSpan => this.coverageTypeFilter.Show(lineSpan.Line.CoverageType))
                 .Select(lineSpan => this.lineSpanTagger.GetTagSpan(lineSpan));
 
-        public void Dispose() => _ = this.eventAggregator.RemoveListener(this);
+        public void Dispose() {
+            _ = this.eventAggregator.RemoveListener(this);
+            this.fileIndicatorVisibility.VisibilityChanged -= this.FileIndicatorVisibility_VisibilityChanged;
+        }
 
         public void Handle(CoverageChangedMessage message)
         {

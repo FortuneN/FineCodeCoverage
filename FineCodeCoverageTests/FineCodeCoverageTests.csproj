@@ -92,6 +92,7 @@
     <Compile Include="Editor\DynamicCoverage\TrackedNewCodeLine_Tests.cs" />
     <Compile Include="Editor\DynamicCoverage\LineTracker_Tests.cs" />
     <Compile Include="Editor\DynamicCoverage\TrackingSpanRangeUpdatingTracker_Tests.cs" />
+    <Compile Include="Editor\IndicatorVisibility\FileIndicatorVisibility_Tests.cs" />
     <Compile Include="Editor\Management\CoverageClassificationTypeService_Tests.cs" />
     <Compile Include="Editor\Management\CoverageFontAndColorsCategoryItemNames_Tests.cs" />
     <Compile Include="Editor\Management\FontsAndColorsHelper_Tests.cs" />

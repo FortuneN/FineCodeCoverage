@@ -2,6 +2,7 @@
 using System.Diagnostics.CodeAnalysis;
 using FineCodeCoverage.Core.Utilities;
 using FineCodeCoverage.Editor.DynamicCoverage;
+using FineCodeCoverage.Editor.IndicatorVisibility;
 using FineCodeCoverage.Options;
 using Microsoft.VisualStudio.Text.Tagging;
 
@@ -17,6 +18,7 @@ namespace FineCodeCoverage.Editor.Tagging.Base
         private readonly IDynamicCoverageManager dynamicCoverageManager;
         private readonly ITextInfoFactory textInfoFactory;
         private readonly IFileExcluder[] fileExcluders;
+        private readonly IFileIndicatorVisibility fileIndicatorVisibility;
 
         [ImportingConstructor]
         public CoverageTaggerProviderFactory(
@@ -26,7 +28,8 @@ namespace FineCodeCoverage.Editor.Tagging.Base
             IDynamicCoverageManager dynamicCoverageManager,
             ITextInfoFactory textInfoFactory,
             [ImportMany]
-            IFileExcluder[] fileExcluders
+            IFileExcluder[] fileExcluders,
+            IFileIndicatorVisibility fileIndicatorVisibility
         )
         {
             this.eventAggregator = eventAggregator;
@@ -35,6 +38,7 @@ namespace FineCodeCoverage.Editor.Tagging.Base
             this.dynamicCoverageManager = dynamicCoverageManager;
             this.textInfoFactory = textInfoFactory;
             this.fileExcluders = fileExcluders;
+            this.fileIndicatorVisibility = fileIndicatorVisibility;
         }
         public ICoverageTaggerProvider<TTag> Create<TTag, TCoverageTypeFilter>(ILineSpanTagger<TTag> tagger)
             where TTag : ITag
@@ -46,7 +50,8 @@ namespace FineCodeCoverage.Editor.Tagging.Base
                     tagger,
                     this.dynamicCoverageManager,
                     this.textInfoFactory,
-                    this.fileExcluders
+                    this.fileExcluders,
+                    this.fileIndicatorVisibility
                 );
     }
 }

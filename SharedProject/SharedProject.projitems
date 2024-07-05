@@ -269,6 +269,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)Editor\DynamicCoverage\NewCode\TrackedNewLineFactory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editor\DynamicCoverage\Common\TrackingLine.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editor\DynamicCoverage\TrackedLinesImpl\Construction\TrackingSpanRangeProcessResult.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Editor\IndicatorVisibility\FileIndicatorVisibility.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Editor\IndicatorVisibility\IFileIndicatorVisibility.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editor\Management\ColoursClassificationFormatDefinition.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editor\Management\CoverageFontAndColorsCategoryItemNamesManager.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Editor\Management\DelayedMainThreadInvocation.cs" />
@@ -392,6 +394,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\JsonConvertService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\ReadOnlyConfigSettingsStoreProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\WritableUserSettingsStoreProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Output\ToggleCoverageIndicatorsCommand.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Output\OpenHotspotsCommand.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Output\OpenCoberturaCommand.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Output\ClearUICommand.cs" />
@@ -414,6 +417,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Output\ScriptManager.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\IShownToolWindowHistory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\ShownToolWindowHistory.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Output\ToggleCoverageIndicatorsMessage.cs" />
   </ItemGroup>
   <ItemGroup>
     <Page Include="$(MSBuildThisFileDirectory)Output\OutputToolWindowControl.xaml">

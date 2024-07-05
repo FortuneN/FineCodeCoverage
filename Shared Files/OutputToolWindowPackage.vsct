@@ -60,6 +60,16 @@
           <LocCanonicalName>FCC.ClearUI</LocCanonicalName>
         </Strings>
       </Button>
+	  <Button guid="guidOutputToolWindowPackageCmdSet" id="cmdidToggleCoverageIndicatorsCommand" priority="0x0100" type="Button">
+		<Parent guid="guidOutputToolWindowPackageCmdSet" id="MyMenuGroup" />
+		  <Icon guid="guidClearUICommandImage" id="clearUICommandImageIndex" />
+		<Strings>
+		  <ButtonText>Toggle Indicators</ButtonText>
+		  <CommandName>FCC Toggle Indicators</CommandName>
+		  <CanonicalName>FCC.ToggleIndicators</CanonicalName>
+		  <LocCanonicalName>FCC.ToggleIndicators</LocCanonicalName>
+		</Strings>
+	  </Button>
       <Button guid="guidOutputToolWindowPackageCmdSet" id="cmdidOpenCoberturaCommand" priority="0x0100" type="Button">
         <Parent guid="guidOutputToolWindowPackageCmdSet" id="ToolWindowToolbarGroup" />
         <Icon guid="ImageCatalogGuid" id="CodeCoverage"/>
@@ -124,6 +134,7 @@
       <IDSymbol value="256" name="cmdidClearUICommand" />
       <IDSymbol value="257" name="cmdidOpenCoberturaCommand" />
       <IDSymbol value="258" name="cmdidOpenHotspotsCommand" />
+	  <IDSymbol value="259" name="cmdidToggleCoverageIndicatorsCommand" />
     </GuidSymbol>
 
     <!-- images -->

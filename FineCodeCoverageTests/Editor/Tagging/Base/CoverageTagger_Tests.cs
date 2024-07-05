@@ -1,6 +1,7 @@
 ﻿using AutoMoq;
 using FineCodeCoverage.Core.Utilities;
 using FineCodeCoverage.Editor.DynamicCoverage;
+using FineCodeCoverage.Editor.IndicatorVisibility;
 using FineCodeCoverage.Editor.Tagging.Base;
 using FineCodeCoverage.Engine.Model;
 using FineCodeCoverageTests.Editor.Tagging.Base.Types;
@@ -11,6 +12,7 @@ using Moq;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using LineSpan = FineCodeCoverageTests.Editor.Tagging.Types.LineSpan;
 
 namespace FineCodeCoverageTests.Editor.Tagging.Base
@@ -122,7 +124,8 @@ namespace FineCodeCoverageTests.Editor.Tagging.Base
                 new Mock<ICoverageTypeFilter>().Object,
                 new Mock<IEventAggregator>().Object,
                 new Mock<ILineSpanLogic>(MockBehavior.Strict).Object,
-                new Mock<ILineSpanTagger<DummyTag>>().Object
+                new Mock<ILineSpanTagger<DummyTag>>().Object,
+                new Mock<IFileIndicatorVisibility>().Object
             );
 
             Assert.That(coverageTagger.HasCoverage, Is.EqualTo(hasCoverage));
@@ -161,7 +164,8 @@ namespace FineCodeCoverageTests.Editor.Tagging.Base
                 new DummyCoverageTypeFilter(),
                 new Mock<IEventAggregator>().Object,
                 new Mock<ILineSpanLogic>(MockBehavior.Strict).Object,
-                new Mock<ILineSpanTagger<DummyTag>>().Object
+                new Mock<ILineSpanTagger<DummyTag>>().Object,
+                new Mock<IFileIndicatorVisibility>().Object
             );
 
             var tagsChanged = false;
@@ -185,7 +189,8 @@ namespace FineCodeCoverageTests.Editor.Tagging.Base
                 new Mock<ICoverageTypeFilter>().Object,
                 new Mock<IEventAggregator>().Object,
                 new Mock<ILineSpanLogic>(MockBehavior.Strict).Object,
-                new Mock<ILineSpanTagger<DummyTag>>().Object
+                new Mock<ILineSpanTagger<DummyTag>>().Object,
+                new Mock<IFileIndicatorVisibility>().Object
             );
 
             var tags = coverageTagger.GetTags(new NormalizedSnapshotSpanCollection());
@@ -219,7 +224,7 @@ namespace FineCodeCoverageTests.Editor.Tagging.Base
             mockTextSnapshot.SetupGet(currentSnapshot => currentSnapshot.Length).Returns(10);
             mockTextInfo.SetupGet(textBufferAndFile => textBufferAndFile.TextBuffer.CurrentSnapshot).Returns(mockTextSnapshot.Object);
             mockTextInfo.SetupGet(textBufferWithFilePath => textBufferWithFilePath.FilePath).Returns("filepath");
-
+            autoMoqer.Setup<IFileIndicatorVisibility,bool>(fileIndicatorVisibility => fileIndicatorVisibility.IsVisible(It.IsAny<string>())).Returns(true);
             var coverageTagger = autoMoqer.Create<CoverageTagger<DummyTag>>();
             var spans = new NormalizedSnapshotSpanCollection();
 
@@ -270,6 +275,8 @@ namespace FineCodeCoverageTests.Editor.Tagging.Base
                 )
                 .Returns(lineSpans);
 
+            autoMoqer.Setup<ITextInfo,string>(textInfo => textInfo.FilePath).Returns("filepath");
+            autoMoqer.Setup<IFileIndicatorVisibility, bool>(fileIndicatorVisibility => fileIndicatorVisibility.IsVisible("filepath")).Returns(true);
             var coverageTagger = autoMoqer.Create<CoverageTagger<DummyTag>>();
 
             var tags = coverageTagger.GetTags(new NormalizedSnapshotSpanCollection());
@@ -284,6 +291,66 @@ namespace FineCodeCoverageTests.Editor.Tagging.Base
                 return mockLine.Object;
             }
            
+        }
+
+        [TestCase(true,false)]
+        [TestCase(false, true)]
+        public void Should_Raise_TagsChanged_When_FileIndicatorVisibility_Toggled(bool newVisibility,bool expectedTagsChanged)
+        {
+            var autoMoqer = new AutoMoqer();
+            var mockTextBuffer = new Mock<ITextBuffer2>();
+            var mockSnapshot = new Mock<ITextSnapshot>();
+            mockSnapshot.SetupGet(textSnapshot => textSnapshot.Length).Returns(10);
+            mockTextBuffer.SetupGet(textBuffer => textBuffer.CurrentSnapshot).Returns(mockSnapshot.Object);
+            autoMoqer.Setup<ITextInfo,string>(textInfo => textInfo.FilePath).Returns("filepath");
+            autoMoqer.Setup<ITextInfo,ITextBuffer>(textInfo => textInfo.TextBuffer).Returns(mockTextBuffer.Object);
+            var mockFileIndicatorVisibility = autoMoqer.GetMock<IFileIndicatorVisibility>();
+            mockFileIndicatorVisibility.SetupSequence(fileIndicatorVisibility => fileIndicatorVisibility.IsVisible("filepath"))
+                .Returns(true)
+                .Returns(newVisibility);
+            var coverageTagger = autoMoqer.Create<CoverageTagger<DummyTag>>();
+            var tagsChanged = false;
+            coverageTagger.TagsChanged += (sender, args) =>
+            {
+                tagsChanged = true;
+            };
+            mockFileIndicatorVisibility.Raise(fileIndicatorVisibility => fileIndicatorVisibility.VisibilityChanged += null, EventArgs.Empty);
+
+            Assert.That(tagsChanged, Is.EqualTo(expectedTagsChanged));
+        }
+
+        [TestCase(true)]
+        [TestCase(false)]
+        public void Should_Have_No_Tags_When_FileIndicatorVisibility_Is_Initially_False(bool initiallyVisible)
+        {
+            var autoMoqer = new AutoMoqer();
+            autoMoqer.Setup<ICoverageTypeFilter, bool>(coverageTypeFilter => coverageTypeFilter.Show(DynamicCoverageType.Covered)).Returns(true);
+            var mockLineSpan = new Mock<ILineSpan>();
+            mockLineSpan.SetupGet(lineSpan => lineSpan.Line.CoverageType).Returns(DynamicCoverageType.Covered);
+            autoMoqer.Setup<ILineSpanLogic, IEnumerable<ILineSpan>>(lineSpanLogic =>
+                lineSpanLogic.GetLineSpans(It.IsAny<IBufferLineCoverage>(), It.IsAny<NormalizedSnapshotSpanCollection>())
+            ).Returns(new List<ILineSpan> { mockLineSpan.Object });
+
+            var mockFileIndicatorVisibility = autoMoqer.GetMock<IFileIndicatorVisibility>();
+            mockFileIndicatorVisibility.Setup(fileIndicatorVisibility => fileIndicatorVisibility.IsVisible(It.IsAny<string>()))
+                .Returns(initiallyVisible);
+            var coverageTagger = autoMoqer.Create<CoverageTagger<DummyTag>>();
+
+            var tags = coverageTagger.GetTags(new NormalizedSnapshotSpanCollection()).ToList();
+
+            Assert.That(tags.Count, Is.EqualTo(initiallyVisible ? 1 : 0));
+        }
+
+        [Test]
+        public void Should_Remove_FileIndicatorVisibility_VisibilityChange_Handler_When_Dispose()
+        {
+            var autoMoqer = new AutoMoqer();
+            var mockFileIndicatorVisibility = autoMoqer.GetMock<IFileIndicatorVisibility>();
+
+            var coverageTagger = autoMoqer.Create<CoverageTagger<DummyTag>>();
+            coverageTagger.Dispose();
+
+            mockFileIndicatorVisibility.VerifyRemove(fileIndicatorVisibility => fileIndicatorVisibility.VisibilityChanged -= It.IsAny<EventHandler>());
         }
     }
 }
