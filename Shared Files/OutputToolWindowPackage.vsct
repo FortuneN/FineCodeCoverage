@@ -62,9 +62,8 @@
       </Button>
 	  <Button guid="guidOutputToolWindowPackageCmdSet" id="cmdidToggleCoverageIndicatorsCommand" priority="0x0100" type="Button">
 		<Parent guid="guidOutputToolWindowPackageCmdSet" id="MyMenuGroup" />
-		  <Icon guid="guidClearUICommandImage" id="clearUICommandImageIndex" />
 		<Strings>
-		  <ButtonText>Toggle Indicators</ButtonText>
+		  <ButtonText>FCC Toggle Indicators</ButtonText>
 		  <CommandName>FCC Toggle Indicators</CommandName>
 		  <CanonicalName>FCC.ToggleIndicators</CanonicalName>
 		  <LocCanonicalName>FCC.ToggleIndicators</LocCanonicalName>
