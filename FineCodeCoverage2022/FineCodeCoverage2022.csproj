@@ -146,34 +146,34 @@
       <Version>1.4.1</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.CodeAnalysis.Common">
-      <Version>4.8.0</Version>
+      <Version>4.10.0</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp">
-      <Version>4.8.0</Version>
+      <Version>4.10.0</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.CodeAnalysis.EditorFeatures.Text">
-      <Version>4.8.0</Version>
+      <Version>4.10.0</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic">
-      <Version>4.8.0</Version>
+      <Version>4.10.0</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common">
-      <Version>4.8.0</Version>
+      <Version>4.10.0</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.MSBuild">
-      <Version>4.8.0</Version>
+      <Version>4.10.0</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Composition.Analyzers">
-      <Version>17.7.40</Version>
+      <Version>17.10.37</Version>
     </PackageReference>
-    <PackageReference Include="Microsoft.VisualStudio.SDK" Version="17.1.32210.191" ExcludeAssets="runtime">
+    <PackageReference Include="Microsoft.VisualStudio.SDK" Version="17.10.40171" ExcludeAssets="runtime">
       <IncludeAssets>compile; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.TestWindow.Interfaces">
       <Version>11.0.61030</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Threading.Analyzers">
-      <Version>17.9.28</Version>
+      <Version>17.10.48</Version>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
@@ -182,7 +182,7 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="Newtonsoft.Json">
-      <Version>13.0.1</Version>
+      <Version>13.0.3</Version>
     </PackageReference>
     <PackageReference Include="ReflectObject">
       <Version>1.0.0</Version>
@@ -191,13 +191,13 @@
       <Version>1.0.0</Version>
     </PackageReference>
     <PackageReference Include="StreamJsonRpc">
-      <Version>2.16.36</Version>
+      <Version>2.18.48</Version>
     </PackageReference>
     <PackageReference Include="Svg">
       <Version>3.3.0</Version>
     </PackageReference>
     <PackageReference Include="System.Composition">
-      <Version>7.0.0</Version>
+      <Version>8.0.0</Version>
     </PackageReference>
     <PackageReference Include="System.IO.Compression">
       <Version>4.3.0</Version>
