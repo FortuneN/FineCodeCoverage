@@ -1184,11 +1184,12 @@ for(var i=0;i<charts.length;i++){
 					button:hover {{ color : {jsReportColours.ButtonHoverTextColour}; background:{jsReportColours.ButtonHoverColour}; border-color:{jsReportColours.ButtonBorderHoverColour}}}
 					button:active {{ color : {jsReportColours.ButtonPressedTextColour}; background:{jsReportColours.ButtonPressedColour}; border-color:{jsReportColours.ButtonBorderPressedColour}}}
 					table td {{ white-space: nowrap; }}
-					table.coverage {{ width:150px;height:13px }}
 					body {{ padding-left:3px;padding-right:3px;padding-bottom:3px }}
 					{HideCyclomaticComplexityLink()}
 					body {{ -webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;-o-user-select:none;user-select:none }}
 					table.overview th, table.overview td {{ white-space: nowrap; word-break: normal; padding-left:10px;padding-right:10px; }}
+					table.coverage {{ width:150px;height:13px;margin-left:10px;margin-right:10px }}
+					table.coverage th, table.coverage td {{ padding-left:0px;padding-right:0px}}
 					{GetGroupingCss(namespacedClasses)}
 					table,tr,th,td {{ border: 1px solid;}}
 					input[type=text] {{ color:{jsReportColours.TextBoxTextColour}; background-color:{jsReportColours.TextBoxColour};border-color:{jsReportColours.TextBoxBorderColour} }}
