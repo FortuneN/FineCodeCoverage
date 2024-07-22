@@ -4,12 +4,10 @@ using Microsoft.VisualStudio.TestWindow.Extensibility;
 using System.IO;
 using System.Xml.XPath;
 using System.Collections.Generic;
-using Microsoft.VisualStudio.TestPlatform.ObjectModel;
 using AutoMoq;
 using System.Threading;
 using FineCodeCoverage.Core.Utilities;
 using FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage;
-using System;
 
 namespace FineCodeCoverageTests.MsCodeCoverage
 {

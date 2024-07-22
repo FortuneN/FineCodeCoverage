@@ -1,5 +1,4 @@
 ﻿using NUnit.Framework;
-using Microsoft.VisualStudio.TestPlatform.ObjectModel;
 using FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage;
 using FineCodeCoverage.Core.Utilities;
 using Moq;
