@@ -10,9 +10,11 @@ using FineCodeCoverage.Engine.Model;
 using FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage;
 using FineCodeCoverage.Impl;
 using FineCodeCoverage.Options;
+using Microsoft.Build.Evaluation;
 using Microsoft.VisualStudio.TestWindow.Extensibility;
 using Moq;
 using NUnit.Framework;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace Test
 {
@@ -260,10 +262,12 @@ namespace Test
             mockTestOperationFactory.Setup(testOperationFactory => testOperationFactory.Create(operation)).Returns(testOperation);
 
             RaiseTestExecutionFinished(operation);
+#pragma warning disable VSTHRD110 // Observe result of async calls
             mocker.Verify<IMsCodeCoverageRunSettingsService>(
                 msCodeCoverageRunSettingsService =>
                 msCodeCoverageRunSettingsService.CollectAsync(operation,testOperation)
             );
+#pragma warning restore VSTHRD110 // Observe result of async calls
         }
 
         [Test]
@@ -400,6 +404,30 @@ namespace Test
             var operation = new Mock<IOperation>().Object;
             RaiseTestExecutionStarting(operation);
             mocker.Verify<IEventAggregator>(eventAggregator => eventAggregator.SendMessage(It.IsAny<TestExecutionStartingMessage>(),null));
+        }
+
+        [Test]
+        public void Should_MsCodeCoverageRunSettingsService_TestExecutionNotFinishedAsync_When_IsCollecting_TestExecutionFinishedAsync_And_CollectAsync_Not_Called()
+        {
+            var mockMsCodeCoverageRunSettingsService = mocker.GetMock<IMsCodeCoverageRunSettingsService>();
+            mockMsCodeCoverageRunSettingsService.Setup(
+                msCodeCoverageRunSettingsService =>
+                msCodeCoverageRunSettingsService.IsCollectingAsync(It.IsAny<ITestOperation>())
+            ).ReturnsAsync(MsCodeCoverageCollectionStatus.Collecting);
+
+            SetUpOptions(mockOptions =>
+            {
+                mockOptions.Setup(options => options.Enabled).Returns(true);
+                mockOptions.Setup(options => options.RunWhenTestsFail).Returns(false);
+            });
+            var mockTestOperation = new Mock<ITestOperation>();
+                mockTestOperation.SetupGet(testOperation => testOperation.FailedTests).Returns(1);
+            mocker.GetMock<ITestOperationFactory>().Setup(f => f.Create(It.IsAny<IOperation>())).Returns(mockTestOperation.Object);
+            RaiseTestExecutionStarting();
+            RaiseTestExecutionFinished();
+
+            mockMsCodeCoverageRunSettingsService.Verify(msCodeCoverageRunSettingsService => msCodeCoverageRunSettingsService.TestExecutionNotFinishedAsync(mockTestOperation.Object));
+
         }
     }
 }
