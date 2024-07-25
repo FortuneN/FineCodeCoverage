@@ -4,8 +4,8 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using System;
 using System.ComponentModel.Composition;
-using Task = System.Threading.Tasks.Task;
 using System.Threading.Tasks;
+using FineCodeCoverage.Core.MsTestPlatform.CodeCoverage;
 
 namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
 {
@@ -14,14 +14,17 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
     {
         private const string projectRunSettingsFilePathElementName = "RunSettingsFilePath";
         private readonly IServiceProvider serviceProvider;
+        private readonly IProjectSaver projectSaver;
 
         [ImportingConstructor]
         public VsRunSettingsWriter(
             [Import(typeof(SVsServiceProvider))]
-            IServiceProvider serviceProvider
+            IServiceProvider serviceProvider,
+            IProjectSaver projectSaver
         )
         {
             this.serviceProvider = serviceProvider;
+            this.projectSaver = projectSaver;
         }
 
         public async Task<bool> WriteRunSettingsFilePathAsync(Guid projectGuid, string projectRunSettingsFilePath)
@@ -34,8 +37,7 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
             {
                 if (vsHierarchy is IVsBuildPropertyStorage vsBuildPropertyStorage)
                 {
-                    // care not to use 2 !
-                    success = vsBuildPropertyStorage.SetPropertyValue(projectRunSettingsFilePathElementName, null, 1, projectRunSettingsFilePath) == VSConstants.S_OK;
+                    success = vsBuildPropertyStorage.SetPropertyValue(projectRunSettingsFilePathElementName, string.Empty, (uint)_PersistStorageType.PST_PROJECT_FILE, projectRunSettingsFilePath) == VSConstants.S_OK;
                 }
             }
             return success;
@@ -43,6 +45,7 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
 
         public async Task<bool> RemoveRunSettingsFilePathAsync(Guid projectGuid)
         {
+
             var ok = false;
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
             var vsSolution = serviceProvider.GetService(typeof(SVsSolution)) as IVsSolution;
@@ -51,7 +54,12 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
             {
                 if (vsHierarchy is IVsBuildPropertyStorage vsBuildPropertyStorage)
                 {
-                    ok = vsBuildPropertyStorage.RemoveProperty(projectRunSettingsFilePathElementName, null, 1) == VSConstants.S_OK;
+                    ok = vsBuildPropertyStorage.RemoveProperty(projectRunSettingsFilePathElementName, string.Empty, (uint)_PersistStorageType.PST_PROJECT_FILE) == VSConstants.S_OK;
+
+                    if (ok)
+                    {
+                        this.projectSaver.SaveProject(vsHierarchy);
+                    }
                 }
             }
             return ok;
