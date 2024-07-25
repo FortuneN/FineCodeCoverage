@@ -141,6 +141,13 @@ namespace FineCodeCoverage.Impl
             {
                 await TestExecutionFinishedCollectionAsync(operation, testOperation);
             }
+            else
+            {
+                if (msCodeCoverageCollectionStatus == MsCodeCoverageCollectionStatus.Collecting)
+                {
+                    await msCodeCoverageRunSettingsService.TestExecutionNotFinishedAsync(testOperation);
+                }
+            }
         }
 
         private (bool should, ITestOperation testOperation) ShouldConditionallyCollectWhenTestExecutionFinished(IOperation operation)
