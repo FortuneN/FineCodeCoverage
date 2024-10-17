@@ -67,20 +67,20 @@ jobs:
 
         # above are common steps for push and pull
 
-        # pull only
-      - name: upload vsix
-        if: github.event_name == 'pull_request' && !github.event.pull_request.draft
-        uses: actions/upload-artifact@v2
-        with:
-            name: FineCodeCoverage ( zipped vsix)
-            path: ${{env.VSIX}}
+        # pull only - todo update to v4
+      # - name: upload vsix
+      #   if: github.event_name == 'pull_request' && !github.event.pull_request.draft
+      #   uses: actions/upload-artifact@v2
+      #   with:
+      #       name: FineCodeCoverage ( zipped vsix)
+      #       path: ${{env.VSIX}}
 
-      - name: upload vsix 2022
-        if: github.event_name == 'pull_request' && !github.event.pull_request.draft
-        uses: actions/upload-artifact@v2
-        with:
-            name: FineCodeCoverage2022 ( zipped vsix)
-            path: ${{env.VSIX2022}}
+      # - name: upload vsix 2022
+      #   if: github.event_name == 'pull_request' && !github.event.pull_request.draft
+      #   uses: actions/upload-artifact@v2
+      #   with:
+      #       name: FineCodeCoverage2022 ( zipped vsix)
+      #       path: ${{env.VSIX2022}}
 
         # push only
       - name: create release
@@ -134,11 +134,12 @@ jobs:
           manifestPath: ${{github.workspace}}\vs-market-place-manifest-2022.json
           vsixPath: ${{env.VSIX2022}}
 
-      - name: comment - released and added to marketplace
-        if: github.event_name == 'push'
-        uses: tonyhallett/addCommentToPullAndIssuesFromPushAction@v1.0.0
-        env:
-            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-            comment: released ${{steps.next-version.outputs.version_tag}} and available on marketplace
-            addTo: pullandissues
+      # todo - actions/upload-artifact@v4 now outputs the artifact-url 
+      # - name: comment - released and added to marketplace
+      #   if: github.event_name == 'push'
+      #   uses: tonyhallett/addCommentToPullAndIssuesFromPushAction@v1.0.0
+      #   env:
+      #       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #   with:
+      #       comment: released ${{steps.next-version.outputs.version_tag}} and available on marketplace
+      #       addTo: pullandissues
