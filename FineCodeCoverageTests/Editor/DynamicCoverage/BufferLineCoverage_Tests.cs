@@ -1,6 +1,7 @@
 ﻿using AutoMoq;
 using FineCodeCoverage.Core.Utilities;
 using FineCodeCoverage.Editor.DynamicCoverage;
+using FineCodeCoverage.Editor.DynamicCoverage.TrackedLinesImpl.Construction;
 using FineCodeCoverage.Engine;
 using FineCodeCoverage.Engine.Model;
 using FineCodeCoverage.Impl;
@@ -290,6 +291,7 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
                 null,
                 null,
                 new Mock<IAppOptionsProvider>().Object,
+                new CoverageContentTypes(new ICoverageContentType[] { }),
                 null
                 );
 

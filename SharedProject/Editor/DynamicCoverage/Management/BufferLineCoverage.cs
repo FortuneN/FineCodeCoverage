@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using FineCodeCoverage.Core.Utilities;
+using FineCodeCoverage.Editor.DynamicCoverage.TrackedLinesImpl.Construction;
 using FineCodeCoverage.Engine;
 using FineCodeCoverage.Engine.Model;
 using FineCodeCoverage.Impl;
@@ -11,6 +12,11 @@ using Microsoft.VisualStudio.Text.Editor;
 
 namespace FineCodeCoverage.Editor.DynamicCoverage
 {
+    internal interface ICoverageContentTypes
+    {
+        bool IsApplicable(string contentTypeName);
+    }
+
     internal class BufferLineCoverage : 
         IBufferLineCoverage, IListener<NewCoverageLinesMessage>, IListener<TestExecutionStartingMessage>
     {
@@ -19,12 +25,14 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
         private readonly ITrackedLinesFactory trackedLinesFactory;
         private readonly IDynamicCoverageStore dynamicCoverageStore;
         private readonly IAppOptionsProvider appOptionsProvider;
+        private readonly ICoverageContentTypes coverageContentTypes;
         private readonly ILogger logger;
         private readonly ITextBuffer2 textBuffer;
         private bool? editorCoverageModeOff;
         private IFileLineCoverage fileLineCoverage;
         private Nullable<DateTime> lastChanged;
         private DateTime lastTestExecutionStarting;
+        private bool applicableContentType = true;
 
         public ITrackedLines TrackedLines { get; set; }
 
@@ -40,6 +48,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
             ITrackedLinesFactory trackedLinesFactory,
             IDynamicCoverageStore dynamicCoverageStore,
             IAppOptionsProvider appOptionsProvider,
+            ICoverageContentTypes coverageContentTypes,
             ILogger logger
         )
         {
@@ -50,11 +59,13 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
             }
             
             this.textBuffer = textInfo.TextBuffer;
+            this.textBuffer.ContentTypeChanged += this.ContentTypeChanged;
             this.textInfo = textInfo;
             this.eventAggregator = eventAggregator;
             this.trackedLinesFactory = trackedLinesFactory;
             this.dynamicCoverageStore = dynamicCoverageStore;
             this.appOptionsProvider = appOptionsProvider;
+            this.coverageContentTypes = coverageContentTypes;
             this.logger = logger;
             void AppOptionsChanged(IAppOptions appOptions)
             {
@@ -79,12 +90,32 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
             {
                 this.UpdateDynamicCoverageStore((s as ITextView).TextSnapshot);
                 this.textBuffer.Changed -= this.TextBuffer_ChangedOnBackground;
+                this.textBuffer.ContentTypeChanged -= this.ContentTypeChanged;
                 textInfo.TextView.Closed -= textViewClosedHandler;
                 appOptionsProvider.OptionsChanged -= AppOptionsChanged;
                 _ = eventAggregator.RemoveListener(this);
             }
 
             textInfo.TextView.Closed += textViewClosedHandler;
+        }
+
+        private void ContentTypeChanged(object sender, ContentTypeChangedEventArgs args)
+        {
+            // purpose is so do not create tracked lines for a content type that is not applicable when new coverage
+            this.applicableContentType = this.coverageContentTypes.IsApplicable(args.AfterContentType.TypeName);
+            if (this.applicableContentType)
+            {
+                // this currently does not work as Roslyn is not ready.
+                // could fallback to single lines but would have to look at other uses of IFileCodeSpanRangeService
+                // this is low priority 
+                this.CreateTrackedLinesIfRequired(true);
+            }
+            else
+            {
+                this.TrackedLines = null;
+            }
+
+            this.SendCoverageChangedMessage();
         }
 
         private void UpdateDynamicCoverageStore(ITextSnapshot textSnapshot)
@@ -116,7 +147,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
         private bool FileSystemReflectsTrackedLines(string snapshotText)
             => this.textInfo.GetFileText() == snapshotText;
         
-        private void CreateTrackedLinesIfRequired(bool initial)
+        private void CreateTrackedLinesIfRequired(bool fromStore)
         {
             if (this.EditorCoverageColouringModeOff())
             {
@@ -124,15 +155,15 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
             }
             else
             {
-                this.TryCreateTrackedLines(initial);
+                this.TryCreateTrackedLines(fromStore);
             }
         }
 
-        private void TryCreateTrackedLines(bool initial)
+        private void TryCreateTrackedLines(bool fromStore)
         {
             try
             {
-                this.CreateTrackedLines(initial);
+                this.CreateTrackedLines(fromStore);
             }
             catch (Exception e)
             {
@@ -182,11 +213,11 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
                 : (SerializedCoverageState.Ok, serializedCoverageWhen.Serialized);
         }
 
-        private void CreateTrackedLines(bool initial)
+        private void CreateTrackedLines(bool fromStore)
         {
             string filePath = this.textInfo.FilePath;
             ITextSnapshot currentSnapshot = this.textBuffer.CurrentSnapshot;
-            if (initial)
+            if (fromStore)
             {
                 SerializedCoverageWhen serializedCoverageWhen = this.dynamicCoverageStore.GetSerializedCoverage(
                     filePath
@@ -266,6 +297,8 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
 
         public void Handle(NewCoverageLinesMessage message)
         {
+            if (!this.applicableContentType) return;
+
             this.fileLineCoverage = message.CoverageLines;
 
             bool hadTrackedLines = this.TrackedLines != null;
