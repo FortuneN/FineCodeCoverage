@@ -447,7 +447,7 @@ used by this project.
 
 [Apache 2.0](LICENSE)
 
-## Credits
+## Credits 
 
 [Coverlet](https://github.com/coverlet-coverage/coverlet)
 
