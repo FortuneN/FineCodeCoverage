@@ -441,7 +441,7 @@ if you want to contribute to this project.
 For cloning and building this project yourself, make sure
 to install the [Extensibility Essentials](https://marketplace.visualstudio.com/items?itemName=MadsKristensen.ExtensibilityEssentials2022)
 extension for Visual Studio which enables some features
-used by this project.
+used by this project. 
 
 ## License
 
