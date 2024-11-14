@@ -332,8 +332,7 @@ namespace FineCodeCoverage.Engine.Model
             return vsproject.References.Cast<VSLangProj.Reference>().Where(r => r.SourceProject != null).Select(r =>
             {
                 ThreadHelper.ThrowIfNotOnUIThread();
-                var assemblyName = Path.GetFileNameWithoutExtension(r.Path);
-                return new ReferencedProject(r.SourceProject.FullName, assemblyName);
+                return new ReferencedProject(r.SourceProject.FullName, r.Name);
             }).ToList();
 
         }
