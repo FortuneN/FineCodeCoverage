@@ -453,7 +453,7 @@ used by this project.
 
 [OpenCover](https://github.com/OpenCover/opencover)
 
-[ReportGenerator](https://github.com/danielpalme/ReportGenerator)
+[ReportGenerator](https://github.com/danielpalme/ReportGenerator) 
 
 ## Please support the project
 
