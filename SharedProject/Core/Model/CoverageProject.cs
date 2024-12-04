@@ -307,7 +307,7 @@ namespace FineCodeCoverage.Engine.Model
             return null;
         }
 
-        private async Task<List<ReferencedProject>> GetReferencedProjectsFromDteAsync()
+        private async Task<VSLangProj.VSProject> GetProjectAsync()
         {
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
             var project = dte.Solution.Projects.Cast<Project>().FirstOrDefault(p =>
@@ -328,12 +328,42 @@ namespace FineCodeCoverage.Engine.Model
                 return null;
             }
 
-            var vsproject = project.Object as VSLangProj.VSProject;
-            return vsproject.References.Cast<VSLangProj.Reference>().Where(r => r.SourceProject != null).Select(r =>
+            return project.Object as VSLangProj.VSProject;
+        }
+
+        private IEnumerable<Project> GetReferencedSourceProjects(VSLangProj.VSProject vsproject)
+        {
+            return vsproject.References.Cast<VSLangProj.Reference>().Where(r => r.SourceProject != null)
+                .Select(r => r.SourceProject);
+        }
+
+        private async Task<string> GetAssemblyNameAsync(Project project)
+        {
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+            var assNameProperty = project.Properties.Cast<Property>().FirstOrDefault(p =>
             {
-                ThreadHelper.ThrowIfNotOnUIThread();
-                return new ReferencedProject(r.SourceProject.FullName, r.Name);
-            }).ToList();
+#pragma warning disable VSTHRD010 // Invoke single-threaded types on Main thread
+                return p.Name == "AssemblyName";
+#pragma warning restore VSTHRD010 // Invoke single-threaded types on Main thread
+            });
+            return assNameProperty?.Value.ToString() ?? project.Name;
+        }
+        private async Task<ReferencedProject> GetReferencedProjectAsync(Project project)
+        {
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+            var assemblyName = await GetAssemblyNameAsync(project);
+            return new ReferencedProject(project.FullName, assemblyName);
+        }
+
+        private async Task<List<ReferencedProject>> GetReferencedProjectsFromDteAsync()
+        {
+            var vsproject = await GetProjectAsync();
+
+            if (vsproject == null)
+            {
+                return null;
+            }
+            return (await Task.WhenAll(GetReferencedSourceProjects(vsproject).Select(GetReferencedProjectAsync))).ToList();
 
         }
 
