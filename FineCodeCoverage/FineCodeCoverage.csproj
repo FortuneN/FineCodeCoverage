@@ -105,10 +105,6 @@
       <Link>ZippedTools\microsoft.testplatform.16.9.1.zip</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="..\Shared Files\ZippedTools\openCover.4.7.922.zip">
-      <Link>ZippedTools\openCover.4.7.922.zip</Link>
-      <IncludeInVSIX>true</IncludeInVSIX>
-    </Content>
     <Content Include="..\Shared Files\ZippedTools\coverlet.collector.3.2.0.zip">
       <Link>ZippedTools\coverlet.collector.3.2.0.zip</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
@@ -123,6 +119,10 @@
     </Content>
     <Content Include="..\Shared Files\ZippedTools\microsoft.codecoverage.17.9.0.zip">
       <Link>ZippedTools\microsoft.codecoverage.17.9.0.zip</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="..\Shared Files\ZippedTools\openCover.4.7.1221.zip">
+      <Link>ZippedTools\openCover.4.7.1221.zip</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <!--
