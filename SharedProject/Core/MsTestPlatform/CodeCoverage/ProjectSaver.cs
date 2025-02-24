@@ -9,7 +9,7 @@ namespace FineCodeCoverage.Core.MsTestPlatform.CodeCoverage
 {
     interface IProjectSaver
     {
-        void SaveProject(IVsHierarchy projectHierarchy);
+        System.Threading.Tasks.Task SaveProjectAsync(IVsHierarchy projectHierarchy);
     }
 
     [Export(typeof(IProjectSaver))]
@@ -26,9 +26,9 @@ namespace FineCodeCoverage.Core.MsTestPlatform.CodeCoverage
             this.serviceProvider  = serviceProvider;
         }
 
-        public void SaveProject(IVsHierarchy projectHierarchy)
+        public async System.Threading.Tasks.Task SaveProjectAsync(IVsHierarchy projectHierarchy)
         {
-            ThreadHelper.ThrowIfNotOnUIThread();
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
             var _solution = (IVsSolution)serviceProvider.GetService(typeof(SVsSolution));
             Assumes.Present(_solution);
             int hr = _solution.SaveSolutionElement((uint)__VSSLNSAVEOPTIONS.SLNSAVEOPT_SaveIfDirty, projectHierarchy, 0);

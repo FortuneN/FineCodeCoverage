@@ -171,6 +171,9 @@
     <PackageReference Include="Microsoft.VisualStudio.Composition.Analyzers">
       <Version>16.9.20</Version>
     </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.ProjectSystem">
+      <Version>15.8.243</Version>
+    </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.SDK" Version="16.0.206" ExcludeAssets="runtime">
       <IncludeAssets>compile; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>

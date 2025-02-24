@@ -11,7 +11,15 @@ or download from [releases](https://github.com/FortuneN/FineCodeCoverage/release
 
 ## Prerequisites
 
-For .Net - that the test adapters are nuget packages. For instance, the NUnit Test Adapter extension is not sufficient.
+For .Net
+
+FCC supports the new [Microsoft.Testing.Platform]( https://learn.microsoft.com/en-us/dotnet/core/testing/unit-testing-platform-intro).  
+FCC does not support the associated testing platform server mode for when using microsoft as a coverage provider.  
+You can disable this feature - "Options / Environment / Preview Features / Use testing platform server mode"
+but it is not necessary as FCC adds a global msbuild property, DisableTestingPlatformServerCapability true, that removes 
+the project capability. ([see Microsoft.Testing.Platform.MSBuild.targets](https://github.com/microsoft/testfx/blob/d141931b99fad0617d8435ce321fca0c45c9eb94/src/Platform/Microsoft.Testing.Platform.MSBuild/buildMultiTargeting/Microsoft.Testing.Platform.MSBuild.targets#L10)).
+
+When not using Microsoft.TestingPlatform you have added test adapters through nuget packages. For instance, the NUnit Test Adapter extension is not sufficient.
 
 ---
 
