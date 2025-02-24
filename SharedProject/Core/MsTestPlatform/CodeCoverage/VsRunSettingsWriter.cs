@@ -13,7 +13,7 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
     [Export(typeof(IVsRunSettingsWriter))]
     internal class VsRunSettingsWriter : IVsRunSettingsWriter
     {
-        private const string projectRunSettingsFilePathElementName = "RunSettingsFilePath";
+        private const string projectRunSettingsFilePathElementName = "RunSettingsFilePath"; 
         private readonly IServiceProvider serviceProvider;
         private readonly IProjectSaver projectSaver;
         private readonly IProjectFilePropertyWriter projectFilePropertyWriter;
