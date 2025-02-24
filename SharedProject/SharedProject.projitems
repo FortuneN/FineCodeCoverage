@@ -122,6 +122,9 @@
     <Compile Include="$(MSBuildThisFileDirectory)Core\MsTestPlatform\CodeCoverage\MsCodeCoverageRunSettingsService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\MsTestPlatform\MsTestPlatformUtil.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\MsTestPlatform\CodeCoverage\RunSettingsHelper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\MsTestPlatform\TestingPlatform\DisableTestingPlatformServerCapabilityGlobalPropertiesProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\MsTestPlatform\TestingPlatform\IUseTestingPlatformProtocolFeatureService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\MsTestPlatform\TestingPlatform\UseTestingPlatformProtocolFeatureService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\OpenCover\IOpenCoverExeArgumentsProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\OpenCover\IOpenCoverUtil.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\OpenCover\OpenCoverExeArgumentsProvider.cs" />
@@ -159,6 +162,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\IFileUtil.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\IProcessResponseProcessor.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\IProcessUtil.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\IProjectFilePropertyWriter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\IResourceProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\ISolutionEvents.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\IToolWindowOpener.cs" />
@@ -168,6 +172,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\MEF.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\ProcessResponseProcessor.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\ProcessUtil.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\ProjectFilePropertyWriter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\ReflectionExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\ResourceProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\ServiceProviderExtensions.cs" />
@@ -391,9 +396,11 @@
     <Compile Include="$(MSBuildThisFileDirectory)Options\IAppOptionsStorageProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\IJsonConvertService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\IReadOnlyConfigSettingsStoreProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Options\IReadOnlyUserSettingsStoreProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\IWritableUserSettingsStoreProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Utilities\JsonConvertService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\ReadOnlyConfigSettingsStoreProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Options\ReadOnlyUserSettingsStoreProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\WritableUserSettingsStoreProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Output\ToggleCoverageIndicatorsCommand.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Output\OpenHotspotsCommand.cs" />
