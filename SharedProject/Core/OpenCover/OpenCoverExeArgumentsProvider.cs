@@ -25,13 +25,13 @@ namespace FineCodeCoverage.Engine.OpenCover
         private enum Delimiter { Semicolon, Space}
         private void AddFilter(ICoverageProject project, List<string> opencoverSettings)
         {
-            var includedModules = project.IncludedReferencedProjects.ToList();
+            var includedModules = project.IncludedReferencedProjects.Select(rp => rp.AssemblyName).ToList();
             if (project.Settings.IncludeTestAssembly)
             {
                 includedModules.Add(project.ProjectName);
             }
             var includeFilters = GetExcludesOrIncludes(project.Settings.Include, includedModules, true);
-            var excludeFilters = GetExcludesOrIncludes(project.Settings.Exclude, project.ExcludedReferencedProjects,false);
+            var excludeFilters = GetExcludesOrIncludes(project.Settings.Exclude, project.ExcludedReferencedProjects.Select(rp => rp.AssemblyName), false);
             AddIncludeAllIfExcludingWithoutIncludes();
             var filters = includeFilters.Concat(excludeFilters).ToList();
             SafeAddToSettingsDelimitedIfAny(opencoverSettings, "filter", filters, Delimiter.Space);

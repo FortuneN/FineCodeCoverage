@@ -222,7 +222,7 @@ namespace FineCodeCoverageTests
             var openCoverExeArgumentsProvider = new OpenCoverExeArgumentsProvider();
             var mockCoverageProject = SafeMockCoverageProject();
             mockCoverageProject.Setup(coverageProject => coverageProject.IncludedReferencedProjects)
-                .Returns(new List<string> { "Referenced1", "Referenced2" });
+                .Returns(new List<IReferencedProject> { new ReferencedProject("", "Referenced1", true), new ReferencedProject("", "Referenced2", true) });
             
             var arguments = openCoverExeArgumentsProvider.Provide(mockCoverageProject.Object, "");
             
@@ -241,7 +241,7 @@ namespace FineCodeCoverageTests
             var openCoverExeArgumentsProvider = new OpenCoverExeArgumentsProvider();
             var mockCoverageProject = SafeMockCoverageProject();
             mockCoverageProject.Setup(coverageProject => coverageProject.ExcludedReferencedProjects)
-                .Returns(new List<string> { "Referenced1", "Referenced2" });
+                .Returns(new List<IReferencedProject> { new ReferencedProject("", "Referenced1", true), new ReferencedProject("", "Referenced2", true) });
 
             var arguments = openCoverExeArgumentsProvider.Provide(mockCoverageProject.Object, "");
 
@@ -264,8 +264,8 @@ namespace FineCodeCoverageTests
         private Mock<ICoverageProject> SafeMockCoverageProject()
         {
             var mockCoverageProject = new Mock<ICoverageProject>();
-            mockCoverageProject.SetupGet(coverageProject => coverageProject.IncludedReferencedProjects).Returns(new List<string>());
-            mockCoverageProject.SetupGet(coverageProject => coverageProject.ExcludedReferencedProjects).Returns(new List<string>());
+            mockCoverageProject.SetupGet(coverageProject => coverageProject.IncludedReferencedProjects).Returns(new List<IReferencedProject>());
+            mockCoverageProject.SetupGet(coverageProject => coverageProject.ExcludedReferencedProjects).Returns(new List<IReferencedProject>());
             mockCoverageProject.SetupGet(coverageProject => coverageProject.Settings).Returns(new Mock<IAppOptions>().Object);
             return mockCoverageProject;
         }

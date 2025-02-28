@@ -215,8 +215,8 @@ namespace FineCodeCoverageTests.MsCodeCoverage
             SetupAppOptionsProvider(RunMsCodeCoverage.IfInRunSettings);
 
             var projectSettings = new Mock<IAppOptions>().Object;
-            var excludedReferencedProjects = new List<string>();
-            var includedReferencedProjects = new List<string>();
+            var excludedReferencedProjects = new List<IReferencedProject>();
+            var includedReferencedProjects = new List<IReferencedProject>();
             var coverageProjects = new List<ICoverageProject>
             {
                 CreateCoverageProject(null),
@@ -531,8 +531,8 @@ namespace FineCodeCoverageTests.MsCodeCoverage
             IAppOptions settings = null,
             string coverageOutputFolder = "",
             string testDllFile = "", 
-            List<string> excludedReferencedProjects = null,
-            List<string> includedReferencedProjects = null,
+            List<IReferencedProject> excludedReferencedProjects = null,
+            List<IReferencedProject> includedReferencedProjects = null,
             string projectFile = ""
         )
         {

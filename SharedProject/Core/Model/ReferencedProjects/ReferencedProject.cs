@@ -3,18 +3,21 @@ using System.Xml.Linq;
 using System.Xml.XPath;
 using FineCodeCoverage.Core.Utilities;
 
-namespace FineCodeCoverage.Core.Model
+namespace FineCodeCoverage.Engine.Model
 {
-    internal class ReferencedProject
-	{
+    internal class ReferencedProject : IExcludableReferencedProject
+    {
 		internal const string excludeFromCodeCoveragePropertyName = "FCCExcludeFromCodeCoverage";
         private readonly string projectPath;
+		
 
-        public ReferencedProject(string projectPath,string assemblyName)
+        public ReferencedProject(string projectPath,string assemblyName,bool isDll)
         {
-			AssemblyName = assemblyName;
             this.projectPath = projectPath;
+            AssemblyName = assemblyName;
+            IsDll = isDll;
         }
+
 		public ReferencedProject(string projectPath)
         {
 			this.projectPath = projectPath;
@@ -43,8 +46,17 @@ namespace FineCodeCoverage.Core.Model
 			return result;
 		}
 
-		public string AssemblyName { get; private set; }
-		public bool ExcludeFromCodeCoverage
+		public string AssemblyName { get; }
+
+		public bool IsDll { get; } = true;
+
+        /*
+			Annoyingly by allowing <FCCExcludeFromCodeCoverage /> and not <FCCExcludeFromCodeCoverage>true</FCCExcludeFromCodeCoverage>
+			it is not possible to use IVsBuildPropertyStorage.
+			Todo - consider breaking change to <FCCExcludeFromCodeCoverage>true</FCCExcludeFromCodeCoverage>
+			Given that purpose is for dotnet framework.....
+		*/
+        public bool ExcludeFromCodeCoverage
 		{
 			get
 			{
