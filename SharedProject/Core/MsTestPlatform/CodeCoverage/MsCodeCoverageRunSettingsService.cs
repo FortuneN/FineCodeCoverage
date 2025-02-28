@@ -29,8 +29,8 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
             public IMsCodeCoverageOptions Settings { get; set; }
             public string CoverageOutputFolder { get; set; }
             public string TestDllFile { get; set; }
-            public List<string> ExcludedReferencedProjects { get; set; }
-            public List<string> IncludedReferencedProjects { get; set; }
+            public List<IReferencedProject> ExcludedReferencedProjects { get; set; }
+            public List<IReferencedProject> IncludedReferencedProjects { get; set; }
         }
         private class CoverageProjectsByType
         {

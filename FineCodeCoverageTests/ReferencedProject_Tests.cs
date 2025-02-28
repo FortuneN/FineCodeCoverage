@@ -1,5 +1,5 @@
 using System.IO;
-using FineCodeCoverage.Core.Model;
+using FineCodeCoverage.Engine.Model;
 using NUnit.Framework;
 
 namespace Test
@@ -24,7 +24,7 @@ namespace Test
         {
             var property = addProperty ? $"<{ReferencedProject.excludeFromCodeCoveragePropertyName}/>" : "";
             WriteProperty(property);
-            var referencedProject = new ReferencedProject(tempProjectFilePath, "");
+            var referencedProject = new ReferencedProject(tempProjectFilePath, "",true);
             Assert.AreEqual(addProperty, referencedProject.ExcludeFromCodeCoverage);
 
         }

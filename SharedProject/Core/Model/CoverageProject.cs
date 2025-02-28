@@ -5,15 +5,10 @@ using System.Linq;
 using System.Threading.Tasks;
 using Task = System.Threading.Tasks.Task;
 using System.Xml.Linq;
-using System.Xml.XPath;
-using EnvDTE;
-using FineCodeCoverage.Core.Model;
 using FineCodeCoverage.Core.Utilities;
 using FineCodeCoverage.Engine.FileSynchronization;
 using FineCodeCoverage.Options;
 using Microsoft.VisualStudio.Shell;
-using Microsoft.CodeAnalysis.MSBuild;
-using EnvDTE80;
 using System.Threading;
 
 namespace FineCodeCoverage.Engine.Model
@@ -22,10 +17,8 @@ namespace FineCodeCoverage.Engine.Model
     {
         private readonly IAppOptionsProvider appOptionsProvider;
         private readonly IFileSynchronizationUtil fileSynchronizationUtil;
-        private readonly ILogger logger;
-        private readonly DTE2 dte;
         private readonly ICoverageProjectSettingsManager settingsManager;
-        private readonly bool canUseMsBuildWorkspace;
+        private readonly IReferencedProjectsHelper referencedProjectsHelper;
         private XElement projectFileXElement;
         private IAppOptions settings;
         private string targetFramework;
@@ -63,17 +56,13 @@ namespace FineCodeCoverage.Engine.Model
         public CoverageProject(
             IAppOptionsProvider appOptionsProvider, 
             IFileSynchronizationUtil fileSynchronizationUtil, 
-            ILogger logger, 
-            DTE2 dte,
             ICoverageProjectSettingsManager settingsManager,
-            bool canUseMsBuildWorkspace)
+            IReferencedProjectsHelper referencedProjectsHelper)
         {
             this.appOptionsProvider = appOptionsProvider;
             this.fileSynchronizationUtil = fileSynchronizationUtil;
-            this.logger = logger;
-            this.dte = dte;
             this.settingsManager = settingsManager;
-            this.canUseMsBuildWorkspace = canUseMsBuildWorkspace;
+            this.referencedProjectsHelper = referencedProjectsHelper;
         }
 
         public string FCCOutputFolder => Path.Combine(ProjectOutputFolder, fccFolderName);
@@ -164,8 +153,8 @@ namespace FineCodeCoverage.Engine.Model
 
             }
         }
-        public List<string> ExcludedReferencedProjects { get; } = new List<string>();
-        public List<string> IncludedReferencedProjects { get; set; } = new List<string>();
+        public List<IReferencedProject> ExcludedReferencedProjects { get; } = new List<IReferencedProject>();
+        public List<IReferencedProject> IncludedReferencedProjects { get; set; } = new List<IReferencedProject>();
         public bool Is64Bit { get; set; }
         public string RunSettingsFile { get; set; }
         public bool IsDotNetFramework { get; private set; }
@@ -234,178 +223,28 @@ namespace FineCodeCoverage.Engine.Model
 
         private async Task SetIncludedExcludedReferencedProjectsAsync()
         {
-            List<ReferencedProject> referencedProjects = await GetReferencedProjectsAsync();
+            var referencedProjects = await referencedProjectsHelper.GetReferencedProjectsAsync(ProjectFile,() => ProjectFileXElement);
             SetExcludedReferencedProjects(referencedProjects);
             SetIncludedReferencedProjects(referencedProjects);
         }
 
-        private void SetIncludedReferencedProjects(List<ReferencedProject> referencedProjects)
+        private void SetIncludedReferencedProjects(List<IExcludableReferencedProject> referencedProjects)
         {
             if (Settings.IncludeReferencedProjects)
             {
-                IncludedReferencedProjects = referencedProjects.Select(referencedProject => referencedProject.AssemblyName).ToList();
+                IncludedReferencedProjects = new List<IReferencedProject>(referencedProjects);
             }
         }
         
-        private void SetExcludedReferencedProjects(List<ReferencedProject> referencedProjects)
+        private void SetExcludedReferencedProjects(List<IExcludableReferencedProject> referencedProjects)
         {
             foreach (var referencedProject in referencedProjects)
             {
                 if (referencedProject.ExcludeFromCodeCoverage)
                 {
-                    ExcludedReferencedProjects.Add(referencedProject.AssemblyName);
+                    ExcludedReferencedProjects.Add(referencedProject);
                 }
             }
-        }
-
-        private async Task<List<ReferencedProject>> GetReferencedProjectsAsync()
-        {
-            List<ReferencedProject> referencedProjects = await SafeGetReferencedProjectsFromDteAsync() ?? await GetReferencedProjectsFromProjectFileAsync();
-            return referencedProjects;
-        }
-
-        private async Task<List<ReferencedProject>> SafeGetReferencedProjectsFromDteAsync()
-        {
-            try
-            {
-                return await GetReferencedProjectsFromDteAsync();
-            }
-            catch (Exception) { }
-            return null;
-        }
-
-        private async Task<VSLangProj.VSProject> GetProjectAsync()
-        {
-            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-            var project = dte.Solution.Projects.Cast<Project>().FirstOrDefault(p =>
-            {
-                ThreadHelper.ThrowIfNotOnUIThread();
-                //have to try here as unloaded projects will throw
-                var projectFullName = "";
-                try
-                {
-                    projectFullName = p.FullName;
-                }
-                catch { }
-                return projectFullName == ProjectFile;
-            });
-
-            if (project == null)
-            {
-                return null;
-            }
-
-            return project.Object as VSLangProj.VSProject;
-        }
-
-        private IEnumerable<Project> GetReferencedSourceProjects(VSLangProj.VSProject vsproject)
-        {
-            return vsproject.References.Cast<VSLangProj.Reference>().Where(r => r.SourceProject != null)
-                .Select(r => r.SourceProject);
-        }
-
-        private async Task<string> GetAssemblyNameAsync(Project project)
-        {
-            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-            var assNameProperty = project.Properties.Cast<Property>().FirstOrDefault(p =>
-            {
-#pragma warning disable VSTHRD010 // Invoke single-threaded types on Main thread
-                return p.Name == "AssemblyName";
-#pragma warning restore VSTHRD010 // Invoke single-threaded types on Main thread
-            });
-            return assNameProperty?.Value.ToString() ?? project.Name;
-        }
-        private async Task<ReferencedProject> GetReferencedProjectAsync(Project project)
-        {
-            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-            var assemblyName = await GetAssemblyNameAsync(project);
-            return new ReferencedProject(project.FullName, assemblyName);
-        }
-
-        private async Task<List<ReferencedProject>> GetReferencedProjectsFromDteAsync()
-        {
-            var vsproject = await GetProjectAsync();
-
-            if (vsproject == null)
-            {
-                return null;
-            }
-            return (await Task.WhenAll(GetReferencedSourceProjects(vsproject).Select(GetReferencedProjectAsync))).ToList();
-
-        }
-
-        private async Task<List<ReferencedProject>> SafeGetReferencedProjectsWithDesignTimeBuildAsync()
-        {
-            try
-            {
-                return await GetReferencedProjectsWithDesignTimeBuildWorkerAsync();
-            }
-            catch (Exception exception)
-            {
-                logger.Log("Unable to get referenced projects with design time build", exception);
-            }
-            return new List<ReferencedProject>();
-        }
-        
-        private async Task<List<ReferencedProject>> GetReferencedProjectsWithDesignTimeBuildWorkerAsync()
-        {
-            var msBuildWorkspace = MSBuildWorkspace.Create();
-            var project = await msBuildWorkspace.OpenProjectAsync(ProjectFile);
-            var solution = msBuildWorkspace.CurrentSolution;
-            return project.ProjectReferences.Select(
-                pr => solution.Projects.First(p => p.Id == pr.ProjectId).FilePath)
-                    .Where(path => path != null)
-                    .Select(path => new ReferencedProject(path)).ToList();
-        }
-
-        private async Task<List<ReferencedProject>> GetReferencedProjectsFromProjectFileAsync()
-        {
-            /*
-			<ItemGroup>
-				<ProjectReference Include="..\BranchCoverage\Branch_Coverage.csproj" />
-				<ProjectReference Include="..\FxClassLibrary1\FxClassLibrary1.csproj"></ProjectReference>
-			</ItemGroup>
-			 */
-
-
-            var xprojectReferences = ProjectFileXElement.XPathSelectElements($"/ItemGroup/ProjectReference[@Include]");
-            var requiresDesignTimeBuild = false;
-            List<string> referencedProjectFiles = new List<string>();
-            foreach (var xprojectReference in xprojectReferences)
-            {
-                var referencedProjectProjectFile = xprojectReference.Attribute("Include").Value;
-                if (referencedProjectProjectFile.Contains("$("))
-                {
-                    if (canUseMsBuildWorkspace)
-                    {
-                        requiresDesignTimeBuild = true;
-                        break;
-                    }
-                    else
-                    {
-                        logger.Log($"Cannot exclude referenced project {referencedProjectProjectFile} of {ProjectFile} with {ReferencedProject.excludeFromCodeCoveragePropertyName}.  Cannot use MSBuildWorkspace");
-                    }
-                    
-                }
-                else
-                {
-                    if (!Path.IsPathRooted(referencedProjectProjectFile))
-                    {
-                        referencedProjectProjectFile = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(ProjectFile), referencedProjectProjectFile));
-                    }
-                    referencedProjectFiles.Add(referencedProjectProjectFile);
-                }
-
-            }
-
-            if (requiresDesignTimeBuild)
-            {
-                var referencedProjects = await SafeGetReferencedProjectsWithDesignTimeBuildAsync();
-                return referencedProjects;
-
-            }
-
-            return referencedProjectFiles.Select(referencedProjectProjectFile => new ReferencedProject(referencedProjectProjectFile)).ToList();
         }
 
         private void EnsureDirectories()

@@ -12,8 +12,8 @@ namespace FineCodeCoverage.Engine.Model
         string CoverageOutputFile { get; }
         string CoverageOutputFolder { get; set; }
         string DefaultCoverageOutputFolder { get; }
-        List<string> ExcludedReferencedProjects { get; }
-        List<string> IncludedReferencedProjects { get; }
+        List<IReferencedProject> ExcludedReferencedProjects { get; }
+        List<IReferencedProject> IncludedReferencedProjects { get; }
         string FailureDescription { get; set; }
         string FailureStage { get; set; }
         bool HasFailed { get; }

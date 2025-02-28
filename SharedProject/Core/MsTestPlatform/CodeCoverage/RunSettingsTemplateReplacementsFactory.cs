@@ -1,5 +1,4 @@
-﻿using FineCodeCoverage.Core.Model;
-using FineCodeCoverage.Engine.Model;
+﻿using FineCodeCoverage.Engine.Model;
 using FineCodeCoverage.Options;
 using Microsoft.VisualStudio.TestWindow.Extensibility;
 using System;
@@ -160,14 +159,14 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
         }
 
         private IEnumerable<string> GetAdditionalModulePaths(
-            IEnumerable<string> referencedProjects,
+            IEnumerable<IReferencedProject> referencedProjects,
             string testDllFile,
             bool includeTestAssembly,
             bool isInclude
             )
         {
             var additionalReferenced = referencedProjects.Select(
-                rp => MsCodeCoverageRegex.RegexModuleName(rp));
+                rp => MsCodeCoverageRegex.RegexModuleName(rp.AssemblyName,rp.IsDll));
             if(includeTestAssembly == isInclude)
             {
                 additionalReferenced = additionalReferenced.Append(MsCodeCoverageRegex.RegexEscapePath(testDllFile));

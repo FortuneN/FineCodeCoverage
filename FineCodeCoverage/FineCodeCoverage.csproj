@@ -147,9 +147,6 @@
     <PackageReference Include="ExCSS">
       <Version>4.1.1</Version>
     </PackageReference>
-    <PackageReference Include="Microsoft.Build.Locator">
-      <Version>1.4.1</Version>
-    </PackageReference>
     <PackageReference Include="Microsoft.CodeAnalysis.Common">
       <Version>3.11.0</Version>
     </PackageReference>
@@ -181,6 +178,9 @@
       <Version>17.9.28</Version>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.VCProjectEngine">
+      <Version>16.10.31320.204</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="16.8.3038">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>

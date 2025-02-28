@@ -36,8 +36,8 @@ namespace Test
             mockCoverageProject = new Mock<ICoverageProject>();
             mockCoverageProject.Setup(cp => cp.Settings).Returns(new Mock<IAppOptions>().Object);
             mockCoverageProject.Setup(cp => cp.CoverageOutputFolder).Returns("");
-            mockCoverageProject.Setup(cp => cp.ExcludedReferencedProjects).Returns(new List<string>());
-            mockCoverageProject.Setup(cp => cp.IncludedReferencedProjects).Returns(new List<string>());
+            mockCoverageProject.Setup(cp => cp.ExcludedReferencedProjects).Returns(new List<IReferencedProject>());
+            mockCoverageProject.Setup(cp => cp.IncludedReferencedProjects).Returns(new List<IReferencedProject>());
             mockRunSettingsCoverletConfiguration = new Mock<IRunSettingsCoverletConfiguration>();
             coverletDataCollectorUtil.runSettingsCoverletConfiguration = mockRunSettingsCoverletConfiguration.Object;
             coverletDataCollectorUtil.coverageProject = mockCoverageProject.Object;
@@ -76,7 +76,7 @@ namespace Test
             var projectExclude = new string[] { "excluded" };
             mockCoverageProject.Setup(cp => cp.Settings.Exclude).Returns(projectExclude);
             mockCoverageProject.Setup(cp => cp.CoverageOutputFolder).Returns("");
-            var referencedExcluded = new List<string> { "referencedExcluded" };
+            var referencedExcluded = new List<IReferencedProject> { new ReferencedProject("","referencedExcluded",true) };
             mockCoverageProject.Setup(cp => cp.ExcludedReferencedProjects).Returns(referencedExcluded);
             mockRunSettingsCoverletConfiguration.Setup(rsc => rsc.Exclude).Returns("rsexclude");
             await coverletDataCollectorUtil.RunAsync(CancellationToken.None);
@@ -86,7 +86,7 @@ namespace Test
         [Test]
         public async Task Should_Not_Throw_When_Project_Setttings_Exclude_Is_Null_Async()
         {
-            var referencedExcluded = new List<string> { "referencedExcluded" };
+            var referencedExcluded = new List<IReferencedProject> { new ReferencedProject("", "referencedExcluded", true) };
             mockCoverageProject.Setup(cp => cp.ExcludedReferencedProjects).Returns(referencedExcluded);
             mockCoverageProject.Setup(cp => cp.CoverageOutputFolder).Returns("");
             mockRunSettingsCoverletConfiguration.Setup(rsc => rsc.Exclude).Returns("rsexclude");

@@ -7,9 +7,15 @@
             return path.Replace(@"\", @"\\");
         }
 
-        public static string RegexModuleName(string moduleName)
+        public static string RegexModuleName(string moduleName, bool isDll)
+        {   
+            var extensionMatch = isDll ? "dll" : "(dll|exe)";
+            return $".*\\\\{EscapeDots(moduleName)}\\.{extensionMatch}$";
+        }
+
+        private static string EscapeDots(string moduleName)
         {
-            return $".*\\\\{moduleName}.dll$";
+            return moduleName.Replace(".", @"\.");
         }
     }
 

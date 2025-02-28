@@ -37,7 +37,7 @@ namespace FineCodeCoverage.Engine.Coverlet
                 coverletSettings.Add($@"--exclude ""{value.Replace("\"", "\\\"").Trim(' ', '\'')}""");
             }
 
-            foreach (var referencedProjectExcludedFromCodeCoverage in project.ExcludedReferencedProjects)
+            foreach (var referencedProjectExcludedFromCodeCoverage in project.ExcludedReferencedProjects.Select(rp => rp.AssemblyName))
             {
                 coverletSettings.Add($@"--exclude ""[{referencedProjectExcludedFromCodeCoverage}]*""");
             }
@@ -47,7 +47,7 @@ namespace FineCodeCoverage.Engine.Coverlet
                 coverletSettings.Add($@"--include ""{value.Replace("\"", "\\\"").Trim(' ', '\'')}""");
             }
 
-            foreach (var includedReferencedProject in project.IncludedReferencedProjects)
+            foreach (var includedReferencedProject in project.IncludedReferencedProjects.Select(rp => rp.AssemblyName))
             {
                 coverletSettings.Add($@"--include ""[{includedReferencedProject}]*""");
             }

@@ -79,18 +79,30 @@
     <Compile Include="$(MSBuildThisFileDirectory)Core\Model\CoverageProjectFileSynchronizationDetails.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Model\CoverageProjectSettingsManager.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Model\CoverageProjectSettingsProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Model\ReferencedProjects\CPPReferencedProjectsHelper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Model\ReferencedProjects\DotNetReferencedProjectsHelper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Model\ReferencedProjects\ProjectFileReferencedProjectsHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Model\FCCSettingsFilesProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Cobertura\FileLineCoverage.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Model\ICoverageProject.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Model\ICoverageProjectFactory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Model\ICoverageProjectSettingsManager.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Model\ICoverageProjectSettingsProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Model\ReferencedProjects\ICPPReferencedProjectsHelper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Model\ReferencedProjects\IDotNetReferencedProjectsHelper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Model\ReferencedProjects\IExcludableReferencedProject.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Model\ReferencedProjects\IProjectFileReferencedProjectsHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Model\IFCCSettingsFilesProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Cobertura\IFileLineCoverage.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Model\ReferencedProjects\IReferencedProject.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Model\ReferencedProjects\IReferencedProjectsHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Model\ISettingsMerger.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Model\ReferencedProjects\IVsApiReferencedProjectsHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Model\IVsBuildFCCSettingsProvider.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Core\Model\ReferencedProject.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Model\ReferencedProjects\ReferencedProject.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Model\ReferencedProjects\ReferencedProjectsHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Model\SettingsMerger.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Model\ReferencedProjects\VsApiReferencedProjectsHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Model\VsBuildFCCSettingsProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\MsTestPlatform\CodeCoverage\ITemplatedRunSettingsService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\MsTestPlatform\CodeCoverage\MsTemplateReplacementException.cs" />
@@ -443,10 +455,10 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="$(MSBuildThisFileDirectory)Editor\.editorconfig" />
-    <None Include="$(MSBuildThisFileDirectory)Output\Directory.Build.props" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="$(MSBuildThisFileDirectory)Core\Cobertura\Report\" />
+    <Folder Include="$(MSBuildThisFileDirectory)Core\Model\ReferencedProjects\" />
     <Folder Include="$(MSBuildThisFileDirectory)Editor\DynamicCoverage\NewCode\" />
     <Folder Include="$(MSBuildThisFileDirectory)Editor\DynamicCoverage\Dirty\" />
     <Folder Include="$(MSBuildThisFileDirectory)Editor\DynamicCoverage\Coverage\" />

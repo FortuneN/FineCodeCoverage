@@ -3,7 +3,6 @@ using System.ComponentModel.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using FineCodeCoverage.Engine;
-using FineCodeCoverage.Engine.Model;
 
 namespace FineCodeCoverage.Core.Initialization
 {
@@ -15,7 +14,6 @@ namespace FineCodeCoverage.Core.Initialization
     {
         private readonly IFCCEngine fccEngine;
         private readonly ILogger logger;
-        private readonly ICoverageProjectFactory coverageProjectFactory;
         private readonly IFirstTimeToolWindowOpener firstTimeToolWindowOpener;
 
         public InitializeStatus InitializeStatus { get; set; } = InitializeStatus.Initializing;
@@ -25,7 +23,6 @@ namespace FineCodeCoverage.Core.Initialization
         public Initializer(
             IFCCEngine fccEngine, 
             ILogger logger, 
-            ICoverageProjectFactory coverageProjectFactory,
             IFirstTimeToolWindowOpener firstTimeToolWindowOpener,
             [ImportMany]
             IInitializable[] initializables
@@ -33,7 +30,6 @@ namespace FineCodeCoverage.Core.Initialization
         {
             this.fccEngine = fccEngine;
             this.logger = logger;
-            this.coverageProjectFactory = coverageProjectFactory;
             this.firstTimeToolWindowOpener = firstTimeToolWindowOpener;
         }
         public async Task InitializeAsync(CancellationToken cancellationToken)
@@ -44,7 +40,6 @@ namespace FineCodeCoverage.Core.Initialization
                 logger.Log($"Initializing");
 
                 cancellationToken.ThrowIfCancellationRequested();
-                coverageProjectFactory.Initialize();
 
                 fccEngine.Initialize(cancellationToken);
 

@@ -12,7 +12,7 @@ namespace FineCodeCoverageTests
         [SetUp]
         public void SetUp()
         {
-            coverageProject = new CoverageProject(null, null, null, null, null, false);
+            coverageProject = new CoverageProject(null, null, null, null);
             tempProjectFilePath = Path.Combine(Path.GetTempPath(), "testproject.csproj");
             coverageProject.ProjectFile = tempProjectFilePath;
         }
