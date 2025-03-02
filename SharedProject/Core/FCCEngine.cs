@@ -171,7 +171,6 @@ namespace FineCodeCoverage.Engine
                     
                     var coverageTool = coverageUtilManager.CoverageToolName(project);
                     var runCoverToolMessage = $"Run {coverageTool} ({project.ProjectName})";
-                    logger.Log(runCoverToolMessage);
                     reportGeneratorUtil.LogCoverageProcess(runCoverToolMessage);
                     await coverageUtilManager.RunCoverageAsync(project, vsShutdownLinkedCancellationToken);
                     

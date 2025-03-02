@@ -1,12 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.Composition;
+﻿using System.ComponentModel.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using FineCodeCoverage.Engine.Coverlet;
 using FineCodeCoverage.Engine.Model;
 using FineCodeCoverage.Engine.OpenCover;
-using FineCodeCoverage.Engine.ReportGenerator;
 
 namespace FineCodeCoverage.Engine
 {
