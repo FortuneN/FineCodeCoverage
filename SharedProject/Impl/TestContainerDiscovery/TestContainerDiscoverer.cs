@@ -98,7 +98,9 @@ namespace FineCodeCoverage.Impl
 
         private void LogCoverageStarting()
         {
-            CombinedLog(StatusMarkerProvider.Get($"Coverage Starting - {coverageRunNumber++}"));
+            var coverageStartingMessage = $"Coverage Starting - {coverageRunNumber++}";
+            logger.Log(StatusMarkerProvider.Get(coverageStartingMessage));
+            reportGeneratorUtil.LogCoverageProcess($"-- {coverageStartingMessage} --");
             reportGeneratorUtil.LogCoverageProcess("Full details in FCC Output Pane");
         }
 
