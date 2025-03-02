@@ -200,6 +200,7 @@ namespace FineCodeCoverageTests
                 nameof(IAppOptions.ThresholdForCrapScore),
                 nameof(IAppOptions.ThresholdForNPathComplexity),
                 nameof(IAppOptions.ThresholdForCyclomaticComplexity),
+                nameof(IAppOptions.RunMsCodeCoverage),
                 nameof(IAppOptions.NamespacedClasses),
                 nameof(IAppOptions.ShowCoverageInOverviewMargin),
                 nameof(IAppOptions.ShowCoveredInOverviewMargin),

@@ -121,12 +121,7 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
         public async Task<MsCodeCoverageCollectionStatus> IsCollectingAsync(ITestOperation testOperation)
         {
             await InitializeIsCollectingAsync(testOperation);
-            if( runMsCodeCoverage == RunMsCodeCoverage.No)
-            {
-                logger.Log($"See option {nameof(IAppOptions.RunMsCodeCoverage)} for a better ( Beta ) experience.  {FCCGithub.Readme}");
-                reportGeneratorUtil.LogCoverageProcess($"See option {nameof(IAppOptions.RunMsCodeCoverage)} for a better ( Beta ) experience. View readme.");
-            }
-            else
+            if( runMsCodeCoverage != RunMsCodeCoverage.No)
             {
                 await TrySetUpForCollectionAsync(testOperation.SolutionDirectory);
             }
