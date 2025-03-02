@@ -9,6 +9,7 @@ using FineCodeCoverage.Core.Utilities;
 using FineCodeCoverage.Engine.Coverlet;
 using FineCodeCoverage.Engine.Model;
 using FineCodeCoverage.Options;
+using FineCodeCoverage.Output;
 using Moq;
 using NUnit.Framework;
 

@@ -6,6 +6,7 @@ using FineCodeCoverage.Engine;
 using FineCodeCoverage.Engine.Model;
 using FineCodeCoverage.Impl;
 using FineCodeCoverage.Options;
+using FineCodeCoverage.Output;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Moq;

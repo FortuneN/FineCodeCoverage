@@ -4,6 +4,7 @@ using System.Linq;
 using AutoMoq;
 using FineCodeCoverage.Core.Utilities;
 using FineCodeCoverage.Options;
+using FineCodeCoverage.Output;
 using Microsoft.VisualStudio.Settings;
 using Moq;
 using NUnit.Framework;

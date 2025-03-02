@@ -1,6 +1,7 @@
 ﻿using System;
 using AutoMoq;
 using FineCodeCoverage.Core.Utilities;
+using FineCodeCoverage.Output;
 using NUnit.Framework;
 
 namespace Test

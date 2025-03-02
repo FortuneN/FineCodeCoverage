@@ -15,6 +15,7 @@ using FineCodeCoverage.Engine.ReportGenerator;
 using FineCodeCoverage.Core.Utilities;
 using System.IO;
 using System;
+using FineCodeCoverage.Output;
 
 namespace FineCodeCoverageTests.MsCodeCoverage
 {

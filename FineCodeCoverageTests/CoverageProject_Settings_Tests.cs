@@ -2,6 +2,7 @@ using AutoMoq;
 using FineCodeCoverage.Core.Utilities;
 using FineCodeCoverage.Engine.Model;
 using FineCodeCoverage.Options;
+using FineCodeCoverage.Output;
 using FineCodeCoverageTests.TestHelpers;
 using Moq;
 using NUnit.Framework;

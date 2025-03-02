@@ -2,6 +2,7 @@
 using AutoMoq;
 using FineCodeCoverage.Core.Utilities;
 using FineCodeCoverage.Engine.Coverlet;
+using FineCodeCoverage.Output;
 using NUnit.Framework;
 
 namespace FineCodeCoverageTests
