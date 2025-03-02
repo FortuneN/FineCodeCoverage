@@ -60,7 +60,6 @@ namespace FineCodeCoverage.Output
         {
             try
             {
-                //var logTime = DateTime.Now;
                 var logTime = NowForLog.Get();
                 var messageList = new List<string>(message?.Select(x => x?.ToString()?.Trim(' ', '\r', '\n')).Where(x => !string.IsNullOrWhiteSpace(x)));
 
@@ -87,7 +86,6 @@ namespace FineCodeCoverage.Output
 
                     if (withTitle)
                     {
-                        //_pane.OutputStringThreadSafe($"{Vsix.Name} {logTime}: {logs}{Environment.NewLine}");
                         _pane.OutputStringThreadSafe($"{logTime}: {logs}{Environment.NewLine}");
                     }
                     else
