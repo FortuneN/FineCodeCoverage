@@ -13,11 +13,9 @@ using FineCodeCoverage.Options;
 using Microsoft.VisualStudio.TestWindow.Extensibility;
 using Moq;
 using NUnit.Framework;
-using FineCodeCoverage.Output;
 
 namespace Test
 {
-
     internal class TestOperationStateInvocationManager_Tests
     {
         private AutoMoqer mocker;
@@ -426,6 +424,43 @@ namespace Test
             RaiseTestExecutionFinished();
 
             mockMsCodeCoverageRunSettingsService.Verify(msCodeCoverageRunSettingsService => msCodeCoverageRunSettingsService.TestExecutionNotFinishedAsync(mockTestOperation.Object));
+
+        }
+
+        [Test]
+        public void Should_Log_Coverage_Starting_With_Run_Number_When_TestExecutionStartingAsync_And_Coverage_Not_Disabled()
+        {
+            SetUpOptions(mockAppOptions =>
+            {
+                mockAppOptions.Setup(o => o.Enabled).Returns(true);
+            });
+            
+            var operation = new Mock<IOperation>().Object;
+            RaiseTestExecutionStarting(operation);
+
+            mocker.Verify<FineCodeCoverage.Output.ILogger>(
+                logger => logger.Log("================================== COVERAGE STARTING - 1 =================================="));
+
+            RaiseTestExecutionStarting(operation);
+
+            mocker.Verify<FineCodeCoverage.Output.ILogger>(
+                logger => logger.Log("================================== COVERAGE STARTING - 2 =================================="));
+        }
+
+        [Test]
+        public void Should_Not_Log_Coverage_Starting_When_Coverage_Disabled()
+        {
+            SetUpOptions(mockAppOptions =>
+            {
+                mockAppOptions.Setup(o => o.Enabled).Returns(false);
+                mockAppOptions.Setup(o => o.DisabledNoCoverage).Returns(true);
+            });
+
+            var operation = new Mock<IOperation>().Object;
+            RaiseTestExecutionStarting(operation);
+
+            mocker.Verify<FineCodeCoverage.Output.ILogger>(
+                logger => logger.Log("================================== COVERAGE STARTING - 1 =================================="), Times.Never());
 
         }
     }
