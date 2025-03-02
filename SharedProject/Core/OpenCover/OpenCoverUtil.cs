@@ -97,7 +97,7 @@ namespace FineCodeCoverage.Engine.OpenCover
 				throw new Exception(result.Output);
 			}
 
-			logger.Log(title, result.Output);
+			logger.Log($"{title} - Output", result.Output);
 		}
 	}
 }
