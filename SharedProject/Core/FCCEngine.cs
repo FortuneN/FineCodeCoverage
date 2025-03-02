@@ -267,6 +267,7 @@ namespace FineCodeCoverage.Engine
                 var logs = fileSynchronizationDetails.Logs;
                 if (logs.Any())
                 {
+                    logs.Insert(0, "File synchronization :");
                     logs.Add($"File synchronization duration : {fileSynchronizationDetails.Duration}");
                     logger.Log(logs);
                     
