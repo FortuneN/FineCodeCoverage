@@ -266,13 +266,11 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
         private async Task CollectingWithTemplateAsync(IProjectRunSettingsFromTemplateResult generationResult, List<ICoverageProject> coverageProjectsForShim)
         {
             coverageProjectsForShim.AddRange(generationResult.CoverageProjectsWithFCCMsTestAdapter);
-            await CombinedLogAsync(() =>
-            {
-                var leadingMessage = generationResult.CustomTemplatePaths.Any() ? $"{msCodeCoverageMessage} - custom template paths" : msCodeCoverageMessage;
-                var loggerMessages = new List<string> { leadingMessage }.Concat(generationResult.CustomTemplatePaths.Distinct());
-                logger.Log(loggerMessages);
-                reportGeneratorUtil.LogCoverageProcess(msCodeCoverageMessage);
-            });
+            await threadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+            var leadingMessage = generationResult.CustomTemplatePaths.Any() ? $"{msCodeCoverageMessage} - custom template paths" : msCodeCoverageMessage;
+            var loggerMessages = new List<string> { leadingMessage }.Concat(generationResult.CustomTemplatePaths.Distinct());
+            logger.Log(loggerMessages);
+            reportGeneratorUtil.LogCoverageProcess(msCodeCoverageMessage);
             collectionStatus = MsCodeCoverageCollectionStatus.Collecting;
         }
 
@@ -370,26 +368,16 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
         #region Logging
         private async Task CombinedLogAsync(string message)
         {
-            await CombinedLogAsync(() =>
-            {
-                logger.Log(message);
-                reportGeneratorUtil.LogCoverageProcess(message);
-            });
+            await threadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+            logger.Log(message);
+            reportGeneratorUtil.LogCoverageProcess(message);
         }
 
-        private async Task CombinedLogAsync(Action action)
+        private async Task CombinedLogExceptionAsync(Exception ex, string reason)
         {
             await threadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-            action();
-        }
-
-        private Task CombinedLogExceptionAsync(Exception ex, string reason)
-        {
-            return CombinedLogAsync(() =>
-            {
-                logger.Log(reason, ex.ToString());
-                reportGeneratorUtil.LogCoverageProcess(reason);
-            });
+            logger.Log(reason, ex.ToString());
+            reportGeneratorUtil.LogCoverageProcess(reason);
         }
 
         #endregion
