@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using System.ComponentModel.Composition;
 using FineCodeCoverage.Core.Utilities;
 using System.Threading;
+using FineCodeCoverage.Output;
 
 namespace FineCodeCoverage.Engine.OpenCover
 {

@@ -10,11 +10,10 @@ using FineCodeCoverage.Engine.Model;
 using FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage;
 using FineCodeCoverage.Impl;
 using FineCodeCoverage.Options;
-using Microsoft.Build.Evaluation;
 using Microsoft.VisualStudio.TestWindow.Extensibility;
 using Moq;
 using NUnit.Framework;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
+using FineCodeCoverage.Output;
 
 namespace Test
 {
@@ -60,7 +59,7 @@ namespace Test
         public void Should_Log_When_Cannot_Invoke(TestOperationStates testOperationState)
         {
             testOperationStateInvocationManager.CanInvoke(testOperationState);
-            mocker.Verify<ILogger>(logger => logger.Log($"Skipping {testOperationState} as FCC not initialized"));
+            mocker.Verify<FineCodeCoverage.Output.ILogger>(logger => logger.Log($"Skipping {testOperationState} as FCC not initialized"));
         }
        
     }
@@ -379,7 +378,7 @@ namespace Test
             var exception = new Exception();
             mocker.GetMock<IFCCEngine>().Setup(engine => engine.StopCoverage()).Throws(exception);
             RaiseTestExecutionCancelling();
-            mocker.Verify<ILogger>(logger => logger.Log("Error processing unit test events", exception));
+            mocker.Verify<FineCodeCoverage.Output.ILogger>(logger => logger.Log("Error processing unit test events", exception));
         }
 
         [TestCase(true)]

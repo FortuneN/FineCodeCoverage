@@ -2,6 +2,7 @@
 using System.ComponentModel.Composition;
 using System.Reflection;
 using FineCodeCoverage.Core.Utilities;
+using FineCodeCoverage.Output;
 using Microsoft.VisualStudio.Settings;
 
 namespace FineCodeCoverage.Options

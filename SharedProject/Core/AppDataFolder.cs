@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using FineCodeCoverage.Options;
+using FineCodeCoverage.Output;
 
 namespace FineCodeCoverage.Engine
 {

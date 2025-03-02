@@ -61,7 +61,7 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
         private readonly IAppOptionsProvider appOptionsProvider;
         private readonly ICoverageToolOutputManager coverageOutputManager;
         private readonly IShimCopier shimCopier;
-        private readonly ILogger logger;
+        private readonly Output.ILogger logger;
         private readonly IReportGeneratorUtil reportGeneratorUtil;
         private IFCCEngine fccEngine;
 
@@ -94,7 +94,7 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
             IUserRunSettingsService userRunSettingsService,
             ITemplatedRunSettingsService templatedRunSettingsService,
             IShimCopier shimCopier,
-            ILogger logger,
+            Output.ILogger logger,
             IReportGeneratorUtil reportGeneratorUtil
             )
         {

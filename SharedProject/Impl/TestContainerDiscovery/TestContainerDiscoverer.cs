@@ -14,6 +14,7 @@ using FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage;
 using System.Threading;
 using FineCodeCoverage.Core.Initialization;
 using FineCodeCoverage.Core.Utilities;
+using FineCodeCoverage.Output;
 
 namespace FineCodeCoverage.Impl
 {
@@ -29,7 +30,7 @@ namespace FineCodeCoverage.Impl
         private readonly IFCCEngine fccEngine;
         private readonly ITestOperationStateInvocationManager testOperationStateInvocationManager;
         private readonly ITestOperationFactory testOperationFactory;
-        private readonly ILogger logger;
+        private readonly Output.ILogger logger;
         private readonly IAppOptionsProvider appOptionsProvider;
         private readonly IReportGeneratorUtil reportGeneratorUtil;
         private readonly IMsCodeCoverageRunSettingsService msCodeCoverageRunSettingsService;
@@ -39,6 +40,7 @@ namespace FineCodeCoverage.Impl
         private MsCodeCoverageCollectionStatus msCodeCoverageCollectionStatus;
         private bool runningInParallel;
         private IAppOptions settings;
+        private int coverageRunNumber = 1;
         
         internal Task initializeTask;
 
@@ -58,7 +60,7 @@ namespace FineCodeCoverage.Impl
             ITestOperationStateInvocationManager testOperationStateInvocationManager,
             IPackageLoader packageLoader,
             ITestOperationFactory testOperationFactory,
-            ILogger logger,
+            Output.ILogger logger,
             IAppOptionsProvider appOptionsProvider,
             IReportGeneratorUtil reportGeneratorUtil,
             IMsCodeCoverageRunSettingsService msCodeCoverageRunSettingsService,
@@ -94,6 +96,12 @@ namespace FineCodeCoverage.Impl
             return !settings.Enabled  && settings.DisabledNoCoverage;
         }
 
+        private void LogCoverageStarting()
+        {
+            CombinedLog(StatusMarkerProvider.Get($"Coverage Starting - {coverageRunNumber++}"));
+            reportGeneratorUtil.LogCoverageProcess("Full details in FCC Output Pane");
+        }
+
         private async Task TestExecutionStartingAsync(IOperation operation)
         {
             this.eventAggregator.SendMessage(new TestExecutionStartingMessage());
@@ -108,7 +116,7 @@ namespace FineCodeCoverage.Impl
                 reportGeneratorUtil.EndOfCoverageRun();
                 return;
             }
-
+            LogCoverageStarting();
             msCodeCoverageCollectionStatus = await msCodeCoverageRunSettingsService.IsCollectingAsync(testOperationFactory.Create(operation));
             if (msCodeCoverageCollectionStatus == MsCodeCoverageCollectionStatus.NotCollecting)
             {

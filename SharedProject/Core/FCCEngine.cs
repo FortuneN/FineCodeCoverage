@@ -9,6 +9,7 @@ using FineCodeCoverage.Engine.Model;
 using FineCodeCoverage.Engine.MsTestPlatform;
 using FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage;
 using FineCodeCoverage.Engine.ReportGenerator;
+using FineCodeCoverage.Impl;
 using FineCodeCoverage.Options;
 using FineCodeCoverage.Output;
 
@@ -105,13 +106,10 @@ namespace FineCodeCoverage.Engine
             this.msCodeCoverageRunSettingsService = msCodeCoverageRunSettingsService;
         }
 
-        internal string GetLogReloadCoverageStatusMessage(ReloadCoverageStatus reloadCoverageStatus)
-        {
-            return $"================================== {reloadCoverageStatus.ToString().ToUpper()} ==================================";
-        }
+
         private void LogReloadCoverageStatus(ReloadCoverageStatus reloadCoverageStatus)
         {
-            logger.Log(GetLogReloadCoverageStatusMessage(reloadCoverageStatus));
+            logger.Log(StatusMarkerProvider.Get(reloadCoverageStatus.ToString()));
         }
 
         public void Initialize(CancellationToken cancellationToken)
@@ -292,7 +290,7 @@ namespace FineCodeCoverage.Engine
                     case System.Threading.Tasks.TaskStatus.Faulted:
                         var innerException = t.Exception.InnerExceptions[0];
                         logger.Log(
-                            GetLogReloadCoverageStatusMessage(ReloadCoverageStatus.Error),
+                            StatusMarkerProvider.Get(ReloadCoverageStatus.Error.ToString()),
                             innerException
                         );
                         reportGeneratorUtil.LogCoverageProcess("An exception occurred. See the FCC Output Pane");
@@ -359,9 +357,6 @@ namespace FineCodeCoverage.Engine
             RunCancellableCoverageTask(async (vsShutdownLinkedCancellationToken) =>
             {
                 ReportResult reportResult = new ReportResult();
-
-                reportGeneratorUtil.LogCoverageProcess("Starting coverage - full details in FCC Output Pane");
-                LogReloadCoverageStatus(ReloadCoverageStatus.Start);
 
                 var coverageProjects = await coverageRequestCallback();
                 vsShutdownLinkedCancellationToken.ThrowIfCancellationRequested();

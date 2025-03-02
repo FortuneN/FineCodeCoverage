@@ -19,6 +19,7 @@ using Newtonsoft.Json.Linq;
 using ReportGeneratorPlugins;
 using System.Threading;
 using System.Xml.Linq;
+using FineCodeCoverage.Impl;
 
 namespace FineCodeCoverage.Engine.ReportGenerator
 {
@@ -1767,7 +1768,8 @@ for(var i=0;i<charts.length;i++){
 
         public void LogCoverageProcess(string message)
         {
-			eventAggregator.SendMessage(new InvokeScriptMessage(CoverageLogJSFunctionName, message));
+			message = $"{NowForLog.Get()} : {message}";
+            eventAggregator.SendMessage(new InvokeScriptMessage(CoverageLogJSFunctionName, message));
 			logs.Add(message);
 		}
 
