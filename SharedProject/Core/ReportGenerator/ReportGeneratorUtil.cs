@@ -180,8 +180,6 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 					throw new Exception($"Unknown reporttype '{outputReportType}'");
 				}
 
-				logger.Log($"{title} Arguments [reporttype:{outputReportType}] {Environment.NewLine}{string.Join($"{Environment.NewLine}", reportTypeSettings)}");
-				
 				var result = await processUtil
 					.ExecuteAsync(new ExecuteRequest
 					{
@@ -198,7 +196,7 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 					throw new Exception(result.Output);
 				}
 
-				logger.Log($"{title} [reporttype:{outputReportType}]", result.Output);
+				logger.Log($"{title} [reporttype:{outputReportType}] Output", result.Output);
 
 			}
 
