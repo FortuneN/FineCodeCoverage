@@ -11,13 +11,13 @@ namespace FineCodeCoverage.Impl
     {
         private readonly ICoverageProjectFactory coverageProjectFactory;
         private readonly IRunSettingsRetriever runSettingsRetriever;
-        private readonly ILogger logger;
+        private readonly Output.ILogger logger;
 
         [ImportingConstructor]
         public TestOperationFactory(
             ICoverageProjectFactory coverageProjectFactory,
             IRunSettingsRetriever runSettingsRetriever,
-            ILogger logger
+            Output.ILogger logger
             )
         {
             this.coverageProjectFactory = coverageProjectFactory;

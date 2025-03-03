@@ -11,6 +11,7 @@ using FineCodeCoverage.Engine.Cobertura;
 using FineCodeCoverage.Engine.Model;
 using FineCodeCoverage.Engine.MsTestPlatform;
 using FineCodeCoverage.Engine.ReportGenerator;
+using FineCodeCoverage.Impl;
 using FineCodeCoverage.Options;
 using FineCodeCoverage.Output;
 using Moq;
@@ -103,13 +104,6 @@ namespace Test
             mockedAppOptions.Setup(x => x.RunMsCodeCoverage).Returns(RunMsCodeCoverage.No);
             var mockAppOptionsProvider = mocker.GetMock<IAppOptionsProvider>();
             mockAppOptionsProvider.Setup(x => x.Get()).Returns(mockedAppOptions.Object);
-        }
-
-        [Test]
-        public async Task Should_Log_Starting_When_Initialized_Async()
-        {
-            await ReloadInitializedCoverage_Async();
-            VerifyLogsReloadCoverageStatus(ReloadCoverageStatus.Start);
         }
 
         [Test]
@@ -319,7 +313,7 @@ namespace Test
 
         private void VerifyLogsReloadCoverageStatus(ReloadCoverageStatus reloadCoverageStatus)
         {
-            mocker.Verify<ILogger>(l => l.Log(fccEngine.GetLogReloadCoverageStatusMessage(reloadCoverageStatus)));
+            mocker.Verify<ILogger>(l => l.Log(StatusMarkerProvider.Get(reloadCoverageStatus.ToString())));
         }
 
         private async Task StopCoverage_Async()

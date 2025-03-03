@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel.Composition;
 using FineCodeCoverage.Core.Utilities;
 using FineCodeCoverage.Engine.Model;
+using FineCodeCoverage.Output;
 
 namespace FineCodeCoverage.Engine.Coverlet
 {

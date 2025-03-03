@@ -1,4 +1,5 @@
-﻿using System;
+﻿using FineCodeCoverage.Output;
+using System;
 using System.IO;
 
 namespace FineCodeCoverage.Core.Utilities

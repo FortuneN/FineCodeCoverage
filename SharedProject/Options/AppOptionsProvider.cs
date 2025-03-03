@@ -2,6 +2,7 @@
 using System.ComponentModel.Composition;
 using System.Reflection;
 using FineCodeCoverage.Core.Utilities;
+using FineCodeCoverage.Output;
 using Microsoft.VisualStudio.Settings;
 
 namespace FineCodeCoverage.Options
@@ -59,6 +60,7 @@ namespace FineCodeCoverage.Options
             appOptions.ThresholdForCrapScore = 15;
             appOptions.ThresholdForNPathComplexity = 200;
             appOptions.ThresholdForCyclomaticComplexity = 30;
+            appOptions.RunMsCodeCoverage = RunMsCodeCoverage.Yes;
             appOptions.RunSettingsOnly = true;
             appOptions.RunWhenTestsFail = true;
             appOptions.ExcludeByAttribute = new[] { "GeneratedCode" };

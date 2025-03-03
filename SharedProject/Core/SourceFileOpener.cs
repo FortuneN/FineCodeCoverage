@@ -4,6 +4,7 @@ using System.Linq;
 using EnvDTE;
 using EnvDTE80;
 using FineCodeCoverage.Engine.Cobertura;
+using FineCodeCoverage.Output;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Threading;
 

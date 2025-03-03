@@ -4,6 +4,7 @@ using System.Linq;
 using AutoMoq;
 using FineCodeCoverage.Core.Utilities;
 using FineCodeCoverage.Options;
+using FineCodeCoverage.Output;
 using Microsoft.VisualStudio.Settings;
 using Moq;
 using NUnit.Framework;
@@ -199,6 +200,7 @@ namespace FineCodeCoverageTests
                 nameof(IAppOptions.ThresholdForCrapScore),
                 nameof(IAppOptions.ThresholdForNPathComplexity),
                 nameof(IAppOptions.ThresholdForCyclomaticComplexity),
+                nameof(IAppOptions.RunMsCodeCoverage),
                 nameof(IAppOptions.NamespacedClasses),
                 nameof(IAppOptions.ShowCoverageInOverviewMargin),
                 nameof(IAppOptions.ShowCoveredInOverviewMargin),

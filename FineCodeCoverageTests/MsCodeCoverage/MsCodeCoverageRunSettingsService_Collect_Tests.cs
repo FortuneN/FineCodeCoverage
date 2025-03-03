@@ -18,7 +18,6 @@ using FineCodeCoverage.Options;
 
 namespace FineCodeCoverageTests.MsCodeCoverage
 {
-
     internal class MsCodeCoverageRunSettingsService_Test_Execution_Not_Finished_Tests
     {
         [Test]
@@ -126,7 +125,7 @@ namespace FineCodeCoverageTests.MsCodeCoverage
         public async Task Should_Combined_Log_When_No_Cobertura_Files_Async()
         {
             await RunAndProcessReportAsync(null, Array.Empty<string>());
-            autoMocker.Verify<ILogger>(logger => logger.Log("No cobertura files for ms code coverage."));
+            autoMocker.Verify<FineCodeCoverage.Output.ILogger>(logger => logger.Log("No cobertura files for ms code coverage."));
             autoMocker.Verify<IReportGeneratorUtil>(
                 reportGenerator => reportGenerator.LogCoverageProcess("No cobertura files for ms code coverage.")
             );

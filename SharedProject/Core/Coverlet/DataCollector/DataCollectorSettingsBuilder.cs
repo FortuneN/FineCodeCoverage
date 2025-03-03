@@ -1,10 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.IO;
 using System.Linq;
 using System.Xml.Linq;
-using FineCodeCoverage.Options;
 
 namespace FineCodeCoverage.Engine.Coverlet
 {
@@ -14,12 +11,7 @@ namespace FineCodeCoverage.Engine.Coverlet
         private string generatedRunSettingsPath;
         private string existingRunSettings;
         private bool runSettingsOnly;
-        private readonly ILogger logger;
 
-        public DataCollectorSettingsBuilder(ILogger logger)
-        {
-            this.logger = logger;
-        }
         #region Arguments
         internal string ProjectDll { get; set; }
         internal string Blame { get; set; }
@@ -72,7 +64,6 @@ namespace FineCodeCoverage.Engine.Coverlet
         private void GenerateRunSettings()
         {
             var runSettingsDocument = existingRunSettings == null ? GenerateFullRunSettings() : GenerateRunSettingsFromExisting();
-            logger.Log($"Saving run settings to {generatedRunSettingsPath}");
             runSettingsDocument.Save(generatedRunSettingsPath);
         }
 

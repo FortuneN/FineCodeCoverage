@@ -10,6 +10,7 @@ using FineCodeCoverage.Core.Utilities;
 using FineCodeCoverage.Engine.Coverlet;
 using FineCodeCoverage.Engine.Model;
 using FineCodeCoverage.Options;
+using FineCodeCoverage.Output;
 using Moq;
 using NUnit.Framework;
 
@@ -279,7 +280,7 @@ namespace Test
             mockProcesUtil.Setup(p => p.ExecuteAsync(It.IsAny<ExecuteRequest>(), ct).Result).Returns(executeResponse);
             var mockProcessResponseProcessor = mocker.GetMock<IProcessResponseProcessor>();
 
-            var logTitle = "Coverlet Collector Run (TestProject)";
+            var logTitle = "Coverlet Collector Run (TestProject) - Output";
             mockProcessResponseProcessor.Setup(rp => rp.Process(executeResponse, It.IsAny<Func<int, bool>>(), true, logTitle, It.IsAny<Action>()));
 
             await coverletDataCollectorUtil.RunAsync(ct);

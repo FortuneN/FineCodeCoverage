@@ -5,6 +5,7 @@ using AutoMoq;
 using FineCodeCoverage.Core.Utilities;
 using FineCodeCoverage.Engine;
 using FineCodeCoverage.Engine.Model;
+using FineCodeCoverage.Output;
 using Moq;
 using NUnit.Framework;
 using SharedProject.Core.CoverageToolOutput;

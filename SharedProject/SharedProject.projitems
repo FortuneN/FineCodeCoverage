@@ -378,7 +378,9 @@
     <Compile Include="$(MSBuildThisFileDirectory)Core\Cobertura\CoverageType.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\ILogger.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\Logger.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Impl\NowForLog.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\RunSettingsRetriever.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Impl\StatusMarkerProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\TestContainerDiscovery\Container.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Impl\TestContainerDiscovery\ContainerData.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Initialization\IInitializer.cs" />

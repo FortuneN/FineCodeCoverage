@@ -8,13 +8,13 @@ namespace FineCodeCoverage.Impl
     internal class TestOperationStateInvocationManager : ITestOperationStateInvocationManager
     {
         private readonly IInitializeStatusProvider initializeStatusProvider;
-        private readonly ILogger logger;
+        private readonly Output.ILogger logger;
         private bool initializedWhenTestExecutionStarting;
 
         [ImportingConstructor]
         public TestOperationStateInvocationManager(
             IInitializeStatusProvider initializeStatusProvider,
-            ILogger logger
+            Output.ILogger logger
         )
         {
             this.initializeStatusProvider = initializeStatusProvider;

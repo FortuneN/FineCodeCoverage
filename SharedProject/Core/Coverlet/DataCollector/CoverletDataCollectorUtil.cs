@@ -10,6 +10,7 @@ using FineCodeCoverage.Core.Coverlet;
 using FineCodeCoverage.Core.Utilities;
 using FineCodeCoverage.Core.Utilities.VsThreading;
 using FineCodeCoverage.Engine.Model;
+using FineCodeCoverage.Output;
 using Microsoft.VisualStudio.Shell;
 using Task = System.Threading.Tasks.Task;
 
@@ -259,7 +260,7 @@ namespace FineCodeCoverage.Engine.Coverlet
             // https://github.com/dotnet/sdk/blob/936935f18c3540ed77c97e392780a9dd82aca441/src/Cli/dotnet/commands/dotnet-test/Program.cs#L86
             
             // test failure has exit code 1 
-            processResponseProcessor.Process(result, code => code == 0 || code == 1, true, GetLogTitle(), () =>
+            processResponseProcessor.Process(result, code => code == 0 || code == 1, true, $"{GetLogTitle()} - Output", () =>
              {
                  coverletDataCollectorGeneratedCobertura.CorrectPath(coverageProject.CoverageOutputFolder, coverageProject.CoverageOutputFile);
              });

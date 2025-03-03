@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using System.ComponentModel.Composition;
 using FineCodeCoverage.Core.Utilities;
 using System.Threading;
+using FineCodeCoverage.Output;
 
 namespace FineCodeCoverage.Engine.OpenCover
 {
@@ -96,7 +97,7 @@ namespace FineCodeCoverage.Engine.OpenCover
 				throw new Exception(result.Output);
 			}
 
-			logger.Log(title, result.Output);
+			logger.Log($"{title} - Output", result.Output);
 		}
 	}
 }

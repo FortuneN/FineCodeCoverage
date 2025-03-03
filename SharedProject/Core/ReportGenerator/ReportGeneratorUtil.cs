@@ -19,6 +19,7 @@ using Newtonsoft.Json.Linq;
 using ReportGeneratorPlugins;
 using System.Threading;
 using System.Xml.Linq;
+using FineCodeCoverage.Impl;
 
 namespace FineCodeCoverage.Engine.ReportGenerator
 {
@@ -179,8 +180,6 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 					throw new Exception($"Unknown reporttype '{outputReportType}'");
 				}
 
-				logger.Log($"{title} Arguments [reporttype:{outputReportType}] {Environment.NewLine}{string.Join($"{Environment.NewLine}", reportTypeSettings)}");
-				
 				var result = await processUtil
 					.ExecuteAsync(new ExecuteRequest
 					{
@@ -197,7 +196,7 @@ namespace FineCodeCoverage.Engine.ReportGenerator
 					throw new Exception(result.Output);
 				}
 
-				logger.Log($"{title} [reporttype:{outputReportType}]", result.Output);
+				logger.Log($"{title} [reporttype:{outputReportType}] Output", result.Output);
 
 			}
 
@@ -1767,7 +1766,8 @@ for(var i=0;i<charts.length;i++){
 
         public void LogCoverageProcess(string message)
         {
-			eventAggregator.SendMessage(new InvokeScriptMessage(CoverageLogJSFunctionName, message));
+			message = $"{NowForLog.Get()} : {message}";
+            eventAggregator.SendMessage(new InvokeScriptMessage(CoverageLogJSFunctionName, message));
 			logs.Add(message);
 		}
 

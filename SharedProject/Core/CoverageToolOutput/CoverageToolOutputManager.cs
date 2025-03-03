@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using FineCodeCoverage.Core.Utilities;
 using FineCodeCoverage.Engine.Model;
+using FineCodeCoverage.Output;
 using SharedProject.Core.CoverageToolOutput;
 
 namespace FineCodeCoverage.Engine

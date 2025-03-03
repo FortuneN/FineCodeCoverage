@@ -75,7 +75,7 @@ namespace FineCodeCoverage.Options
         public bool DisabledNoCoverage { get; set; }
 
         [Category(commonRunCategory)]
-        [Description("Specifies whether or not the ms code coverage is used (BETA).  No, IfInRunSettings, Yes")]
+        [Description("Specifies whether or not the ms code coverage is used.  No, IfInRunSettings, Yes ( default )")]
         //[DisplayName("Run Ms Code Coverage)")]
         public RunMsCodeCoverage RunMsCodeCoverage { get; set; }
 
