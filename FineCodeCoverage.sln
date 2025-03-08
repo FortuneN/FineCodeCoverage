@@ -12,6 +12,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution", "Solution", "{20
 		.github\workflows\addVsixLinkToIssues.yaml = .github\workflows\addVsixLinkToIssues.yaml
 		CHANGELOG.md = CHANGELOG.md
 		CONTRIBUTING.md = CONTRIBUTING.md
+		dev-readmes\coverage-tool-zips.md = dev-readmes\coverage-tool-zips.md
 		ISSUE_TEMPLATE.md = ISSUE_TEMPLATE.md
 		LICENSE = LICENSE
 		.github\workflows\push_pull.yaml = .github\workflows\push_pull.yaml
