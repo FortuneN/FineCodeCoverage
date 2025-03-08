@@ -282,7 +282,7 @@ namespace FineCodeCoverage.Engine.Coverlet
         public void Initialize(string appDataFolder,CancellationToken cancellationToken)
         {
             var zipDestination = toolUnzipper.EnsureUnzipped(appDataFolder, zipDirectoryName, zipPrefix, cancellationToken);
-            var testAdapterPath = Path.Combine(zipDestination, "build", "netstandard1.0");
+            var testAdapterPath = Path.Combine(zipDestination, "build", "netstandard2.0");
             TestAdapterPathArg = $@"""{testAdapterPath}""";
         }
     }
