@@ -29,7 +29,7 @@ namespace Test
             mockToolFolder.Setup(cf => cf.EnsureUnzipped("appdatafolder", "coverletCollector", "coverlet.collector",ct)).Returns("zipdestination");
 
             coverletDataCollector.Initialize("appdatafolder",ct);
-            Assert.AreEqual($@"""{Path.Combine("zipdestination", "build", "netstandard1.0")}""", coverletDataCollector.TestAdapterPathArg);
+            Assert.AreEqual($@"""{Path.Combine("zipdestination", "build", "netstandard2.0")}""", coverletDataCollector.TestAdapterPathArg);
 
         }
     }
