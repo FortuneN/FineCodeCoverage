@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace FineCodeCoverage.Engine.OpenCover
 {
@@ -22,16 +23,61 @@ namespace FineCodeCoverage.Engine.OpenCover
     [Export(typeof(IOpenCoverExeArgumentsProvider))]
     internal class OpenCoverExeArgumentsProvider : IOpenCoverExeArgumentsProvider
     {
+        private static readonly Regex AssemblyRegex = new Regex(@"^\[(.*?)\]", RegexOptions.Compiled);
         private enum Delimiter { Semicolon, Space}
+
+        private static bool IncludeTestAssemblyOnlyWhenNecessary(
+            List<IReferencedProject> includedReferencedProjects,
+            IEnumerable<string> inclusions, 
+            List<string> exclusions,
+            string testAssemblyName)
+        {
+            return HasInclusions(inclusions, includedReferencedProjects) && !IsTestAssemblySpecificallyExcluded(exclusions, testAssemblyName);
+        }
+
+        private static string GetAssemblyFromFilter(string input)
+        {
+            Match match = AssemblyRegex.Match(input);
+            return match.Success ? match.Groups[1].Value : null;
+        }
+
+        private static bool IsTestAssemblySpecificallyExcluded(List<string> exclusions, string testAssemblyName)
+        {
+            // not interested in an exclude all
+
+            // note that it could also have been excluded with a wild card - for now for simplicity we are not checking that
+            foreach (var exclusion in exclusions)
+            {
+                var assembly = GetAssemblyFromFilter(exclusion);
+                if(assembly == testAssemblyName)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private static bool HasInclusions(IEnumerable<string> includes, List<IReferencedProject> includedReferencedProjects)
+        {
+            return includes.Any() || includedReferencedProjects.Any();
+        }
+
+        
+
         private void AddFilter(ICoverageProject project, List<string> opencoverSettings)
         {
+            var includes = SanitizeExcludesOrIncludes(project.Settings.Include);
+            var excludes = SanitizeExcludesOrIncludes(project.Settings.Exclude).ToList();
+
             var includedModules = project.IncludedReferencedProjects.Select(rp => rp.AssemblyName).ToList();
-            if (project.Settings.IncludeTestAssembly)
+            if (project.Settings.IncludeTestAssembly && 
+                IncludeTestAssemblyOnlyWhenNecessary(project.IncludedReferencedProjects, includes, excludes, project.ProjectName))
             {
                 includedModules.Add(project.ProjectName);
             }
-            var includeFilters = GetExcludesOrIncludes(project.Settings.Include, includedModules, true);
-            var excludeFilters = GetExcludesOrIncludes(project.Settings.Exclude, project.ExcludedReferencedProjects.Select(rp => rp.AssemblyName), false);
+
+            var includeFilters = GetExcludesOrIncludes(includes, includedModules, true);
+            var excludeFilters = GetExcludesOrIncludes(excludes, project.ExcludedReferencedProjects.Select(rp => rp.AssemblyName), false);
             AddIncludeAllIfExcludingWithoutIncludes();
             var filters = includeFilters.Concat(excludeFilters).ToList();
             SafeAddToSettingsDelimitedIfAny(opencoverSettings, "filter", filters, Delimiter.Space);
@@ -49,9 +95,9 @@ namespace FineCodeCoverage.Engine.OpenCover
             {
                 var excludeOrIncludeFilters = new List<string>();
                 var prefix = IncludeSymbol(isInclude);
-                var sanitizedExcludesOrIncludes = SanitizeExcludesOrIncludes(excludesOrIncludes);
+                //var sanitizedExcludesOrIncludes = SanitizeExcludesOrIncludes(excludesOrIncludes);
                 
-                foreach (var value in sanitizedExcludesOrIncludes)
+                foreach (var value in excludesOrIncludes)
                 {
                     excludeOrIncludeFilters.Add($@"{prefix}{value}");
                 }
