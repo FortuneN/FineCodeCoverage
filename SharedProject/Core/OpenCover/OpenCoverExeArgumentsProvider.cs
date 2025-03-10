@@ -23,44 +23,7 @@ namespace FineCodeCoverage.Engine.OpenCover
     [Export(typeof(IOpenCoverExeArgumentsProvider))]
     internal class OpenCoverExeArgumentsProvider : IOpenCoverExeArgumentsProvider
     {
-        private static readonly Regex AssemblyRegex = new Regex(@"^\[(.*?)\]", RegexOptions.Compiled);
         private enum Delimiter { Semicolon, Space}
-
-        private static bool IncludeTestAssemblyOnlyWhenNecessary(
-            List<IReferencedProject> includedReferencedProjects,
-            IEnumerable<string> inclusions, 
-            List<string> exclusions,
-            string testAssemblyName)
-        {
-            return HasInclusions(inclusions, includedReferencedProjects) && !IsTestAssemblySpecificallyExcluded(exclusions, testAssemblyName);
-        }
-
-        private static string GetAssemblyFromFilter(string input)
-        {
-            Match match = AssemblyRegex.Match(input);
-            return match.Success ? match.Groups[1].Value : null;
-        }
-
-        private static bool IsTestAssemblySpecificallyExcluded(List<string> exclusions, string testAssemblyName)
-        {
-            // not interested in an exclude all
-
-            // note that it could also have been excluded with a wild card - for now for simplicity we are not checking that
-            foreach (var exclusion in exclusions)
-            {
-                var assembly = GetAssemblyFromFilter(exclusion);
-                if(assembly == testAssemblyName)
-                {
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        private static bool HasInclusions(IEnumerable<string> includes, List<IReferencedProject> includedReferencedProjects)
-        {
-            return includes.Any() || includedReferencedProjects.Any();
-        }
 
         private void AddFilter(ICoverageProject project, List<string> opencoverSettings)
         {
@@ -68,8 +31,8 @@ namespace FineCodeCoverage.Engine.OpenCover
             var excludes = SanitizeExcludesOrIncludes(project.Settings.Exclude).ToList();
 
             var includedModules = project.IncludedReferencedProjects.Select(rp => rp.AssemblyName).ToList();
-            if (project.Settings.IncludeTestAssembly && 
-                IncludeTestAssemblyOnlyWhenNecessary(project.IncludedReferencedProjects, includes, excludes, project.ProjectName))
+            if (project.Settings.IncludeTestAssembly &&
+                (includes.Any() || project.IncludedReferencedProjects.Any()))
             {
                 includedModules.Add(project.ProjectName);
             }

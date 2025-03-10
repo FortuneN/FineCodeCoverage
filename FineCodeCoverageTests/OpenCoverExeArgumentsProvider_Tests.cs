@@ -97,7 +97,7 @@ namespace FineCodeCoverageTests
         }
 
         [Test]
-        public void Should_Include_The_Test_Assembly_In_The_Filter_When_AppOptions_IncludeTestAssembly_And_Required()
+        public void Should_Include_The_Test_Assembly_In_The_Filter_When_AppOptions_IncludeTestAssembly_And_Other_Includes()
         {
             var openCoverExeArgumentsProvider = new OpenCoverExeArgumentsProvider();
             var mockCoverageProject = SafeMockCoverageProject();
@@ -123,21 +123,6 @@ namespace FineCodeCoverageTests
 
             var filters = GetFilters(arguments);
             Assert.IsEmpty(GetFilters(arguments));
-        }
-
-        [Test]
-        public void Should_Not_Include_The_Test_Assembly_In_The_Filter_When_AppOptions_IncludeTestAssembly_And_Explicitly_Excluded()
-        {
-            var openCoverExeArgumentsProvider = new OpenCoverExeArgumentsProvider();
-            var mockCoverageProject = SafeMockCoverageProject();
-            mockCoverageProject.SetupGet(coverageProject => coverageProject.Settings.IncludeTestAssembly).Returns(true);
-            mockCoverageProject.SetupGet(coverageProject => coverageProject.Settings.Include).Returns(new string[] { "[anassembly]*" });
-            mockCoverageProject.SetupGet(coverageProject => coverageProject.Settings.Exclude).Returns(new string[] { "[TheTestName]*" });
-            mockCoverageProject.SetupGet(coverageProject => coverageProject.ProjectName).Returns("TheTestName");
-
-            var arguments = openCoverExeArgumentsProvider.Provide(mockCoverageProject.Object, "");
-            var filters = GetFilters(arguments);
-            Assert.That(filters, Is.EquivalentTo(new string[] { "+[anassembly]*", "-[TheTestName]*" }));
         }
 
         private IEnumerable<string> GetFilters(IEnumerable<string> arguments)
