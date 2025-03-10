@@ -13,14 +13,14 @@ namespace FineCodeCoverage.Core.Utilities
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
             if (projectHierarchy is IVsBuildPropertyStorage vsBuildPropertyStorage)
             {
-                if(vsBuildPropertyStorage.GetPropertyValue(propertyName, string.Empty, (uint)_PersistStorageType.PST_PROJECT_FILE, out var v) == VSConstants.S_OK)
+                var result = vsBuildPropertyStorage.GetPropertyValue(propertyName, string.Empty, (uint)_PersistStorageType.PST_PROJECT_FILE, out var v);
+                if (result == VSConstants.S_OK && v == value)
                 {
-                    if (v == value)
-                    {
-                        return true;
-                    }
-                    return vsBuildPropertyStorage.SetPropertyValue(propertyName, string.Empty, (uint)_PersistStorageType.PST_PROJECT_FILE, value) == VSConstants.S_OK;
+                    return true;
                 }
+                
+                return vsBuildPropertyStorage.SetPropertyValue(propertyName, string.Empty, (uint)_PersistStorageType.PST_PROJECT_FILE, value) == VSConstants.S_OK;
+                
             }
 
             return false;
