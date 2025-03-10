@@ -62,8 +62,6 @@ namespace FineCodeCoverage.Engine.OpenCover
             return includes.Any() || includedReferencedProjects.Any();
         }
 
-        
-
         private void AddFilter(ICoverageProject project, List<string> opencoverSettings)
         {
             var includes = SanitizeExcludesOrIncludes(project.Settings.Include);
@@ -94,28 +92,19 @@ namespace FineCodeCoverage.Engine.OpenCover
                 IEnumerable<string> excludesOrIncludes,IEnumerable<string> moduleExcludesOrIncludes, bool isInclude)
             {
                 var excludeOrIncludeFilters = new List<string>();
-                var prefix = IncludeSymbol(isInclude);
-                //var sanitizedExcludesOrIncludes = SanitizeExcludesOrIncludes(excludesOrIncludes);
+                var includeExcludeSymbol = isInclude ? "+" : "-";
                 
                 foreach (var value in excludesOrIncludes)
                 {
-                    excludeOrIncludeFilters.Add($@"{prefix}{value}");
+                    excludeOrIncludeFilters.Add($@"{includeExcludeSymbol}{value}");
                 }
 
                 foreach (var moduleExcludeOrInclude in moduleExcludesOrIncludes)
                 {
-                    excludeOrIncludeFilters.Add(IncludeOrExcludeModule(isInclude, moduleExcludeOrInclude));
+                    excludeOrIncludeFilters.Add($"{includeExcludeSymbol}[{moduleExcludeOrInclude}]*");
                 }
                 return excludeOrIncludeFilters.Distinct().ToList();
             }
-
-            string IncludeOrExcludeModule(bool include,string moduleFilter,string classFilter = "*")
-            {
-                var filter = IncludeSymbol(include);
-                return $"{filter}[{moduleFilter}]{classFilter}";
-            }
-
-            string IncludeSymbol(bool include) => include ? "+" : "-"; 
         }
 
         private IEnumerable<string> SanitizeExcludesOrIncludes(IEnumerable<string> excludesOrIncludes)
