@@ -164,10 +164,7 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
 ";
         }
 
-        public override string ToString()
-        {
-            return template;
-        }
+        public string Get() => template;
 
         public ITemplateReplacementResult ReplaceTemplate(
             string runSettingsTemplate, 
