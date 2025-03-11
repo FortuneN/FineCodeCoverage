@@ -151,14 +151,17 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
 
 
             var additionalModulePathsExclude = allProjectDetails.SelectMany(pd =>
-                GetAdditionalModulePaths(pd.ExcludedReferencedProjects, pd.TestDllFile, pd.Settings.IncludeTestAssembly, false));
+                GetAdditionalModulePathsExclude(pd.ExcludedReferencedProjects, pd.TestDllFile, pd.Settings.IncludeTestAssembly));
+
+            var hasIncludes = allProjectDetails.Any(pd => HasIncludes(pd.Settings.ModulePathsInclude, pd.IncludedReferencedProjects));
+
             var additionalModulePathsInclude = allProjectDetails.SelectMany(pd =>
-                GetAdditionalModulePaths(pd.IncludedReferencedProjects, pd.TestDllFile, pd.Settings.IncludeTestAssembly, true));
+                GetAdditionalModulePathsInclude(hasIncludes, pd.IncludedReferencedProjects, pd.TestDllFile, pd.Settings.IncludeTestAssembly));
             var settings = new CombinedIncludesExcludesOptions(mergedSettings, additionalModulePathsInclude, additionalModulePathsExclude);
             return new RunSettingsTemplateReplacements(settings, resultsDirectory, (!allProjectsDisabled).ToString().ToLower(), testAdapter);
         }
 
-        private IEnumerable<string> GetAdditionalModulePaths(
+        private static IEnumerable<string> GetAdditionalModulePaths(
             IEnumerable<IReferencedProject> referencedProjects,
             string testDllFile,
             bool includeTestAssembly,
@@ -175,22 +178,49 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
 
         }
 
+        private static IEnumerable<string> GetAdditionalModulePathsExclude(
+            IEnumerable<IReferencedProject> referencedProjects, string testDllFile, bool includeTestAssembly)
+        {
+            return GetAdditionalModulePaths(referencedProjects, testDllFile, includeTestAssembly, false);
+        }
+
+        private static bool HasIncludes(
+            string[] modulePathsInclude,
+            List<IReferencedProject> includedReferencedProjects)
+        {
+            return modulePathsInclude?.Any() == true || includedReferencedProjects.Any();
+        }
+
+        private static IEnumerable<string> GetAdditionalModulePathsInclude(
+            bool hasIncludes,
+            List<IReferencedProject> includedReferencedProjects,
+            string testDllFile,
+            bool includeTestAssembly)
+            
+        {
+            includeTestAssembly = includeTestAssembly && hasIncludes;
+            return GetAdditionalModulePaths(
+                includedReferencedProjects,
+                testDllFile,
+                includeTestAssembly,
+                true);
+
+        }
+
         public IRunSettingsTemplateReplacements Create(ICoverageProject coverageProject, string testAdapter)
         {
             var projectSettings = coverageProject.Settings;
-            var additionalModulePathsExclude = GetAdditionalModulePaths(
+            var additionalModulePathsExclude = GetAdditionalModulePathsExclude(
                 coverageProject.ExcludedReferencedProjects,
                 coverageProject.TestDllFile,
-                projectSettings.IncludeTestAssembly,
-                false);
+                projectSettings.IncludeTestAssembly);
 
-            
-            var additionalModulePathsInclude = GetAdditionalModulePaths(
+            var additionalModulePathsInclude = GetAdditionalModulePathsInclude(
+                HasIncludes(coverageProject.Settings.ModulePathsInclude, coverageProject.IncludedReferencedProjects),
                 coverageProject.IncludedReferencedProjects,
                 coverageProject.TestDllFile,
-                projectSettings.IncludeTestAssembly,
-                true);
-            
+                projectSettings.IncludeTestAssembly);
+
             var settings = new CombinedIncludesExcludesOptions(projectSettings, additionalModulePathsInclude, additionalModulePathsExclude);
             return new RunSettingsTemplateReplacements(settings, coverageProject.CoverageOutputFolder, projectSettings.Enabled.ToString(), testAdapter);
         }
