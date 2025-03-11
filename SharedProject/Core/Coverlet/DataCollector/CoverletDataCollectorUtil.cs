@@ -191,14 +191,19 @@ namespace FineCodeCoverage.Engine.Coverlet
                     SanitizeExcludesOrIncludes(coverageProject.Settings.ExcludeByAttribute), 
                     runSettingsCoverletConfiguration.ExcludeByAttribute);
 
-            string[] projectIncludes = coverageProject.IncludedReferencedProjects.Select(irp => $"[{irp.AssemblyName}]*").ToArray();
+            var projectIncludes = coverageProject.IncludedReferencedProjects.Select(irp => $"[{irp.AssemblyName}]*");
             if(coverageProject.Settings.Include != null)
             {
-                projectIncludes = projectIncludes.Concat(SanitizeExcludesOrIncludes(coverageProject.Settings.Include)).ToArray();
+                projectIncludes = projectIncludes.Concat(SanitizeExcludesOrIncludes(coverageProject.Settings.Include));
+            }
+
+            if (coverageProject.Settings.IncludeTestAssembly && projectIncludes.Any())
+            {
+                projectIncludes = projectIncludes.Concat(new string[] { $"[{coverageProject.ProjectName}]*" }).ToArray();
             }
             
             dataCollectorSettingsBuilder
-                .WithInclude(projectIncludes, runSettingsCoverletConfiguration.Include);
+                .WithInclude(projectIncludes.ToArray(), runSettingsCoverletConfiguration.Include);
             dataCollectorSettingsBuilder
                 .WithIncludeTestAssembly(coverageProject.Settings.IncludeTestAssembly, runSettingsCoverletConfiguration.IncludeTestAssembly);
 

@@ -8,6 +8,7 @@ using System.Linq;
 using FineCodeCoverage.Engine.Model;
 using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Xml.Linq;
 
 namespace FineCodeCoverageTests.MsCodeCoverage
 {
@@ -54,7 +55,7 @@ namespace FineCodeCoverageTests.MsCodeCoverage
         }
     }
 
-    
+
     internal class RunSettingsTemplateReplacementsFactory_UserRunSettings_Tests
     {
         private RunSettingsTemplateReplacementsFactory runSettingsTemplateReplacementsFactory;
@@ -159,7 +160,8 @@ namespace FineCodeCoverageTests.MsCodeCoverage
             {
                 return new TestMsCodeCoverageOptions
                 {
-                    IncludeTestAssembly = true,
+                    IncludeTestAssembly = true, // not testing ModulePaths here
+
                     AttributesExclude = new string[] { $"AttributeExclude{id}" },
                     AttributesInclude = new string[] { $"AttributeInclude{id}" },
                     CompanyNamesExclude = new string[] { $"CompanyNameExclude{id}" },
@@ -207,23 +209,16 @@ namespace FineCodeCoverageTests.MsCodeCoverage
             };
             var replacements = runSettingsTemplateReplacementsFactory.Create(testContainers, userRunSettingsProjectDetailsLookup, null);
 
-            void AssertReplacement(string replacement, string replacementProperty, bool isInclude)
-            {
-                var ie = isInclude ? "Include" : "Exclude";
-                Assert.AreEqual($"<{replacementProperty}>{replacementProperty}{ie}1</{replacementProperty}><{replacementProperty}>{replacementProperty}{ie}2</{replacementProperty}>", replacement);
-            }
-
-            AssertReplacement(replacements.FunctionsExclude, "Function", false);
-            AssertReplacement(replacements.FunctionsInclude, "Function", true);
-            AssertReplacement(replacements.CompanyNamesExclude, "CompanyName", false);
-            AssertReplacement(replacements.CompanyNamesInclude, "CompanyName", true);
-            AssertReplacement(replacements.AttributesExclude, "Attribute", false);
-            AssertReplacement(replacements.AttributesInclude, "Attribute", true);
-            AssertReplacement(replacements.PublicKeyTokensExclude, "PublicKeyToken", false);
-            AssertReplacement(replacements.PublicKeyTokensInclude, "PublicKeyToken", true);
-            AssertReplacement(replacements.SourcesExclude, "Source", false);
-            AssertReplacement(replacements.SourcesInclude, "Source", true);
-
+            IncludeExcludeXmlELementsStringAssertionHelper.Assert(replacements.FunctionsExclude, "Function", new[] { "FunctionExclude1", "FunctionExclude2" });
+            IncludeExcludeXmlELementsStringAssertionHelper.Assert(replacements.FunctionsInclude, "Function", new[] { "FunctionInclude1", "FunctionInclude2" });
+            IncludeExcludeXmlELementsStringAssertionHelper.Assert(replacements.CompanyNamesExclude, "CompanyName", new[] { "CompanyNameExclude1", "CompanyNameExclude2" });
+            IncludeExcludeXmlELementsStringAssertionHelper.Assert(replacements.CompanyNamesInclude, "CompanyName", new[] { "CompanyNameInclude1", "CompanyNameInclude2" });
+            IncludeExcludeXmlELementsStringAssertionHelper.Assert(replacements.AttributesExclude, "Attribute", new[] { "AttributeExclude1", "AttributeExclude2" });
+            IncludeExcludeXmlELementsStringAssertionHelper.Assert(replacements.AttributesInclude, "Attribute", new[] { "AttributeInclude1", "AttributeInclude2" });
+            IncludeExcludeXmlELementsStringAssertionHelper.Assert(replacements.PublicKeyTokensExclude, "PublicKeyToken", new[] { "PublicKeyTokenExclude1", "PublicKeyTokenExclude2" });
+            IncludeExcludeXmlELementsStringAssertionHelper.Assert(replacements.PublicKeyTokensInclude, "PublicKeyToken", new[] { "PublicKeyTokenInclude1", "PublicKeyTokenInclude2" });
+            IncludeExcludeXmlELementsStringAssertionHelper.Assert(replacements.SourcesExclude, "Source", new[] { "SourceExclude1", "SourceExclude2" });
+            IncludeExcludeXmlELementsStringAssertionHelper.Assert(replacements.SourcesInclude, "Source", new[] { "SourceInclude1", "SourceInclude2" });
         }
 
         [TestCase(true, true)]
@@ -245,7 +240,6 @@ namespace FineCodeCoverageTests.MsCodeCoverage
                         CoverageOutputFolder = "",
                         Settings = new TestMsCodeCoverageOptions{
                             IncludeTestAssembly = includeTestAssembly1,
-                            ModulePathsExclude = new string[]{ "ModulePathExclude"}
                         },
                         ExcludedReferencedProjects = new List<IReferencedProject>(),
                         IncludedReferencedProjects = new List<IReferencedProject>(),
@@ -268,21 +262,25 @@ namespace FineCodeCoverageTests.MsCodeCoverage
             var testDlls = userRunSettingsProjectDetailsLookup.Select(kvp => kvp.Value.TestDllFile).ToList();
             string GetModulePathExcludeWhenExcludingTestAssembly(bool first)
             {
-                var regexed = MsCodeCoverageRegex.RegexEscapePath(testDlls[first ? 0 : 1]);
-                return ModulePathElement(regexed);
+                return MsCodeCoverageRegex.RegexEscapePath(testDlls[first ? 0 : 1]);
             }
-
-            var expectedModulePathExcludes1 = !includeTestAssembly1 ? GetModulePathExcludeWhenExcludingTestAssembly(true) : "";
-            var expectedModulePathExcludes2 = !includeTestAssembly2 ? GetModulePathExcludeWhenExcludingTestAssembly(false) : "";
-            var expectedModulePathExcludes = expectedModulePathExcludes1 + expectedModulePathExcludes2 + ModulePathElement("ModulePathExclude");
-
+            var expectedModulePathExcludes = new List<string>();
+            if (!includeTestAssembly1)
+            {
+                expectedModulePathExcludes.Add(GetModulePathExcludeWhenExcludingTestAssembly(true));
+            }
+            if (!includeTestAssembly2)
+            {
+                expectedModulePathExcludes.Add(GetModulePathExcludeWhenExcludingTestAssembly(false));
+            }
+            
             var replacements = runSettingsTemplateReplacementsFactory.Create(testContainers, userRunSettingsProjectDetailsLookup, null);
-            Assert.AreEqual(expectedModulePathExcludes, replacements.ModulePathsExclude);
+
+            IncludeExcludeXmlELementsStringAssertionHelper.Assert(replacements.ModulePathsExclude, "ModulePath", expectedModulePathExcludes);
         }
 
-        [TestCase(true)]
-        [TestCase(false)]
-        public void Should_Add_Regexed_IncludedExcluded_Referenced_Projects_To_ModulePaths(bool included)
+        [Test]
+        public void Should_Add_Regexed_ExcludedReferencedProjects_And_ModulePathsExclude_To_ModulePaths()
         {
             var testContainers = new List<ITestContainer>()
             {
@@ -295,18 +293,17 @@ namespace FineCodeCoverageTests.MsCodeCoverage
                 {
                     "Source1",
                     new TestUserRunSettingsProjectDetails
-            {
-                CoverageOutputFolder = "",
-                TestDllFile = "",
-                Settings = new TestMsCodeCoverageOptions
-                {
-                    IncludeTestAssembly = !included,
-                    ModulePathsExclude = new string[] { "ModulePathExclude" },
-                    ModulePathsInclude = new string[] { "ModulePathInclude" }
-                },
-                ExcludedReferencedProjects = new List<IReferencedProject> { new ReferencedProject("", "ExcludedReferenced1", true) },
-                IncludedReferencedProjects = new List <IReferencedProject> { new ReferencedProject("", "IncludedReferenced1", true) },
-            }
+                    {
+                        CoverageOutputFolder = "",
+                        TestDllFile = "",
+                        Settings = new TestMsCodeCoverageOptions
+                        {
+                            ModulePathsExclude = new string[] { "ModulePathExclude1" },
+                            IncludeTestAssembly = true
+                        },
+                        ExcludedReferencedProjects = new List<IReferencedProject> { new ReferencedProject("", "ExcludedReferenced1", false) },
+                        IncludedReferencedProjects = Enumerable.Empty<IReferencedProject>().ToList()
+                    }
                 },
                 {
                     "Source2",
@@ -314,24 +311,185 @@ namespace FineCodeCoverageTests.MsCodeCoverage
                     {
                         CoverageOutputFolder = "",
                         TestDllFile = "",
-                        Settings = new TestMsCodeCoverageOptions { IncludeTestAssembly = !included },
+                        Settings = new TestMsCodeCoverageOptions {
+                            ModulePathsExclude = new string[] { "ModulePathExclude2" },
+                            IncludeTestAssembly = true
+                        },
                         ExcludedReferencedProjects = new List<IReferencedProject> { new ReferencedProject("", "ExcludedReferenced2", true) },
-                        IncludedReferencedProjects = new List<IReferencedProject> { new ReferencedProject("", "IncludedReferenced2", true) },
+                        IncludedReferencedProjects = Enumerable.Empty<IReferencedProject>().ToList()
                     }
                 },
             };
 
             var projectDetails = userRunSettingsProjectDetailsLookup.Select(kvp => kvp.Value).ToList();
-            IEnumerable<IReferencedProject> allReferencedProjects = projectDetails.SelectMany(pd => included ? pd.IncludedReferencedProjects : pd.ExcludedReferencedProjects);
-
-            string GetExpectedExcludedOrIncludedEscaped(IEnumerable<IReferencedProject> excludedOrIncludedReferenced)
-            {
-                return string.Join("", excludedOrIncludedReferenced.Select(referenced => ModulePathElement(MsCodeCoverageRegex.RegexModuleName(referenced.AssemblyName,true))));
-            }
-            var expectedExcludes = GetExpectedExcludedOrIncludedEscaped(allReferencedProjects) + ModulePathElement(included ? "ModulePathInclude" : "ModulePathExclude");
+            IEnumerable<string> expectedExcludedReferencedProjects = projectDetails.SelectMany(pd => pd.ExcludedReferencedProjects)
+                .Select(rp => MsCodeCoverageRegex.RegexModuleName(rp.AssemblyName, rp.IsDll));
 
             var replacements = runSettingsTemplateReplacementsFactory.Create(testContainers, userRunSettingsProjectDetailsLookup, null);
-            Assert.AreEqual(expectedExcludes, included ? replacements.ModulePathsInclude : replacements.ModulePathsExclude);
+
+            IncludeExcludeXmlELementsStringAssertionHelper.Assert(
+                replacements.ModulePathsExclude, 
+                "ModulePath", 
+                new[] { "ModulePathExclude1", "ModulePathExclude2" }.Concat(expectedExcludedReferencedProjects));
+            
+        }
+
+        [Test]
+        public void Should_Add_Regexed_InludedReferencedProjects_And_ModulePathsInclude_To_ModulePaths()
+        {
+            var testContainers = new List<ITestContainer>()
+            {
+                CreateTestContainer("Source1"),
+                CreateTestContainer("Source2"),
+            };
+
+            Dictionary<string, IUserRunSettingsProjectDetails> userRunSettingsProjectDetailsLookup = new Dictionary<string, IUserRunSettingsProjectDetails>
+            {
+                {
+                    "Source1",
+                    new TestUserRunSettingsProjectDetails
+                    {
+                        CoverageOutputFolder = "",
+                        TestDllFile = "",
+                        Settings = new TestMsCodeCoverageOptions
+                        {
+                            ModulePathsInclude = new string[] { "ModulePathInclude1" },
+                            IncludeTestAssembly = false
+                        },
+                        IncludedReferencedProjects = new List<IReferencedProject> { new ReferencedProject("", "InludedReferenced1", false) },
+                        ExcludedReferencedProjects = Enumerable.Empty<IReferencedProject>().ToList()
+                    }
+                },
+                {
+                    "Source2",
+                    new TestUserRunSettingsProjectDetails
+                    {
+                        CoverageOutputFolder = "",
+                        TestDllFile = "",
+                        Settings = new TestMsCodeCoverageOptions {
+                            ModulePathsInclude = new string[] { "ModulePathInclude2" },
+                            IncludeTestAssembly = false
+                        },
+                        IncludedReferencedProjects = new List<IReferencedProject> { new ReferencedProject("", "IncludedReferenced2", true) },
+                        ExcludedReferencedProjects = Enumerable.Empty<IReferencedProject>().ToList()
+                    }
+                },
+            };
+
+            var projectDetails = userRunSettingsProjectDetailsLookup.Select(kvp => kvp.Value).ToList();
+            IEnumerable<string> expectedIncludedReferencedProjects = projectDetails.SelectMany(pd => pd.IncludedReferencedProjects)
+                .Select(rp => MsCodeCoverageRegex.RegexModuleName(rp.AssemblyName, rp.IsDll));
+
+            var replacements = runSettingsTemplateReplacementsFactory.Create(testContainers, userRunSettingsProjectDetailsLookup, null);
+
+            IncludeExcludeXmlELementsStringAssertionHelper.Assert(
+                replacements.ModulePathsInclude,
+                "ModulePath",
+                new[] { "ModulePathInclude1", "ModulePathInclude2" }.Concat(expectedIncludedReferencedProjects));
+        }
+
+        [Test]
+        public void Should_Add_TestAssembly_To_ModulePathsInclude_When_Other_Includes_And_IncludeTestAssembly_True()
+        {
+            var testContainers = new List<ITestContainer>()
+            {
+                CreateTestContainer("Source1"),
+                CreateTestContainer("Source2"),
+            };
+
+            Dictionary<string, IUserRunSettingsProjectDetails> userRunSettingsProjectDetailsLookup = new Dictionary<string, IUserRunSettingsProjectDetails>
+            {
+                {
+                    "Source1",
+                    new TestUserRunSettingsProjectDetails
+                    {
+                        CoverageOutputFolder = "",
+                        TestDllFile = @"Some\Path1",
+                        Settings = new TestMsCodeCoverageOptions
+                        {
+                            ModulePathsInclude = new string[] { "ModulePathInclude1" },
+                            IncludeTestAssembly = true,
+                            
+                        },
+                        IncludedReferencedProjects = Enumerable.Empty<IReferencedProject>().ToList(),
+                        ExcludedReferencedProjects = Enumerable.Empty<IReferencedProject>().ToList()
+                    }
+                },
+                {
+                    "Source2",
+                    new TestUserRunSettingsProjectDetails
+                    {
+                        CoverageOutputFolder = "",
+                        TestDllFile = @"Some\Path2",
+                        Settings = new TestMsCodeCoverageOptions {
+                            IncludeTestAssembly = true
+                        },
+                        IncludedReferencedProjects = Enumerable.Empty<IReferencedProject>().ToList(),
+                        ExcludedReferencedProjects = Enumerable.Empty<IReferencedProject>().ToList()
+                    }
+                },
+            };
+
+            
+
+            var replacements = runSettingsTemplateReplacementsFactory.Create(testContainers, userRunSettingsProjectDetailsLookup, null);
+
+            var expectedTestDlls = userRunSettingsProjectDetailsLookup.Select(kvp => kvp.Value.TestDllFile).Select(testDll => MsCodeCoverageRegex.RegexEscapePath(testDll));
+            IncludeExcludeXmlELementsStringAssertionHelper.Assert(
+                replacements.ModulePathsInclude,
+                "ModulePath",
+                new[] { "ModulePathInclude1",  }.Concat(expectedTestDlls));
+        }
+
+        [Test]
+        public void Should_Not_Add_TestAssembly_To_ModulePathsInclude_When_No_Other_Includes_And_IncludeTestAssembly_True()
+        {
+            var testContainers = new List<ITestContainer>()
+            {
+                CreateTestContainer("Source1"),
+                CreateTestContainer("Source2"),
+            };
+
+            Dictionary<string, IUserRunSettingsProjectDetails> userRunSettingsProjectDetailsLookup = new Dictionary<string, IUserRunSettingsProjectDetails>
+            {
+                {
+                    "Source1",
+                    new TestUserRunSettingsProjectDetails
+                    {
+                        CoverageOutputFolder = "",
+                        TestDllFile = @"Some\Path1",
+                        Settings = new TestMsCodeCoverageOptions
+                        {
+                            IncludeTestAssembly = true,
+                        },
+                        IncludedReferencedProjects = Enumerable.Empty<IReferencedProject>().ToList(),
+                        ExcludedReferencedProjects = Enumerable.Empty<IReferencedProject>().ToList()
+                    }
+                },
+                {
+                    "Source2",
+                    new TestUserRunSettingsProjectDetails
+                    {
+                        CoverageOutputFolder = "",
+                        TestDllFile = @"Some\Path2",
+                        Settings = new TestMsCodeCoverageOptions {
+                            IncludeTestAssembly = true
+                        },
+                        IncludedReferencedProjects = Enumerable.Empty<IReferencedProject>().ToList(),
+                        ExcludedReferencedProjects = Enumerable.Empty<IReferencedProject>().ToList()
+                    }
+                },
+            };
+
+
+
+            var replacements = runSettingsTemplateReplacementsFactory.Create(testContainers, userRunSettingsProjectDetailsLookup, null);
+
+            var expectedTestDlls = userRunSettingsProjectDetailsLookup.Select(kvp => kvp.Value.TestDllFile).Select(testDll => MsCodeCoverageRegex.RegexEscapePath(testDll));
+            IncludeExcludeXmlELementsStringAssertionHelper.Assert(
+                replacements.ModulePathsInclude,
+                "ModulePath",
+                Enumerable.Empty<string>());
         }
 
         [Test]
@@ -372,10 +530,10 @@ namespace FineCodeCoverageTests.MsCodeCoverage
             Assert.That(replacements.TestAdapter, Is.Null);
         }
 
-        [TestCase(true,true,"true")]
+        [TestCase(true, true, "true")]
         [TestCase(false, true, "true")]
         [TestCase(true, false, "true")]
-        [TestCase(false, false, "false")]  
+        [TestCase(false, false, "false")]
         public void Should_Be_Disabled_When_All_Projects_Are_Disabled(bool project1Enabled, bool project2Enabled, string expectedEnabled)
         {
             var testContainer1 = CreateTestContainer("Source1");
@@ -416,11 +574,6 @@ namespace FineCodeCoverageTests.MsCodeCoverage
             Assert.That(runSettingsTemplateReplacements.Enabled, Is.EqualTo(expectedEnabled));
         }
 
-        private string ModulePathElement(string value)
-        {
-            return $"<ModulePath>{value}</ModulePath>";
-        }
-
         private ITestContainer CreateTestContainer(string source)
         {
             var mockTestContainer = new Mock<ITestContainer>();
@@ -432,7 +585,7 @@ namespace FineCodeCoverageTests.MsCodeCoverage
     internal class RunSettingsTemplateReplacementsFactory_Template_Tests
     {
         private RunSettingsTemplateReplacementsFactory runSettingsTemplateReplacementsFactory;
-        
+
         [SetUp]
         public void CreateSut()
         {
@@ -454,7 +607,7 @@ namespace FineCodeCoverageTests.MsCodeCoverage
             mockCoverageProject.Setup(cp => cp.ExcludedReferencedProjects).Returns(new List<IReferencedProject>());
             mockCoverageProject.Setup(cp => cp.IncludedReferencedProjects).Returns(new List<IReferencedProject>());
             mockCoverageProject.Setup(cp => cp.TestDllFile).Returns("");
-            mockCoverageProject.Setup(cp  => cp.Settings).Returns(mockSettings.Object);
+            mockCoverageProject.Setup(cp => cp.Settings).Returns(mockSettings.Object);
             furtherSetup?.Invoke(mockCoverageProject);
             return mockCoverageProject.Object;
         }
@@ -464,7 +617,7 @@ namespace FineCodeCoverageTests.MsCodeCoverage
         public void Should_Set_Enabled_From_The_CoverageProject_Settings(bool enabled)
         {
             var coverageProject = CreateCoverageProject(mock => mock.Setup(cp => cp.Settings.Enabled).Returns(enabled));
-            var replacements = runSettingsTemplateReplacementsFactory.Create(coverageProject,null);
+            var replacements = runSettingsTemplateReplacementsFactory.Create(coverageProject, null);
             Assert.AreEqual(enabled.ToString(), replacements.Enabled);
         }
 
@@ -472,12 +625,12 @@ namespace FineCodeCoverageTests.MsCodeCoverage
         public void Should_Set_The_ResultsDirectory_To_The_Project_CoverageOutputFolder()
         {
             var coverageProject = CreateCoverageProject(mock => mock.Setup(cp => cp.CoverageOutputFolder).Returns("CoverageOutputFolder"));
-            var replacements = runSettingsTemplateReplacementsFactory.Create(coverageProject,null);
+            var replacements = runSettingsTemplateReplacementsFactory.Create(coverageProject, null);
             Assert.AreEqual("CoverageOutputFolder", replacements.ResultsDirectory);
         }
 
         [Test]
-        public void Should_Create_Element_Replacements()
+        public void Should_Create_Element_Replacements_From_Settings()
         {
             var msCodeCoverageOptions = new TestCoverageProjectOptions
             {
@@ -491,32 +644,22 @@ namespace FineCodeCoverageTests.MsCodeCoverage
                 PublicKeyTokensInclude = new[] { "PublicKeyTokenInclude1", "PublicKeyTokenInclude2" },
                 SourcesExclude = new[] { "SourceExclude1", "SourceExclude2" },
                 SourcesInclude = new[] { "SourceInclude1", "SourceInclude2" },
-                ModulePathsExclude = new[] { "ModulePathExclude1","ModulePathExclude2" },
-                ModulePathsInclude = new[] { "ModulePathInclude1", "ModulePathInclude2" },
                 IncludeTestAssembly = true,
             };
 
             var coverageProject = CreateCoverageProject(mock => mock.Setup(cp => cp.Settings).Returns(msCodeCoverageOptions));
             var replacements = runSettingsTemplateReplacementsFactory.Create(coverageProject, null);
 
-
-            void AssertReplacement(string replacement, string replacementProperty, bool isInclude)
-            {
-                var ie = isInclude ? "Include" : "Exclude";
-                Assert.AreEqual($"<{replacementProperty}>{replacementProperty}{ie}1</{replacementProperty}><{replacementProperty}>{replacementProperty}{ie}2</{replacementProperty}>", replacement);
-            }
-
-            AssertReplacement(replacements.ModulePathsExclude, "ModulePath", false);
-            AssertReplacement(replacements.FunctionsExclude, "Function", false);
-            AssertReplacement(replacements.FunctionsInclude, "Function", true);
-            AssertReplacement(replacements.CompanyNamesExclude, "CompanyName", false);
-            AssertReplacement(replacements.CompanyNamesInclude, "CompanyName", true);
-            AssertReplacement(replacements.AttributesExclude, "Attribute", false);
-            AssertReplacement(replacements.AttributesInclude, "Attribute", true);
-            AssertReplacement(replacements.PublicKeyTokensExclude, "PublicKeyToken", false);
-            AssertReplacement(replacements.PublicKeyTokensInclude, "PublicKeyToken", true);
-            AssertReplacement(replacements.SourcesExclude, "Source", false);
-            AssertReplacement(replacements.SourcesInclude, "Source", true);
+            IncludeExcludeXmlELementsStringAssertionHelper.Assert(replacements.FunctionsExclude, "Function", msCodeCoverageOptions.FunctionsExclude);
+            IncludeExcludeXmlELementsStringAssertionHelper.Assert(replacements.FunctionsInclude, "Function", msCodeCoverageOptions.FunctionsInclude);
+            IncludeExcludeXmlELementsStringAssertionHelper.Assert(replacements.CompanyNamesExclude, "CompanyName", msCodeCoverageOptions.CompanyNamesExclude);
+            IncludeExcludeXmlELementsStringAssertionHelper.Assert(replacements.CompanyNamesInclude, "CompanyName", msCodeCoverageOptions.CompanyNamesInclude);
+            IncludeExcludeXmlELementsStringAssertionHelper.Assert(replacements.AttributesExclude, "Attribute", msCodeCoverageOptions.AttributesExclude);
+            IncludeExcludeXmlELementsStringAssertionHelper.Assert(replacements.AttributesInclude, "Attribute", msCodeCoverageOptions.AttributesInclude);
+            IncludeExcludeXmlELementsStringAssertionHelper.Assert(replacements.PublicKeyTokensExclude, "PublicKeyToken", msCodeCoverageOptions.PublicKeyTokensExclude);
+            IncludeExcludeXmlELementsStringAssertionHelper.Assert(replacements.PublicKeyTokensInclude, "PublicKeyToken", msCodeCoverageOptions.PublicKeyTokensInclude);
+            IncludeExcludeXmlELementsStringAssertionHelper.Assert(replacements.SourcesExclude, "Source", msCodeCoverageOptions.SourcesExclude);
+            IncludeExcludeXmlELementsStringAssertionHelper.Assert(replacements.SourcesInclude, "Source", msCodeCoverageOptions.SourcesInclude);
         }
 
         [Test]
@@ -580,7 +723,7 @@ namespace FineCodeCoverageTests.MsCodeCoverage
         {
             var msCodeCoverageOptions = new TestCoverageProjectOptions
             {
-                ModulePathsExclude = new[] { "FromSettings"},
+                ModulePathsExclude = new[] { "FromSettings" },
                 IncludeTestAssembly = false
             };
 
@@ -595,17 +738,19 @@ namespace FineCodeCoverageTests.MsCodeCoverage
             });
 
             var replacements = runSettingsTemplateReplacementsFactory.Create(coverageProject, null);
-            var expectedModulePathsExclude = $"{ModulePathElement(MsCodeCoverageRegex.RegexModuleName("ModuleName", true))}{ModulePathElement(MsCodeCoverageRegex.RegexEscapePath(@"Path\To\Test.dll"))}{ModulePathElement("FromSettings")}";
-            Assert.AreEqual(expectedModulePathsExclude, replacements.ModulePathsExclude);
+
+            IncludeExcludeXmlELementsStringAssertionHelper.Assert(
+                replacements.ModulePathsExclude, "ModulePath",
+                new[] { MsCodeCoverageRegex.RegexModuleName("ModuleName", true), MsCodeCoverageRegex.RegexEscapePath(@"Path\To\Test.dll"), "FromSettings" });
         }
 
         [Test]
-        public void Should_Have_ModulePathsInclude_Replacements_From_IncludedReferencedProjects_Settings_And_Included_Test_Assembly()
+        public void Should_Have_ModulePathsInclude_Replacements_From_IncludedReferencedProjects_Settings_IncludedTestAssembly_False()
         {
             var msCodeCoverageOptions = new TestCoverageProjectOptions
             {
                 ModulePathsInclude = new[] { "FromSettings" },
-                IncludeTestAssembly = true
+                IncludeTestAssembly = false
             };
 
             var coverageProject = CreateCoverageProject(mock =>
@@ -613,19 +758,76 @@ namespace FineCodeCoverageTests.MsCodeCoverage
                 mock.Setup(cp => cp.Settings).Returns(msCodeCoverageOptions);
                 mock.Setup(cp => cp.IncludedReferencedProjects).Returns(new List<IReferencedProject>
                 {
-                    new ReferencedProject("", "ModuleName", true)
+                    new ReferencedProject("", "ModuleNameDll", true),
+                    new ReferencedProject("", "ModuleNameExe", false)
                 });
                 mock.Setup(cp => cp.TestDllFile).Returns(@"Path\To\Test.dll");
             });
 
             var replacements = runSettingsTemplateReplacementsFactory.Create(coverageProject, null);
-            var expectedModulePathsInclude = $"{ModulePathElement(MsCodeCoverageRegex.RegexModuleName("ModuleName",true))}{ModulePathElement(MsCodeCoverageRegex.RegexEscapePath(@"Path\To\Test.dll"))}{ModulePathElement("FromSettings")}";
-            Assert.AreEqual(expectedModulePathsInclude, replacements.ModulePathsInclude);
+
+            IncludeExcludeXmlELementsStringAssertionHelper.Assert(
+                replacements.ModulePathsInclude,
+                "ModulePath",
+                new[] {
+                    MsCodeCoverageRegex.RegexModuleName("ModuleNameDll", true),
+                    MsCodeCoverageRegex.RegexModuleName("ModuleNameExe", false),
+                    "FromSettings" });
         }
 
-        private static string ModulePathElement(string value)
+        [Test]
+        public void Should_Not_Have_ModulePathsInclude_Replacements_When_IncludeTestAssembly_True_And_No_Other_Includes()
         {
-            return $"<ModulePath>{value}</ModulePath>";
+            var msCodeCoverageOptions = new TestCoverageProjectOptions
+            {
+                IncludeTestAssembly = true
+            };
+
+            var coverageProject = CreateCoverageProject(mock =>
+            {
+                mock.Setup(cp => cp.Settings).Returns(msCodeCoverageOptions);
+                mock.Setup(cp => cp.TestDllFile).Returns(@"Path\To\Test.dll");
+            });
+
+            var replacements = runSettingsTemplateReplacementsFactory.Create(coverageProject, null);
+
+            IncludeExcludeXmlELementsStringAssertionHelper.Assert(
+                replacements.ModulePathsInclude,
+                "ModulePath",
+                Enumerable.Empty<string>());
+        }
+
+        [Test]
+        public void Should_Have_ModulePathsInclude_Replacements_With_Test_Assembly_When_IncludeTestAssembly_True_And_Other_Includes()
+        {
+            var msCodeCoverageOptions = new TestCoverageProjectOptions
+            {
+                ModulePathsInclude = new[] { "SettingsInclude" },
+                IncludeTestAssembly = true
+            };
+
+            var coverageProject = CreateCoverageProject(mock =>
+            {
+                mock.Setup(cp => cp.Settings).Returns(msCodeCoverageOptions);
+                mock.Setup(cp => cp.TestDllFile).Returns(@"Path\To\Test.dll");
+            });
+
+            var replacements = runSettingsTemplateReplacementsFactory.Create(coverageProject, null);
+
+            IncludeExcludeXmlELementsStringAssertionHelper.Assert(
+                replacements.ModulePathsInclude,
+                "ModulePath",
+                new[] { "SettingsInclude", MsCodeCoverageRegex.RegexEscapePath(@"Path\To\Test.dll") });
+        }
+
+    }
+
+    internal static class IncludeExcludeXmlELementsStringAssertionHelper {
+        public static void Assert(string xmlElements, string expectedElementName, IEnumerable<string> expectedContents)
+        {
+            var elements = XElement.Parse($"<root>{xmlElements}</root>").Elements();
+            NUnit.Framework.Assert.That(elements.All(el => el.Name == expectedElementName));
+            NUnit.Framework.Assert.That(elements.Select(el => el.Value), Is.EquivalentTo(expectedContents));
         }
     }
 

@@ -118,16 +118,57 @@ namespace Test
         }
 
         [Test]
-        public async Task Should_Get_Settings_With_Include_From_CoverageProject_And_RunSettings_Async()
+        public async Task Should_Include_From_CoverageProject_Settings_Include_And_RunSettings_Async()
         {
             var projectInclude= new string[] { "included" };
             mockCoverageProject.Setup(cp => cp.Settings.Include).Returns(projectInclude);
             mockCoverageProject.Setup(cp => cp.CoverageOutputFolder).Returns("");
 
-            mockRunSettingsCoverletConfiguration.Setup(rsc => rsc.Include).Returns("rsincluded");
             await coverletDataCollectorUtil.RunAsync(CancellationToken.None);
-            mockDataCollectorSettingsBuilder.Verify(b => b.WithInclude(projectInclude, "rsincluded"));
+            mockDataCollectorSettingsBuilder.Verify(b => b.WithInclude(projectInclude, It.IsAny<string>()));
         }
+
+        [Test]
+        public async Task Should_Include_From_CoverageProject_IncludedReferencedProjects_And_RunSettings_Async()
+        {
+            var projectInclude = new string[] { "[ReferencedProject]*" };
+            mockCoverageProject.Setup(cp => cp.CoverageOutputFolder).Returns("");
+            var mockReferencedProject = new Mock<IReferencedProject>();
+            mockReferencedProject.SetupGet(rp => rp.AssemblyName).Returns("ReferencedProject");
+            mockCoverageProject.Setup(cp => cp.IncludedReferencedProjects).Returns(new List<IReferencedProject> { mockReferencedProject.Object });
+
+            await coverletDataCollectorUtil.RunAsync(CancellationToken.None);
+            mockDataCollectorSettingsBuilder.Verify(b => b.WithInclude(projectInclude, It.IsAny<string>()));
+        }
+
+        [Test]
+        public async Task Should_Not_Include_Test_Assembly_When_IncludeTestAssembly_True_And_No_Other_Includes_Async()
+        {
+            mockCoverageProject.Setup(cp => cp.CoverageOutputFolder).Returns("");
+            mockCoverageProject.Setup(cp => cp.Settings.IncludeTestAssembly).Returns(true);
+            mockRunSettingsCoverletConfiguration.Setup(rsc => rsc.Include).Returns("rsincluded");
+
+            await coverletDataCollectorUtil.RunAsync(CancellationToken.None);
+            mockDataCollectorSettingsBuilder.Verify(b => b.WithInclude(new string[] { },It.IsAny<string>()));
+        }
+
+        [Test]
+        public async Task Should_Include_Test_Assembly_When_IncludeTestAssembly_True_And_Other_Includes_Async()
+        {
+            mockCoverageProject.Setup(cp => cp.CoverageOutputFolder).Returns("");
+            var projectInclude = new string[] { "included" };
+            mockCoverageProject.Setup(cp => cp.Settings.Include).Returns(projectInclude);
+            mockCoverageProject.Setup(cp => cp.Settings.IncludeTestAssembly).Returns(true);
+            mockCoverageProject.Setup(cp => cp.ProjectName).Returns("TestProject");
+            mockRunSettingsCoverletConfiguration.Setup(rsc => rsc.Include).Returns("rsincluded");
+
+            await coverletDataCollectorUtil.RunAsync(CancellationToken.None);
+            mockDataCollectorSettingsBuilder.Verify(
+                b => b.WithInclude(
+                    It.Is<string[]>(includes => includes.OrderBy(incl => incl).SequenceEqual(new string[] { "[TestProject]*", "included"})), 
+                    It.IsAny<string>()));
+        }
+
 
         [TestCase(true,"true")]
         [TestCase(false, "false")]

@@ -129,8 +129,8 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
             return coverageProjects.Select(coverageProject =>
             {
                 var projectDirectory = Path.GetDirectoryName(coverageProject.ProjectFile);
-                var (runSettingsTemplate, customTemplatePath) = GetRunSettingsTemplate(projectDirectory, solutionDirectory);
-                var templateReplaceResult = ReplaceTemplate(coverageProject, runSettingsTemplate, fccMsTestAdapterPath);
+                var (replaceableTemplate, customTemplatePath) = GetRunSettingsTemplate(projectDirectory, solutionDirectory);
+                var templateReplaceResult = ReplaceTemplate(coverageProject, replaceableTemplate, fccMsTestAdapterPath);
 
                 return new TemplatedCoverageProjectRunSettingsResult
                 {
@@ -143,28 +143,28 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
             }).ToList();
         }
 
-        private (string Template, string CustomPath) GetRunSettingsTemplate(string projectDirectory, string solutionDirectory)
+        private (string ReplaceableTemplate, string CustomPath) GetRunSettingsTemplate(string projectDirectory, string solutionDirectory)
         {
             string customPath = null;
-            string template;
+            string replaceableTemplate;
             var customRunSettingsTemplateDetails = customRunSettingsTemplateProvider.Provide(projectDirectory, solutionDirectory);
             if (customRunSettingsTemplateDetails != null)
             {
                 customPath = customRunSettingsTemplateDetails.Path;
-                template = runSettingsTemplate.ConfigureCustom(customRunSettingsTemplateDetails.Template);
+                replaceableTemplate = runSettingsTemplate.ConfigureCustom(customRunSettingsTemplateDetails.Template);
             }
             else
             {
-                template = runSettingsTemplate.ToString();
+                replaceableTemplate = runSettingsTemplate.Get();
             }
-            return (template, customPath);
+            return (replaceableTemplate, customPath);
         }
 
-        private ITemplateReplacementResult ReplaceTemplate(ICoverageProject coverageProject, string runSettingsTemplate, string fccMsTestAdapterPath)
+        private ITemplateReplacementResult ReplaceTemplate(ICoverageProject coverageProject, string replaceableTemplate, string fccMsTestAdapterPath)
         {
             var replacements = runSettingsTemplateReplacementsFactory.Create(coverageProject, fccMsTestAdapterPath);
 
-            return this.runSettingsTemplate.ReplaceTemplate(runSettingsTemplate, replacements, coverageProject.IsDotNetFramework);
+            return this.runSettingsTemplate.ReplaceTemplate(replaceableTemplate, replacements, coverageProject.IsDotNetFramework);
         }
 
         public Task CleanUpAsync(List<ICoverageProject> coverageProjects)

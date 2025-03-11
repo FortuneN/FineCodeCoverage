@@ -13,7 +13,7 @@ namespace FineCodeCoverageTests.MsCodeCoverage
         public void Should_Be_Replaceable_With_Recommended_You_Do_Not_Change_Elements_When_Not_Provided(bool isDotNetFramework)
         {
             var runSettingsTemplate = new RunSettingsTemplate();
-            var template = runSettingsTemplate.ToString();
+            var template = runSettingsTemplate.Get();
             var useVerifiableInstrumentation = isDotNetFramework ? "False" : "True";
 
             var replacements = new RunSettingsTemplateReplacements
@@ -118,7 +118,7 @@ namespace FineCodeCoverageTests.MsCodeCoverage
         public void Should_Be_ReplacedTestAdapter_When_Template_Has_The_FCC_TestAdapter_Placeholder()
         {
             var runSettingsTemplate = new RunSettingsTemplate();
-            var template = runSettingsTemplate.ToString();
+            var template = runSettingsTemplate.Get();
             Assert.True(runSettingsTemplate.ReplaceTemplate(template, new RunSettingsTemplateReplacements(), true).ReplacedTestAdapter);
         }
 

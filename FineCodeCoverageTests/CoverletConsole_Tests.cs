@@ -15,9 +15,9 @@ using NUnit.Framework;
 
 namespace Test
 {
-
     public class CoverletExeArgumentsProvider_Tests
     {
+        private const string testProjectName = "TestProject";
         [Test]
         public void Should_Have_ExcludeByAttribute_Setting_For_Each_ExcludeByAttribute()
         {
@@ -43,12 +43,99 @@ namespace Test
             AssertHasSetting(coverletSettings, "--exclude-by-attribute ExcludeByAttribute1");
         }
 
+        [Test]
+        public void Should_Not_Add_Test_Test_Assembly_To_Includes_When_IncludeTestAssembly_And_No_Other_Includes()
+        {
+            var mockCoverageProject = SafeMockCoverageProject();
+            mockCoverageProject.SetupGet(cp => cp.Settings.IncludeTestAssembly).Returns(true);
+
+            var coverletExeArgumentsProvider = new CoverletExeArgumentsProvider();
+            var coverletSettings = coverletExeArgumentsProvider.GetArguments(mockCoverageProject.Object);
+
+            Assert.IsFalse(HasIncludedTestAssemblySetting(coverletSettings));
+        }
+
+        private bool HasIncludedTestAssemblySetting(List<string> coverletSettings)
+        {
+           return coverletSettings.Any(coverletSetting => coverletSetting == $@"--include ""[{testProjectName}]*""");
+        }
+
+        [Test]
+        public void Should_Add_Test_Test_Assembly_To_Includes_When_IncludeTestAssembly_And_Other_Includes()
+        {
+            var mockCoverageProject = SafeMockCoverageProject();
+            mockCoverageProject.SetupGet(cp => cp.Settings.IncludeTestAssembly).Returns(true);
+            mockCoverageProject.SetupGet(cp => cp.Settings.Include).Returns(new string[] { "[anassembly]*" });
+
+            var coverletExeArgumentsProvider = new CoverletExeArgumentsProvider();
+            var coverletSettings = coverletExeArgumentsProvider.GetArguments(mockCoverageProject.Object);
+
+            Assert.IsTrue(HasIncludedTestAssemblySetting(coverletSettings));
+        }
+
+        [Test]
+        public void Should_Add_IncludedReferencedProjects_As_Include()
+        {
+            var mockCoverageProject = SafeMockCoverageProject();
+            var mockReferencedProject = new Mock<IReferencedProject>();
+            mockReferencedProject.SetupGet(rp => rp.AssemblyName).Returns("ReferencedProject");
+            mockCoverageProject.SetupGet(cp => cp.IncludedReferencedProjects).Returns(new List<IReferencedProject> { mockReferencedProject.Object});
+
+            var coverletExeArgumentsProvider = new CoverletExeArgumentsProvider();
+            var coverletSettings = coverletExeArgumentsProvider.GetArguments(mockCoverageProject.Object);
+
+            Assert.True(coverletSettings.Contains($@"--include ""[ReferencedProject]*"""));
+
+        }
+
+        [Test]
+        public void Should_Include_From_Settings()
+        {
+            var mockCoverageProject = SafeMockCoverageProject();
+            mockCoverageProject.SetupGet(cp => cp.Settings.Include).Returns(new string[]{ "[Include]*"  });
+
+            var coverletExeArgumentsProvider = new CoverletExeArgumentsProvider();
+            var coverletSettings = coverletExeArgumentsProvider.GetArguments(mockCoverageProject.Object);
+
+            Assert.True(coverletSettings.Contains($@"--include ""[Include]*"""));
+
+        }
+
+        public void Should_Add_ExcludedReferencedProjects_As_Exclude()
+        {
+            var mockCoverageProject = SafeMockCoverageProject();
+            var mockReferencedProject = new Mock<IReferencedProject>();
+            mockReferencedProject.SetupGet(rp => rp.AssemblyName).Returns("ReferencedProject");
+            mockCoverageProject.SetupGet(cp => cp.ExcludedReferencedProjects).Returns(new List<IReferencedProject> { mockReferencedProject.Object });
+
+            var coverletExeArgumentsProvider = new CoverletExeArgumentsProvider();
+            var coverletSettings = coverletExeArgumentsProvider.GetArguments(mockCoverageProject.Object);
+
+            Assert.True(coverletSettings.Contains($@"--exclude ""[ReferencedProject]*"""));
+
+        }
+
+        [Test]
+        public void Should_Exclude_From_Settings()
+        {
+            var mockCoverageProject = SafeMockCoverageProject();
+            mockCoverageProject.SetupGet(cp => cp.Settings.Exclude).Returns(new string[] { "[Exclude]*" });
+
+            var coverletExeArgumentsProvider = new CoverletExeArgumentsProvider();
+            var coverletSettings = coverletExeArgumentsProvider.GetArguments(mockCoverageProject.Object);
+
+            Assert.True(coverletSettings.Contains($@"--exclude ""[Exclude]*"""));
+
+        }
+
+
         private Mock<ICoverageProject> SafeMockCoverageProject()
         {
             var mockCoverageProject = new Mock<ICoverageProject>();
             mockCoverageProject.SetupGet(coverageProject => coverageProject.IncludedReferencedProjects).Returns(new List<IReferencedProject>());
             mockCoverageProject.SetupGet(coverageProject => coverageProject.ExcludedReferencedProjects).Returns(new List<IReferencedProject>());
             mockCoverageProject.SetupGet(coverageProject => coverageProject.Settings).Returns(new Mock<IAppOptions>().Object);
+            mockCoverageProject.Setup(coverageProject => coverageProject.ProjectName).Returns(testProjectName);
             return mockCoverageProject;
         }
 

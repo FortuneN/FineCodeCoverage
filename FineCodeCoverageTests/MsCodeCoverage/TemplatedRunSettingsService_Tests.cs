@@ -32,7 +32,7 @@ namespace FineCodeCoverageTests.MsCodeCoverage
             var coverageProjects = new List<ICoverageProject> { coverageProject};
 
             var mockRunSettingsTemplate = autoMocker.GetMock<IRunSettingsTemplate>();
-            mockRunSettingsTemplate.Setup(runSettingsTemplate => runSettingsTemplate.ToString()).Returns("<MockRunSettingsTemplate/>");
+            mockRunSettingsTemplate.Setup(runSettingsTemplate => runSettingsTemplate.Get()).Returns("<MockRunSettingsTemplate/>");
 
             var runSettingsTemplateReplacements = new RunSettingsTemplateReplacements();
             var mockRunSettingsTemplateReplacementFactory = autoMocker.GetMock<IRunSettingsTemplateReplacementsFactory>();

@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace FineCodeCoverage.Engine.OpenCover
 {
@@ -23,15 +24,21 @@ namespace FineCodeCoverage.Engine.OpenCover
     internal class OpenCoverExeArgumentsProvider : IOpenCoverExeArgumentsProvider
     {
         private enum Delimiter { Semicolon, Space}
+
         private void AddFilter(ICoverageProject project, List<string> opencoverSettings)
         {
+            var includes = SanitizeExcludesOrIncludes(project.Settings.Include);
+            var excludes = SanitizeExcludesOrIncludes(project.Settings.Exclude).ToList();
+
             var includedModules = project.IncludedReferencedProjects.Select(rp => rp.AssemblyName).ToList();
-            if (project.Settings.IncludeTestAssembly)
+            if (project.Settings.IncludeTestAssembly &&
+                (includes.Any() || project.IncludedReferencedProjects.Any()))
             {
                 includedModules.Add(project.ProjectName);
             }
-            var includeFilters = GetExcludesOrIncludes(project.Settings.Include, includedModules, true);
-            var excludeFilters = GetExcludesOrIncludes(project.Settings.Exclude, project.ExcludedReferencedProjects.Select(rp => rp.AssemblyName), false);
+
+            var includeFilters = GetExcludesOrIncludes(includes, includedModules, true);
+            var excludeFilters = GetExcludesOrIncludes(excludes, project.ExcludedReferencedProjects.Select(rp => rp.AssemblyName), false);
             AddIncludeAllIfExcludingWithoutIncludes();
             var filters = includeFilters.Concat(excludeFilters).ToList();
             SafeAddToSettingsDelimitedIfAny(opencoverSettings, "filter", filters, Delimiter.Space);
@@ -48,28 +55,19 @@ namespace FineCodeCoverage.Engine.OpenCover
                 IEnumerable<string> excludesOrIncludes,IEnumerable<string> moduleExcludesOrIncludes, bool isInclude)
             {
                 var excludeOrIncludeFilters = new List<string>();
-                var prefix = IncludeSymbol(isInclude);
-                var sanitizedExcludesOrIncludes = SanitizeExcludesOrIncludes(excludesOrIncludes);
+                var includeExcludeSymbol = isInclude ? "+" : "-";
                 
-                foreach (var value in sanitizedExcludesOrIncludes)
+                foreach (var value in excludesOrIncludes)
                 {
-                    excludeOrIncludeFilters.Add($@"{prefix}{value}");
+                    excludeOrIncludeFilters.Add($@"{includeExcludeSymbol}{value}");
                 }
 
                 foreach (var moduleExcludeOrInclude in moduleExcludesOrIncludes)
                 {
-                    excludeOrIncludeFilters.Add(IncludeOrExcludeModule(isInclude, moduleExcludeOrInclude));
+                    excludeOrIncludeFilters.Add($"{includeExcludeSymbol}[{moduleExcludeOrInclude}]*");
                 }
                 return excludeOrIncludeFilters.Distinct().ToList();
             }
-
-            string IncludeOrExcludeModule(bool include,string moduleFilter,string classFilter = "*")
-            {
-                var filter = IncludeSymbol(include);
-                return $"{filter}[{moduleFilter}]{classFilter}";
-            }
-
-            string IncludeSymbol(bool include) => include ? "+" : "-"; 
         }
 
         private IEnumerable<string> SanitizeExcludesOrIncludes(IEnumerable<string> excludesOrIncludes)
