@@ -13,10 +13,10 @@ or download from [releases](https://github.com/FortuneN/FineCodeCoverage/release
 
 For .Net
 
-FCC supports the new [Microsoft.Testing.Platform]( https://learn.microsoft.com/en-us/dotnet/core/testing/unit-testing-platform-intro).  
+FCC supports the new [Microsoft.Testing.Platform](https://learn.microsoft.com/en-us/dotnet/core/testing/unit-testing-platform-intro).  
 FCC does not support the associated testing platform server mode for when using microsoft as a coverage provider.  
 You can disable this feature - "Options / Environment / Preview Features / Use testing platform server mode"
-but it is not necessary as FCC adds a global msbuild property, DisableTestingPlatformServerCapability true, that removes 
+but it is not necessary as FCC adds a global msbuild property, DisableTestingPlatformServerCapability true, that removes
 the project capability. ([see Microsoft.Testing.Platform.MSBuild.targets](https://github.com/microsoft/testfx/blob/d141931b99fad0617d8435ce321fca0c45c9eb94/src/Platform/Microsoft.Testing.Platform.MSBuild/buildMultiTargeting/Microsoft.Testing.Platform.MSBuild.targets#L10)).
 
 When not using Microsoft.TestingPlatform you have added test adapters through nuget packages. For instance, the NUnit Test Adapter extension is not sufficient.
@@ -111,7 +111,7 @@ The old coverage was based upon every test. Ms code coverage is coverage from th
 
 Ms code coverage requires a [runsettings](https://docs.microsoft.com/en-us/visualstudio/test/configure-unit-tests-by-using-a-dot-runsettings-file?view=vs-2022) file that is configured appropriately for
 code coverage. This requires that you have the ms code coverage package and have pointed to it with the TestAdaptersPaths element as well as specifying the ms data collector. [Exclusions and inclusions](https://docs.microsoft.com/en-us/visualstudio/test/customizing-code-coverage-analysis?view=vs-2022#include-or-exclude-assemblies-and-members)
-are also specified in the runsettings. I don't think that the documentation is clear enough on how this works so you may want to look at [this issue](https://github.com/microsoft/vstest/issues/3462).
+are also specified in the runsettings.
 
 FCC does not require you to do this. If you do not provide a runsettings and RunMsCodeCoverage is Yes then FCC will generate one and write the necessary entry in the project file.  
 Note that having a test project file open in visual studio whilst running tests may result in a conflict warning when FCC removes the entry at the end of the test.
@@ -140,9 +140,12 @@ It is also possible to use your own runsettings file and have FCC add to it and 
 
 ## Run settings defaults and merging
 
-Ms code coverage does provide a default Configuration / CodeCoverage element if not provided. It will also add some default exclusions if not present or merge them in unless you add the attribute mergeDefaults='false'.
-For instance it Attributes exclude ExcludeFromCodeCoverageAttribute.
-If you are interested see ...\AppData\Local\FineCodeCoverage\msCodeCoverage_version\_\build\netstandard1.0\Microsoft.VisualStudio.TraceDataCollector.dll and the DynamicCoverageDataCollector.
+Ms code coverage does provide a default Configuration / CodeCoverage element if not provided. It will also add some default exclusions for ModulePaths, Attributes, Sources, Functions, and PublicKeyTokens if not present in inclusions or exclusions unless you add the attribute mergeDefaults='false'.
+For instance for Attributes it will exclude ExcludeFromCodeCoverageAttribute.
+
+If you are interested in using DotPeek or Reflector against the Microsoft source code within
+...\AppData\Local\FineCodeCoverage\msCodeCoverage_version\_\build\netstandard2.0\ there is the Microsoft.VisualStudio.TraceDataCollector.dll.
+see `DynamicCoverageDataCollector.OnInitialize` for the default configuration logic. The default config is in the resources of Microsoft.CodeCoverage.Core.
 
 ## Problems with ms code coverage
 
@@ -347,7 +350,7 @@ If you are using option 1) then project and global options will only be used whe
 | DisabledNoCoverage                                                              | Set to false for VS Option Enabled=false to not disable coverage                                                                                                                                                                                                                                                                                               |
 | RunWhenTestsFail                                                                | By default coverage runs when tests fail. Set to false to prevent this. **Cannot be used in conjunction with RunInParallel**                                                                                                                                                                                                                                   |
 | RunWhenTestsExceed                                                              | Specify a value to only run coverage based upon the number of executing tests. **Cannot be used in conjunction with RunInParallel**                                                                                                                                                                                                                            |
-| RunMsCodeCoverage                                                               | Change to IfInRunSettings to only collect with configured runsettings. Yes (default) for runsettings generation. No to use Coverlet or OpenCover.                                                                                                                                                                                                                                                          |
+| RunMsCodeCoverage                                                               | Change to IfInRunSettings to only collect with configured runsettings. Yes (default) for runsettings generation. No to use Coverlet or OpenCover.                                                                                                                                                                                                              |
 | IncludeTestAssembly                                                             | Specifies whether to report code coverage of the test assembly                                                                                                                                                                                                                                                                                                 |
 | IncludeReferencedProjects                                                       | Set to true to add all directly referenced projects to Include.                                                                                                                                                                                                                                                                                                |
 | IncludeAssemblies                                                               | Provide a list of assemblies to include in coverage. The dll name without extension is used for matching.                                                                                                                                                                                                                                                      |
@@ -393,28 +396,34 @@ If you are using option 1) then project and global options will only be used whe
 
 ## Exclusions and inclusions
 
-You probably want to set IncludeReferencedProjects to true. This will ensure that you do not get coverage for testing frameworks - only your code.
-
 Coverlet and OpenCover use filter expressions.
+
 Filter expressions
 
-Wildcards
-
-\* => matches zero or more characters
-Examples
-
-[\*]\* => All types in all assemblies.
-
-[coverlet\.\*]Coverlet.Core.Coverage => The Coverage class in the Coverlet.Core namespace belonging to any assembly that matches coverlet.\* (e.g coverlet.core)
-
-[\*\]Coverlet.Core.Instrumentation.\* => All types belonging to Coverlet.Core.Instrumentation namespace in any assembly
-
-[coverlet\.\*.tests]\* => All types in any assembly starting with coverlet. and ending with .tests
-
-Both 'Exclude' and 'Include' options can be used together but 'Exclude' takes precedence.
+> Wildcards
+>
+> \* => matches zero or more characters
+>
+> Examples
+>
+> [\*]\* => All types in all assemblies.
+>
+> [coverlet\.\*]Coverlet.Core.Coverage => The Coverage class in the Coverlet.Core namespace belonging to any assembly that matches coverlet.\* (e.g coverlet.core)
+>
+> [\*\]Coverlet.Core.Instrumentation.\* => All types belonging to Coverlet.Core.Instrumentation namespace in any assembly
+>
+> [coverlet\.\*.tests]\* => All types in any assembly starting with coverlet. and ending with .tests
+>
+> Both 'Exclude' and 'Include' options can be used together but 'Exclude' takes precedence.
 
 Ms code coverage uses [regexes](https://learn.microsoft.com/en-us/visualstudio/test/customizing-code-coverage-analysis?view=vs-2022#regular-expressions).
-You can include or exclude assemblies or specific types and members from code coverage analysis. If the Include section is empty or omitted, then all assemblies that are loaded and have associated PDB files are included. If an assembly or member matches a clause in the Exclude section, then it is excluded from code coverage. The Exclude section takes precedence over the Include section: if an assembly is listed in both Include and Exclude, it will not be included in code coverage.
+
+> You can include or exclude assemblies or specific types and members from code coverage analysis. If the Include section is empty or omitted, then all assemblies that are loaded and have associated PDB files are included. If an assembly or member matches a clause in the Exclude section, then it is excluded from code coverage. The Exclude section takes precedence over the Include section: if an assembly is listed in both Include and Exclude, it will not be included in code coverage.
+
+Just remember that as soon as there is an include for an assembly all other assemblies that you require coverage for will also need to be included. ( [internals](https://github.com/FortuneN/FineCodeCoverage/issues/489) )  
+If there are no includes then all assemblies will be included unless explicitly excluded.  
+Hence when IncludeTestAssembly is true FCC only explicitly includes it when there are other includes specified.  
+**You may want to set IncludeReferencedProjects to true. This will ensure that you do not get coverage for testing frameworks - only your code.**
 
 You can ignore a method or an entire class from code coverage by applying the [ExcludeFromCodeCoverage] attribute present in the System.Diagnostics.CodeAnalysis namespace.
 
@@ -447,19 +456,19 @@ if you want to contribute to this project.
 For cloning and building this project yourself, make sure
 to install the [Extensibility Essentials](https://marketplace.visualstudio.com/items?itemName=MadsKristensen.ExtensibilityEssentials2022)
 extension for Visual Studio which enables some features
-used by this project. 
+used by this project.
 
 ## License
 
 [Apache 2.0](LICENSE)
 
-## Credits 
+## Credits
 
 [Coverlet](https://github.com/coverlet-coverage/coverlet)
 
 [OpenCover](https://github.com/OpenCover/opencover)
 
-[ReportGenerator](https://github.com/danielpalme/ReportGenerator) 
+[ReportGenerator](https://github.com/danielpalme/ReportGenerator)
 
 ## Please support the project
 
