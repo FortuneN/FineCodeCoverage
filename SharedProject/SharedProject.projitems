@@ -135,8 +135,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Core\MsTestPlatform\MsTestPlatformUtil.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\MsTestPlatform\CodeCoverage\RunSettingsHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\MsTestPlatform\TestingPlatform\DisableTestingPlatformServerCapabilityGlobalPropertiesProvider.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Core\MsTestPlatform\TestingPlatform\IUseTestingPlatformProtocolFeatureService.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Core\MsTestPlatform\TestingPlatform\UseTestingPlatformProtocolFeatureService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\MsTestPlatform\TestingPlatform\TUnitConstants.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\OpenCover\IOpenCoverExeArgumentsProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\OpenCover\IOpenCoverUtil.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\OpenCover\OpenCoverExeArgumentsProvider.cs" />

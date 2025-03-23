@@ -1,5 +1,4 @@
 ﻿using FineCodeCoverage.Engine.Model;
-using FineCodeCoverage.Engine.MsTestPlatform.TestingPlatform;
 using FineCodeCoverage.Options;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.ProjectSystem;
@@ -9,7 +8,9 @@ using Microsoft.VisualStudio.Shell.Interop;
 using System;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
+using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace FineCodeCoverage.Core.MsTestPlatform.TestingPlatform
 {
@@ -24,16 +25,15 @@ namespace FineCodeCoverage.Core.MsTestPlatform.TestingPlatform
             See https://learn.microsoft.com/en-gb/dotnet/api/microsoft.visualstudio.shell.interop.vsprojectcapabilityexpressionmatcher?view=visualstudiosdk-2022
             For expression syntax
     */
-    [AppliesTo("TestingPlatformServer.ExitOnProcessExitCapability | TestingPlatformServer.UseListTestsOptionForDiscoveryCapability")]
+    [AppliesTo("TestContainer")]
     internal class DisableTestingPlatformServerCapabilityGlobalPropertiesProvider : StaticGlobalPropertiesProviderBase
     {
-        private readonly IUseTestingPlatformProtocolFeatureService useTestingPlatformProtocolFeatureService;
+        private readonly UnconfiguredProject unconfiguredProject;
         private readonly IAppOptionsProvider appOptionsProvider;
         private readonly ICoverageProjectSettingsManager coverageProjectSettingsManager;
-        private CoverageProject coverageProject;
+
         [ImportingConstructor]
         public DisableTestingPlatformServerCapabilityGlobalPropertiesProvider(
-            IUseTestingPlatformProtocolFeatureService useTestingPlatformProtocolFeatureService,
             IProjectService projectService,
             UnconfiguredProject unconfiguredProject,
             IAppOptionsProvider appOptionsProvider,
@@ -41,39 +41,9 @@ namespace FineCodeCoverage.Core.MsTestPlatform.TestingPlatform
         )
           : base((IProjectCommonServices)projectService.Services)
         {
-            ThreadHelper.JoinableTaskFactory.Run(async () =>
-            {
-                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-                var hostObject = unconfiguredProject.Services.HostObject;
-
-                var vsHierarchy = (IVsHierarchy)hostObject;
-                if (vsHierarchy != null)
-                {
-                    var success = vsHierarchy.GetGuidProperty((uint)VSConstants.VSITEMID.Root, (int)__VSHPROPID.VSHPROPID_ProjectIDGuid, out Guid projectGuid) == VSConstants.S_OK;
-
-                    if (success)
-                    {
-                        // todo - ICoverageProjectSettingsManager.GetSettingsAsync parameter 
-                        // to change to what it actually needs
-                        coverageProject = new CoverageProject(appOptionsProvider, null, coverageProjectSettingsManager, null)
-                        {
-                            Id = projectGuid,
-                            ProjectFile = unconfiguredProject.FullPath
-                        };
-                    }
-                }
-            });
-
-            this.useTestingPlatformProtocolFeatureService = useTestingPlatformProtocolFeatureService;
+            this.unconfiguredProject = unconfiguredProject;
             this.appOptionsProvider = appOptionsProvider;
             this.coverageProjectSettingsManager = coverageProjectSettingsManager;
-        }
-
-        // visual studio options states that a restart is required.  If this is true then could cache this value
-        private async System.Threading.Tasks.Task<bool> UsingTestingPlatformProtocolAsync()
-        {
-            var useTestingPlatformProtocolFeature = await useTestingPlatformProtocolFeatureService.GetAsync();
-            return useTestingPlatformProtocolFeature.HasValue && useTestingPlatformProtocolFeature.Value;
         }
 
         private bool AllProjectsDisabled()
@@ -82,31 +52,68 @@ namespace FineCodeCoverage.Core.MsTestPlatform.TestingPlatform
             return !appOptions.Enabled && appOptions.DisabledNoCoverage;
         }
 
-        private async System.Threading.Tasks.Task<bool> ProjectEnabledAsync()
+        private async Task<bool> IsTUnitAsync()
         {
+            var configuredProject = await unconfiguredProject.GetSuggestedConfiguredProjectAsync();
+            var references = await configuredProject.Services.PackageReferences.GetUnresolvedReferencesAsync();
+            return references.Any(r => r.UnevaluatedInclude == TUnitConstants.TUnitPackageId);
+        }
+
+        private async Task<bool> ProjectEnabledAsync()
+        {
+            var coverageProject = await GetCoverageProjectAsync();
             if (coverageProject != null)
             {
+                var isTUnit = await IsTUnitAsync();
+                if (isTUnit)
+                {
+                    return false;
+                }
                 var projectSettings = await coverageProjectSettingsManager.GetSettingsAsync(coverageProject);
                 return projectSettings.Enabled;
             }
             return true;
         }
 
-        public override async System.Threading.Tasks.Task<IImmutableDictionary<string, string>> GetGlobalPropertiesAsync(CancellationToken cancellationToken)
+        private async Task<Guid?> GetProjectGuidAsync()
         {
-            /*
-                Note that it only matters for ms code coverage but not going to test for that
-                Main thing is that FCC does not turn off if user has Enterprise which does support
-                the new feature and has turned off FCC.
-            */
-            if (await UsingTestingPlatformProtocolAsync() && !AllProjectsDisabled() && await ProjectEnabledAsync())
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+            var hostObject = unconfiguredProject.Services.HostObject;
+
+            var vsHierarchy = (IVsHierarchy)hostObject;
+            if (vsHierarchy != null)
             {
-                // https://github.com/microsoft/testfx/blob/main/src/Platform/Microsoft.Testing.Platform.MSBuild/buildMultiTargeting/Microsoft.Testing.Platform.MSBuild.targets
+                var success = vsHierarchy.GetGuidProperty((uint)VSConstants.VSITEMID.Root, (int)__VSHPROPID.VSHPROPID_ProjectIDGuid, out Guid projectGuid) == VSConstants.S_OK;
+
+                if (success)
+                {
+                    return projectGuid;
+                }
+            }
+            return null;
+        }
+
+        private async Task<CoverageProject> GetCoverageProjectAsync()
+        {
+            var projectGuid = await GetProjectGuidAsync();
+            if (projectGuid.HasValue)
+            {
+                return new CoverageProject(appOptionsProvider, null, coverageProjectSettingsManager, null)
+                {
+                    Id = projectGuid.Value,
+                    ProjectFile = unconfiguredProject.FullPath
+                };
+            }
+            return null;
+        }
+
+        public override async Task<IImmutableDictionary<string, string>> GetGlobalPropertiesAsync(CancellationToken cancellationToken)
+        {
+            if (!AllProjectsDisabled() && await ProjectEnabledAsync())
+            {
                 return Empty.PropertiesMap.Add("DisableTestingPlatformServerCapability", "true");
             }
             return Empty.PropertiesMap;
         }
-
     }
-
 }
