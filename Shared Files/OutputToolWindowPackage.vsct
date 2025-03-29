@@ -91,6 +91,30 @@
           <LocCanonicalName>FCC.OpenHotspots</LocCanonicalName>
         </Strings>
       </Button>
+    <Button guid="guidOutputToolWindowPackageCmdSet" id="cmdidCollectTUnitCommand" priority="0x0100" type="Button">
+	    <Parent guid="guidOutputToolWindowPackageCmdSet" id="ToolWindowToolbarGroup" />
+	    <Icon guid="ImageCatalogGuid" id="RunTest" />
+	    <CommandFlag>IconIsMoniker</CommandFlag>
+	    <CommandFlag>DynamicVisibility</CommandFlag>
+	    <Strings>
+		    <ButtonText>Collect TUnit</ButtonText>
+		    <CommandName>Collect TUnit</CommandName>
+		    <CanonicalName>FCC.CollectTUnit</CanonicalName>
+		    <LocCanonicalName>FCC.CollectTUnit</LocCanonicalName>
+	    </Strings>
+    </Button>
+    <Button guid="guidOutputToolWindowPackageCmdSet" id="cmdidCancelCollectTUnitCommand" priority="0x0100" type="Button">
+	    <Parent guid="guidOutputToolWindowPackageCmdSet" id="ToolWindowToolbarGroup" />
+	    <Icon guid="ImageCatalogGuid" id="CancelTest" />
+	    <CommandFlag>IconIsMoniker</CommandFlag>
+	    <CommandFlag>DynamicVisibility</CommandFlag>
+	    <Strings>
+		    <ButtonText>Cancel Collect TUnit</ButtonText>
+		    <CommandName>Cancel Collect TUnit</CommandName>
+		    <CanonicalName>FCC.CancelCollectTUnit</CanonicalName>
+		    <LocCanonicalName>FCC.CancelCollectTUnit</LocCanonicalName>
+	    </Strings>
+    </Button>
     </Buttons>
     
     <Menus>
@@ -134,6 +158,8 @@
       <IDSymbol value="257" name="cmdidOpenCoberturaCommand" />
       <IDSymbol value="258" name="cmdidOpenHotspotsCommand" />
 	  <IDSymbol value="259" name="cmdidToggleCoverageIndicatorsCommand" />
+	  <IDSymbol value="268" name="cmdidCollectTUnitCommand" />
+	  <IDSymbol value="269" name="cmdidCancelCollectTUnitCommand" />
     </GuidSymbol>
 
     <!-- images -->

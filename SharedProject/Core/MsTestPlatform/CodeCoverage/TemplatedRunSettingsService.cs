@@ -17,14 +17,6 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
         private readonly IRunSettingsTemplateReplacementsFactory runSettingsTemplateReplacementsFactory;
         private readonly IProjectRunSettingsGenerator projectRunSettingsGenerator;
 
-        private class TemplatedCoverageProjectRunSettingsResult : ICoverageProjectRunSettings
-        {
-            public ICoverageProject CoverageProject { get; set; }
-            public string RunSettings { get; set; }
-            public string CustomTemplatePath { get; internal set; }
-            public bool ReplacedTestAdapter { get; internal set; }
-        }
-
         private class ProjectRunSettingsFromTemplateResult : IProjectRunSettingsFromTemplateResult
         {
             private class ExceptionReasonImpl : IExceptionReason
@@ -120,7 +112,7 @@ namespace FineCodeCoverage.Engine.MsTestPlatform.CodeCoverage
             };
         }
 
-        private List<TemplatedCoverageProjectRunSettingsResult> CreateProjectsRunSettings(
+        public List<TemplatedCoverageProjectRunSettingsResult> CreateProjectsRunSettings(
             IEnumerable<ICoverageProject> coverageProjects, 
             string solutionDirectory, 
             string fccMsTestAdapterPath

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
+using FineCodeCoverage.Core.MsTestPlatform.TestingPlatform;
 using FineCodeCoverage.Core.Utilities;
 using FineCodeCoverage.Engine.Cobertura;
 using FineCodeCoverage.Engine.Model;
@@ -67,6 +68,7 @@ namespace FineCodeCoverage.Engine
 #pragma warning restore IDE0052 // Remove unread private members
         private readonly IEventAggregator eventAggregator;
         private readonly IDisposeAwareTaskRunner disposeAwareTaskRunner;
+        private readonly ITUnitCoverageRunner tUnitCoverageRunner;
         private bool disposed = false;
 
         [ImportingConstructor]
@@ -82,12 +84,14 @@ namespace FineCodeCoverage.Engine
             ISolutionEvents solutionEvents,
             IAppOptionsProvider appOptionsProvider,
             IEventAggregator eventAggregator,
-            IDisposeAwareTaskRunner disposeAwareTaskRunner
+            IDisposeAwareTaskRunner disposeAwareTaskRunner,
+            ITUnitCoverageRunner tUnitCoverageRunner
             )
         {
             this.solutionEvents = solutionEvents;
             this.eventAggregator = eventAggregator;
             this.disposeAwareTaskRunner = disposeAwareTaskRunner;
+            this.tUnitCoverageRunner = tUnitCoverageRunner;
             solutionEvents.AfterClosing += (s,args) => ClearUI(false);
             appOptionsProvider.OptionsChanged += (appOptions) =>
             {
@@ -121,6 +125,7 @@ namespace FineCodeCoverage.Engine
             msTestPlatformUtil.Initialize(AppDataFolderPath, cancellationToken);
             coverageUtilManager.Initialize(AppDataFolderPath, cancellationToken);
             msCodeCoverageRunSettingsService.Initialize(AppDataFolderPath, this,cancellationToken);
+            tUnitCoverageRunner.Initialize(AppDataFolderPath, cancellationToken);
         }
 
         public void ClearUI(bool clearOutputWindowHistory = true)

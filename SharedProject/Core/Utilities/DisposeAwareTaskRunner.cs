@@ -7,11 +7,44 @@ using Task = System.Threading.Tasks.Task;
 
 namespace FineCodeCoverage.Core.Utilities
 {
-    
+    internal interface ICancellationTokenSource : IDisposable
+    {
+        CancellationToken Token { get; }
+        bool IsCancellationRequested { get; }
+
+        void Cancel();
+    }
+
+    internal class CancellationTokenSourceWrapper : ICancellationTokenSource
+    {
+        private readonly CancellationTokenSource cancellationTokenSource;
+
+        public CancellationTokenSourceWrapper(CancellationTokenSource cancellationTokenSource)
+        {
+            this.cancellationTokenSource = cancellationTokenSource;
+        }
+
+        public CancellationToken Token => cancellationTokenSource.Token;
+
+        public bool IsCancellationRequested => cancellationTokenSource.IsCancellationRequested;
+
+        public void Cancel()
+        {
+            cancellationTokenSource.Cancel();
+        }
+
+        public void Dispose()
+        {
+            cancellationTokenSource.Dispose();
+        }
+    }
+
     internal interface IDisposeAwareTaskRunner
     {
         void RunAsyncFunc(Func<Task> taskProvider);
         CancellationToken DisposalToken { get; }
+        ICancellationTokenSource CreateLinkedTokenSource();
+        bool IsVsShutdown { get; }
     }
 
     [Export(typeof(IDisposeAwareTaskRunner))]
@@ -32,6 +65,13 @@ namespace FineCodeCoverage.Core.Utilities
         /// Gets a <see cref="CancellationToken"/> that can be used to check if the package has been disposed.
         /// </summary>
         public CancellationToken DisposalToken => this.disposeCancellationTokenSource.Token;
+
+        public bool IsVsShutdown => DisposalToken.IsCancellationRequested;
+
+        public ICancellationTokenSource CreateLinkedTokenSource()
+        {
+            return new CancellationTokenSourceWrapper(CancellationTokenSource.CreateLinkedTokenSource(DisposalToken));
+        }
 
         public void Dispose()
         {

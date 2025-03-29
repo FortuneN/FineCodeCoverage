@@ -12,6 +12,7 @@ using FineCodeCoverage.Engine;
 using EnvDTE80;
 using FineCodeCoverage.Core.Utilities;
 using FineCodeCoverage.Core.Initialization;
+using FineCodeCoverage.Core.MsTestPlatform.TestingPlatform;
 
 namespace FineCodeCoverage.Output
 {
@@ -99,6 +100,9 @@ namespace FineCodeCoverage.Output
 				componentModel.GetService<ILogger>(),
 				componentModel.GetService<IShownToolWindowHistory>()
 			);
+			var tUnitCoveraage = componentModel.GetService<ITUnitCoverage>();
+            await CollectTUnitCommand.InitializeAsync(this, tUnitCoveraage);
+			await CancelCollectTUnitCommand.InitializeAsync(this, tUnitCoveraage);
 			await componentModel.GetService<IInitializer>().InitializeAsync(cancellationToken);
         }
 
