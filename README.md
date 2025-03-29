@@ -14,7 +14,17 @@ or download from [releases](https://github.com/FortuneN/FineCodeCoverage/release
 For .Net
 
 FCC supports the new [Microsoft.Testing.Platform](https://learn.microsoft.com/en-us/dotnet/core/testing/unit-testing-platform-intro) for MsTest, NUnit and xUnit.
-Support for TUnit will be available shortly but will require running tests differently.
+
+Unfortunately the workaround FCC uses for MSTest, NUnit and xUnit does not apply to TUnit.  
+TUnit has its own dedicated button on the FCC tool window toolbar and cannot be driven from the test explorer window.  
+As the test explorer window is not used FCC cannot intercept your runsettings ( see later).  
+Microsoft.Testing.Platform has the [Microsoft code coverage extension](https://learn.microsoft.com/en-us/dotnet/core/testing/microsoft-testing-platform-extensions-code-coverage#microsoft-code-coverage). If you add the package it will be used, otherwise FCC will run dotnet-coverage.  
+The Microsoft code coverage extension accepts runsettings or [configuration](https://learn.microsoft.com/en-us/dotnet/core/additional-tools/dotnet-coverage#settings) and dotnet-coverage only accepts configuration.
+FCC will supply the necessary settings using FCC's settings system ( below ) but if you want to supply your own, FCC will read the test project file.
+If either the FCCTestingPlatformCommandLineArguments or TestingPlatformCommandLineArguments property is present FCC will use these [arguments](https://learn.microsoft.com/en-us/dotnet/core/testing/microsoft-testing-platform-intro?tabs=dotnetcli#options) except ones pertaining to coverage other than --coverage-settings ( or --settings) as long as the
+path specified exists.
+
+Note that TUnit blocks coverage of your tests in the GlobalSetup.cs file if using the project template.
 
 When not using Microsoft.Testing.Platform you have added test adapters through nuget packages. For instance, the NUnit Test Adapter extension is not sufficient.
 
@@ -23,8 +33,7 @@ When not using Microsoft.Testing.Platform you have added test adapters through n
 ## Introduction
 
 Fine Code Coverage provides code coverage using one of 3 different coverage tools. In previous releases there were two coverage tools being utilised, OpenCover and Coverlet that will be referred to as 'old coverage'.  
-Microsoft now provides a free coverage solution that you can choose to use by setting the Visual Studio Fine Code Coverage enumeration option RunMsCodeCoverage. This will probably be the preferred coverage
-tool for most developers.
+Microsoft now provides a free coverage solution that you can choose to use by setting the Visual Studio Fine Code Coverage enumeration option RunMsCodeCoverage. This will probably be the preferred coverage tool for most developers. This is not necessary for TUnit.
 
 With the old coverage it was possible for FCC to provide an abstraction over each tool's exclusion / inclusion options. This abstraction does not work for MS code coverage.  
 Thus you will find that there are separate configuration options for Ms coverage vs old coverage and options that are common to the two.
@@ -32,7 +41,7 @@ Assembly level exclusions and inclusions can be achieved - see ExcludeAssemblies
 Configuration is ( mostly ) determined from Visual Studio options, finecodecoverage-settings.xml files and project msbuild properties. All of these settings are optional.
 For options that have a project scope, these settings form a hierarchy where lower levels override or, for collections, override or merge with the level above. This is described in detail further on.
 
-Regardless of the coverage tool employed the process begins with FCC reacting to the test explorer in visual studio. One of the 3 coverage tools provides the coverage results and the results can be opened from buttons on the Fine Code Coverage Tool Window.
+Aside from TUnit projects, the process begins with FCC reacting to the test explorer in visual studio. One of the 3 coverage tools provides the coverage results and the results can be opened from buttons on the Fine Code Coverage Tool Window.
 This coverage is not dynamic and represents the coverage obtained from the last time you executed tests. When the coverage becomes outdated, you can click the 'FCC Clear UI' button in Tools or run coverage again.
 
 Details of how FCC is progressing with code coverage can be found in the Coverage Log tab in the Fine Code Coverage Tool Window with more detailed logs in the FCC Output Window Pane. If you experience issues then providing the logs from the output window will help to understand the nature of the problem.

@@ -1,5 +1,6 @@
 ﻿using FineCodeCoverage.Engine.Model;
 using FineCodeCoverage.Options;
+using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.ProjectSystem;
 using Microsoft.VisualStudio.ProjectSystem.Build;
@@ -61,18 +62,12 @@ namespace FineCodeCoverage.Core.MsTestPlatform.TestingPlatform
 
         private async Task<bool> ProjectEnabledAsync()
         {
-            var coverageProject = await GetCoverageProjectAsync();
-            if (coverageProject != null)
-            {
-                var isTUnit = await IsTUnitAsync();
-                if (isTUnit)
-                {
-                    return false;
-                }
-                var projectSettings = await coverageProjectSettingsManager.GetSettingsAsync(coverageProject);
-                return projectSettings.Enabled;
-            }
-            return true;
+            var projectGuid = await GetProjectGuidAsync();
+            if (!projectGuid.HasValue) return false;
+
+            var coverageProject = GetCoverageProject(projectGuid.Value);
+            var projectSettings = await coverageProjectSettingsManager.GetSettingsAsync(coverageProject);
+            return projectSettings.Enabled;
         }
 
         private async Task<Guid?> GetProjectGuidAsync()
@@ -93,23 +88,18 @@ namespace FineCodeCoverage.Core.MsTestPlatform.TestingPlatform
             return null;
         }
 
-        private async Task<CoverageProject> GetCoverageProjectAsync()
+        private CoverageProject GetCoverageProject(Guid projectGuid)
         {
-            var projectGuid = await GetProjectGuidAsync();
-            if (projectGuid.HasValue)
+            return new CoverageProject(appOptionsProvider, null, coverageProjectSettingsManager, null)
             {
-                return new CoverageProject(appOptionsProvider, null, coverageProjectSettingsManager, null)
-                {
-                    Id = projectGuid.Value,
-                    ProjectFile = unconfiguredProject.FullPath
-                };
-            }
-            return null;
+                Id = projectGuid,
+                ProjectFile = unconfiguredProject.FullPath
+            };
         }
 
         public override async Task<IImmutableDictionary<string, string>> GetGlobalPropertiesAsync(CancellationToken cancellationToken)
         {
-            if (!AllProjectsDisabled() && await ProjectEnabledAsync())
+            if (!await IsTUnitAsync() && !AllProjectsDisabled() && await ProjectEnabledAsync())
             {
                 return Empty.PropertiesMap.Add("DisableTestingPlatformServerCapability", "true");
             }
