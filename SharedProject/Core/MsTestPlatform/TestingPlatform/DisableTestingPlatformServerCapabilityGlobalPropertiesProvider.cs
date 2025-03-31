@@ -53,11 +53,16 @@ namespace FineCodeCoverage.Core.MsTestPlatform.TestingPlatform
             return !appOptions.Enabled && appOptions.DisabledNoCoverage;
         }
 
-        private async Task<bool> IsTUnitAsync()
+        private async Task<bool> IsApplicableAsync()
         {
-            var configuredProject = await unconfiguredProject.GetSuggestedConfiguredProjectAsync();
-            var references = await configuredProject.Services.PackageReferences.GetUnresolvedReferencesAsync();
-            return references.Any(r => r.UnevaluatedInclude == TUnitConstants.TUnitPackageId);
+            try
+            {
+                var configuredProject = await unconfiguredProject.GetSuggestedConfiguredProjectAsync();
+                var references = await configuredProject.Services.PackageReferences.GetUnresolvedReferencesAsync();
+                return !references.Any(r => r.UnevaluatedInclude == TUnitConstants.TUnitPackageId);
+            }
+            catch { }
+            return false;
         }
 
         private async Task<bool> ProjectEnabledAsync()
@@ -99,7 +104,7 @@ namespace FineCodeCoverage.Core.MsTestPlatform.TestingPlatform
 
         public override async Task<IImmutableDictionary<string, string>> GetGlobalPropertiesAsync(CancellationToken cancellationToken)
         {
-            if (!await IsTUnitAsync() && !AllProjectsDisabled() && await ProjectEnabledAsync())
+            if (await IsApplicableAsync() && !AllProjectsDisabled() && await ProjectEnabledAsync())
             {
                 return Empty.PropertiesMap.Add("DisableTestingPlatformServerCapability", "true");
             }
