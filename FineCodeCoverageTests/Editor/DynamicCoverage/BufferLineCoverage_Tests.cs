@@ -111,7 +111,7 @@ namespace FineCodeCoverageTests.Editor.DynamicCoverage
 
             autoMoqer.Verify<IEventAggregator>(eventAggregator => eventAggregator.RemoveListener(bufferLineCoverage));
             mockTextView.VerifyRemove(textView => textView.Closed -= It.IsAny<EventHandler>(), Times.Once);
-            mockTextBuffer.VerifyRemove(textBuffer => textBuffer.Changed -= It.IsAny<EventHandler<TextContentChangedEventArgs>>(), Times.Once);
+            mockTextBuffer.VerifyRemove(textBuffer => textBuffer.ChangedOnBackground -= It.IsAny<EventHandler<TextContentChangedEventArgs>>(), Times.Once);
             var mockAppOptionsProvider = autoMoqer.GetMock<IAppOptionsProvider>();
             mockAppOptionsProvider.VerifyRemove(appOptionsProvider => appOptionsProvider.OptionsChanged -= It.IsAny<Action<IAppOptions>>(), Times.Once);
         }
