@@ -36,7 +36,7 @@ namespace FineCodeCoverage.Editor.DynamicCoverage
         public ITextView TextView { get; }
         public ITextBuffer2 TextBuffer { get; }
         public string FilePath => this.TextDocument?.FilePath;
-        public string GetFileText() => File.ReadAllText(this.FilePath);
+        public string GetFileText() => File.Exists(this.FilePath) ? File.ReadAllText(this.FilePath) : null;
         public DateTime GetLastWriteTime() => new FileInfo(this.FilePath).LastWriteTime;
     }
 }
