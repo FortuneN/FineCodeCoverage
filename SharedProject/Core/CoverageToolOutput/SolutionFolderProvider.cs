@@ -11,9 +11,9 @@ namespace FineCodeCoverage.Engine
         {
             string provided = null;
             var directory = new FileInfo(projectFile).Directory;
-            while(directory != null)
+            while (directory != null)
             {
-                var isSolutionDirectory = directory.EnumerateFiles().Any(f => f.Name.EndsWith(".sln"));
+                var isSolutionDirectory = directory.EnumerateFiles().Any(IsSolutionFile);
                 if (isSolutionDirectory)
                 {
                     provided = directory.FullName;
@@ -22,6 +22,11 @@ namespace FineCodeCoverage.Engine
                 directory = directory.Parent;
             }
             return provided;
+        }
+
+        private bool IsSolutionFile(FileInfo fileInfo)
+        {
+            return fileInfo.Name.EndsWith(".sln") || fileInfo.Name.EndsWith(".slnx");
         }
     }
 }
